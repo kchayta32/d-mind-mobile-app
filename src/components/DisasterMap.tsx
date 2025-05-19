@@ -12,9 +12,10 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
 
 interface Earthquake {
   id: string;
@@ -24,44 +25,14 @@ interface Earthquake {
   coordinates: [number, number]; // [latitude, longitude]
 }
 
-// Mock earthquake data for demonstration
-const mockEarthquakes: Earthquake[] = [
-  {
-    id: '1',
-    magnitude: 6.2,
-    location: 'Bangkok, Thailand',
-    time: Date.now() - 24 * 60 * 60 * 1000, // 1 day ago
-    coordinates: [13.7563, 100.5018],
-  },
-  {
-    id: '2',
-    magnitude: 4.8,
-    location: 'Chiang Mai, Thailand',
-    time: Date.now() - 12 * 60 * 60 * 1000, // 12 hours ago
-    coordinates: [18.7883, 98.9853],
-  },
-  {
-    id: '3',
-    magnitude: 5.5,
-    location: 'Phuket, Thailand',
-    time: Date.now() - 2 * 60 * 60 * 1000, // 2 hours ago
-    coordinates: [7.9519, 98.3381],
-  },
-  {
-    id: '4',
-    magnitude: 3.2,
-    location: 'Pattaya, Thailand',
-    time: Date.now() - 6 * 60 * 60 * 1000, // 6 hours ago
-    coordinates: [12.9236, 100.8824],
-  },
-];
-
 const DisasterMap: React.FC = () => {
-  const [earthquakes, setEarthquakes] = useState<Earthquake[]>(mockEarthquakes);
-  const [filteredEarthquakes, setFilteredEarthquakes] = useState<Earthquake[]>(mockEarthquakes);
+  const [earthquakes, setEarthquakes] = useState<Earthquake[]>([]);
+  const [filteredEarthquakes, setFilteredEarthquakes] = useState<Earthquake[]>([]);
   const [magnitudeFilter, setMagnitudeFilter] = useState<number[]>([0]);
   const [timeFilter, setTimeFilter] = useState<string>("all");
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // Custom icon for earthquake markers
   const earthquakeIcon = new Icon({
@@ -72,6 +43,56 @@ const DisasterMap: React.FC = () => {
     popupAnchor: [1, -34],
     shadowSize: [41, 41]
   });
+
+  // Fetch earthquake data from USGS API
+  const fetchEarthquakeData = async () => {
+    setRefreshing(true);
+    setError(null);
+    
+    try {
+      const response = await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson');
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch earthquake data: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Transform GeoJSON features to our Earthquake interface
+      const transformedData: Earthquake[] = data.features.map((feature: any) => ({
+        id: feature.id,
+        magnitude: feature.properties.mag,
+        location: feature.properties.place,
+        time: feature.properties.time,
+        // GeoJSON uses [longitude, latitude] format, but we need [latitude, longitude] for Leaflet
+        coordinates: [feature.geometry.coordinates[1], feature.geometry.coordinates[0]]
+      }));
+      
+      setEarthquakes(transformedData);
+      toast({
+        title: "ข้อมูลอัพเดทแล้ว",
+        description: `พบแผ่นดินไหว ${transformedData.length} ครั้งในรอบ 24 ชั่วโมง`,
+      });
+    } catch (err) {
+      console.error('Error fetching earthquake data:', err);
+      setError('ไม่สามารถโหลดข้อมูลแผ่นดินไหวได้');
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถโหลดข้อมูลแผ่นดินไหวได้",
+        variant: "destructive"
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchEarthquakeData();
+    // Optional: Set up interval to refresh data periodically
+    // const intervalId = setInterval(fetchEarthquakeData, 30 * 60 * 1000); // every 30 minutes
+    // return () => clearInterval(intervalId);
+  }, []);
 
   // Filter earthquakes based on magnitude and time
   useEffect(() => {
@@ -103,15 +124,9 @@ const DisasterMap: React.FC = () => {
     setFilteredEarthquakes(filtered);
   }, [earthquakes, magnitudeFilter, timeFilter]);
 
-  // Simulate refreshing earthquake data
+  // Handle manual refresh button click
   const handleRefresh = () => {
-    setRefreshing(true);
-    
-    // Simulate API call delay
-    setTimeout(() => {
-      // In a real app, you would fetch new data here
-      setRefreshing(false);
-    }, 1000);
+    fetchEarthquakeData();
   };
 
   const formatTime = (timestamp: number) => {
@@ -141,37 +156,47 @@ const DisasterMap: React.FC = () => {
       </CardHeader>
       <CardContent className="p-0 pb-4">
         <div className="relative h-64 sm:h-72 md:h-80 w-full border-b">
-          <MapContainer 
-            center={[15.8700, 100.9925]} // Center of Thailand
-            zoom={5} 
-            style={{ height: '100%', width: '100%' }} 
-            scrollWheelZoom={false}
-            attributionControl={false}
-          >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            />
-            {filteredEarthquakes.map((earthquake) => (
-              <Marker 
-                key={earthquake.id} 
-                position={[earthquake.coordinates[0], earthquake.coordinates[1]]}
-                icon={earthquakeIcon}
-              >
-                <Popup>
-                  <div className="text-sm">
-                    <div className="font-bold">{earthquake.location}</div>
-                    <div>
-                      Magnitude: <Badge variant={getMagnitudeColor(earthquake.magnitude)}>
-                        {earthquake.magnitude}
-                      </Badge>
+          {error ? (
+            <div className="flex flex-col items-center justify-center h-full bg-gray-50">
+              <AlertTriangle className="h-10 w-10 text-destructive mb-2" />
+              <p className="text-destructive">{error}</p>
+              <Button variant="outline" size="sm" className="mt-2" onClick={handleRefresh}>
+                ลองอีกครั้ง
+              </Button>
+            </div>
+          ) : (
+            <MapContainer 
+              center={[15.8700, 100.9925]} // Center of Thailand
+              zoom={3} // Zoomed out to see more earthquakes globally
+              style={{ height: '100%', width: '100%' }} 
+              scrollWheelZoom={false}
+              attributionControl={false}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              />
+              {filteredEarthquakes.map((earthquake) => (
+                <Marker 
+                  key={earthquake.id} 
+                  position={[earthquake.coordinates[0], earthquake.coordinates[1]]}
+                  icon={earthquakeIcon}
+                >
+                  <Popup>
+                    <div className="text-sm">
+                      <div className="font-bold">{earthquake.location}</div>
+                      <div>
+                        Magnitude: <Badge variant={getMagnitudeColor(earthquake.magnitude)}>
+                          {earthquake.magnitude}
+                        </Badge>
+                      </div>
+                      <div>Time: {formatTime(earthquake.time)}</div>
                     </div>
-                    <div>Time: {formatTime(earthquake.time)}</div>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
+                  </Popup>
+                </Marker>
+              ))}
+            </MapContainer>
+          )}
         </div>
 
         {/* Filter controls */}
