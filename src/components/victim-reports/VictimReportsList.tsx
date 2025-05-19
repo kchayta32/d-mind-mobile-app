@@ -60,10 +60,19 @@ const VictimReportsList: React.FC = () => {
         let longitude = 0;
         
         if (report.coordinates) {
-          // If coordinates is an object with latitude and longitude properties
+          // Handle the case when coordinates is an object
           if (typeof report.coordinates === 'object' && report.coordinates !== null) {
-            latitude = Number(report.coordinates.latitude) || 0;
-            longitude = Number(report.coordinates.longitude) || 0;
+            // Check if it's a direct object with latitude/longitude properties
+            if ('latitude' in report.coordinates && 'longitude' in report.coordinates) {
+              latitude = Number(report.coordinates.latitude) || 0;
+              longitude = Number(report.coordinates.longitude) || 0;
+            } 
+            // Handle the case when it might be a JSON string that was parsed
+            else if (typeof report.coordinates === 'object') {
+              const coords = report.coordinates as Record<string, any>;
+              latitude = Number(coords.latitude) || 0;
+              longitude = Number(coords.longitude) || 0;
+            }
           }
         }
         
