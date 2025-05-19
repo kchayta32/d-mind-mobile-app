@@ -8,7 +8,7 @@ import AIChat from '@/components/AIChat';
 import DisasterMap from '@/components/DisasterMap';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, AlertTriangle } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -37,7 +37,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-guardian-light-bg">
       {/* Header */}
-      <header className="bg-guardian-purple text-white p-4">
+      <header className="bg-guardian-purple text-white p-4 flex items-center">
+        <AlertTriangle className="h-6 w-6 text-red-500 mr-2" />
         <h1 className="text-xl font-bold">AI Emergency Guardian</h1>
       </header>
 
