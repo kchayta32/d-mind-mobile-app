@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import EmergencyManual from "./pages/EmergencyManual";
 import EmergencyContacts from "./pages/EmergencyContacts";
 import AIAssistant from "./pages/AIAssistant";
+import ResourceDetail from "./pages/ResourceDetail";
 import LoadingScreen from "./components/LoadingScreen";
 
 // Create a new QueryClient instance
@@ -56,6 +57,7 @@ const App: React.FC = () => {
             <Route path="/manual" element={<EmergencyManual />} />
             <Route path="/contacts" element={<EmergencyContacts />} />
             <Route path="/assistant" element={<AIAssistant />} />
+            <Route path="/resource/:id" element={<ResourceDetail />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

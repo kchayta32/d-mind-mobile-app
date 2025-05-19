@@ -8,19 +8,6 @@ import AIChat from '@/components/AIChat';
 import DisasterMap from '@/components/DisasterMap';
 import { useToast } from '@/components/ui/use-toast';
 
-const resourcesData = [
-  {
-    id: '1',
-    title: 'Flood Safety Guide',
-    description: 'Learn how to prepare and respond to flooding emergencies',
-  },
-  {
-    id: '2',
-    title: 'Earthquake Preparedness',
-    description: 'Essential steps to take before, during and after an earthquake',
-  },
-];
-
 const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -56,7 +43,7 @@ const Index = () => {
         
         <DisasterMap />
         
-        <DisasterResources resources={resourcesData} />
+        <DisasterResources />
         
         <div id="ai-chat">
           <AIChat />

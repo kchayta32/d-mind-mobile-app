@@ -1,24 +1,18 @@
 
 import React from 'react';
 import ResourceCard from './ResourceCard';
-import { useToast } from '@/components/ui/use-toast';
+import { ResourceItem, resourcesData } from '@/data/resourcesData';
+import { useNavigate } from 'react-router-dom';
 
 interface DisasterResourcesProps {
-  resources: Array<{
-    id: string;
-    title: string;
-    description: string;
-  }>;
+  resources?: ResourceItem[];
 }
 
-const DisasterResources: React.FC<DisasterResourcesProps> = ({ resources }) => {
-  const { toast } = useToast();
+const DisasterResources: React.FC<DisasterResourcesProps> = ({ resources = resourcesData }) => {
+  const navigate = useNavigate();
 
-  const handleResourceClick = (title: string) => {
-    toast({
-      title: `Opening ${title}`,
-      description: "This would open the full resource content in a complete app.",
-    });
+  const handleResourceClick = (id: string) => {
+    navigate(`/resource/${id}`);
   };
 
   return (
@@ -29,7 +23,7 @@ const DisasterResources: React.FC<DisasterResourcesProps> = ({ resources }) => {
           key={resource.id}
           title={resource.title}
           description={resource.description}
-          onClick={() => handleResourceClick(resource.title)}
+          onClick={() => handleResourceClick(resource.id)}
         />
       ))}
     </div>
