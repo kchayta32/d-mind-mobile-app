@@ -37,7 +37,7 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container max-w-md mx-auto p-4">
-        <DisasterAlert isActive={false} />
+        <DisasterAlert isActive={true} />
         
         <NavBar 
           onAssistantClick={handleAssistantClick}
