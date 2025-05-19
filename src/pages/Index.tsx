@@ -1,12 +1,70 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import DisasterAlert from '@/components/DisasterAlert';
+import NavBar from '@/components/NavBar';
+import DisasterResources from '@/components/DisasterResources';
+import AIChat from '@/components/AIChat';
+import { useToast } from '@/components/ui/use-toast';
+
+const resourcesData = [
+  {
+    id: '1',
+    title: 'Flood Safety Guide',
+    description: 'Learn how to prepare and respond to flooding emergencies',
+  },
+  {
+    id: '2',
+    title: 'Earthquake Preparedness',
+    description: 'Essential steps to take before, during and after an earthquake',
+  },
+];
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleAssistantClick = () => {
+    toast({
+      title: "AI Assistant",
+      description: "Opening AI Assistant chat...",
+    });
+    // In a complete app, this would open the AI assistant interface
+    // For now, we just scroll to the chat section
+    document.getElementById('ai-chat')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleManualClick = () => {
+    navigate('/manual');
+  };
+
+  const handleContactsClick = () => {
+    navigate('/contacts');
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-guardian-light-bg">
+      {/* Header */}
+      <header className="bg-guardian-purple text-white p-4">
+        <h1 className="text-xl font-bold">AI Emergency Guardian</h1>
+      </header>
+
+      {/* Main Content */}
+      <main className="container max-w-md mx-auto p-4">
+        <DisasterAlert isActive={false} />
+        
+        <NavBar 
+          onAssistantClick={handleAssistantClick}
+          onManualClick={handleManualClick}
+          onContactsClick={handleContactsClick}
+        />
+        
+        <DisasterResources resources={resourcesData} />
+        
+        <div id="ai-chat">
+          <AIChat />
+        </div>
+      </main>
     </div>
   );
 };
