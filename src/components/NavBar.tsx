@@ -18,7 +18,7 @@ const NavBar: React.FC<NavBarProps> = ({
   onAlertsClick
 }) => {
   return (
-    <div className="flex gap-3 mb-6 w-full overflow-x-auto pb-2">
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 w-full">
       <NavButton 
         icon={<MessageSquare size={24} />}
         label="AI Assistant"

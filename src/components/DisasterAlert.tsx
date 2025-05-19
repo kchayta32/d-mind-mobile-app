@@ -91,19 +91,46 @@ const DisasterAlert: React.FC<DisasterAlertProps> = ({
           const nearbyActiveAlerts = alerts
             .filter(alert => alert.coordinates)
             .filter(alert => {
-              const alertCoords = alert.coordinates as [number, number];
+              // Parse coordinates from Supabase's JSON format
+              let alertCoords: [number, number];
+              
+              if (typeof alert.coordinates === 'string') {
+                try {
+                  alertCoords = JSON.parse(alert.coordinates) as [number, number];
+                } catch (e) {
+                  console.error("Invalid coordinates format:", alert.coordinates);
+                  return false;
+                }
+              } else if (Array.isArray(alert.coordinates) && alert.coordinates.length === 2) {
+                alertCoords = alert.coordinates as [number, number];
+              } else {
+                console.error("Unsupported coordinates format:", alert.coordinates);
+                return false;
+              }
+              
               const distance = calculateDistance(userLocation, alertCoords);
               return distance <= 800; // Filter alerts within 800km
             })
+            .map(alert => {
+              // Convert coordinates to the proper format for our AlertType
+              let coords: [number, number];
+              
+              if (typeof alert.coordinates === 'string') {
+                coords = JSON.parse(alert.coordinates) as [number, number];
+              } else if (Array.isArray(alert.coordinates)) {
+                coords = alert.coordinates as [number, number];
+              } else {
+                coords = [0, 0]; // Fallback
+              }
+              
+              return {
+                ...alert,
+                coordinates: coords
+              } as AlertType;
+            })
             .sort((a, b) => {
-              const distA = calculateDistance(
-                userLocation, 
-                a.coordinates as [number, number]
-              );
-              const distB = calculateDistance(
-                userLocation, 
-                b.coordinates as [number, number]
-              );
+              const distA = calculateDistance(userLocation, a.coordinates as [number, number]);
+              const distB = calculateDistance(userLocation, b.coordinates as [number, number]);
               return distA - distB; // Sort by proximity
             });
 
