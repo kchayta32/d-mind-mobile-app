@@ -21,6 +21,7 @@ interface RequestData {
   message: string;
   chatHistory?: Message[];
   systemPrompt?: string;
+  searchQuery?: string;
 }
 
 serve(async (req) => {
@@ -35,12 +36,54 @@ serve(async (req) => {
       throw new Error('OPENAI_API_KEY is not set');
     }
 
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceRole = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceRole) {
+      throw new Error('SUPABASE credentials are not set');
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseServiceRole);
+    
     const requestData: RequestData = await req.json();
-    const { message, chatHistory = [], systemPrompt = "คุณคือผู้ช่วยในแอพเตือนภัยฉุกเฉิน คุณให้คำแนะนำเกี่ยวกับความปลอดภัยและการรับมือกับภัยพิบัติต่างๆ" } = requestData;
+    const { message, chatHistory = [], systemPrompt = "คุณคือผู้ช่วยในแอพเตือนภัยฉุกเฉิน คุณให้คำแนะนำเกี่ยวกับความปลอดภัยและการรับมือกับภัยพิบัติต่างๆ", searchQuery } = requestData;
+
+    // Generate search query from user message if not provided
+    const queryToSearch = searchQuery || message;
+
+    // ค้นหาข้อมูลที่เกี่ยวข้องจากตาราง documents
+    let contextFromDocuments = "";
+    try {
+      const { data: documents, error } = await supabase
+        .from('documents')
+        .select('content')
+        .textSearch('content', queryToSearch, {
+          config: 'simple'
+        })
+        .limit(3);
+
+      if (error) {
+        console.error('Error fetching documents:', error);
+      } else if (documents && documents.length > 0) {
+        contextFromDocuments = "ข้อมูลเพิ่มเติมที่เกี่ยวข้อง:\n\n" + 
+          documents.map(doc => doc.content).join("\n\n");
+        console.log(`Found ${documents.length} relevant documents`);
+      } else {
+        console.log('No relevant documents found');
+      }
+    } catch (searchError) {
+      console.error('Search error:', searchError);
+      // ถ้าเกิดข้อผิดพลาดในการค้นหา ให้ดำเนินการต่อโดยไม่มีข้อมูลเพิ่มเติม
+    }
 
     // สร้างประวัติการแชทและเพิ่มข้อความผู้ใช้ปัจจุบัน
+    const enhancedSystemPrompt = systemPrompt + (contextFromDocuments ? 
+      `\n\nนี่คือข้อมูลที่เกี่ยวข้องที่คุณสามารถใช้ในการตอบคำถาม (ใช้เฉพาะเมื่อข้อมูลมีความเกี่ยวข้องกับคำถาม):\n${contextFromDocuments}` : 
+      "");
+
     const messages: Message[] = [
-      { role: 'system', content: systemPrompt },
+      { role: 'system', content: enhancedSystemPrompt },
       ...chatHistory,
       { role: 'user', content: message }
     ];

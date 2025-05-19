@@ -1,62 +1,98 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-
-type Message = {
-  id: string;
-  content: string;
-  sender: 'user' | 'assistant';
-};
+import { supabase } from '@/integrations/supabase/client';
+import { ChatMessage } from '@/types/chat';
 
 const AIAssistant = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<Message[]>([
+  const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
-      content: "I'm your personal AI assistant. I can help you with information, answer questions, generate content, and more. What would you like to know?",
-      sender: 'assistant'
+      content: "ฉันเป็นผู้ช่วย AI ด้านภัยพิบัติ สามารถช่วยคุณเกี่ยวกับความปลอดภัยและการรับมือกับเหตุฉุกเฉินได้ คุณมีคำถามอะไรไหมคะ?",
+      sender: 'assistant',
+      timestamp: new Date()
     }
   ]);
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const handleGoBack = () => {
     navigate('/');
   };
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (message.trim()) {
-      // Add user message
-      const userMessage: Message = {
-        id: Date.now().toString(),
-        content: message,
-        sender: 'user'
+    if (!message.trim()) return;
+
+    // เพิ่มข้อความของผู้ใช้ในแชท
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      content: message,
+      sender: 'user',
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    setMessage('');
+    setIsLoading(true);
+    
+    try {
+      // สร้างประวัติการแชทในรูปแบบที่ OpenAI ต้องการ
+      const chatHistory = messages.slice(1).map(msg => ({
+        role: msg.sender,
+        content: msg.content
+      }));
+
+      // เรียกใช้ Edge Function
+      const { data, error } = await supabase.functions.invoke('ai-chat', {
+        body: {
+          message,
+          chatHistory
+        }
+      });
+
+      if (error) throw new Error(error.message);
+
+      // เพิ่มข้อความการตอบกลับจาก AI
+      const aiMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        content: data.response,
+        sender: 'assistant',
+        timestamp: new Date()
       };
+
+      setMessages(prev => [...prev, aiMessage]);
       
-      setMessages(prev => [...prev, userMessage]);
-      setMessage('');
+      toast({
+        title: "ข้อความใหม่",
+        description: "ผู้ช่วย AI ได้ตอบกลับข้อความของคุณแล้ว",
+      });
+    } catch (error) {
+      console.error('Error calling AI:', error);
       
-      // Simulate AI response after a short delay
-      setTimeout(() => {
-        const aiMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          content: `Here's a response to "${message}"`,
-          sender: 'assistant'
-        };
-        
-        setMessages(prev => [...prev, aiMessage]);
-        
-        toast({
-          title: "New message",
-          description: "AI Assistant has responded to your message",
-        });
-      }, 1000);
+      toast({
+        title: "ขออภัย",
+        description: "เกิดข้อผิดพลาดในการเรียกใช้ AI กรุณาลองอีกครั้ง",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -73,8 +109,8 @@ const AIAssistant = () => {
           <ArrowLeft size={24} />
         </Button>
         <div>
-          <h1 className="text-xl font-bold">AI Assistant</h1>
-          <p className="text-sm opacity-80">How can I help you today?</p>
+          <h1 className="text-xl font-bold">ผู้ช่วย AI</h1>
+          <p className="text-sm opacity-80">สอบถามข้อมูลเกี่ยวกับความปลอดภัยและภัยพิบัติ</p>
         </div>
       </header>
 
@@ -98,9 +134,9 @@ const AIAssistant = () => {
                   : 'bg-white rounded-bl-none'
               }`}
             >
-              {msg.sender === 'assistant' && <div className="font-semibold mb-1">AI Assistant</div>}
-              {msg.sender === 'user' && <div className="font-semibold mb-1 text-right">You</div>}
-              <p className="text-sm">{msg.content}</p>
+              {msg.sender === 'assistant' && <div className="font-semibold mb-1">ผู้ช่วย AI</div>}
+              {msg.sender === 'user' && <div className="font-semibold mb-1 text-right">คุณ</div>}
+              <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
             </div>
             
             {msg.sender === 'user' && (
@@ -110,6 +146,23 @@ const AIAssistant = () => {
             )}
           </div>
         ))}
+        
+        {isLoading && (
+          <div className="flex justify-start mb-4">
+            <div className="bg-guardian-purple text-white rounded-full w-8 h-8 flex items-center justify-center mr-2">
+              <span className="text-lg">AI</span>
+            </div>
+            <div className="px-4 py-3 rounded-2xl bg-white rounded-bl-none max-w-[80%]">
+              <div className="font-semibold mb-1">ผู้ช่วย AI</div>
+              <div className="flex items-center">
+                <Loader2 size={16} className="animate-spin mr-2" />
+                <span className="text-sm">กำลังพิมพ์...</span>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Input Area */}
@@ -118,11 +171,16 @@ const AIAssistant = () => {
           <Input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type your message..."
+            placeholder="ถามคำถามเกี่ยวกับภัยพิบัติหรือความช่วยเหลือฉุกเฉิน..."
             className="flex-1"
+            disabled={isLoading}
           />
-          <Button type="submit" className="bg-guardian-purple hover:bg-guardian-purple/90 rounded-full w-10 h-10 p-0 flex items-center justify-center">
-            <Send size={18} />
+          <Button 
+            type="submit" 
+            className="bg-guardian-purple hover:bg-guardian-purple/90 rounded-full w-10 h-10 p-0 flex items-center justify-center"
+            disabled={isLoading}
+          >
+            {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
           </Button>
         </form>
       </div>
