@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+import { Json } from '@/integrations/supabase/types';
 
 interface EmergencyArticle {
   id?: number;
@@ -14,6 +15,22 @@ interface EmergencyArticle {
     summary?: string;
   };
 }
+
+// Helper function to safely convert Json type to EmergencyArticle metadata
+const convertMetadata = (metadata: Json | null): EmergencyArticle['metadata'] => {
+  if (!metadata || typeof metadata !== 'object') {
+    return {};
+  }
+  
+  // Type assertion after validating it's an object
+  const meta = metadata as Record<string, unknown>;
+  
+  return {
+    title: typeof meta.title === 'string' ? meta.title : undefined,
+    category: typeof meta.category === 'string' ? meta.category : undefined,
+    summary: typeof meta.summary === 'string' ? meta.summary : undefined,
+  };
+};
 
 const EmergencyArticles: React.FC = () => {
   const [articles, setArticles] = useState<EmergencyArticle[]>([]);
@@ -33,7 +50,14 @@ const EmergencyArticles: React.FC = () => {
           throw error;
         }
 
-        setArticles(data || []);
+        // Convert the data to match our EmergencyArticle interface
+        const formattedArticles: EmergencyArticle[] = (data || []).map(item => ({
+          id: item.id || undefined,
+          content: item.content || undefined,
+          metadata: convertMetadata(item.metadata),
+        }));
+
+        setArticles(formattedArticles);
       } catch (err) {
         console.error('Error fetching emergency articles:', err);
         setError('ไม่สามารถโหลดข้อมูลบทความได้ กรุณาลองอีกครั้งภายหลัง');
