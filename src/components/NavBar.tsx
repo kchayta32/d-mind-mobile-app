@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import NavButton from './NavButton';
 import { MessageSquare, Phone, BookOpen } from 'lucide-react';
 

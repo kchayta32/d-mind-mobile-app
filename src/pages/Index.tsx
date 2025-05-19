@@ -25,13 +25,7 @@ const Index = () => {
   const { toast } = useToast();
 
   const handleAssistantClick = () => {
-    toast({
-      title: "AI Assistant",
-      description: "Opening AI Assistant chat...",
-    });
-    // In a complete app, this would open the AI assistant interface
-    // For now, we just scroll to the chat section
-    document.getElementById('ai-chat')?.scrollIntoView({ behavior: 'smooth' });
+    navigate('/assistant');
   };
 
   const handleManualClick = () => {
