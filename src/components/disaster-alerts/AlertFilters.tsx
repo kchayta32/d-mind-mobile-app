@@ -18,7 +18,8 @@ const typeTranslations: Record<string, string> = {
   'storm': 'พายุ',
   'flood': 'น้ำท่วม',
   'strongwind': 'ลมแรง',
-  'heavyrain': 'ฝนตกหนัก'
+  'heavyrain': 'ฝนตกหนัก',
+  'wildfire': 'ไฟป่า'
 };
 
 const severityTranslations: Record<string, string> = {

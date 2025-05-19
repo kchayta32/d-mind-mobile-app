@@ -3,7 +3,7 @@ import React from 'react';
 import { DisasterAlert } from './types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Calendar, MapPin } from 'lucide-react';
+import { AlertTriangle, Calendar, MapPin, Flame } from 'lucide-react';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 
@@ -32,6 +32,11 @@ const typeConfig: Record<string, { icon: React.ReactNode, color: string, label: 
     icon: <AlertTriangle className="h-5 w-5" />, 
     color: "bg-indigo-100 text-indigo-800", 
     label: "ฝนตกหนัก" 
+  },
+  'wildfire': { 
+    icon: <Flame className="h-5 w-5" />, 
+    color: "bg-red-100 text-red-800", 
+    label: "ไฟป่า" 
   }
 };
 

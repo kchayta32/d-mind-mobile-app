@@ -1,7 +1,7 @@
 
 export interface DisasterAlert {
   id: string;
-  type: 'storm' | 'flood' | 'strongwind' | 'heavyrain' | string;
+  type: 'storm' | 'flood' | 'strongwind' | 'heavyrain' | 'wildfire' | string;
   severity: 'low' | 'medium' | 'high' | 'severe' | string;
   location: string;
   description?: string;
