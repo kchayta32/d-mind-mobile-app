@@ -150,6 +150,39 @@ export type Database = {
         }
         Relationships: []
       }
+      victim_reports: {
+        Row: {
+          contact: string | null
+          coordinates: Json
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          contact?: string | null
+          coordinates: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          contact?: string | null
+          coordinates?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       "เตือนภัย CAP": {
         Row: {
           content: string | null

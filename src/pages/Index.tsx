@@ -6,7 +6,9 @@ import NavBar from '@/components/NavBar';
 import DisasterResources from '@/components/DisasterResources';
 import AIChat from '@/components/AIChat';
 import DisasterMap from '@/components/DisasterMap';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { MessageSquare } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -27,6 +29,10 @@ const Index = () => {
   const handleAlertsClick = () => {
     navigate('/alerts');
   };
+  
+  const handleVictimReportsClick = () => {
+    navigate('/victim-reports');
+  };
 
   return (
     <div className="min-h-screen bg-guardian-light-bg">
@@ -45,6 +51,17 @@ const Index = () => {
           onContactsClick={handleContactsClick}
           onAlertsClick={handleAlertsClick}
         />
+        
+        {/* Victim Reports Button */}
+        <div className="my-4">
+          <Button 
+            className="w-full bg-red-600 hover:bg-red-700 text-white"
+            onClick={handleVictimReportsClick}
+          >
+            <MessageSquare className="mr-2 h-4 w-4" />
+            รายงานสถานะผู้ประสบภัย
+          </Button>
+        </div>
         
         <DisasterMap />
         
