@@ -55,22 +55,39 @@ serve(async (req) => {
     // ค้นหาข้อมูลที่เกี่ยวข้องจากตาราง documents
     let contextFromDocuments = "";
     try {
-      const { data: documents, error } = await supabase
-        .from('documents')
-        .select('content')
-        .textSearch('content', queryToSearch, {
-          config: 'simple'
-        })
-        .limit(3);
+      // แบ่งคำค้นหาเป็นคำย่อยเพื่อป้องกันข้อผิดพลาด syntax error in tsquery
+      const searchTerms = queryToSearch.split(/\s+/).filter(term => {
+        // กรองคำที่มีแนวโน้มสร้างปัญหากับ tsquery
+        const invalidChars = /['"\\:&|!()[\]{}<>=@\-\+\*\?]/g;
+        return term.length > 1 && !invalidChars.test(term);
+      });
+      
+      // หากมีคำค้นหาที่ใช้ได้
+      if (searchTerms.length > 0) {
+        // สร้าง simple query แบบปลอดภัย
+        const safeQuery = searchTerms.join(' | '); // ใช้ OR operator ระหว่างคำ
+        
+        console.log(`Searching with terms: ${safeQuery}`);
+        
+        const { data: documents, error } = await supabase
+          .from('documents')
+          .select('content, metadata')
+          .textSearch('content', safeQuery, {
+            config: 'simple'
+          })
+          .limit(3);
 
-      if (error) {
-        console.error('Error fetching documents:', error);
-      } else if (documents && documents.length > 0) {
-        contextFromDocuments = "ข้อมูลเพิ่มเติมที่เกี่ยวข้อง:\n\n" + 
-          documents.map(doc => doc.content).join("\n\n");
-        console.log(`Found ${documents.length} relevant documents`);
+        if (error) {
+          console.error('Error fetching documents:', error);
+        } else if (documents && documents.length > 0) {
+          contextFromDocuments = "ข้อมูลเพิ่มเติมที่เกี่ยวข้อง:\n\n" + 
+            documents.map(doc => doc.content).join("\n\n");
+          console.log(`Found ${documents.length} relevant documents`);
+        } else {
+          console.log('No relevant documents found');
+        }
       } else {
-        console.log('No relevant documents found');
+        console.log('No valid search terms found in query');
       }
     } catch (searchError) {
       console.error('Search error:', searchError);
