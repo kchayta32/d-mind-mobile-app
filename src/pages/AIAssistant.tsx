@@ -97,51 +97,62 @@ const AIAssistant = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600">
       {/* Header */}
-      <header className="bg-guardian-purple text-white p-4 flex items-center">
+      <header className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 flex items-center shadow-lg">
         <Button 
           variant="ghost" 
           size="icon"
-          className="text-white mr-2 hover:bg-guardian-dark-purple"
+          className="text-white mr-3 hover:bg-blue-500/30 rounded-full"
           onClick={handleGoBack}
         >
           <ArrowLeft size={24} />
         </Button>
-        <div>
-          <h1 className="text-xl font-bold">ผู้ช่วย AI</h1>
-          <p className="text-sm opacity-80">สอบถามข้อมูลเกี่ยวกับความปลอดภัยและภัยพิบัติ</p>
+        <div className="flex items-center">
+          <img 
+            src="/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png" 
+            alt="D-MIND Logo" 
+            className="h-8 w-8 mr-3"
+          />
+          <div>
+            <h1 className="text-xl font-bold">ผู้ช่วย AI D-MIND</h1>
+            <p className="text-sm opacity-90">สอบถามข้อมูลเกี่ยวกับความปลอดภัยและภัยพิบัติ</p>
+          </div>
         </div>
       </header>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4 bg-guardian-light-bg">
+      <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-blue-50 to-white">
         {messages.map((msg) => (
           <div
             key={msg.id}
             className={`mb-4 flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {msg.sender === 'assistant' && (
-              <div className="bg-guardian-purple text-white rounded-full w-8 h-8 flex items-center justify-center mr-2">
-                <span className="text-lg">AI</span>
+              <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center mr-3 shadow-md">
+                <img 
+                  src="/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png" 
+                  alt="AI" 
+                  className="w-6 h-6"
+                />
               </div>
             )}
             
             <div 
-              className={`px-4 py-3 rounded-2xl max-w-[80%] ${
+              className={`px-5 py-4 rounded-2xl max-w-[80%] shadow-md ${
                 msg.sender === 'user' 
-                  ? 'bg-purple-100 ml-auto rounded-br-none' 
-                  : 'bg-white rounded-bl-none'
+                  ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white ml-auto rounded-br-md' 
+                  : 'bg-white text-gray-800 rounded-bl-md border border-blue-100'
               }`}
             >
-              {msg.sender === 'assistant' && <div className="font-semibold mb-1">ผู้ช่วย AI</div>}
-              {msg.sender === 'user' && <div className="font-semibold mb-1 text-right">คุณ</div>}
-              <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+              {msg.sender === 'assistant' && <div className="font-semibold mb-2 text-blue-600">ผู้ช่วย AI D-MIND</div>}
+              {msg.sender === 'user' && <div className="font-semibold mb-2 text-right text-blue-100">คุณ</div>}
+              <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
             </div>
             
             {msg.sender === 'user' && (
-              <div className="bg-gray-400 text-white rounded-full w-8 h-8 flex items-center justify-center ml-2">
-                <span className="text-lg">U</span>
+              <div className="bg-gradient-to-br from-gray-400 to-gray-500 text-white rounded-full w-10 h-10 flex items-center justify-center ml-3 shadow-md">
+                <span className="text-lg font-semibold">U</span>
               </div>
             )}
           </div>
@@ -149,14 +160,18 @@ const AIAssistant = () => {
         
         {isLoading && (
           <div className="flex justify-start mb-4">
-            <div className="bg-guardian-purple text-white rounded-full w-8 h-8 flex items-center justify-center mr-2">
-              <span className="text-lg">AI</span>
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center mr-3 shadow-md">
+              <img 
+                src="/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png" 
+                alt="AI" 
+                className="w-6 h-6"
+              />
             </div>
-            <div className="px-4 py-3 rounded-2xl bg-white rounded-bl-none max-w-[80%]">
-              <div className="font-semibold mb-1">ผู้ช่วย AI</div>
+            <div className="px-5 py-4 rounded-2xl bg-white rounded-bl-md max-w-[80%] shadow-md border border-blue-100">
+              <div className="font-semibold mb-2 text-blue-600">ผู้ช่วย AI D-MIND</div>
               <div className="flex items-center">
-                <Loader2 size={16} className="animate-spin mr-2" />
-                <span className="text-sm">กำลังพิมพ์...</span>
+                <Loader2 size={16} className="animate-spin mr-2 text-blue-500" />
+                <span className="text-sm text-gray-600">กำลังพิมพ์...</span>
               </div>
             </div>
           </div>
@@ -166,21 +181,21 @@ const AIAssistant = () => {
       </div>
 
       {/* Input Area */}
-      <div className="p-4 border-t">
-        <form onSubmit={handleSendMessage} className="flex gap-2">
+      <div className="p-4 bg-white border-t border-blue-200 shadow-lg">
+        <form onSubmit={handleSendMessage} className="flex gap-3">
           <Input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="ถามคำถามเกี่ยวกับภัยพิบัติหรือความช่วยเหลือฉุกเฉิน..."
-            className="flex-1"
+            className="flex-1 border-blue-200 focus:border-blue-400 focus:ring-blue-400 rounded-full px-4 py-3"
             disabled={isLoading}
           />
           <Button 
             type="submit" 
-            className="bg-guardian-purple hover:bg-guardian-purple/90 rounded-full w-10 h-10 p-0 flex items-center justify-center"
+            className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-full w-12 h-12 p-0 flex items-center justify-center shadow-md"
             disabled={isLoading}
           >
-            {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+            {isLoading ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
           </Button>
         </form>
       </div>
