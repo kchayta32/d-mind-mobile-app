@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { Progress } from '@/components/ui/progress';
-import { Circle } from 'lucide-react';
 
 const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
   const [progress, setProgress] = useState(0);
@@ -26,7 +25,11 @@ const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-400 to-blue-600 flex flex-col items-center justify-center">
       <div className="flex flex-col items-center gap-6">
-        <Circle className="h-24 w-24 text-white/80 stroke-[1.5]" />
+        <img 
+          src="/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png" 
+          alt="D-MIND Logo" 
+          className="h-24 w-24"
+        />
         
         <h1 className="text-3xl font-bold text-white">
           D-MIND
