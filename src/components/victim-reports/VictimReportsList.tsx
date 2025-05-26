@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -113,7 +112,7 @@ const VictimReportsList: React.FC = () => {
   if (isLoading && !refreshing) {
     return (
       <div className="flex justify-center items-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-guardian-purple" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
     );
   }
@@ -122,7 +121,7 @@ const VictimReportsList: React.FC = () => {
     return (
       <div className="text-center py-8">
         <p className="text-red-500 mb-4">{error}</p>
-        <Button variant="outline" onClick={fetchReports}>ลองใหม่</Button>
+        <Button variant="outline" onClick={fetchReports} className="border-blue-200 text-blue-600 hover:bg-blue-50">ลองใหม่</Button>
       </div>
     );
   }
@@ -131,7 +130,7 @@ const VictimReportsList: React.FC = () => {
     return (
       <div className="text-center py-8">
         <p className="text-gray-500 mb-2">ยังไม่มีรายงานสถานะผู้ประสบภัย</p>
-        <Button variant="outline" onClick={handleRefresh} className="mt-2">
+        <Button variant="outline" onClick={handleRefresh} className="mt-2 border-blue-200 text-blue-600 hover:bg-blue-50">
           <RefreshCw className="mr-2 h-4 w-4" />
           รีเฟรช
         </Button>
@@ -142,22 +141,23 @@ const VictimReportsList: React.FC = () => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">รายงานล่าสุด</h2>
+        <h2 className="text-lg font-semibold text-blue-700">รายงานล่าสุด</h2>
         <Button 
           variant="ghost" 
           size="sm" 
           onClick={handleRefresh}
           disabled={refreshing}
+          className="text-blue-600 hover:bg-blue-50"
         >
           <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
         </Button>
       </div>
       
       {reports.map((report) => (
-        <Card key={report.id} className="overflow-hidden">
+        <Card key={report.id} className="overflow-hidden border-blue-200 shadow-md">
           <CardContent className="p-4">
             <div className="flex justify-between items-start">
-              <h3 className="font-semibold">{report.name}</h3>
+              <h3 className="font-semibold text-blue-700">{report.name}</h3>
               <Badge className={`${getStatusColor(report.status)} border`}>
                 {report.status}
               </Badge>
@@ -180,7 +180,7 @@ const VictimReportsList: React.FC = () => {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  className="text-xs"
+                  className="text-xs border-blue-200 text-blue-600 hover:bg-blue-50"
                   onClick={() => openInMaps(report.coordinates.latitude, report.coordinates.longitude)}
                 >
                   ดูในแผนที่
