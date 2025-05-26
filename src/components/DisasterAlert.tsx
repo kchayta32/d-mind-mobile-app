@@ -171,7 +171,7 @@ const DisasterAlert: React.FC<DisasterAlertProps> = ({
   const hasNearbyAlerts = nearbyAlerts.length > 0;
 
   return (
-    <Card className="w-full bg-guardian-dark-purple text-white shadow-md mb-4">
+    <Card className="w-full bg-guardian-dark-blue text-white shadow-md mb-4">
       <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
         <CardTitle className="text-lg font-medium">การแจ้งเตือนภัยพิบัติ</CardTitle>
         {hasNearbyAlerts ? 

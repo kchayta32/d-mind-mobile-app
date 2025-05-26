@@ -101,8 +101,8 @@ const AIChat: React.FC = () => {
               <div
                 className={`px-4 py-2 rounded-lg max-w-[80%] ${
                   msg.sender === 'user'
-                    ? 'bg-purple-100 text-black rounded-br-none'
-                    : 'bg-guardian-purple text-white rounded-bl-none'
+                    ? 'bg-guardian-light-blue text-guardian-dark-blue rounded-br-none'
+                    : 'bg-guardian-blue text-white rounded-bl-none'
                 }`}
               >
                 {msg.content}
@@ -111,7 +111,7 @@ const AIChat: React.FC = () => {
           ))}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="px-4 py-2 rounded-lg bg-guardian-purple text-white rounded-bl-none flex items-center">
+              <div className="px-4 py-2 rounded-lg bg-guardian-blue text-white rounded-bl-none flex items-center">
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 กำลังพิมพ์...
               </div>
@@ -131,7 +131,7 @@ const AIChat: React.FC = () => {
           />
           <Button 
             type="submit" 
-            className="bg-guardian-purple hover:bg-guardian-purple/90"
+            className="bg-guardian-blue hover:bg-guardian-dark-blue"
             disabled={isLoading}
           >
             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
