@@ -29,7 +29,7 @@ const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
         <Circle className="h-24 w-24 text-white/80 stroke-[1.5]" />
         
         <h1 className="text-3xl font-bold text-white">
-          AI Emergency Guardian
+          D-MIND
         </h1>
         
         <div className="text-xl text-white/80">
