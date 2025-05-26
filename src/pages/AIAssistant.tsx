@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ChatMessage } from '@/types/chat';
+import QuestionGuide from '@/components/QuestionGuide';
 
 const AIAssistant = () => {
   const navigate = useNavigate();
@@ -23,6 +24,9 @@ const AIAssistant = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Show guide only when there's just the initial message
+  const showQuestionGuide = messages.length === 1;
+
   const handleGoBack = () => {
     navigate('/');
   };
@@ -34,6 +38,14 @@ const AIAssistant = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const handleQuestionSelect = (question: string) => {
+    setMessage(question);
+    // Auto-submit the selected question
+    setTimeout(() => {
+      handleSendMessage(new Event('submit') as any);
+    }, 100);
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,6 +132,12 @@ const AIAssistant = () => {
           </div>
         </div>
       </header>
+
+      {/* Question Guide */}
+      <QuestionGuide 
+        onQuestionSelect={handleQuestionSelect}
+        isVisible={showQuestionGuide}
+      />
 
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-blue-50 to-white">
