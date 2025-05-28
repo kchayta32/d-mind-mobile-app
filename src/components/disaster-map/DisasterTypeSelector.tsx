@@ -16,9 +16,10 @@ import {
   Flame, 
   Wind
 } from 'lucide-react';
+import { DisasterType } from './DisasterMap';
 
-interface DisasterType {
-  id: string;
+interface DisasterTypeOption {
+  id: DisasterType;
   name: string;
   icon: React.ReactNode;
   color: string;
@@ -26,11 +27,11 @@ interface DisasterType {
 }
 
 interface DisasterTypeSelectorProps {
-  selectedType: string;
-  onTypeChange: (type: string) => void;
+  selectedType: DisasterType;
+  onTypeChange: (type: DisasterType) => void;
 }
 
-const disasterTypes: DisasterType[] = [
+const disasterTypes: DisasterTypeOption[] = [
   {
     id: 'earthquake',
     name: 'แผ่นดินไหว',
