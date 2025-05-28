@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface NavButtonProps {
   icon: React.ReactNode;
@@ -11,6 +12,8 @@ interface NavButtonProps {
 }
 
 const NavButton: React.FC<NavButtonProps> = ({ icon, label, onClick, className }) => {
+  const isMobile = useIsMobile();
+
   return (
     <Button 
       variant="outline" 
@@ -22,7 +25,7 @@ const NavButton: React.FC<NavButtonProps> = ({ icon, label, onClick, className }
     >
       <div className="flex items-center gap-2">
         {icon}
-        <span className="text-sm font-medium">{label}</span>
+        {!isMobile && <span className="text-sm font-medium">{label}</span>}
       </div>
     </Button>
   );

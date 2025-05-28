@@ -72,7 +72,7 @@ const Index = () => {
             <DisasterAlert isActive={true} />
           </div>
           
-          {/* Navigation Section */}
+          {/* Navigation Section - Now icon-only */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
               <div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full mr-3"></div>
@@ -86,10 +86,10 @@ const Index = () => {
             />
           </div>
           
-          {/* Emergency Report Button */}
+          {/* Emergency Report Button - Now red color */}
           <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-2xl shadow-lg p-1">
             <Button 
-              className="w-full bg-white hover:bg-red-50 text-red-600 hover:text-red-700 shadow-none border-0 rounded-xl py-4 font-semibold text-base transition-all duration-200"
+              className="w-full bg-red-600 hover:bg-red-700 text-white shadow-none border-0 rounded-xl py-4 font-semibold text-base transition-all duration-200"
               onClick={handleVictimReportsClick}
             >
               <MessageSquare className="mr-3 h-5 w-5" />
@@ -97,7 +97,7 @@ const Index = () => {
             </Button>
           </div>
           
-          {/* Disaster Map Section */}
+          {/* Disaster Map Section - Now scrollable */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
             <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-gray-100">
               <h2 className="text-lg font-semibold text-gray-800 flex items-center">
@@ -106,8 +106,10 @@ const Index = () => {
               </h2>
               <p className="text-sm text-gray-600 mt-1">ข้อมูลสถานการณ์แบบเรียลไทม์</p>
             </div>
-            <div className="h-80 relative">
-              <DisasterMap />
+            <div className="h-96 relative overflow-auto">
+              <div className="min-h-full">
+                <DisasterMap />
+              </div>
             </div>
           </div>
           
