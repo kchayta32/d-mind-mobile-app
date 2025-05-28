@@ -41,7 +41,7 @@ const NavBar: React.FC<NavBarProps> = ({
         />
         <NavButton 
           icon={<Bell size={24} />}
-          label="การแจ้งเตือนภัยทั้งหมด"
+          label="การแจ้งเตือนภัยอื่นๆ"
           onClick={onAlertsClick}
         />
       </div>
@@ -71,7 +71,7 @@ const NavBar: React.FC<NavBarProps> = ({
       />
       <NavButton 
         icon={<Bell size={20} />}
-        label="การแจ้งเตือนภัยทั้งหมด"
+        label="การแจ้งเตือนภัยอื่นๆ"
         onClick={onAlertsClick}
         className="w-full justify-start text-left"
       />
