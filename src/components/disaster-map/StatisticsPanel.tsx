@@ -19,43 +19,43 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
 }) => {
   const renderEarthquakeStats = (earthquakeStats: EarthquakeStats) => (
     <>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex items-center space-x-2">
-          <Activity className="h-4 w-4 text-blue-500" />
-          <div>
-            <p className="text-2xl font-bold">{earthquakeStats.total}</p>
-            <p className="text-xs text-gray-500">รวมทั้งหมด</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
+          <Activity className="h-5 w-5 text-blue-500 flex-shrink-0" />
+          <div className="min-w-0">
+            <p className="text-2xl font-bold text-blue-700">{earthquakeStats.total}</p>
+            <p className="text-sm text-gray-600">รวมทั้งหมด</p>
           </div>
         </div>
         
-        <div className="flex items-center space-x-2">
-          <Clock className="h-4 w-4 text-orange-500" />
-          <div>
-            <p className="text-2xl font-bold">{earthquakeStats.last24Hours}</p>
-            <p className="text-xs text-gray-500">24 ชม. ที่แล้ว</p>
+        <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg">
+          <Clock className="h-5 w-5 text-orange-500 flex-shrink-0" />
+          <div className="min-w-0">
+            <p className="text-2xl font-bold text-orange-700">{earthquakeStats.last24Hours}</p>
+            <p className="text-sm text-gray-600">24 ชม. ที่แล้ว</p>
           </div>
         </div>
       </div>
 
-      <div className="space-y-2 pt-2">
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600">ค่าเฉลี่ย:</span>
-          <Badge variant="outline">
+      <div className="space-y-3 pt-4">
+        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+          <span className="text-sm font-medium text-gray-700">ค่าเฉลี่ย:</span>
+          <Badge variant="outline" className="ml-2">
             {earthquakeStats.averageMagnitude.toFixed(1)}
           </Badge>
         </div>
         
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600">สูงสุด:</span>
-          <Badge variant="outline" className="text-red-600">
+        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+          <span className="text-sm font-medium text-gray-700">สูงสุด:</span>
+          <Badge variant="outline" className="text-red-600 ml-2">
             <TrendingUp className="h-3 w-3 mr-1" />
             {earthquakeStats.maxMagnitude.toFixed(1)}
           </Badge>
         </div>
         
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600">รุนแรง:</span>
-          <Badge variant={earthquakeStats.significantCount > 0 ? "destructive" : "secondary"}>
+        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+          <span className="text-sm font-medium text-gray-700">รุนแรง:</span>
+          <Badge variant={earthquakeStats.significantCount > 0 ? "destructive" : "secondary"} className="ml-2">
             <AlertTriangle className="h-3 w-3 mr-1" />
             {earthquakeStats.significantCount}
           </Badge>
@@ -66,44 +66,44 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
 
   const renderRainSensorStats = (rainStats: RainSensorStats) => (
     <>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex items-center space-x-2">
-          <Droplets className="h-4 w-4 text-blue-500" />
-          <div>
-            <p className="text-2xl font-bold">{rainStats.total}</p>
-            <p className="text-xs text-gray-500">เซ็นเซอร์ทั้งหมด</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
+          <Droplets className="h-5 w-5 text-blue-500 flex-shrink-0" />
+          <div className="min-w-0">
+            <p className="text-2xl font-bold text-blue-700">{rainStats.total}</p>
+            <p className="text-sm text-gray-600">เซ็นเซอร์ทั้งหมด</p>
           </div>
         </div>
         
-        <div className="flex items-center space-x-2">
-          <Clock className="h-4 w-4 text-orange-500" />
-          <div>
-            <p className="text-2xl font-bold">{rainStats.last24Hours}</p>
-            <p className="text-xs text-gray-500">24 ชม. ที่แล้ว</p>
+        <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg">
+          <Clock className="h-5 w-5 text-orange-500 flex-shrink-0" />
+          <div className="min-w-0">
+            <p className="text-2xl font-bold text-orange-700">{rainStats.last24Hours}</p>
+            <p className="text-sm text-gray-600">24 ชม. ที่แล้ว</p>
           </div>
         </div>
       </div>
 
-      <div className="space-y-2 pt-2">
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600">กำลังฝนตก:</span>
-          <Badge variant={rainStats.activeRaining > 0 ? "destructive" : "secondary"}>
+      <div className="space-y-3 pt-4">
+        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+          <span className="text-sm font-medium text-gray-700">กำลังฝนตก:</span>
+          <Badge variant={rainStats.activeRaining > 0 ? "destructive" : "secondary"} className="ml-2">
             <Droplets className="h-3 w-3 mr-1" />
             {rainStats.activeRaining}
           </Badge>
         </div>
         
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600">ความชื้นเฉลี่ย:</span>
-          <Badge variant="outline">
+        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+          <span className="text-sm font-medium text-gray-700">ความชื้นเฉลี่ย:</span>
+          <Badge variant="outline" className="ml-2">
             <Gauge className="h-3 w-3 mr-1" />
             {rainStats.averageHumidity}%
           </Badge>
         </div>
         
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600">ความชื้นสูงสุด:</span>
-          <Badge variant="outline" className="text-blue-600">
+        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+          <span className="text-sm font-medium text-gray-700">ความชื้นสูงสุด:</span>
+          <Badge variant="outline" className="text-blue-600 ml-2">
             <TrendingUp className="h-3 w-3 mr-1" />
             {rainStats.maxHumidity}%
           </Badge>
@@ -137,11 +137,11 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
+    <Card className="h-full">
+      <CardHeader className="pb-3">
         <CardTitle className="text-lg">{getTitle()}</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-4">
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>

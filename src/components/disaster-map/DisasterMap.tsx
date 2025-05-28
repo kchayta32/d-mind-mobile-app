@@ -82,9 +82,9 @@ const DisasterMap: React.FC = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-200px)]">
-        {/* Statistics and Filters */}
-        <div className="lg:col-span-1 space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 h-[calc(100vh-200px)]">
+        {/* Statistics and Filters - Wider on desktop */}
+        <div className="lg:col-span-2 xl:col-span-1 space-y-4">
           <StatisticsPanel 
             stats={currentData.stats} 
             isLoading={currentData.isLoading}
@@ -100,8 +100,8 @@ const DisasterMap: React.FC = () => {
           />
         </div>
 
-        {/* Map */}
-        <div className="lg:col-span-3">
+        {/* Map - Responsive width */}
+        <div className="lg:col-span-3 xl:col-span-4">
           <Card className="h-full">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">
