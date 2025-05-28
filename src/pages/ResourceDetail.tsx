@@ -104,13 +104,7 @@ const ResourceDetail = () => {
         </Button>
 
         <article className="bg-white p-6 rounded-lg shadow-md">
-          {/* Content - Now displayed first */}
-          <div className="prose max-w-none mb-6">
-            {renderContent(resource.content)}
-          </div>
-
-          {/* Header information - Now displayed after content */}
-          <header className="mb-6 border-t pt-6">
+          <header className="mb-6">
             <h1 className="text-2xl font-bold mb-2">{resource.title}</h1>
             <p className="text-gray-500 mb-4">{resource.description}</p>
             
@@ -138,6 +132,10 @@ const ResourceDetail = () => {
               />
             </div>
           )}
+
+          <div className="prose max-w-none">
+            {renderContent(resource.content)}
+          </div>
         </article>
       </main>
     </div>
