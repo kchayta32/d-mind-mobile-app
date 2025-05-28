@@ -112,7 +112,7 @@ const DisasterMap: React.FC = () => {
                 {selectedType === 'storm' && 'แผนที่พายุ (เร็วๆ นี้)'}
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0 h-[calc(100%-60px)]">
+            <CardContent className="p-0 h-[calc(100%-60px)] min-h-[600px]">
               <MapView 
                 earthquakes={selectedType === 'earthquake' ? earthquakeData.earthquakes : []}
                 rainSensors={selectedType === 'heavyrain' ? rainSensorData.sensors : []}
