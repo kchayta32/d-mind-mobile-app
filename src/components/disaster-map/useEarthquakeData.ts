@@ -43,13 +43,14 @@ export const useEarthquakeData = () => {
     };
   }, [earthquakes]);
 
-  // Fetch earthquake data from USGS API
+  // Fetch earthquake data from USGS API - Updated to use magnitude 2.5+ feed
   const fetchEarthquakeData = async () => {
     setRefreshing(true);
     setError(null);
     
     try {
-      const response = await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson');
+      // Updated to use magnitude 2.5+ feed for better data quality
+      const response = await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson');
       
       if (!response.ok) {
         throw new Error(`Failed to fetch earthquake data: ${response.status}`);
@@ -83,7 +84,7 @@ export const useEarthquakeData = () => {
       setEarthquakes(transformedData);
       toast({
         title: "ข้อมูลอัพเดทแล้ว",
-        description: `พบแผ่นดินไหว ${transformedData.length} ครั้งในรอบ 24 ชั่วโมง`,
+        description: `พบแผ่นดินไหวขนาด 2.5+ จำนวน ${transformedData.length} ครั้งในรอบ 24 ชั่วโมง`,
       });
     } catch (err) {
       console.error('Error fetching earthquake data:', err);
