@@ -37,59 +37,107 @@ const Index = () => {
   };
 
   if (isMobile) {
-    // Mobile layout - Updated to show map properly
+    // Enhanced Mobile layout with professional design
     return (
-      <div className="min-h-screen bg-gradient-to-br from-guardian-light-blue to-white">
-        {/* Header */}
-        <header className="bg-gradient-to-r from-guardian-gradient-start to-guardian-gradient-end text-white p-4 flex flex-col items-start shadow-lg">
-          <div className="flex items-center">
-            <img 
-              src="/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png" 
-              alt="D-MIND Logo" 
-              className="h-8 w-8 mr-3"
-            />
-            <h1 className="text-2xl font-bold font-sans">D-MIND</h1>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100">
+        {/* Enhanced Header */}
+        <header className="bg-white shadow-lg border-b border-blue-100 sticky top-0 z-50">
+          <div className="px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-2 rounded-xl shadow-md">
+                  <img 
+                    src="/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png" 
+                    alt="D-MIND Logo" 
+                    className="h-6 w-6"
+                  />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-gray-800">D-MIND</h1>
+                  <p className="text-xs text-gray-500 font-medium">Disaster Monitoring System</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-gray-600 font-medium">ออนไลน์</span>
+              </div>
+            </div>
           </div>
-          <p className="text-sm mt-2 font-sans opacity-90">
-            ระบบติดตามภัยพิบัติและแจ้งเตือนอัจฉริยะ (Disaster Monitoring and Intelligent Notification Device)
-          </p>
         </header>
 
-        {/* Main Content */}
-        <main className="container mx-auto p-4 max-w-7xl">
+        {/* Main Content with improved spacing */}
+        <main className="px-4 py-6 space-y-6 max-w-md mx-auto">
+          {/* Alert Section */}
           <div className="space-y-4">
-            {/* Top Section - Alerts and Navigation */}
             <DisasterAlert isActive={true} />
-            
+          </div>
+          
+          {/* Navigation Section */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full mr-3"></div>
+              เมนูหลัก
+            </h2>
             <NavBar 
               onAssistantClick={handleAssistantClick}
               onManualClick={handleManualClick}
               onContactsClick={handleContactsClick}
               onAlertsClick={handleAlertsClick}
             />
-            
-            {/* Victim Reports Button */}
+          </div>
+          
+          {/* Emergency Report Button */}
+          <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-2xl shadow-lg p-1">
             <Button 
-              className="w-full bg-red-600 hover:bg-red-700 text-white shadow-md"
+              className="w-full bg-white hover:bg-red-50 text-red-600 hover:text-red-700 shadow-none border-0 rounded-xl py-4 font-semibold text-base transition-all duration-200"
               onClick={handleVictimReportsClick}
             >
-              <MessageSquare className="mr-2 h-4 w-4" />
+              <MessageSquare className="mr-3 h-5 w-5" />
               รายงานสถานะผู้ประสบภัย
             </Button>
-            
-            {/* Disaster Map - Full width for mobile */}
-            <div className="w-full h-96 bg-white rounded-lg shadow-md overflow-hidden">
+          </div>
+          
+          {/* Disaster Map Section */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+                <div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full mr-3"></div>
+                แผนที่ภัยพิบัติ
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">ข้อมูลสถานการณ์แบบเรียลไทม์</p>
+            </div>
+            <div className="h-80 relative">
               <DisasterMap />
             </div>
-            
-            {/* Resources */}
+          </div>
+          
+          {/* Resources Section */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <div className="h-1 w-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full mr-3"></div>
+              แหล่งข้อมูลฉุกเฉิน
+            </h2>
             <DisasterResources />
-            
-            {/* AI Chat */}
-            <div id="ai-chat" className="w-full">
-              <AIChat />
+          </div>
+          
+          {/* AI Chat Section */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-purple-50 to-purple-100 px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+                <div className="h-1 w-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full mr-3"></div>
+                AI ผู้ช่วยฉุกเฉิน
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">สอบถามข้อมูลและคำแนะนำ</p>
+            </div>
+            <div className="p-4">
+              <div id="ai-chat" className="w-full">
+                <AIChat />
+              </div>
             </div>
           </div>
+
+          {/* Bottom spacing for better scroll experience */}
+          <div className="h-6"></div>
         </main>
       </div>
     );
