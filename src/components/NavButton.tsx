@@ -1,28 +1,30 @@
 
 import React from 'react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface NavButtonProps {
   icon: React.ReactNode;
   label: string;
-  onClick?: () => void;
+  onClick: () => void;
   className?: string;
 }
 
 const NavButton: React.FC<NavButtonProps> = ({ icon, label, onClick, className }) => {
   return (
-    <button
-      onClick={onClick}
+    <Button 
+      variant="outline" 
       className={cn(
-        "flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-md transition-all hover:shadow-lg hover:scale-105 flex-1 min-w-[70px] h-24 border border-guardian-light-blue/20",
+        "h-auto p-4 flex flex-col items-center justify-center gap-2 bg-white hover:bg-blue-50 border-blue-200 text-blue-600 hover:text-blue-700 shadow-sm hover:shadow-md transition-all duration-200",
         className
       )}
+      onClick={onClick}
     >
-      <div className="text-guardian-blue mb-2">
+      <div className="flex items-center gap-2">
         {icon}
+        <span className="text-sm font-medium">{label}</span>
       </div>
-      <span className="text-xs text-center font-medium line-clamp-2 text-guardian-dark-blue">{label}</span>
-    </button>
+    </Button>
   );
 };
 
