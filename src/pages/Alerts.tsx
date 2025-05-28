@@ -42,7 +42,7 @@ const Alerts: React.FC = () => {
                 alt="D-MIND Logo" 
                 className="h-8 w-8 mr-3"
               />
-              <h1 className="text-xl font-bold">การแจ้งเตือนภัยพิบัติอื่นๆ</h1>
+              <h1 className="text-xl font-bold">การแจ้งเตือนภัยพิบัติทั้งหมด</h1>
             </div>
           </div>
         </header>
