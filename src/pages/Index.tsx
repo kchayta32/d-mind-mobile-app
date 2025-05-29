@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import DisasterAlert from '@/components/DisasterAlert';
 import NavBar from '@/components/NavBar';
 import DisasterResources from '@/components/DisasterResources';
-import AIChat from '@/components/AIChat';
+import EnhancedChatBot from '@/components/chat/EnhancedChatBot';
 import DisasterMap from '@/components/DisasterMap';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -111,6 +112,20 @@ const Index = () => {
               </div>
             </div>
           </div>
+
+          {/* Enhanced AI Chat Section - Now with expert personality */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-50 to-purple-100 px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+                <div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mr-3"></div>
+                ปรึกษาผู้เชี่ยวชาญ
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">ดร.สมชาย ผู้เชี่ยวชาญด้านภัยธรรมชาติและแพทย์ฉุกเฉิน</p>
+            </div>
+            <div className="p-0">
+              <EnhancedChatBot />
+            </div>
+          </div>
           
           {/* Resources Section */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
@@ -119,22 +134,6 @@ const Index = () => {
               แหล่งข้อมูลฉุกเฉิน
             </h2>
             <DisasterResources />
-          </div>
-          
-          {/* AI Chat Section */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-purple-50 to-purple-100 px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-800 flex items-center">
-                <div className="h-1 w-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full mr-3"></div>
-                AI ผู้ช่วยฉุกเฉิน
-              </h2>
-              <p className="text-sm text-gray-600 mt-1">สอบถามข้อมูลและคำแนะนำ</p>
-            </div>
-            <div className="p-4">
-              <div id="ai-chat" className="w-full">
-                <AIChat />
-              </div>
-            </div>
           </div>
 
           {/* Bottom spacing for better scroll experience */}
@@ -195,7 +194,7 @@ const Index = () => {
         </div>
       </aside>
 
-      {/* Main Content - Full width for map */}
+      {/* Main Content - Split between map and chatbot */}
       <main className="flex-1 flex flex-col">
         {/* Top Bar */}
         <header className="bg-white shadow-sm border-b border-gray-200 p-4">
@@ -209,15 +208,27 @@ const Index = () => {
           </div>
         </header>
 
-        {/* Content Area - Full width map layout */}
-        <div className="flex-1 p-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden h-full">
+        {/* Content Area - Split layout */}
+        <div className="flex-1 p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Map Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div className="p-4 border-b border-gray-200 bg-gray-50">
               <h3 className="font-semibold text-gray-800">แผนที่ภัยพิบัติ</h3>
               <p className="text-sm text-gray-600 mt-1">ข้อมูลสถานการณ์แบบเรียลไทม์</p>
             </div>
-            <div className="p-6 h-[calc(100%-80px)]">
+            <div className="p-6 h-[calc(100%-80px)] min-h-[500px]">
               <DisasterMap />
+            </div>
+          </div>
+
+          {/* Enhanced Chatbot Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+              <h3 className="font-semibold text-gray-800">ปรึกษาผู้เชี่ยวชาญ</h3>
+              <p className="text-sm text-gray-600 mt-1">ดร.สมชาย ผู้เชี่ยวชาญด้านภัยธรรมชาติและแพทย์ฉุกเฉิน</p>
+            </div>
+            <div className="h-[calc(100%-80px)]">
+              <EnhancedChatBot className="h-full border-0 shadow-none" />
             </div>
           </div>
         </div>
