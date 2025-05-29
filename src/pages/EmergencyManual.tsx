@@ -80,9 +80,9 @@ const EmergencyManual: React.FC = () => {
 
             <Card className="border-blue-200 shadow-md">
               <CardContent className="p-4">
-                <h2 className="text-lg font-bold mb-2 text-blue-700">ความปลอดภัยจากไfire</h2>
+                <h2 className="text-lg font-bold mb-2 text-blue-700">ความปลอดภัยจากไฟไหม้</h2>
                 <ul className="list-disc pl-5 space-y-2 text-gray-700">
-                  <li>อพยพทันทีเมื่อได้กลิ่นควันหรือเห็นไfire</li>
+                  <li>อพยพทันทีเมื่อได้กลิ่นควันหรือเห็นไฟไหม้</li>
                   <li>ใช้หลังมือตรวจสอบความร้อนก่อนเปิดประตู</li>
                   <li>อยู่ในท่าต่ำเพื่อหลีกเลี่ยงการสูดควัน</li>
                   <li>เมื่อออกมาแล้ว โทรขอความช่วยเหลือและอย่ากลับเข้าไป</li>
