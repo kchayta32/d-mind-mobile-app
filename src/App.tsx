@@ -11,6 +11,7 @@ import EmergencyContacts from "./pages/EmergencyContacts";
 import Alerts from "./pages/Alerts";
 import VictimReports from "./pages/VictimReports";
 import ArticleDetail from "./pages/ArticleDetail";
+import ResourceDetail from "./pages/ResourceDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/victim-reports" element={<VictimReports />} />
           <Route path="/article/:id" element={<ArticleDetail />} />
+          <Route path="/resource/:id" element={<ResourceDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
