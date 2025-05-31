@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import NaturalDisastersArticle from '@/components/articles/NaturalDisastersArticle';
 import EarthquakeThreeCountriesArticle from '@/components/articles/EarthquakeThreeCountriesArticle';
 import DisasterTwentyYearsArticle from '@/components/articles/DisasterTwentyYearsArticle';
+import PM25vsPM10Article from '@/components/articles/PM25vsPM10Article';
 import ArticleNotFound from '@/components/articles/ArticleNotFound';
 
 const ArticleDetail: React.FC = () => {
@@ -16,6 +17,8 @@ const ArticleDetail: React.FC = () => {
       return <EarthquakeThreeCountriesArticle />;
     case 'disaster-20years':
       return <DisasterTwentyYearsArticle />;
+    case 'pm25-vs-pm10':
+      return <PM25vsPM10Article />;
     default:
       return <ArticleNotFound />;
   }

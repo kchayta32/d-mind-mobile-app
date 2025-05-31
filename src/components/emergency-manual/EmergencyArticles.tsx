@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -61,6 +60,13 @@ const EmergencyArticles: React.FC = () => {
       category: 'สถิติภัยพิบัติ',
       summary: 'ตลอด 20 ปีที่ผ่านมาไทยต้องเผชิญกับความสูญเสียจาก \'ภัยพิบัติ\' ต่าง ๆ อย่างต่อเนื่องจนมีผู้เสียชีวิตกว่า 10,000 คน และสร้างความเสียหายทางเศรษฐกิจสูงถึง 2.2 ล้านล้านบาท',
       source: 'จาก heactive.thaipbs.or.th'
+    },
+    {
+      id: 'pm25-vs-pm10',
+      title: 'PM2.5 vs. PM10 ต่างกันอย่างไร',
+      category: 'มลพิษอากาศ',
+      summary: 'PM2.5 และ PM10 เป็นมลพิษทางอากาศที่องค์การอนามัยโลก (WHO) ประเมินว่าส่งผลกระทบต่อผู้คนมากกว่ามลพิษอื่นๆ ทำความเข้าใจความแตกต่างและผลกระทบต่อสุขภาพ',
+      source: 'จาก smartairfilters.com'
     }
   ];
 
@@ -97,7 +103,7 @@ const EmergencyArticles: React.FC = () => {
   }, []);
 
   const handleArticleClick = (articleId: string | number | undefined) => {
-    if (articleId === 'disaster-20years' || articleId === 'earthquake-3countries' || articleId === 'natural-disasters') {
+    if (articleId === 'disaster-20years' || articleId === 'earthquake-3countries' || articleId === 'natural-disasters' || articleId === 'pm25-vs-pm10') {
       navigate(`/article/${articleId}`);
     }
   };
