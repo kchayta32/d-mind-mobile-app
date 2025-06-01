@@ -10,7 +10,8 @@ export const useDisasterAlerts = () => {
     activeOnly: true,
     earthquakeMagnitude: [0],
     rainIntensity: [0],
-    floodLevel: [0]
+    floodLevel: [0],
+    region: 'all'
   });
 
   const { alerts: allAlerts, isLoading, error, refetch } = useSharedDisasterAlerts();
@@ -28,6 +29,18 @@ export const useDisasterAlerts = () => {
 
   if (filters.severity.length > 0) {
     filteredAlerts = filteredAlerts.filter(alert => filters.severity.includes(alert.severity));
+  }
+
+  // Apply region filter
+  if (filters.region && filters.region !== 'all') {
+    filteredAlerts = filteredAlerts.filter(alert => {
+      if (filters.region === 'thailand') {
+        return alert.region === 'thailand';
+      } else if (filters.region === 'neighbors') {
+        return alert.region === 'neighbors';
+      }
+      return true;
+    });
   }
 
   // Apply advanced filters
