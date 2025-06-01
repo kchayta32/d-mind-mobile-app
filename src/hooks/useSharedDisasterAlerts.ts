@@ -38,23 +38,41 @@ export const useSharedDisasterAlerts = () => {
     refetchInterval: 60000,
   });
 
+  // Function to check if earthquake is in Thailand region
+  const isInThailand = (latitude: number, longitude: number): boolean => {
+    // Thailand approximate boundaries
+    const thaiLatMin = 5.6;
+    const thaiLatMax = 20.5;
+    const thaiLngMin = 97.3;
+    const thaiLngMax = 105.6;
+    
+    return latitude >= thaiLatMin && latitude <= thaiLatMax && 
+           longitude >= thaiLngMin && longitude <= thaiLngMax;
+  };
+
   useEffect(() => {
     const combinedData: DisasterAlert[] = [...dbAlerts];
 
     // Add earthquake data as alerts with proper null checks
     earthquakes.forEach(eq => {
       if (eq.magnitude >= 1.0 && eq.latitude !== undefined && eq.longitude !== undefined) {
+        // Check if earthquake is in Thailand
+        const isThaiEarthquake = isInThailand(eq.latitude, eq.longitude);
+        
         // Use the location description if available, otherwise use magnitude info
         const locationText = eq.location || `${eq.latitude.toFixed(4)}, ${eq.longitude.toFixed(4)}`;
         const magnitudeText = `M ${eq.magnitude}`;
-        const displayLocation = eq.location ? `${magnitudeText} - ${eq.location}` : `${magnitudeText} - ${locationText}`;
+        const regionPrefix = isThaiEarthquake ? '[ประเทศไทย] ' : '[ทั่วโลก] ';
+        const displayLocation = eq.location ? 
+          `${regionPrefix}${magnitudeText} - ${eq.location}` : 
+          `${regionPrefix}${magnitudeText} - ${locationText}`;
         
         combinedData.push({
           id: `earthquake-${eq.id}`,
           type: 'earthquake',
           severity: eq.magnitude >= 3.0 ? 'high' : eq.magnitude >= 2.0 ? 'medium' : 'low',
           location: displayLocation,
-          description: `แผ่นดินไหวขนาด ${eq.magnitude} ความลึก ${eq.depth} กิโลเมตร`,
+          description: `แผ่นดินไหวขนาด ${eq.magnitude} ความลึก ${eq.depth} กิโลเมตร ${isThaiEarthquake ? '(บริเวณประเทศไทย)' : '(ทั่วโลก)'}`,
           coordinates: [eq.longitude, eq.latitude],
           start_time: eq.time,
           is_active: true,
