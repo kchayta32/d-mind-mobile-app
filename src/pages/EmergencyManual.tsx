@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EmergencyArticles from '@/components/emergency-manual/EmergencyArticles';
+import AppLogo from '@/components/AppLogo';
 
 const EmergencyManual: React.FC = () => {
   const [activeTab, setActiveTab] = useState('guidelines');
@@ -23,11 +24,7 @@ const EmergencyManual: React.FC = () => {
             <ArrowLeft className="h-6 w-6" />
           </Button>
           <div className="flex items-center">
-            <img 
-              src="/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png" 
-              alt="D-MIND Logo" 
-              className="h-8 w-8 mr-3"
-            />
+            <AppLogo size="md" className="mr-4" />
             <h1 className="text-xl font-bold">คู่มือและบทความ</h1>
           </div>
         </div>
