@@ -14,7 +14,6 @@ export interface DisasterAlert {
   magnitude?: number; // For earthquakes
   rain_intensity?: number; // For heavy rain (percentage)
   flood_level?: number; // For floods (meters)
-  region?: 'thailand' | 'neighbors' | 'global'; // Added region classification
 }
 
 export interface AlertsFilterState {
@@ -24,5 +23,4 @@ export interface AlertsFilterState {
   earthquakeMagnitude?: number[];
   rainIntensity?: number[];
   floodLevel?: number[];
-  region?: 'thailand' | 'neighbors' | 'all'; // Added region filter
 }
