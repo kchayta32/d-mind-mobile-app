@@ -44,11 +44,16 @@ export const useSharedDisasterAlerts = () => {
     // Add earthquake data as alerts with proper null checks
     earthquakes.forEach(eq => {
       if (eq.magnitude >= 1.0 && eq.latitude !== undefined && eq.longitude !== undefined) {
+        // Use the location description if available, otherwise use magnitude info
+        const locationText = eq.location || `${eq.latitude.toFixed(4)}, ${eq.longitude.toFixed(4)}`;
+        const magnitudeText = `M ${eq.magnitude}`;
+        const displayLocation = eq.location ? `${magnitudeText} - ${eq.location}` : `${magnitudeText} - ${locationText}`;
+        
         combinedData.push({
           id: `earthquake-${eq.id}`,
           type: 'earthquake',
           severity: eq.magnitude >= 3.0 ? 'high' : eq.magnitude >= 2.0 ? 'medium' : 'low',
-          location: `${eq.latitude.toFixed(4)}, ${eq.longitude.toFixed(4)}`,
+          location: displayLocation,
           description: `แผ่นดินไหวขนาด ${eq.magnitude} ความลึก ${eq.depth} กิโลเมตร`,
           coordinates: [eq.longitude, eq.latitude],
           start_time: eq.time,
