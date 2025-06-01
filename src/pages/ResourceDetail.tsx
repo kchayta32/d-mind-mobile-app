@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { ResourceItem, resourcesData } from '@/data/resourcesData';
+import AppLogo from '@/components/AppLogo';
 
 const ResourceDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -108,11 +109,7 @@ const ResourceDetail = () => {
               <ArrowLeft className="h-6 w-6" />
             </Button>
             <div className="flex items-center">
-              <img 
-                src="/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png" 
-                alt="D-MIND Logo" 
-                className="h-10 w-10 mr-4"
-              />
+              <AppLogo size="md" className="mr-4" />
               <h1 className="text-2xl font-bold">AI Emergency Guardian</h1>
             </div>
           </div>
