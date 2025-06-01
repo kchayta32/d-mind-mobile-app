@@ -28,7 +28,7 @@ const EmergencyManual: React.FC = () => {
               alt="D-MIND Logo" 
               className="h-8 w-8 mr-3"
             />
-            <h1 className="text-xl font-bold">คู่มือฉุกเฉิน</h1>
+            <h1 className="text-xl font-bold">คู่มือและบทความ</h1>
           </div>
         </div>
       </header>
