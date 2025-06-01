@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, FilePdf, Menu } from 'lucide-react';
+import { ArrowLeft, FileText, Menu } from 'lucide-react';
 
 const WeatherForecastJuly2025Article = () => {
   const navigate = useNavigate();
@@ -64,7 +63,7 @@ const WeatherForecastJuly2025Article = () => {
                 variant="outline"
                 className="flex items-center gap-2 bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
               >
-                <FilePdf className="h-4 w-4" />
+                <FileText className="h-4 w-4" />
                 ดาวน์โหลดเอกสาร
               </Button>
             </div>
