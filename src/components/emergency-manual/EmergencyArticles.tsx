@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -40,6 +41,13 @@ const EmergencyArticles: React.FC = () => {
 
   // Static articles data
   const staticArticles = [
+    {
+      id: 'weather-forecast-july-2025',
+      title: 'คาดหมายอากาศรายเดือน ก.ค. 2568',
+      category: 'การพยากรณ์อากาศ',
+      summary: 'คาดหมายสภาพอากาศในเดือนกรกฎาคม 2568 โดยกรมอุตุนิยมวิทยา ครอบคลุมการคาดหมายอากาศทั่วไป รายภาค และแบบอินโฟกราฟิก',
+      source: 'จาก กรมอุตุนิยมวิทยา'
+    },
     {
       id: 'natural-disasters',
       title: 'ภัยพิบัติทางธรรมชาติ ภัยจากธรรมชาติที่สร้างความสูญเสียเกินกว่าที่จะจินตนาการได้',
@@ -103,7 +111,7 @@ const EmergencyArticles: React.FC = () => {
   }, []);
 
   const handleArticleClick = (articleId: string | number | undefined) => {
-    if (articleId === 'disaster-20years' || articleId === 'earthquake-3countries' || articleId === 'natural-disasters' || articleId === 'pm25-vs-pm10') {
+    if (articleId === 'disaster-20years' || articleId === 'earthquake-3countries' || articleId === 'natural-disasters' || articleId === 'pm25-vs-pm10' || articleId === 'weather-forecast-july-2025') {
       navigate(`/article/${articleId}`);
     }
   };

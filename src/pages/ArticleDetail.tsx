@@ -5,12 +5,15 @@ import NaturalDisastersArticle from '@/components/articles/NaturalDisastersArtic
 import EarthquakeThreeCountriesArticle from '@/components/articles/EarthquakeThreeCountriesArticle';
 import DisasterTwentyYearsArticle from '@/components/articles/DisasterTwentyYearsArticle';
 import PM25vsPM10Article from '@/components/articles/PM25vsPM10Article';
+import WeatherForecastJuly2025Article from '@/components/articles/WeatherForecastJuly2025Article';
 import ArticleNotFound from '@/components/articles/ArticleNotFound';
 
 const ArticleDetail: React.FC = () => {
   const { id } = useParams();
 
   switch (id) {
+    case 'weather-forecast-july-2025':
+      return <WeatherForecastJuly2025Article />;
     case 'natural-disasters':
       return <NaturalDisastersArticle />;
     case 'earthquake-3countries':
