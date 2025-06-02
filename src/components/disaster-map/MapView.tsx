@@ -1,9 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import { Earthquake, RainSensor } from './types';
 import EarthquakeMarker from './EarthquakeMarker';
 import RainSensorMarker from './RainSensorMarker';
+import { LocationControls } from './LocationControls';
+import { UserLocationMarker } from './UserLocationMarker';
 import { DisasterType } from './DisasterMap';
 import 'leaflet/dist/leaflet.css';
 
@@ -24,6 +26,8 @@ export const MapView: React.FC<MapViewProps> = ({
   humidityFilter,
   isLoading 
 }) => {
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+
   // Filter data based on current filters
   const filteredEarthquakes = earthquakes.filter(eq => eq.magnitude >= magnitudeFilter);
   const filteredRainSensors = rainSensors.filter(sensor => 
@@ -32,6 +36,10 @@ export const MapView: React.FC<MapViewProps> = ({
 
   // Thailand center coordinates
   const center: [number, number] = [13.7563, 100.5018];
+
+  const handleLocationFound = (lat: number, lng: number) => {
+    setUserLocation([lat, lng]);
+  };
 
   const renderMarkers = () => {
     switch (selectedType) {
@@ -81,6 +89,12 @@ export const MapView: React.FC<MapViewProps> = ({
         />
         
         {!isLoading && renderMarkers()}
+        
+        {/* User location marker */}
+        {userLocation && <UserLocationMarker position={userLocation} />}
+        
+        {/* Location controls */}
+        <LocationControls onLocationFound={handleLocationFound} />
       </MapContainer>
       
       {renderComingSoon()}
