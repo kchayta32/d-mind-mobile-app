@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavButton from './NavButton';
-import { MessageSquare, Phone, BookOpen, Bell } from 'lucide-react';
+import { MessageSquare, Phone, BookOpen, Bell, Star } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface NavBarProps {
@@ -19,30 +19,45 @@ const NavBar: React.FC<NavBarProps> = ({
   onAlertsClick
 }) => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+
+  const handleSurveyClick = () => {
+    navigate('/satisfaction-survey');
+  };
 
   if (isMobile) {
-    // Mobile layout - 2x2 grid
+    // Mobile layout - 2x2 grid + survey button
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6 w-full">
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+          <NavButton 
+            icon={<MessageSquare size={24} />}
+            label="AI Assistant"
+            onClick={onAssistantClick}
+          />
+          <NavButton 
+            icon={<BookOpen size={24} />}
+            label="Emergency Manual"
+            onClick={onManualClick}
+          />
+          <NavButton 
+            icon={<Phone size={24} />}
+            label="Emergency Contacts"
+            onClick={onContactsClick}
+          />
+          <NavButton 
+            icon={<Bell size={24} />}
+            label="การแจ้งเตือนภัยทั้งหมด"
+            onClick={onAlertsClick}
+          />
+        </div>
+        
+        {/* Survey Button - Full width on mobile */}
         <NavButton 
-          icon={<MessageSquare size={24} />}
-          label="AI Assistant"
-          onClick={onAssistantClick}
-        />
-        <NavButton 
-          icon={<BookOpen size={24} />}
-          label="Emergency Manual"
-          onClick={onManualClick}
-        />
-        <NavButton 
-          icon={<Phone size={24} />}
-          label="Emergency Contacts"
-          onClick={onContactsClick}
-        />
-        <NavButton 
-          icon={<Bell size={24} />}
-          label="การแจ้งเตือนภัยทั้งหมด"
-          onClick={onAlertsClick}
+          icon={<Star size={24} />}
+          label="ประเมินความพึงพอใจ"
+          onClick={handleSurveyClick}
+          className="w-full bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-300 text-orange-600 hover:text-orange-700 hover:bg-gradient-to-r hover:from-yellow-100 hover:to-orange-100"
         />
       </div>
     );
@@ -74,6 +89,12 @@ const NavBar: React.FC<NavBarProps> = ({
         label="การแจ้งเตือนภัยทั้งหมด"
         onClick={onAlertsClick}
         className="w-full justify-start text-left"
+      />
+      <NavButton 
+        icon={<Star size={20} />}
+        label="ประเมินความพึงพอใจ"
+        onClick={handleSurveyClick}
+        className="w-full justify-start text-left bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-300 text-orange-600 hover:text-orange-700 hover:bg-gradient-to-r hover:from-yellow-100 hover:to-orange-100"
       />
     </div>
   );
