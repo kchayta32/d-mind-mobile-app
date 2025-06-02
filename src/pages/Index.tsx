@@ -97,7 +97,7 @@ const Index = () => {
             </Button>
           </div>
           
-          {/* Disaster Map Section - Now scrollable */}
+          {/* Disaster Map Section - Increased height significantly */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
             <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-gray-100">
               <h2 className="text-lg font-semibold text-gray-800 flex items-center">
@@ -106,7 +106,7 @@ const Index = () => {
               </h2>
               <p className="text-sm text-gray-600 mt-1">ข้อมูลสถานการณ์แบบเรียลไทม์</p>
             </div>
-            <div className="h-96 relative overflow-auto">
+            <div className="h-[800px] relative overflow-auto">
               <div className="min-h-full">
                 <DisasterMap />
               </div>
