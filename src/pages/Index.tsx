@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DisasterAlert from '@/components/DisasterAlert';
 import NavBar from '@/components/NavBar';
@@ -15,6 +14,11 @@ const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleAssistantClick = () => {
     navigate('/assistant');
