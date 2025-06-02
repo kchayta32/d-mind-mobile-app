@@ -106,7 +106,7 @@ const Index = () => {
               </h2>
               <p className="text-sm text-gray-600 mt-1">ข้อมูลสถานการณ์แบบเรียลไทม์</p>
             </div>
-            <div className="h-[600px] relative overflow-auto">
+            <div className="h-[800px] relative overflow-auto">
               <div className="min-h-full">
                 <DisasterMap />
               </div>
