@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { Bell, AlertTriangle } from 'lucide-react';
+import { Bell, AlertTriangle, Shield } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DisasterAlert as AlertType } from '@/components/disaster-alerts/types';
 import { useSharedDisasterAlerts } from '@/hooks/useSharedDisasterAlerts';
 import { toast } from '@/components/ui/use-toast';
+import { cn } from '@/lib/utils';
 
 interface DisasterAlertProps {
   isActive: boolean;
@@ -145,18 +146,34 @@ const DisasterAlert: React.FC<DisasterAlertProps> = ({
   const hasNearbyAlerts = nearbyAlerts.length > 0;
 
   return (
-    <Card className="w-full bg-guardian-dark-blue text-white shadow-md mb-4">
+    <Card className={cn(
+      "w-full shadow-lg border-0 overflow-hidden transition-all duration-300",
+      hasNearbyAlerts 
+        ? "bg-gradient-to-r from-red-500 via-red-600 to-red-700 text-white" 
+        : "bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white"
+    )}>
       <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
-        <CardTitle className="text-lg font-medium">การแจ้งเตือนภัยพิบัติ</CardTitle>
+        <CardTitle className="text-lg font-semibold flex items-center">
+          <Shield className="mr-2 h-5 w-5" />
+          การแจ้งเตือนภัยพิบัติ
+        </CardTitle>
         {hasNearbyAlerts ? 
-          <AlertTriangle size={20} className="text-red-400 animate-pulse" /> : 
-          <Bell size={20} />
+          <AlertTriangle size={22} className="text-white animate-pulse drop-shadow-lg" /> : 
+          <Bell size={22} className="text-white/90" />
         }
       </CardHeader>
       <CardContent className="p-4 pt-2">
-        <p className={`${hasNearbyAlerts ? "text-red-400 font-bold" : "text-gray-200"}`}>
+        <p className={cn(
+          "font-medium",
+          hasNearbyAlerts ? "text-white drop-shadow-sm" : "text-white/95"
+        )}>
           {getAlertMessage()}
         </p>
+        {hasNearbyAlerts && (
+          <div className="mt-2 text-xs text-white/90 bg-white/10 rounded-lg px-2 py-1 backdrop-blur-sm">
+            ⚠️ กรุณาติดตามสถานการณ์อย่างใกล้ชิด
+          </div>
+        )}
       </CardContent>
     </Card>
   );
