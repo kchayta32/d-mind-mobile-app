@@ -1,10 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
-import { Bell, AlertTriangle, Zap } from 'lucide-react';
+import { Bell, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DisasterAlert as AlertType } from '@/components/disaster-alerts/types';
 import { useSharedDisasterAlerts } from '@/hooks/useSharedDisasterAlerts';
 import { toast } from '@/components/ui/use-toast';
-import { cn } from '@/lib/utils';
 
 interface DisasterAlertProps {
   isActive: boolean;
@@ -145,46 +145,20 @@ const DisasterAlert: React.FC<DisasterAlertProps> = ({
   const hasNearbyAlerts = nearbyAlerts.length > 0;
 
   return (
-    <div className="relative">
-      {hasNearbyAlerts && (
-        <div className="absolute -inset-1 bg-gradient-to-r from-red-500 via-orange-500 to-red-500 rounded-2xl blur opacity-75 animate-pulse"></div>
-      )}
-      <Card className={cn(
-        "relative w-full shadow-xl mb-4 border-0 overflow-hidden transition-all duration-500",
-        hasNearbyAlerts 
-          ? "bg-gradient-to-br from-red-600 via-red-700 to-red-800 text-white" 
-          : "bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white"
-      )}>
-        {/* Animated background overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-        
-        <CardHeader className="relative flex flex-row items-center justify-between p-5 pb-3">
-          <CardTitle className="text-lg font-bold flex items-center">
-            <Zap className="mr-2 h-5 w-5" />
-            การแจ้งเตือนภัยพิบัติ
-          </CardTitle>
-          {hasNearbyAlerts ? 
-            <AlertTriangle size={24} className="text-yellow-300 animate-bounce" /> : 
-            <Bell size={24} className="text-blue-200" />
-          }
-        </CardHeader>
-        <CardContent className="relative p-5 pt-2">
-          <p className={cn(
-            "font-semibold leading-relaxed",
-            hasNearbyAlerts ? "text-yellow-100" : "text-blue-100"
-          )}>
-            {getAlertMessage()}
-          </p>
-          {hasNearbyAlerts && (
-            <div className="mt-3 p-3 bg-white/20 backdrop-blur-sm rounded-xl border border-white/30">
-              <p className="text-sm font-medium text-yellow-100">
-                ⚠️ กรุณาติดตามข้อมูลจากหน่วยงานที่เกี่ยวข้องอย่างใกล้ชิด
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+    <Card className="w-full bg-guardian-dark-blue text-white shadow-md mb-4">
+      <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
+        <CardTitle className="text-lg font-medium">การแจ้งเตือนภัยพิบัติ</CardTitle>
+        {hasNearbyAlerts ? 
+          <AlertTriangle size={20} className="text-red-400 animate-pulse" /> : 
+          <Bell size={20} />
+        }
+      </CardHeader>
+      <CardContent className="p-4 pt-2">
+        <p className={`${hasNearbyAlerts ? "text-red-400 font-bold" : "text-gray-200"}`}>
+          {getAlertMessage()}
+        </p>
+      </CardContent>
+    </Card>
   );
 };
 
