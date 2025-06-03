@@ -88,7 +88,6 @@ export const useNotificationService = () => {
         icon: '/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png',
         badge: '/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png',
         tag: 'disaster-alert',
-        renotify: true,
         ...options
       });
 
@@ -140,8 +139,7 @@ export const useNotificationService = () => {
         badge: '/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png',
         tag: `disaster-${disasterType}-${Date.now()}`,
         requireInteraction: severity === 'high' || severity === 'severe',
-        silent: false,
-        vibrate: severity === 'high' || severity === 'severe' ? [200, 100, 200] : [100]
+        silent: false
       }
     );
   };

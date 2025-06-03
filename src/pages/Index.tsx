@@ -43,7 +43,7 @@ const Index = () => {
               onContactsClick={handleContactsClick}
               onAlertsClick={handleAlertsClick}
             />
-            <SecurityBadge />
+            <SecurityBadge type="secure" />
           </div>
         </div>
       </div>
@@ -66,7 +66,7 @@ const Index = () => {
               onContactsClick={handleContactsClick}
               onAlertsClick={handleAlertsClick}
             />
-            <SecurityBadge />
+            <SecurityBadge type="secure" />
           </div>
         </div>
       </aside>
