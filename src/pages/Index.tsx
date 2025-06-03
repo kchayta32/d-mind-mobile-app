@@ -5,7 +5,9 @@ import DisasterAlert from '@/components/DisasterAlert';
 import NavBar from '@/components/NavBar';
 import DisasterResources from '@/components/DisasterResources';
 import EnhancedChatBot from '@/components/chat/EnhancedChatBot';
-import DisasterMap from '@/components/DisasterMap';
+import { StatisticsPanel } from '@/components/disaster-map/StatisticsPanel';
+import { useEarthquakeData } from '@/components/disaster-map/useEarthquakeData';
+import { useRainSensorData } from '@/components/disaster-map/useRainSensorData';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, Shield } from 'lucide-react';
@@ -15,6 +17,10 @@ const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+
+  // Data for statistics
+  const earthquakeData = useEarthquakeData();
+  const rainSensorData = useRainSensorData();
 
   const handleAssistantClick = () => {
     navigate('/assistant');
@@ -69,12 +75,12 @@ const Index = () => {
 
         {/* Main Content with Better Spacing */}
         <main className="px-4 py-6 space-y-8 max-w-md mx-auto pb-8">
-          {/* Alert Section with Improved Design */}
+          {/* Alert Section */}
           <div className="relative">
             <DisasterAlert isActive={true} />
           </div>
           
-          {/* Navigation Section with Modern Card Design */}
+          {/* Navigation Section */}
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-white/40 to-blue-50/60 rounded-3xl blur-sm"></div>
             <div className="relative bg-white/90 backdrop-blur-md rounded-3xl shadow-xl border border-white/30 p-6">
@@ -91,7 +97,7 @@ const Index = () => {
             </div>
           </div>
           
-          {/* Emergency Report Button with Enhanced Design */}
+          {/* Emergency Report Button */}
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-red-600 rounded-2xl blur opacity-30"></div>
             <Button 
@@ -102,8 +108,8 @@ const Index = () => {
               รายงานสถานะผู้ประสบภัย
             </Button>
           </div>
-          
-          {/* Disaster Map Section with Improved Height */}
+
+          {/* Statistics Section */}
           <div className="relative">
             <div className="absolute inset-0 bg-white/40 rounded-3xl blur-sm"></div>
             <div className="relative bg-white/90 backdrop-blur-md rounded-3xl shadow-xl border border-white/30 overflow-hidden">
@@ -111,18 +117,33 @@ const Index = () => {
                 <div className="flex items-center">
                   <div className="h-1 w-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mr-3"></div>
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-800">แผนที่ภัยพิบัติ</h2>
+                    <h2 className="text-lg font-semibold text-gray-800">สถิติภัยพิบัติ</h2>
                     <p className="text-sm text-gray-600 mt-1">ข้อมูลสถานการณ์แบบเรียลไทม์</p>
                   </div>
                 </div>
               </div>
-              <div className="h-[800px] relative">
-                <DisasterMap />
+              <div className="p-6 space-y-6">
+                <div>
+                  <h3 className="text-md font-semibold text-gray-700 mb-3">แผ่นดินไหว</h3>
+                  <StatisticsPanel 
+                    stats={earthquakeData.statistics} 
+                    isLoading={earthquakeData.refreshing}
+                    disasterType="earthquake"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-md font-semibold text-gray-700 mb-3">ฝนตกหนัก</h3>
+                  <StatisticsPanel 
+                    stats={rainSensorData.stats} 
+                    isLoading={rainSensorData.isLoading}
+                    disasterType="heavyrain"
+                  />
+                </div>
               </div>
             </div>
           </div>
 
-          {/* AI Expert Section with Premium Design */}
+          {/* AI Expert Section */}
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-purple-100/60 to-blue-100/60 rounded-3xl blur-sm"></div>
             <div className="relative bg-white/90 backdrop-blur-md rounded-3xl shadow-xl border border-white/30 overflow-hidden">
@@ -144,7 +165,7 @@ const Index = () => {
             </div>
           </div>
           
-          {/* Resources Section with Modern Design */}
+          {/* Resources Section */}
           <div className="relative">
             <div className="absolute inset-0 bg-white/40 rounded-3xl blur-sm"></div>
             <div className="relative bg-white/90 backdrop-blur-md rounded-3xl shadow-xl border border-white/30 p-6">
@@ -160,38 +181,31 @@ const Index = () => {
     );
   }
 
-  // Desktop Layout with Improved Design
+  // Desktop Layout 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex">
-      {/* Modern Sidebar */}
-      <aside className="w-80 bg-white/90 backdrop-blur-md shadow-2xl border-r border-white/30 flex flex-col">
-        {/* Sidebar Header with Gradient */}
-        <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white p-6">
-          <div className="flex items-center mb-4">
-            <div className="relative">
+      {/* Modern Sidebar - เปลี่ยนเป็นแนวตั้งแคบ */}
+      <aside className="w-24 bg-white/90 backdrop-blur-md shadow-2xl border-r border-white/30 flex flex-col">
+        {/* Sidebar Header */}
+        <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white p-4">
+          <div className="flex flex-col items-center">
+            <div className="relative mb-2">
               <div className="absolute inset-0 bg-white/20 rounded-xl blur"></div>
               <img 
                 src="/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png" 
                 alt="D-MIND Logo" 
-                className="relative h-10 w-10 mr-3"
+                className="relative h-8 w-8"
               />
             </div>
-            <h1 className="text-2xl font-bold">D-MIND</h1>
+            <h1 className="text-sm font-bold text-center">D-MIND</h1>
           </div>
-          <p className="text-sm opacity-95 leading-relaxed">
-            ระบบติดตามภัยพิบัติและแจ้งเตือนอัจฉริยะ
-          </p>
         </div>
 
-        {/* Sidebar Content with Better Spacing */}
-        <div className="p-6 space-y-6 flex-1">
+        {/* Sidebar Content */}
+        <div className="p-3 space-y-4 flex-1">
           <DisasterAlert isActive={true} />
           
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center">
-              <div className="h-1 w-6 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mr-2"></div>
-              เมนูหลัก
-            </h3>
+          <div className="space-y-3">
             <NavBar 
               onAssistantClick={handleAssistantClick}
               onManualClick={handleManualClick}
@@ -203,11 +217,10 @@ const Index = () => {
           {/* Victim Reports Button */}
           <div className="pt-4 border-t border-gray-100">
             <Button 
-              className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+              className="w-full aspect-square flex items-center justify-center bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] p-2"
               onClick={handleVictimReportsClick}
             >
-              <MessageSquare className="mr-2 h-4 w-4" />
-              รายงานสถานะผู้ประสบภัย
+              <MessageSquare className="h-5 w-5" />
             </Button>
           </div>
           
@@ -219,7 +232,7 @@ const Index = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col">
-        {/* Top Bar with Modern Design */}
+        {/* Top Bar */}
         <header className="bg-white/90 backdrop-blur-md shadow-lg border-b border-white/30 p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
@@ -238,21 +251,36 @@ const Index = () => {
           </div>
         </header>
 
-        {/* Content Grid with Better Proportions */}
+        {/* Content Grid */}
         <div className="flex-1 p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Map Section */}
+          {/* Statistics Section */}
           <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/30 overflow-hidden">
             <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50/80 to-indigo-50/80">
               <div className="flex items-center">
                 <div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mr-3"></div>
                 <div>
-                  <h3 className="font-semibold text-gray-800">แผนที่ภัยพิบัติ</h3>
+                  <h3 className="font-semibold text-gray-800">สถิติภัยพิบัติ</h3>
                   <p className="text-sm text-gray-600 mt-1">ข้อมูลสถานการณ์แบบเรียลไทม์</p>
                 </div>
               </div>
             </div>
-            <div className="h-[600px] p-4">
-              <DisasterMap />
+            <div className="p-6 space-y-6 h-[600px] overflow-y-auto">
+              <div>
+                <h4 className="text-md font-semibold text-gray-700 mb-3">แผ่นดินไหว</h4>
+                <StatisticsPanel 
+                  stats={earthquakeData.statistics} 
+                  isLoading={earthquakeData.refreshing}
+                  disasterType="earthquake"
+                />
+              </div>
+              <div>
+                <h4 className="text-md font-semibold text-gray-700 mb-3">ฝนตกหนัก</h4>
+                <StatisticsPanel 
+                  stats={rainSensorData.stats} 
+                  isLoading={rainSensorData.isLoading}
+                  disasterType="heavyrain"
+                />
+              </div>
             </div>
           </div>
 

@@ -14,12 +14,15 @@ interface NavButtonProps {
 const NavButton: React.FC<NavButtonProps> = ({ icon, label, onClick, className }) => {
   const isMobile = useIsMobile();
 
+  // If no label (empty string), show only icon
+  const isIconOnly = !label || label.trim() === '';
+
   return (
     <Button 
       variant="outline" 
       className={cn(
-        "h-auto p-4 flex items-center justify-center gap-3 font-medium text-sm",
-        isMobile ? "flex-col min-h-[80px]" : "flex-row justify-start",
+        "h-auto p-4 flex items-center justify-center font-medium text-sm",
+        isIconOnly ? "aspect-square" : (isMobile ? "flex-col min-h-[80px] gap-3" : "flex-row justify-start gap-3"),
         "border-2 shadow-sm hover:shadow-md transition-all duration-300 rounded-xl",
         "backdrop-blur-sm",
         className
@@ -29,10 +32,12 @@ const NavButton: React.FC<NavButtonProps> = ({ icon, label, onClick, className }
       <div className="flex-shrink-0">
         {icon}
       </div>
-      {isMobile ? (
-        <span className="text-xs font-medium text-center leading-tight">{label}</span>
-      ) : (
-        <span className="font-medium">{label}</span>
+      {!isIconOnly && (
+        isMobile ? (
+          <span className="text-xs font-medium text-center leading-tight">{label}</span>
+        ) : (
+          <span className="font-medium">{label}</span>
+        )
       )}
     </Button>
   );
