@@ -58,72 +58,98 @@ const DisasterMap: React.FC = () => {
   const currentData = getCurrentData();
 
   return (
-    <div className="w-full h-full">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-gray-800">แผนที่ภัยพิบัติ</h2>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleRefresh}
-            disabled={currentData.isLoading}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${currentData.isLoading ? 'animate-spin' : ''}`} />
-            รีเฟรช
-          </Button>
-        </div>
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-3xl font-bold text-gray-800">แผนที่ภัยพิบัติ</h1>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRefresh}
+              disabled={currentData.isLoading}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${currentData.isLoading ? 'animate-spin' : ''}`} />
+              รีเฟรช
+            </Button>
+          </div>
 
-        {/* Disaster Type Selector */}
-        <DisasterTypeSelector 
-          selectedType={selectedType} 
-          onTypeChange={setSelectedType} 
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 h-[calc(100vh-200px)]">
-        {/* Statistics and Filters - Wider on desktop */}
-        <div className="lg:col-span-2 xl:col-span-1 space-y-4">
-          <StatisticsPanel 
-            stats={currentData.stats} 
-            isLoading={currentData.isLoading}
-            disasterType={selectedType}
-          />
-          
-          <FilterControls
-            magnitudeFilter={magnitudeFilter}
-            onMagnitudeChange={setMagnitudeFilter}
-            humidityFilter={humidityFilter}
-            onHumidityChange={setHumidityFilter}
-            selectedType={selectedType}
-          />
-        </div>
-
-        {/* Map - Responsive width */}
-        <div className="lg:col-span-3 xl:col-span-4">
-          <Card className="h-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">
-                {selectedType === 'earthquake' && 'แผนที่แผ่นดินไหว'}
-                {selectedType === 'heavyrain' && 'แผนที่เซ็นเซอร์ฝน'}
-                {selectedType === 'flood' && 'แผนที่น้ำท่วม (เร็วๆ นี้)'}
-                {selectedType === 'wildfire' && 'แผนที่ไฟป่า (เร็วๆ นี้)'}
-                {selectedType === 'storm' && 'แผนที่พายุ (เร็วๆ นี้)'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 h-[calc(100%-60px)] min-h-[600px]">
-              <MapView 
-                earthquakes={selectedType === 'earthquake' ? earthquakeData.earthquakes : []}
-                rainSensors={selectedType === 'heavyrain' ? rainSensorData.sensors : []}
-                selectedType={selectedType}
-                magnitudeFilter={magnitudeFilter}
-                humidityFilter={humidityFilter}
-                isLoading={currentData.isLoading}
-              />
-            </CardContent>
+          {/* Disaster Type Selector - Full width card */}
+          <Card className="w-full">
+            <DisasterTypeSelector 
+              selectedType={selectedType} 
+              onTypeChange={setSelectedType} 
+            />
           </Card>
         </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          {/* Left Sidebar - Stats and Filters */}
+          <div className="xl:col-span-1 space-y-6">
+            {/* Statistics Panel */}
+            <StatisticsPanel 
+              stats={currentData.stats} 
+              isLoading={currentData.isLoading}
+              disasterType={selectedType}
+            />
+            
+            {/* Filter Controls */}
+            <FilterControls
+              magnitudeFilter={magnitudeFilter}
+              onMagnitudeChange={setMagnitudeFilter}
+              humidityFilter={humidityFilter}
+              onHumidityChange={setHumidityFilter}
+              selectedType={selectedType}
+            />
+          </div>
+
+          {/* Map Section - Takes remaining space */}
+          <div className="xl:col-span-3">
+            <Card className="h-[700px] xl:h-[800px]">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-xl flex items-center justify-between">
+                  <span>
+                    {selectedType === 'earthquake' && 'แผนที่แผ่นดินไหว'}
+                    {selectedType === 'heavyrain' && 'แผนที่เซ็นเซอร์ฝน'}
+                    {selectedType === 'flood' && 'แผนที่น้ำท่วม (เร็วๆ นี้)'}
+                    {selectedType === 'wildfire' && 'แผนที่ไฟป่า (เร็วๆ นี้)'}
+                    {selectedType === 'storm' && 'แผนที่พายุ (เร็วๆ นี้)'}
+                  </span>
+                  {currentData.isLoading && (
+                    <div className="text-sm text-gray-500 flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                      กำลังโหลด...
+                    </div>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 h-[calc(100%-80px)]">
+                <MapView 
+                  earthquakes={selectedType === 'earthquake' ? earthquakeData.earthquakes : []}
+                  rainSensors={selectedType === 'heavyrain' ? rainSensorData.sensors : []}
+                  selectedType={selectedType}
+                  magnitudeFilter={magnitudeFilter}
+                  humidityFilter={humidityFilter}
+                  isLoading={currentData.isLoading}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Error Display */}
+        {currentData.error && (
+          <Card className="mt-6 border-red-200 bg-red-50">
+            <CardContent className="p-4">
+              <p className="text-red-700">
+                เกิดข้อผิดพลาด: {currentData.error.message}
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

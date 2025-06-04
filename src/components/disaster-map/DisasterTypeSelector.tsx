@@ -23,7 +23,9 @@ interface DisasterTypeOption {
   name: string;
   icon: React.ReactNode;
   color: string;
+  bgColor: string;
   description: string;
+  status: 'active' | 'coming-soon';
 }
 
 interface DisasterTypeSelectorProps {
@@ -36,36 +38,46 @@ const disasterTypes: DisasterTypeOption[] = [
     id: 'earthquake',
     name: 'แผ่นดินไหว',
     icon: <MapPin className="h-5 w-5" />,
-    color: 'bg-orange-100 text-orange-800 border-orange-200',
-    description: 'ข้อมูลการสั่นสะเทือนจาก USGS'
+    color: 'text-orange-700',
+    bgColor: 'bg-orange-100 border-orange-300 hover:bg-orange-200',
+    description: 'ข้อมูลการสั่นสะเทือนจาก USGS',
+    status: 'active'
   },
   {
     id: 'heavyrain',
     name: 'ฝนตกหนัก',
     icon: <CloudRain className="h-5 w-5" />,
-    color: 'bg-blue-100 text-blue-800 border-blue-200',
-    description: 'การเตือนฝนตกหนัก'
+    color: 'text-blue-700',
+    bgColor: 'bg-blue-100 border-blue-300 hover:bg-blue-200',
+    description: 'การเตือนฝนตกหนัก',
+    status: 'active'
   },
   {
     id: 'flood',
     name: 'น้ำท่วม',
     icon: <Waves className="h-5 w-5" />,
-    color: 'bg-cyan-100 text-cyan-800 border-cyan-200',
-    description: 'พื้นที่เสี่ยงน้ำท่วม'
+    color: 'text-cyan-700',
+    bgColor: 'bg-cyan-100 border-cyan-300 hover:bg-cyan-200',
+    description: 'พื้นที่เสี่ยงน้ำท่วม',
+    status: 'coming-soon'
   },
   {
     id: 'wildfire',
     name: 'ไฟป่า',
     icon: <Flame className="h-5 w-5" />,
-    color: 'bg-red-100 text-red-800 border-red-200',
-    description: 'Coming Soon'
+    color: 'text-red-700',
+    bgColor: 'bg-red-100 border-red-300 hover:bg-red-200',
+    description: 'พื้นที่เสี่ยงไฟป่า',
+    status: 'coming-soon'
   },
   {
     id: 'storm',
     name: 'พายุ',
     icon: <Wind className="h-5 w-5" />,
-    color: 'bg-gray-100 text-gray-800 border-gray-200',
-    description: 'Coming Soon'
+    color: 'text-purple-700',
+    bgColor: 'bg-purple-100 border-purple-300 hover:bg-purple-200',
+    description: 'การติดตามพายุ',
+    status: 'coming-soon'
   }
 ];
 
@@ -74,39 +86,69 @@ const DisasterTypeSelector: React.FC<DisasterTypeSelectorProps> = ({
   onTypeChange
 }) => {
   return (
-    <div className="px-4 py-3 border-b bg-gray-50">
-      <h3 className="text-sm font-medium mb-3 text-gray-700">เลือกประเภทภัยพิบัติ</h3>
-      <Carousel className="w-full max-w-xs mx-auto">
-        <CarouselContent>
+    <div className="p-6">
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">เลือกประเภทภัยพิบัติ</h3>
+        <p className="text-sm text-gray-600">สไลด์ซ้าย-ขวาเพื่อดูภัยพิบัติประเภทต่างๆ</p>
+      </div>
+      
+      <Carousel className="w-full">
+        <CarouselContent className="-ml-2 md:-ml-4">
           {disasterTypes.map((type) => (
-            <CarouselItem key={type.id} className="basis-1/2">
+            <CarouselItem key={type.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
               <Card 
-                className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+                className={`cursor-pointer transition-all duration-300 hover:shadow-lg relative ${
                   selectedType === type.id 
-                    ? 'ring-2 ring-blue-500 bg-blue-50' 
-                    : 'hover:bg-gray-50'
+                    ? `ring-2 ring-blue-500 ${type.bgColor}` 
+                    : `hover:shadow-md ${type.bgColor.replace('hover:', '')}`
                 }`}
-                onClick={() => onTypeChange(type.id)}
+                onClick={() => type.status === 'active' && onTypeChange(type.id)}
               >
-                <CardContent className="p-3 text-center">
-                  <div className="flex flex-col items-center space-y-2">
-                    <Badge className={type.color}>
+                <CardContent className="p-4 text-center">
+                  <div className="flex flex-col items-center space-y-3">
+                    {/* Icon */}
+                    <div className={`p-3 rounded-full ${type.bgColor} ${type.color}`}>
                       {type.icon}
-                    </Badge>
-                    <div>
-                      <p className="text-xs font-medium">{type.name}</p>
-                      <p className="text-xs text-gray-500 mt-1">
+                    </div>
+                    
+                    {/* Title */}
+                    <div className="space-y-1">
+                      <p className={`font-semibold ${type.color}`}>{type.name}</p>
+                      <p className="text-xs text-gray-600 leading-tight">
                         {type.description}
                       </p>
                     </div>
+
+                    {/* Status Badge */}
+                    {type.status === 'coming-soon' && (
+                      <Badge variant="secondary" className="text-xs bg-gray-200 text-gray-600">
+                        Coming Soon
+                      </Badge>
+                    )}
+
+                    {/* Active Indicator */}
+                    {selectedType === type.id && type.status === 'active' && (
+                      <div className="absolute top-2 right-2">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                      </div>
+                    )}
+
+                    {/* Disabled Overlay */}
+                    {type.status === 'coming-soon' && (
+                      <div className="absolute inset-0 bg-white bg-opacity-60 rounded-lg flex items-center justify-center">
+                        <Badge variant="outline" className="bg-white">
+                          เร็วๆ นี้
+                        </Badge>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
+        <CarouselPrevious className="hidden sm:flex" />
+        <CarouselNext className="hidden sm:flex" />
       </Carousel>
     </div>
   );
