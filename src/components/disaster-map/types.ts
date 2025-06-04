@@ -38,3 +38,19 @@ export interface RainSensorStats {
   maxHumidity: number;
   last24Hours: number;
 }
+
+export interface GISTDAStats {
+  totalHotspots: number;
+  modisCount: number;
+  viirsCount: number;
+  highConfidenceCount: number;
+  averageConfidence: number;
+  last24Hours: number;
+}
+
+export interface RainViewerStats {
+  pastFrames: number;
+  futureFrames: number;
+  latestTime: string;
+  oldestTime: string;
+}

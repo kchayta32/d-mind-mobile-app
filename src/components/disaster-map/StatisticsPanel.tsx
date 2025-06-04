@@ -1,13 +1,12 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Activity, TrendingUp, AlertTriangle, Clock, Droplets, Gauge } from 'lucide-react';
-import { EarthquakeStats, RainSensorStats } from './types';
+import { Activity, TrendingUp, AlertTriangle, Clock, Droplets, Gauge, Flame, Satellite } from 'lucide-react';
+import { EarthquakeStats, RainSensorStats, GISTDAStats } from './types';
 import { DisasterType } from './DisasterMap';
 
 interface StatisticsPanelProps {
-  stats: EarthquakeStats | RainSensorStats | null;
+  stats: EarthquakeStats | RainSensorStats | GISTDAStats | null;
   isLoading: boolean;
   disasterType: DisasterType;
 }
@@ -112,6 +111,62 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
     </>
   );
 
+  const renderGISTDAStats = (gistdaStats: GISTDAStats) => (
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="flex items-center space-x-3 p-3 bg-red-50 rounded-lg">
+          <Flame className="h-5 w-5 text-red-500 flex-shrink-0" />
+          <div className="min-w-0">
+            <p className="text-2xl font-bold text-red-700">{gistdaStats.totalHotspots}</p>
+            <p className="text-sm text-gray-600">จุดความร้อนทั้งหมด</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg">
+          <Clock className="h-5 w-5 text-orange-500 flex-shrink-0" />
+          <div className="min-w-0">
+            <p className="text-2xl font-bold text-orange-700">{gistdaStats.last24Hours}</p>
+            <p className="text-sm text-gray-600">24 ชม. ที่แล้ว</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-3 pt-4">
+        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+          <span className="text-sm font-medium text-gray-700">MODIS:</span>
+          <Badge variant="outline" className="text-blue-600 ml-2">
+            <Satellite className="h-3 w-3 mr-1" />
+            {gistdaStats.modisCount}
+          </Badge>
+        </div>
+        
+        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+          <span className="text-sm font-medium text-gray-700">VIIRS:</span>
+          <Badge variant="outline" className="text-red-600 ml-2">
+            <Satellite className="h-3 w-3 mr-1" />
+            {gistdaStats.viirsCount}
+          </Badge>
+        </div>
+        
+        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+          <span className="text-sm font-medium text-gray-700">ความเชื่อมั่นสูง:</span>
+          <Badge variant={gistdaStats.highConfidenceCount > 0 ? "destructive" : "secondary"} className="ml-2">
+            <AlertTriangle className="h-3 w-3 mr-1" />
+            {gistdaStats.highConfidenceCount}
+          </Badge>
+        </div>
+
+        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+          <span className="text-sm font-medium text-gray-700">ความเชื่อมั่นเฉลี่ย:</span>
+          <Badge variant="outline" className="ml-2">
+            <TrendingUp className="h-3 w-3 mr-1" />
+            {gistdaStats.averageConfidence}%
+          </Badge>
+        </div>
+      </div>
+    </>
+  );
+
   const renderComingSoonStats = () => (
     <div className="text-center py-8">
       <div className="text-4xl mb-2">🚧</div>
@@ -151,6 +206,8 @@ export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
             ? renderEarthquakeStats(stats as EarthquakeStats)
             : disasterType === 'heavyrain'
             ? renderRainSensorStats(stats as RainSensorStats)
+            : disasterType === 'wildfire'
+            ? renderGISTDAStats(stats as GISTDAStats)
             : renderComingSoonStats()
         ) : (
           renderComingSoonStats()

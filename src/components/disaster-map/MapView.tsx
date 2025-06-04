@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import { Earthquake, RainSensor } from './types';
-import { GISTDAHotspot, RainViewerData } from './useGISTDAData';
+import { GISTDAHotspot } from './useGISTDAData';
+import { RainViewerData } from './useRainViewerData';
 import EarthquakeMarker from './EarthquakeMarker';
 import RainSensorMarker from './RainSensorMarker';
 import HotspotMarker from './HotspotMarker';
