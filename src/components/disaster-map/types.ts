@@ -25,7 +25,9 @@ export interface RainSensor {
   humidity: number | null;
   is_raining: boolean | null;
   created_at: string | null;
-  inserted_at?: string | null;
+  inserted_at: string | null;
+  latitude: number | null;
+  longitude: number | null;
   coordinates: [number, number];
 }
 

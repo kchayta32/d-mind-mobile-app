@@ -4,20 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { RainSensor, RainSensorStats } from './types';
 
-// Mock coordinates for rain sensors (in real app, these would be stored in database)
-const mockCoordinates: Record<string, [number, number]> = {
-  // Thailand coordinates spread across the country
-  default: [13.7563, 100.5018], // Bangkok
-};
-
-const generateMockCoordinates = (id: string): [number, number] => {
-  // Generate consistent coordinates based on sensor ID
-  const hash = id.toString().split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const lat = 8 + (hash % 15); // Thailand latitude range roughly 8-23
-  const lng = 97 + (hash % 8); // Thailand longitude range roughly 97-105
-  return [lat + (hash % 100) / 1000, lng + (hash % 100) / 1000];
-};
-
 export const useRainSensorData = () => {
   const [sensors, setSensors] = useState<RainSensor[]>([]);
   const [stats, setStats] = useState<RainSensorStats>({
@@ -31,6 +17,8 @@ export const useRainSensorData = () => {
   const { data: sensorData, isLoading, error, refetch } = useQuery({
     queryKey: ['rain-sensors'],
     queryFn: async () => {
+      console.log('Fetching rain sensor data...');
+      
       const { data, error } = await supabase
         .from('from_rain_sensor')
         .select('*')
@@ -41,19 +29,38 @@ export const useRainSensorData = () => {
         throw error;
       }
 
+      console.log('Rain sensor data fetched:', data);
       return data;
     },
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   useEffect(() => {
-    if (sensorData) {
+    if (sensorData && Array.isArray(sensorData)) {
+      console.log('Processing rain sensor data:', sensorData);
+      
       // Transform the data to include coordinates
-      const transformedSensors: RainSensor[] = sensorData.map(sensor => ({
-        ...sensor,
-        coordinates: mockCoordinates[sensor.id.toString()] || generateMockCoordinates(sensor.id.toString())
-      }));
+      const transformedSensors: RainSensor[] = sensorData.map(sensor => {
+        // Use actual coordinates if available, otherwise generate mock ones
+        let coordinates: [number, number];
+        
+        if (sensor.latitude && sensor.longitude) {
+          coordinates = [sensor.latitude, sensor.longitude];
+        } else {
+          // Generate mock coordinates based on sensor ID for Thailand
+          const hash = sensor.id.toString().split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+          const lat = 13 + (hash % 10); // Thailand latitude range roughly 8-20
+          const lng = 100 + (hash % 6); // Thailand longitude range roughly 97-105
+          coordinates = [lat + (hash % 100) / 1000, lng + (hash % 100) / 1000];
+        }
 
+        return {
+          ...sensor,
+          coordinates
+        };
+      });
+
+      console.log('Transformed sensors:', transformedSensors);
       setSensors(transformedSensors);
 
       // Calculate statistics
@@ -64,10 +71,10 @@ export const useRainSensorData = () => {
         sensor.inserted_at && new Date(sensor.inserted_at) >= last24Hours
       );
 
-      const activeRaining = transformedSensors.filter(sensor => sensor.is_raining).length;
+      const activeRaining = transformedSensors.filter(sensor => sensor.is_raining === true).length;
       const humidityValues = transformedSensors
         .filter(sensor => sensor.humidity !== null && sensor.humidity !== undefined)
-        .map(sensor => sensor.humidity);
+        .map(sensor => sensor.humidity!);
       
       const averageHumidity = humidityValues.length > 0 
         ? humidityValues.reduce((sum, h) => sum + h, 0) / humidityValues.length 
@@ -77,15 +84,30 @@ export const useRainSensorData = () => {
         ? Math.max(...humidityValues) 
         : 0;
 
-      setStats({
+      const newStats = {
         total: transformedSensors.length,
         activeRaining,
         averageHumidity: Math.round(averageHumidity),
         maxHumidity,
         last24Hours: recentSensors.length
+      };
+
+      console.log('Calculated stats:', newStats);
+      setStats(newStats);
+    } else {
+      console.log('No sensor data or invalid data format:', sensorData);
+      setSensors([]);
+      setStats({
+        total: 0,
+        activeRaining: 0,
+        averageHumidity: 0,
+        maxHumidity: 0,
+        last24Hours: 0
       });
     }
   }, [sensorData]);
+
+  console.log('useRainSensorData returning:', { sensors: sensors.length, stats, isLoading, error });
 
   return {
     sensors,

@@ -24,11 +24,23 @@ export const MapView: React.FC<MapViewProps> = ({
   humidityFilter,
   isLoading 
 }) => {
+  console.log('MapView props:', { 
+    earthquakes: earthquakes.length, 
+    rainSensors: rainSensors.length, 
+    selectedType, 
+    isLoading 
+  });
+
   // Filter data based on current filters
   const filteredEarthquakes = earthquakes.filter(eq => eq.magnitude >= magnitudeFilter);
   const filteredRainSensors = rainSensors.filter(sensor => 
     (sensor.humidity || 0) >= humidityFilter
   );
+
+  console.log('Filtered data:', { 
+    filteredEarthquakes: filteredEarthquakes.length, 
+    filteredRainSensors: filteredRainSensors.length 
+  });
 
   // Thailand center coordinates
   const center: [number, number] = [13.7563, 100.5018];
@@ -36,13 +48,15 @@ export const MapView: React.FC<MapViewProps> = ({
   const renderMarkers = () => {
     switch (selectedType) {
       case 'earthquake':
+        console.log('Rendering earthquake markers:', filteredEarthquakes.length);
         return filteredEarthquakes.map((earthquake) => (
           <EarthquakeMarker key={earthquake.id} earthquake={earthquake} />
         ));
       
       case 'heavyrain':
+        console.log('Rendering rain sensor markers:', filteredRainSensors.length);
         return filteredRainSensors.map((sensor) => (
-          <RainSensorMarker key={sensor.id} sensor={sensor} />
+          <RainSensorMarker key={`rain-sensor-${sensor.id}`} sensor={sensor} />
         ));
       
       default:
@@ -91,6 +105,15 @@ export const MapView: React.FC<MapViewProps> = ({
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
             <p className="text-gray-600">กำลังโหลดข้อมูล...</p>
           </div>
+        </div>
+      )}
+
+      {/* Debug information */}
+      {selectedType === 'heavyrain' && !isLoading && (
+        <div className="absolute bottom-4 left-4 bg-white p-2 rounded shadow text-xs z-[1000]">
+          <div>เซ็นเซอร์ทั้งหมด: {rainSensors.length}</div>
+          <div>เซ็นเซอร์ที่แสดง: {filteredRainSensors.length}</div>
+          <div>ตัวกรองความชื้น: {humidityFilter}%+</div>
         </div>
       )}
     </div>
