@@ -64,12 +64,12 @@ const DisasterMap: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-full mx-auto">
         {/* Header Section */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-gray-800">แผนที่ภัยพิบัติ</h1>
+        <div className="sticky top-0 bg-white shadow-sm z-10 p-4 border-b">
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="text-2xl font-bold text-gray-800">แผนที่ภัยพิบัติ</h1>
             <Button 
               variant="outline" 
               size="sm" 
@@ -82,7 +82,7 @@ const DisasterMap: React.FC = () => {
             </Button>
           </div>
 
-          {/* Disaster Type Selector - Full width card */}
+          {/* Disaster Type Selector */}
           <Card className="w-full">
             <DisasterTypeSelector 
               selectedType={selectedType} 
@@ -91,10 +91,10 @@ const DisasterMap: React.FC = () => {
           </Card>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-          {/* Left Sidebar - Stats and Filters */}
-          <div className="xl:col-span-1 space-y-6">
+        {/* Main Content - Vertical Stack Layout */}
+        <div className="flex flex-col space-y-4 p-4">
+          {/* Statistics and Filters Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Statistics Panel */}
             <StatisticsPanel 
               stats={currentData.stats} 
@@ -112,27 +112,27 @@ const DisasterMap: React.FC = () => {
             />
           </div>
 
-          {/* Map Section - Takes remaining space */}
-          <div className="xl:col-span-3">
-            <Card className="h-[700px] xl:h-[800px]">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-xl flex items-center justify-between">
-                  <span>
-                    {selectedType === 'earthquake' && 'แผนที่แผ่นดินไหว'}
-                    {selectedType === 'heavyrain' && 'แผนที่เซ็นเซอร์ฝน'}
-                    {selectedType === 'flood' && 'แผนที่น้ำท่วม (เร็วๆ นี้)'}
-                    {selectedType === 'wildfire' && 'แผนที่ไฟป่า (เร็วๆ นี้)'}
-                    {selectedType === 'storm' && 'แผนที่พายุ (เร็วๆ นี้)'}
-                  </span>
-                  {currentData.isLoading && (
-                    <div className="text-sm text-gray-500 flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                      กำลังโหลด...
-                    </div>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 h-[calc(100%-80px)]">
+          {/* Map Section - Full Width */}
+          <Card className="w-full">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center justify-between">
+                <span>
+                  {selectedType === 'earthquake' && 'แผนที่แผ่นดินไหว'}
+                  {selectedType === 'heavyrain' && 'แผนที่เซ็นเซอร์ฝน'}
+                  {selectedType === 'flood' && 'แผนที่น้ำท่วม (เร็วๆ นี้)'}
+                  {selectedType === 'wildfire' && 'แผนที่ไฟป่า (เร็วๆ นี้)'}
+                  {selectedType === 'storm' && 'แผนที่พายุ (เร็วๆ นี้)'}
+                </span>
+                {currentData.isLoading && (
+                  <div className="text-sm text-gray-500 flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                    กำลังโหลด...
+                  </div>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="h-[500px] md:h-[600px]">
                 <MapView 
                   earthquakes={selectedType === 'earthquake' ? earthquakeData.earthquakes : []}
                   rainSensors={selectedType === 'heavyrain' ? rainSensorData.sensors : []}
@@ -141,21 +141,21 @@ const DisasterMap: React.FC = () => {
                   humidityFilter={humidityFilter}
                   isLoading={currentData.isLoading}
                 />
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Error Display */}
-        {currentData.error && (
-          <Card className="mt-6 border-red-200 bg-red-50">
-            <CardContent className="p-4">
-              <p className="text-red-700">
-                เกิดข้อผิดพลาด: {getErrorMessage(currentData.error)}
-              </p>
+              </div>
             </CardContent>
           </Card>
-        )}
+
+          {/* Error Display */}
+          {currentData.error && (
+            <Card className="border-red-200 bg-red-50">
+              <CardContent className="p-4">
+                <p className="text-red-700">
+                  เกิดข้อผิดพลาด: {getErrorMessage(currentData.error)}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );

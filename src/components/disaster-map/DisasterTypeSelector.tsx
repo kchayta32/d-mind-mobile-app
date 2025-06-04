@@ -37,7 +37,7 @@ const disasterTypes: DisasterTypeOption[] = [
   {
     id: 'earthquake',
     name: 'แผ่นดินไหว',
-    icon: <MapPin className="h-5 w-5" />,
+    icon: <MapPin className="h-4 w-4" />,
     color: 'text-orange-700',
     bgColor: 'bg-orange-100 border-orange-300 hover:bg-orange-200',
     description: 'ข้อมูลการสั่นสะเทือนจาก USGS',
@@ -46,7 +46,7 @@ const disasterTypes: DisasterTypeOption[] = [
   {
     id: 'heavyrain',
     name: 'ฝนตกหนัก',
-    icon: <CloudRain className="h-5 w-5" />,
+    icon: <CloudRain className="h-4 w-4" />,
     color: 'text-blue-700',
     bgColor: 'bg-blue-100 border-blue-300 hover:bg-blue-200',
     description: 'การเตือนฝนตกหนัก',
@@ -55,7 +55,7 @@ const disasterTypes: DisasterTypeOption[] = [
   {
     id: 'flood',
     name: 'น้ำท่วม',
-    icon: <Waves className="h-5 w-5" />,
+    icon: <Waves className="h-4 w-4" />,
     color: 'text-cyan-700',
     bgColor: 'bg-cyan-100 border-cyan-300 hover:bg-cyan-200',
     description: 'พื้นที่เสี่ยงน้ำท่วม',
@@ -64,7 +64,7 @@ const disasterTypes: DisasterTypeOption[] = [
   {
     id: 'wildfire',
     name: 'ไฟป่า',
-    icon: <Flame className="h-5 w-5" />,
+    icon: <Flame className="h-4 w-4" />,
     color: 'text-red-700',
     bgColor: 'bg-red-100 border-red-300 hover:bg-red-200',
     description: 'พื้นที่เสี่ยงไฟป่า',
@@ -73,7 +73,7 @@ const disasterTypes: DisasterTypeOption[] = [
   {
     id: 'storm',
     name: 'พายุ',
-    icon: <Wind className="h-5 w-5" />,
+    icon: <Wind className="h-4 w-4" />,
     color: 'text-purple-700',
     bgColor: 'bg-purple-100 border-purple-300 hover:bg-purple-200',
     description: 'การติดตามพายุ',
@@ -86,57 +86,54 @@ const DisasterTypeSelector: React.FC<DisasterTypeSelectorProps> = ({
   onTypeChange
 }) => {
   return (
-    <div className="p-6">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">เลือกประเภทภัยพิบัติ</h3>
-        <p className="text-sm text-gray-600">สไลด์ซ้าย-ขวาเพื่อดูภัยพิบัติประเภทต่างๆ</p>
+    <div className="p-4">
+      <div className="mb-3">
+        <h3 className="text-base font-semibold text-gray-800 mb-1">เลือกประเภทภัยพิบัติ</h3>
+        <p className="text-xs text-gray-600">สไลด์ซ้าย-ขวาเพื่อดูภัยพิบัติประเภทต่างๆ</p>
       </div>
       
       <Carousel className="w-full">
-        <CarouselContent className="-ml-2 md:-ml-4">
+        <CarouselContent className="-ml-1">
           {disasterTypes.map((type) => (
-            <CarouselItem key={type.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
+            <CarouselItem key={type.id} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5">
               <Card 
-                className={`cursor-pointer transition-all duration-300 hover:shadow-lg relative ${
+                className={`cursor-pointer transition-all duration-300 hover:shadow-md relative h-24 ${
                   selectedType === type.id 
                     ? `ring-2 ring-blue-500 ${type.bgColor}` 
                     : `hover:shadow-md ${type.bgColor.replace('hover:', '')}`
                 }`}
                 onClick={() => type.status === 'active' && onTypeChange(type.id)}
               >
-                <CardContent className="p-4 text-center">
-                  <div className="flex flex-col items-center space-y-3">
+                <CardContent className="p-2 text-center h-full flex flex-col justify-center">
+                  <div className="flex flex-col items-center space-y-1">
                     {/* Icon */}
-                    <div className={`p-3 rounded-full ${type.bgColor} ${type.color}`}>
+                    <div className={`p-1.5 rounded-full ${type.bgColor} ${type.color}`}>
                       {type.icon}
                     </div>
                     
                     {/* Title */}
-                    <div className="space-y-1">
-                      <p className={`font-semibold ${type.color}`}>{type.name}</p>
-                      <p className="text-xs text-gray-600 leading-tight">
-                        {type.description}
-                      </p>
+                    <div className="space-y-0.5">
+                      <p className={`text-xs font-semibold ${type.color}`}>{type.name}</p>
                     </div>
 
                     {/* Status Badge */}
                     {type.status === 'coming-soon' && (
-                      <Badge variant="secondary" className="text-xs bg-gray-200 text-gray-600">
-                        Coming Soon
+                      <Badge variant="secondary" className="text-xs bg-gray-200 text-gray-600 px-1 py-0">
+                        Soon
                       </Badge>
                     )}
 
                     {/* Active Indicator */}
                     {selectedType === type.id && type.status === 'active' && (
-                      <div className="absolute top-2 right-2">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                      <div className="absolute top-1 right-1">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                       </div>
                     )}
 
                     {/* Disabled Overlay */}
                     {type.status === 'coming-soon' && (
                       <div className="absolute inset-0 bg-white bg-opacity-60 rounded-lg flex items-center justify-center">
-                        <Badge variant="outline" className="bg-white">
+                        <Badge variant="outline" className="bg-white text-xs">
                           เร็วๆ นี้
                         </Badge>
                       </div>
@@ -147,8 +144,8 @@ const DisasterTypeSelector: React.FC<DisasterTypeSelectorProps> = ({
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="hidden sm:flex" />
-        <CarouselNext className="hidden sm:flex" />
+        <CarouselPrevious className="hidden sm:flex -left-4" />
+        <CarouselNext className="hidden sm:flex -right-4" />
       </Carousel>
     </div>
   );
