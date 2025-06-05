@@ -10,7 +10,8 @@ export const useEarthquakeData = () => {
     maxMagnitude: 0,
     averageDepth: 0,
     last24Hours: 0,
-    significantCount: 0
+    significantCount: 0,
+    major: 0
   });
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +57,10 @@ export const useEarthquakeData = () => {
       const significantEarthquakes = transformedEarthquakes.filter(eq => 
         eq.isSignificant
       );
+
+      const majorEarthquakes = transformedEarthquakes.filter(eq => 
+        eq.magnitude >= 6.0
+      );
       
       const magnitudes = transformedEarthquakes
         .map(eq => eq.magnitude)
@@ -83,7 +88,8 @@ export const useEarthquakeData = () => {
         maxMagnitude: Math.round(maxMagnitude * 10) / 10,
         averageDepth: Math.round(avgDepth),
         last24Hours: recentEarthquakes.length,
-        significantCount: significantEarthquakes.length
+        significantCount: significantEarthquakes.length,
+        major: majorEarthquakes.length
       });
 
       setEarthquakes(transformedEarthquakes);

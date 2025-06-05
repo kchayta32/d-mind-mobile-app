@@ -1,22 +1,17 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   EarthquakeStats, 
   RainSensorStats, 
-  AirPollutionStats 
+  AirPollutionStats,
+  RainViewerStats 
 } from './types';
 import { GISTDAStats } from './useGISTDAData';
 import { DisasterType } from './DisasterMap';
 
 interface StatisticsWithRainViewer extends RainSensorStats {
-  rainViewer?: {
-    lastUpdated: string;
-    totalFrames: number;
-    pastFrames: number;
-    futureFrames: number;
-  };
+  rainViewer?: RainViewerStats;
 }
 
 interface StatisticsPanelProps {
