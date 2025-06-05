@@ -16,7 +16,7 @@ export const WildfireCharts: React.FC<WildfireChartsProps> = ({ hotspots, stats 
     const instrument = hotspot.properties.instrument;
     
     if (!acc[province]) {
-      acc[province] = { province, MODIS: 0, VIIRS: 0, total: 0 };
+      acc[province] = { province, VIIRS: 0, MODIS: 0, total: 0 };
     }
     
     if (instrument === 'MODIS') {
@@ -27,7 +27,7 @@ export const WildfireCharts: React.FC<WildfireChartsProps> = ({ hotspots, stats 
     acc[province].total++;
     
     return acc;
-  }, {} as Record<string, { province: string; MODIS: number; VIIRS: number; total: number }>);
+  }, {} as Record<string, { province: string; VIIRS: number; MODIS: number; total: number }>);
 
   const top5Provinces = Object.values(provinceData)
     .sort((a, b) => b.total - a.total)
@@ -78,34 +78,73 @@ export const WildfireCharts: React.FC<WildfireChartsProps> = ({ hotspots, stats 
               <div className="text-sm text-gray-600">MODIS</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-purple-600">{stats.viirsCount}</div>
+              <div className="text-2xl font-bold text-red-600">{stats.viirsCount}</div>
               <div className="text-sm text-gray-600">VIIRS</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Top 5 Provinces Chart */}
+      {/* Top 5 Provinces Chart - Horizontal Bar Chart */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">5 อันดับจังหวัดที่มีจุดความร้อนมากที่สุด</CardTitle>
+          <CardTitle className="text-base text-center">5 อันดับ พื้นที่ที่มีจุดความร้อน VIIRS และ MODIS รายประเทศ (จุด)</CardTitle>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              layout="horizontal"
-              data={top5Provinces}
-              margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" />
-              <YAxis dataKey="province" type="category" width={80} />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="MODIS" stackId="a" fill="#4682B4" name="MODIS" />
-              <Bar dataKey="VIIRS" stackId="a" fill="#9370DB" name="VIIRS" />
-            </BarChart>
-          </ResponsiveContainer>
+        <CardContent className="p-2">
+          <div className="w-full h-80 sm:h-96">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                layout="horizontal"
+                data={top5Provinces}
+                margin={{ top: 20, right: 30, left: 100, bottom: 60 }}
+                barCategoryGap="20%"
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                <XAxis 
+                  type="number" 
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: '#666' }}
+                />
+                <YAxis 
+                  dataKey="province" 
+                  type="category" 
+                  width={90}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 11, fill: '#333', textAnchor: 'end' }}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#fff', 
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    fontSize: '12px'
+                  }}
+                />
+                <Legend 
+                  verticalAlign="bottom"
+                  height={36}
+                  iconType="circle"
+                  wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }}
+                />
+                <Bar 
+                  dataKey="VIIRS" 
+                  stackId="a" 
+                  fill="#DC2626" 
+                  name="VIIRS"
+                  radius={[0, 2, 2, 0]}
+                />
+                <Bar 
+                  dataKey="MODIS" 
+                  stackId="a" 
+                  fill="#2563EB" 
+                  name="MODIS"
+                  radius={[0, 2, 2, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
 
