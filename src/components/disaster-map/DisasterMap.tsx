@@ -90,11 +90,11 @@ const DisasterMap: React.FC = () => {
           <FilterControls
             selectedType={selectedType}
             magnitudeFilter={magnitudeFilter}
-            setMagnitudeFilter={setMagnitudeFilter}
+            onMagnitudeChange={setMagnitudeFilter}
             humidityFilter={humidityFilter}
-            setHumidityFilter={setHumidityFilter}
+            onHumidityChange={setHumidityFilter}
             pm25Filter={pm25Filter}
-            setPm25Filter={setPm25Filter}
+            onPm25Change={setPm25Filter}
           />
           
           {/* Statistics Panel */}

@@ -1,3 +1,4 @@
+
 export interface Earthquake {
   id: string;
   magnitude: number;
@@ -7,6 +8,7 @@ export interface Earthquake {
   latitude: number;
   longitude: number;
   url?: string;
+  isSignificant?: boolean;
 }
 
 export interface EarthquakeStats {
@@ -22,6 +24,8 @@ export interface EarthquakeStats {
 export interface RainSensor {
   id: number;
   coordinates?: [number, number];
+  latitude?: number;
+  longitude?: number;
   humidity?: number;
   is_raining?: boolean;
   inserted_at?: string;

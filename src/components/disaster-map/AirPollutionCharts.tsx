@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { AirPollutionData, AirPollutionStats } from './types';
 
 interface AirPollutionChartsProps {
@@ -105,13 +105,9 @@ export const AirPollutionCharts: React.FC<AirPollutionChartsProps> = ({ stations
                 ]}
                 labelFormatter={(label) => `จังหวัด${label}`}
               />
-              <Bar 
-                dataKey="average" 
-                fill={(entry) => getPM25Color(entry?.average || 0)}
-                name="PM2.5 เฉลี่ย"
-              >
+              <Bar dataKey="average" name="PM2.5 เฉลี่ย">
                 {provincialChart.map((entry, index) => (
-                  <Bar key={`bar-${index}`} fill={getPM25Color(entry.average)} />
+                  <Cell key={`cell-${index}`} fill={getPM25Color(entry.average)} />
                 ))}
               </Bar>
             </BarChart>

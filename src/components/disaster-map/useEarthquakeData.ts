@@ -39,10 +39,6 @@ export const useEarthquakeData = () => {
         depth: feature.geometry.coordinates[2] || 0,
         time: new Date(feature.properties.time).toISOString(),
         location: feature.properties.place || 'Unknown location',
-        coordinates: [
-          feature.geometry.coordinates[0] || 0,
-          feature.geometry.coordinates[1] || 0
-        ] as [number, number],
         isSignificant: (feature.properties.mag || 0) >= 2.5
       }));
 
@@ -111,9 +107,9 @@ export const useEarthquakeData = () => {
 
   return {
     earthquakes,
-    statistics,
-    refreshing,
+    stats: statistics,
+    isLoading: refreshing,
     error,
-    fetchEarthquakeData
+    refetch: fetchEarthquakeData
   };
 };
