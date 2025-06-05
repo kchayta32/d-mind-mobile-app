@@ -17,6 +17,7 @@ export interface EarthquakeStats {
   maxMagnitude: number;
   averageDepth: number;
   significantCount: number;
+  major: number;
 }
 
 export interface RainSensor {
