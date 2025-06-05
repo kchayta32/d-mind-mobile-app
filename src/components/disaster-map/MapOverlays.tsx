@@ -9,7 +9,7 @@ interface MapOverlaysProps {
 
 export const MapOverlays: React.FC<MapOverlaysProps> = ({ selectedType, isLoading }) => {
   const renderComingSoon = () => {
-    if (['flood', 'storm'].includes(selectedType)) {
+    if (selectedType === 'flood' || selectedType === 'storm') {
       return (
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]">
           <div className="bg-white p-8 rounded-lg shadow-lg text-center">

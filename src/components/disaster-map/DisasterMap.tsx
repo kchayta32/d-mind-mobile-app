@@ -12,7 +12,7 @@ import { useGISTDAData } from './useGISTDAData';
 import { useAirPollutionData } from './useAirPollutionData';
 import { useRainViewerData } from './useRainViewerData';
 
-export type DisasterType = 'earthquake' | 'heavyrain' | 'wildfire' | 'airpollution';
+export type DisasterType = 'earthquake' | 'heavyrain' | 'wildfire' | 'airpollution' | 'flood' | 'storm';
 
 const DisasterMap: React.FC = () => {
   const [selectedType, setSelectedType] = useState<DisasterType>('wildfire');
