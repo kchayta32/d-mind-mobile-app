@@ -1,34 +1,31 @@
 export interface Earthquake {
   id: string;
   magnitude: number;
-  latitude: number;
-  longitude: number;
+  location: string;
   depth: number;
   time: string;
-  location?: string;
-  coordinates: [number, number];
-  isSignificant?: boolean;
+  latitude: number;
+  longitude: number;
+  url?: string;
 }
 
 export interface EarthquakeStats {
   total: number;
-  last24Hours: number;
+  major: number;
   averageMagnitude: number;
   maxMagnitude: number;
   averageDepth: number;
+  last24Hours: number;
   significantCount: number;
-  major: number;
 }
 
 export interface RainSensor {
   id: number;
-  humidity: number | null;
-  is_raining: boolean | null;
-  created_at: string | null;
-  inserted_at: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  coordinates: [number, number];
+  coordinates?: [number, number];
+  humidity?: number;
+  is_raining?: boolean;
+  inserted_at?: string;
+  created_at?: string;
 }
 
 export interface RainSensorStats {
@@ -39,20 +36,11 @@ export interface RainSensorStats {
   last24Hours: number;
 }
 
-export interface GISTDAStats {
-  totalHotspots: number;
-  modisCount: number;
-  viirsCount: number;
-  highConfidenceCount: number;
-  averageConfidence: number;
-  last24Hours: number;
-}
-
 export interface RainViewerStats {
+  lastUpdated: string;
+  totalFrames: number;
   pastFrames: number;
   futureFrames: number;
-  latestTime: string;
-  oldestTime: string;
 }
 
 export interface AirPollutionData {
@@ -60,13 +48,21 @@ export interface AirPollutionData {
   lat: number;
   lng: number;
   pm25?: number;
+  pm10?: number;
+  o3?: number;
+  co?: number;
+  no2?: number;
+  so2?: number;
   aod443?: number;
   ssa443?: number;
   no2trop?: number;
-  so2?: number;
   o3total?: number;
   uvai?: number;
   timestamp: string;
+  stationName?: string;
+  province?: string;
+  district?: string;
+  subdistrict?: string;
 }
 
 export interface AirPollutionStats {

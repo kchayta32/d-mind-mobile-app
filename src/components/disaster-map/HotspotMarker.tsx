@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Marker, Popup } from 'react-leaflet';
 import { Icon } from 'leaflet';
@@ -18,21 +17,41 @@ const HotspotMarker: React.FC<HotspotMarkerProps> = ({ hotspot }) => {
 
   // Create custom icon based on confidence and instrument
   const createHotspotIcon = (confidence: number | string, instrument: string) => {
-    let color = '#ef4444'; // Default red
+    let color = '#ef4444'; // Default red for VIIRS
     
-    if (typeof confidence === 'number') {
-      if (confidence >= 80) {
-        color = '#dc2626'; // Dark red for high confidence
-      } else if (confidence >= 60) {
-        color = '#ea580c'; // Orange-red for medium confidence
-      } else {
-        color = '#f97316'; // Orange for low confidence
+    // Use blue colors for MODIS
+    if (instrument === 'MODIS') {
+      if (typeof confidence === 'number') {
+        if (confidence >= 80) {
+          color = '#1e40af'; // Dark blue for high confidence
+        } else if (confidence >= 60) {
+          color = '#3b82f6'; // Medium blue for medium confidence
+        } else {
+          color = '#60a5fa'; // Light blue for low confidence
+        }
+      } else if (typeof confidence === 'string') {
+        if (confidence === 'nominal' || confidence === 'high') {
+          color = '#1e40af'; // Dark blue for nominal/high
+        } else {
+          color = '#60a5fa'; // Light blue for other values
+        }
       }
-    } else if (typeof confidence === 'string') {
-      if (confidence === 'nominal' || confidence === 'high') {
-        color = '#dc2626'; // Dark red for nominal/high
-      } else {
-        color = '#f97316'; // Orange for other values
+    } else {
+      // Keep original red colors for VIIRS
+      if (typeof confidence === 'number') {
+        if (confidence >= 80) {
+          color = '#dc2626'; // Dark red for high confidence
+        } else if (confidence >= 60) {
+          color = '#ea580c'; // Orange-red for medium confidence
+        } else {
+          color = '#f97316'; // Orange for low confidence
+        }
+      } else if (typeof confidence === 'string') {
+        if (confidence === 'nominal' || confidence === 'high') {
+          color = '#dc2626'; // Dark red for nominal/high
+        } else {
+          color = '#f97316'; // Orange for other values
+        }
       }
     }
     

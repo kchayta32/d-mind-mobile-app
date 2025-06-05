@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DisasterType } from './DisasterMap';
 import { RainSensor, AirPollutionData } from './types';

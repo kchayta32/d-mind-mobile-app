@@ -1,197 +1,123 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { MapView } from './MapView';
-import StatisticsPanel from './StatisticsPanel';
-import FilterControls from './FilterControls';
 import DisasterTypeSelector from './DisasterTypeSelector';
+import FilterControls from './FilterControls';
+import StatisticsPanel from './StatisticsPanel';
+import WildfireCharts from './WildfireCharts';
+import AirPollutionCharts from './AirPollutionCharts';
 import { useEarthquakeData } from './useEarthquakeData';
 import { useRainSensorData } from './useRainSensorData';
-import { useRainViewerData } from './useRainViewerData';
 import { useGISTDAData } from './useGISTDAData';
 import { useAirPollutionData } from './useAirPollutionData';
-import { RefreshCw } from 'lucide-react';
+import { useRainViewerData } from './useRainViewerData';
 
-export type DisasterType = 'earthquake' | 'heavyrain' | 'flood' | 'wildfire' | 'storm' | 'airpollution';
+export type DisasterType = 'earthquake' | 'heavyrain' | 'wildfire' | 'airpollution';
 
 const DisasterMap: React.FC = () => {
-  const [selectedType, setSelectedType] = useState<DisasterType>('earthquake');
-  const [magnitudeFilter, setMagnitudeFilter] = useState<number>(0);
-  const [humidityFilter, setHumidityFilter] = useState<number>(0);
-  const [pm25Filter, setPm25Filter] = useState<number>(0);
+  const [selectedType, setSelectedType] = useState<DisasterType>('wildfire');
+  const [magnitudeFilter, setMagnitudeFilter] = useState(1.0);
+  const [humidityFilter, setHumidityFilter] = useState(0);
+  const [pm25Filter, setPm25Filter] = useState(0);
 
   // Data hooks
-  const earthquakeData = useEarthquakeData();
-  const rainSensorData = useRainSensorData();
-  const rainViewerData = useRainViewerData();
-  const gistdaData = useGISTDAData();
-  const airPollutionData = useAirPollutionData();
+  const { earthquakes, stats: earthquakeStats, isLoading: isLoadingEarthquakes } = useEarthquakeData();
+  const { sensors: rainSensors, stats: rainStats, isLoading: isLoadingRain } = useRainSensorData();
+  const { hotspots, stats: wildfireStats, isLoading: isLoadingWildfire } = useGISTDAData();
+  const { stations: airStations, stats: airStats, isLoading: isLoadingAir } = useAirPollutionData();
+  const { rainData, isLoading: isLoadingRainViewer } = useRainViewerData();
 
-  const handleRefresh = () => {
+  // Enhanced rain stats with RainViewer data
+  const enhancedRainStats = rainData ? {
+    ...rainStats,
+    rainViewer: {
+      lastUpdated: new Date().toISOString(),
+      totalFrames: (rainData.radar?.past?.length || 0) + (rainData.radar?.nowcast?.length || 0),
+      pastFrames: rainData.radar?.past?.length || 0,
+      futureFrames: rainData.radar?.nowcast?.length || 0
+    }
+  } : rainStats;
+
+  // Get current stats and loading state
+  const getCurrentStats = () => {
     switch (selectedType) {
-      case 'earthquake':
-        earthquakeData.fetchEarthquakeData();
-        break;
-      case 'heavyrain':
-        rainSensorData.refetch();
-        rainViewerData.refetch();
-        break;
-      case 'wildfire':
-        gistdaData.refetch();
-        break;
-      case 'airpollution':
-        airPollutionData.refetch();
-        break;
+      case 'earthquake': return earthquakeStats;
+      case 'heavyrain': return enhancedRainStats;
+      case 'wildfire': return wildfireStats;
+      case 'airpollution': return airStats;
+      default: return null;
     }
   };
 
-  const getCurrentData = () => {
+  const getCurrentLoading = () => {
     switch (selectedType) {
-      case 'earthquake':
-        return {
-          data: earthquakeData.earthquakes,
-          stats: earthquakeData.statistics,
-          isLoading: earthquakeData.refreshing,
-          error: earthquakeData.error
-        };
-      case 'heavyrain':
-        return {
-          data: rainSensorData.sensors,
-          stats: { ...rainSensorData.stats, rainViewer: rainViewerData.stats },
-          isLoading: rainSensorData.isLoading || rainViewerData.isLoading,
-          error: rainSensorData.error || rainViewerData.error
-        };
-      case 'wildfire':
-        return {
-          data: gistdaData.hotspots,
-          stats: gistdaData.stats,
-          isLoading: gistdaData.isLoading,
-          error: gistdaData.error
-        };
-      case 'airpollution':
-        return {
-          data: airPollutionData.stations,
-          stats: airPollutionData.stats,
-          isLoading: airPollutionData.isLoading,
-          error: airPollutionData.error
-        };
-      default:
-        return {
-          data: [],
-          stats: null,
-          isLoading: false,
-          error: null
-        };
+      case 'earthquake': return isLoadingEarthquakes;
+      case 'heavyrain': return isLoadingRain || isLoadingRainViewer;
+      case 'wildfire': return isLoadingWildfire;
+      case 'airpollution': return isLoadingAir;
+      default: return false;
     }
-  };
-
-  const currentData = getCurrentData();
-
-  const getErrorMessage = (error: string | Error | null): string => {
-    if (!error) return '';
-    if (typeof error === 'string') return error;
-    return error.message || 'Unknown error occurred';
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-full mx-auto">
-        {/* Header Section */}
-        <div className="sticky top-0 bg-white shadow-sm z-10 p-4 border-b">
-          <div className="flex items-center justify-between mb-3">
-            <h1 className="text-2xl font-bold text-gray-800">แผนที่ภัยพิบัติ</h1>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleRefresh}
-              disabled={currentData.isLoading}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${currentData.isLoading ? 'animate-spin' : ''}`} />
-              รีเฟรช
-            </Button>
-          </div>
-
-          {/* Disaster Type Selector */}
-          <Card className="w-full">
-            <DisasterTypeSelector 
-              selectedType={selectedType} 
-              onTypeChange={setSelectedType} 
-            />
-          </Card>
+    <div className="h-full flex flex-col space-y-4">
+      {/* Type Selector */}
+      <DisasterTypeSelector 
+        selectedType={selectedType} 
+        onTypeChange={setSelectedType}
+      />
+      
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-4">
+        {/* Main Map */}
+        <div className="lg:col-span-3 h-[500px] lg:h-full">
+          <MapView
+            earthquakes={earthquakes}
+            rainSensors={rainSensors}
+            hotspots={hotspots}
+            airStations={airStations}
+            rainData={rainData}
+            selectedType={selectedType}
+            magnitudeFilter={magnitudeFilter}
+            humidityFilter={humidityFilter}
+            pm25Filter={pm25Filter}
+            isLoading={getCurrentLoading()}
+          />
         </div>
-
-        {/* Main Content - Vertical Stack Layout */}
-        <div className="flex flex-col space-y-4 p-4">
-          {/* Statistics and Filters Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Statistics Panel */}
-            <StatisticsPanel 
-              stats={currentData.stats} 
-              isLoading={currentData.isLoading}
-              disasterType={selectedType}
+        
+        {/* Right Sidebar */}
+        <div className="lg:col-span-1 space-y-4 max-h-[600px] lg:max-h-full overflow-y-auto">
+          {/* Filter Controls */}
+          <FilterControls
+            selectedType={selectedType}
+            magnitudeFilter={magnitudeFilter}
+            setMagnitudeFilter={setMagnitudeFilter}
+            humidityFilter={humidityFilter}
+            setHumidityFilter={setHumidityFilter}
+            pm25Filter={pm25Filter}
+            setPm25Filter={setPm25Filter}
+          />
+          
+          {/* Statistics Panel */}
+          <StatisticsPanel
+            stats={getCurrentStats()}
+            isLoading={getCurrentLoading()}
+            disasterType={selectedType}
+          />
+          
+          {/* Specific Charts for Wildfire */}
+          {selectedType === 'wildfire' && (
+            <WildfireCharts 
+              hotspots={hotspots}
+              stats={wildfireStats}
             />
-            
-            {/* Filter Controls */}
-            <FilterControls
-              magnitudeFilter={magnitudeFilter}
-              onMagnitudeChange={setMagnitudeFilter}
-              humidityFilter={humidityFilter}
-              onHumidityChange={setHumidityFilter}
-              pm25Filter={pm25Filter}
-              onPm25Change={setPm25Filter}
-              selectedType={selectedType}
+          )}
+          
+          {/* Specific Charts for Air Pollution */}
+          {selectedType === 'airpollution' && (
+            <AirPollutionCharts 
+              stations={airStations}
+              stats={airStats}
             />
-          </div>
-
-          {/* Map Section - Full Width */}
-          <Card className="w-full">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center justify-between">
-                <span>
-                  {selectedType === 'earthquake' && 'แผนที่แผ่นดินไหว'}
-                  {selectedType === 'heavyrain' && 'แผนที่เซ็นเซอร์ฝนและเรดาร์'}
-                  {selectedType === 'flood' && 'แผนที่น้ำท่วม (เร็วๆ นี้)'}
-                  {selectedType === 'wildfire' && 'แผนที่จุดความร้อน (ไฟป่า)'}
-                  {selectedType === 'storm' && 'แผนที่พายุ (เร็วๆ นี้)'}
-                  {selectedType === 'airpollution' && 'แผนที่มลพิษทางอากาศ'}
-                </span>
-                {currentData.isLoading && (
-                  <div className="text-sm text-gray-500 flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                    กำลังโหลด...
-                  </div>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="h-[500px] md:h-[600px]">
-                <MapView 
-                  earthquakes={selectedType === 'earthquake' ? earthquakeData.earthquakes : []}
-                  rainSensors={selectedType === 'heavyrain' ? rainSensorData.sensors : []}
-                  hotspots={selectedType === 'wildfire' ? gistdaData.hotspots : []}
-                  airStations={selectedType === 'airpollution' ? airPollutionData.stations : []}
-                  rainData={selectedType === 'heavyrain' ? rainViewerData.rainData : null}
-                  selectedType={selectedType}
-                  magnitudeFilter={magnitudeFilter}
-                  humidityFilter={humidityFilter}
-                  pm25Filter={pm25Filter}
-                  isLoading={currentData.isLoading}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Error Display */}
-          {currentData.error && (
-            <Card className="border-red-200 bg-red-50">
-              <CardContent className="p-4">
-                <p className="text-red-700">
-                  เกิดข้อผิดพลาด: {getErrorMessage(currentData.error)}
-                </p>
-              </CardContent>
-            </Card>
           )}
         </div>
       </div>

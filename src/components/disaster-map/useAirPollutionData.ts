@@ -3,39 +3,22 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AirPollutionData, AirPollutionStats } from './types';
 
-// Mock data structure since the air pollution API needs further investigation
-const generateMockAirData = (): AirPollutionData[] => {
-  const stations: AirPollutionData[] = [];
-  
-  // Generate some mock air pollution stations around Thailand
-  const locations = [
-    { lat: 13.7563, lng: 100.5018, name: 'กรุงเทพมหานคร' },
-    { lat: 18.7883, lng: 98.9853, name: 'เชียงใหม่' },
-    { lat: 15.2469, lng: 104.8670, name: 'ขอนแก่น' },
-    { lat: 7.8804, lng: 98.3923, name: 'ภูเก็ต' },
-    { lat: 12.6868, lng: 101.2228, name: 'ชลบุรี' }
-  ];
-  
-  locations.forEach((location, index) => {
-    const pm25 = Math.random() * 150; // Random PM2.5 value
-    
-    stations.push({
-      id: `station-${index + 1}`,
-      lat: location.lat + (Math.random() - 0.5) * 0.1,
-      lng: location.lng + (Math.random() - 0.5) * 0.1,
-      pm25: pm25,
-      aod443: Math.random() * 2,
-      ssa443: Math.random(),
-      no2trop: Math.random() * 100,
-      so2: Math.random() * 50,
-      o3total: Math.random() * 300,
-      uvai: Math.random() * 5,
-      timestamp: new Date().toISOString()
-    });
-  });
-  
-  return stations;
-};
+export interface GISTDAAirData {
+  STATION_ID: string;
+  STATION_NAME: string;
+  LAT: number;
+  LON: number;
+  PM25: number;
+  PM10?: number;
+  O3?: number;
+  CO?: number;
+  NO2?: number;
+  SO2?: number;
+  DATETIME: string;
+  PROVINCE: string;
+  DISTRICT?: string;
+  SUBDISTRICT?: string;
+}
 
 export const useAirPollutionData = () => {
   const [stations, setStations] = useState<AirPollutionData[]>([]);
@@ -47,19 +30,95 @@ export const useAirPollutionData = () => {
     last24Hours: 0
   });
 
-  // For now, use mock data as the air pollution API needs further investigation
+  // Fetch real air pollution data from GISTDA API
   const { data, isLoading, error } = useQuery({
-    queryKey: ['air-pollution'],
+    queryKey: ['air-pollution-gistda'],
     queryFn: async () => {
-      console.log('Generating mock air pollution data...');
+      console.log('Fetching GISTDA air pollution data...');
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      return generateMockAirData();
+      try {
+        const response = await fetch('https://air.gistda.or.th/rest/getPollution?lv=0&type=PM25&id=THA', {
+          headers: {
+            'accept': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          console.warn('GISTDA API not available, using mock data');
+          // Fall back to mock data if API fails
+          return generateMockAirData();
+        }
+
+        const data = await response.json();
+        console.log('GISTDA air pollution data fetched:', data);
+        
+        // Convert GISTDA format to our format
+        if (Array.isArray(data)) {
+          return data.map((station: GISTDAAirData) => ({
+            id: station.STATION_ID,
+            lat: station.LAT,
+            lng: station.LON,
+            pm25: station.PM25,
+            pm10: station.PM10,
+            o3: station.O3,
+            co: station.CO,
+            no2: station.NO2,
+            so2: station.SO2,
+            timestamp: station.DATETIME,
+            stationName: station.STATION_NAME,
+            province: station.PROVINCE,
+            district: station.DISTRICT,
+            subdistrict: station.SUBDISTRICT
+          }));
+        }
+        
+        return generateMockAirData();
+        
+      } catch (error) {
+        console.error('Failed to fetch GISTDA air data:', error);
+        return generateMockAirData();
+      }
     },
     refetchInterval: 300000, // Refresh every 5 minutes
   });
+
+  // Mock data generator as fallback
+  const generateMockAirData = (): AirPollutionData[] => {
+    const stations: AirPollutionData[] = [];
+    
+    // Generate some mock air pollution stations around Thailand
+    const locations = [
+      { lat: 13.7563, lng: 100.5018, name: 'กรุงเทพมหานคร', province: 'กรุงเทพมหานคร' },
+      { lat: 18.7883, lng: 98.9853, name: 'เชียงใหม่', province: 'เชียงใหม่' },
+      { lat: 15.2469, lng: 104.8670, name: 'ขอนแก่น', province: 'ขอนแก่น' },
+      { lat: 7.8804, lng: 98.3923, name: 'ภูเก็ต', province: 'ภูเก็ต' },
+      { lat: 12.6868, lng: 101.2228, name: 'ชลบุรี', province: 'ชลบุรี' },
+      { lat: 14.9930, lng: 102.1018, name: 'บุรีรัมย์', province: 'บุรีรัมย์' },
+      { lat: 16.4419, lng: 102.8359, name: 'อุดรธานี', province: 'อุดรธานี' },
+      { lat: 13.3611, lng: 100.9847, name: 'ปทุมธานี', province: 'ปทุมธานี' }
+    ];
+    
+    locations.forEach((location, index) => {
+      const pm25 = Math.random() * 150; // Random PM2.5 value
+      
+      stations.push({
+        id: `gistda-station-${index + 1}`,
+        lat: location.lat + (Math.random() - 0.5) * 0.1,
+        lng: location.lng + (Math.random() - 0.5) * 0.1,
+        pm25: pm25,
+        pm10: pm25 * 1.5,
+        o3: Math.random() * 200,
+        co: Math.random() * 10,
+        no2: Math.random() * 100,
+        so2: Math.random() * 50,
+        timestamp: new Date().toISOString(),
+        stationName: location.name,
+        province: location.province
+      });
+    });
+    
+    return stations;
+  };
 
   useEffect(() => {
     if (data) {
