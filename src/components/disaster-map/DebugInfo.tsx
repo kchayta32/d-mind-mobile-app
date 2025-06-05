@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { DisasterType } from './DisasterMap';
-import { RainSensor } from './types';
+import { RainSensor, AirPollutionData } from './types';
 import { GISTDAHotspot } from './useGISTDAData';
 import { RainViewerData } from './useRainViewerData';
 
@@ -13,6 +13,9 @@ interface DebugInfoProps {
   humidityFilter?: number;
   rainData?: RainViewerData | null;
   hotspots?: GISTDAHotspot[];
+  airStations?: AirPollutionData[];
+  filteredAirStations?: AirPollutionData[];
+  pm25Filter?: number;
 }
 
 export const DebugInfo: React.FC<DebugInfoProps> = ({
@@ -22,7 +25,10 @@ export const DebugInfo: React.FC<DebugInfoProps> = ({
   filteredRainSensors = [],
   humidityFilter = 0,
   rainData,
-  hotspots = []
+  hotspots = [],
+  airStations = [],
+  filteredAirStations = [],
+  pm25Filter = 0
 }) => {
   if (isLoading) return null;
 
@@ -60,10 +66,31 @@ export const DebugInfo: React.FC<DebugInfoProps> = ({
     );
   };
 
+  const renderAirPollutionDebug = () => {
+    if (selectedType !== 'airpollution') return null;
+    
+    return (
+      <div className="absolute bottom-4 left-4 bg-white p-2 rounded shadow text-xs z-[1000]">
+        <div>สถานีทั้งหมด: {airStations.length}</div>
+        <div>สถานีที่แสดง: {filteredAirStations.length}</div>
+        <div>ตัวกรอง PM2.5: {pm25Filter}+ μg/m³</div>
+        <div className="flex items-center gap-2 mt-1">
+          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+          <span>ดี</span>
+          <div className="w-3 h-3 bg-yellow-500"></div>
+          <span>ปานกลาง</span>
+          <div className="w-3 h-3 bg-red-500"></div>
+          <span>แย่</span>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       {renderHeavyRainDebug()}
       {renderWildfireDebug()}
+      {renderAirPollutionDebug()}
     </>
   );
 };

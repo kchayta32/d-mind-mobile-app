@@ -1,218 +1,195 @@
+
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Activity, TrendingUp, AlertTriangle, Clock, Droplets, Gauge, Flame, Satellite } from 'lucide-react';
-import { EarthquakeStats, RainSensorStats, GISTDAStats } from './types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { 
+  EarthquakeStats, 
+  RainSensorStats, 
+  AirPollutionStats 
+} from './types';
+import { GISTDAStats } from './useGISTDAData';
 import { DisasterType } from './DisasterMap';
 
+interface StatisticsWithRainViewer extends RainSensorStats {
+  rainViewer?: {
+    lastUpdated: string;
+    totalFrames: number;
+    pastFrames: number;
+    futureFrames: number;
+  };
+}
+
 interface StatisticsPanelProps {
-  stats: EarthquakeStats | RainSensorStats | GISTDAStats | null;
+  stats: EarthquakeStats | StatisticsWithRainViewer | GISTDAStats | AirPollutionStats | null;
   isLoading: boolean;
   disasterType: DisasterType;
 }
 
-export const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ 
-  stats, 
-  isLoading,
-  disasterType 
-}) => {
+const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ stats, isLoading, disasterType }) => {
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">สถิติข้อมูล</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-2"></div>
+            <p className="text-sm text-gray-600">กำลังโหลดข้อมูล...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">สถิติข้อมูล</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-gray-600">ไม่มีข้อมูลสถิติ</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const renderEarthquakeStats = (earthquakeStats: EarthquakeStats) => (
-    <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
-          <Activity className="h-5 w-5 text-blue-500 flex-shrink-0" />
-          <div className="min-w-0">
-            <p className="text-2xl font-bold text-blue-700">{earthquakeStats.total}</p>
-            <p className="text-sm text-gray-600">รวมทั้งหมด</p>
-          </div>
-        </div>
-        
-        <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg">
-          <Clock className="h-5 w-5 text-orange-500 flex-shrink-0" />
-          <div className="min-w-0">
-            <p className="text-2xl font-bold text-orange-700">{earthquakeStats.last24Hours}</p>
-            <p className="text-sm text-gray-600">24 ชม. ที่แล้ว</p>
-          </div>
-        </div>
+    <div className="grid grid-cols-2 gap-4">
+      <div className="text-center">
+        <div className="text-2xl font-bold text-orange-600">{earthquakeStats.total}</div>
+        <div className="text-xs text-gray-600">แผ่นดินไหวทั้งหมด</div>
       </div>
-
-      <div className="space-y-3 pt-4">
-        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-          <span className="text-sm font-medium text-gray-700">ค่าเฉลี่ย:</span>
-          <Badge variant="outline" className="ml-2">
-            {earthquakeStats.averageMagnitude.toFixed(1)}
-          </Badge>
-        </div>
-        
-        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-          <span className="text-sm font-medium text-gray-700">สูงสุด:</span>
-          <Badge variant="outline" className="text-red-600 ml-2">
-            <TrendingUp className="h-3 w-3 mr-1" />
-            {earthquakeStats.maxMagnitude.toFixed(1)}
-          </Badge>
-        </div>
-        
-        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-          <span className="text-sm font-medium text-gray-700">รุนแรง:</span>
-          <Badge variant={earthquakeStats.significantCount > 0 ? "destructive" : "secondary"} className="ml-2">
-            <AlertTriangle className="h-3 w-3 mr-1" />
-            {earthquakeStats.significantCount}
-          </Badge>
-        </div>
+      <div className="text-center">
+        <div className="text-2xl font-bold text-red-600">{earthquakeStats.major}</div>
+        <div className="text-xs text-gray-600">ขนาดใหญ่ (6.0+)</div>
       </div>
-    </>
+      <div className="text-center">
+        <div className="text-lg font-semibold text-blue-600">{earthquakeStats.averageMagnitude}</div>
+        <div className="text-xs text-gray-600">ขนาดเฉลี่ย</div>
+      </div>
+      <div className="text-center">
+        <div className="text-lg font-semibold text-green-600">{earthquakeStats.last24Hours}</div>
+        <div className="text-xs text-gray-600">24 ชม. ล่าสุด</div>
+      </div>
+    </div>
   );
 
-  const renderRainSensorStats = (rainStats: RainSensorStats) => (
-    <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
-          <Droplets className="h-5 w-5 text-blue-500 flex-shrink-0" />
-          <div className="min-w-0">
-            <p className="text-2xl font-bold text-blue-700">{rainStats.total}</p>
-            <p className="text-sm text-gray-600">เซ็นเซอร์ทั้งหมด</p>
-          </div>
+  const renderRainSensorStats = (rainStats: StatisticsWithRainViewer) => (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="text-center">
+          <div className="text-2xl font-bold text-blue-600">{rainStats.total}</div>
+          <div className="text-xs text-gray-600">เซ็นเซอร์ทั้งหมด</div>
         </div>
-        
-        <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg">
-          <Clock className="h-5 w-5 text-orange-500 flex-shrink-0" />
-          <div className="min-w-0">
-            <p className="text-2xl font-bold text-orange-700">{rainStats.last24Hours}</p>
-            <p className="text-sm text-gray-600">24 ชม. ที่แล้ว</p>
-          </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-green-600">{rainStats.activeRaining}</div>
+          <div className="text-xs text-gray-600">กำลังตกฝน</div>
         </div>
-      </div>
-
-      <div className="space-y-3 pt-4">
-        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-          <span className="text-sm font-medium text-gray-700">กำลังฝนตก:</span>
-          <Badge variant={rainStats.activeRaining > 0 ? "destructive" : "secondary"} className="ml-2">
-            <Droplets className="h-3 w-3 mr-1" />
-            {rainStats.activeRaining}
-          </Badge>
+        <div className="text-center">
+          <div className="text-lg font-semibold text-purple-600">{rainStats.averageHumidity}%</div>
+          <div className="text-xs text-gray-600">ความชื้นเฉลี่ย</div>
         </div>
-        
-        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-          <span className="text-sm font-medium text-gray-700">ความชื้นเฉลี่ย:</span>
-          <Badge variant="outline" className="ml-2">
-            <Gauge className="h-3 w-3 mr-1" />
-            {rainStats.averageHumidity}%
-          </Badge>
-        </div>
-        
-        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-          <span className="text-sm font-medium text-gray-700">ความชื้นสูงสุด:</span>
-          <Badge variant="outline" className="text-blue-600 ml-2">
-            <TrendingUp className="h-3 w-3 mr-1" />
-            {rainStats.maxHumidity}%
-          </Badge>
+        <div className="text-center">
+          <div className="text-lg font-semibold text-orange-600">{rainStats.maxHumidity}%</div>
+          <div className="text-xs text-gray-600">ความชื้นสูงสุด</div>
         </div>
       </div>
-    </>
+      {rainStats.rainViewer && (
+        <div className="border-t pt-2">
+          <div className="text-xs text-gray-600 mb-1">เรดาร์ฝน RainViewer:</div>
+          <div className="flex justify-between text-xs">
+            <span>เฟรมย้อนหลัง: {rainStats.rainViewer.pastFrames}</span>
+            <span>เฟรมพยากรณ์: {rainStats.rainViewer.futureFrames}</span>
+          </div>
+        </div>
+      )}
+    </div>
   );
 
-  const renderGISTDAStats = (gistdaStats: GISTDAStats) => (
-    <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="flex items-center space-x-3 p-3 bg-red-50 rounded-lg">
-          <Flame className="h-5 w-5 text-red-500 flex-shrink-0" />
-          <div className="min-w-0">
-            <p className="text-2xl font-bold text-red-700">{gistdaStats.totalHotspots}</p>
-            <p className="text-sm text-gray-600">จุดความร้อนทั้งหมด</p>
-          </div>
-        </div>
-        
-        <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg">
-          <Clock className="h-5 w-5 text-orange-500 flex-shrink-0" />
-          <div className="min-w-0">
-            <p className="text-2xl font-bold text-orange-700">{gistdaStats.last24Hours}</p>
-            <p className="text-sm text-gray-600">24 ชม. ที่แล้ว</p>
-          </div>
-        </div>
+  const renderWildfireStats = (wildfireStats: GISTDAStats) => (
+    <div className="grid grid-cols-2 gap-4">
+      <div className="text-center">
+        <div className="text-2xl font-bold text-red-600">{wildfireStats.totalHotspots}</div>
+        <div className="text-xs text-gray-600">จุดความร้อนทั้งหมด</div>
       </div>
-
-      <div className="space-y-3 pt-4">
-        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-          <span className="text-sm font-medium text-gray-700">MODIS:</span>
-          <Badge variant="outline" className="text-blue-600 ml-2">
-            <Satellite className="h-3 w-3 mr-1" />
-            {gistdaStats.modisCount}
-          </Badge>
-        </div>
-        
-        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-          <span className="text-sm font-medium text-gray-700">VIIRS:</span>
-          <Badge variant="outline" className="text-red-600 ml-2">
-            <Satellite className="h-3 w-3 mr-1" />
-            {gistdaStats.viirsCount}
-          </Badge>
-        </div>
-        
-        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-          <span className="text-sm font-medium text-gray-700">ความเชื่อมั่นสูง:</span>
-          <Badge variant={gistdaStats.highConfidenceCount > 0 ? "destructive" : "secondary"} className="ml-2">
-            <AlertTriangle className="h-3 w-3 mr-1" />
-            {gistdaStats.highConfidenceCount}
-          </Badge>
-        </div>
-
-        <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-          <span className="text-sm font-medium text-gray-700">ความเชื่อมั่นเฉลี่ย:</span>
-          <Badge variant="outline" className="ml-2">
-            <TrendingUp className="h-3 w-3 mr-1" />
-            {gistdaStats.averageConfidence}%
-          </Badge>
-        </div>
+      <div className="text-center">
+        <div className="text-2xl font-bold text-orange-600">{wildfireStats.highConfidenceCount}</div>
+        <div className="text-xs text-gray-600">ความเชื่อมั่นสูง</div>
       </div>
-    </>
+      <div className="text-center">
+        <div className="text-lg font-semibold text-blue-600">{wildfireStats.modisCount}</div>
+        <div className="text-xs text-gray-600">MODIS</div>
+      </div>
+      <div className="text-center">
+        <div className="text-lg font-semibold text-purple-600">{wildfireStats.viirsCount}</div>
+        <div className="text-xs text-gray-600">VIIRS</div>
+      </div>
+    </div>
   );
 
-  const renderComingSoonStats = () => (
-    <div className="text-center py-8">
-      <div className="text-4xl mb-2">🚧</div>
-      <p className="text-gray-500">สถิติจะเปิดให้บริการเร็วๆ นี้</p>
+  const renderAirPollutionStats = (airStats: AirPollutionStats) => (
+    <div className="grid grid-cols-2 gap-4">
+      <div className="text-center">
+        <div className="text-2xl font-bold text-blue-600">{airStats.totalStations}</div>
+        <div className="text-xs text-gray-600">สถานีทั้งหมด</div>
+      </div>
+      <div className="text-center">
+        <div className="text-2xl font-bold text-red-600">{airStats.unhealthyStations}</div>
+        <div className="text-xs text-gray-600">ไม่ดีต่อสุขภาพ</div>
+      </div>
+      <div className="text-center">
+        <div className="text-lg font-semibold text-purple-600">{airStats.averagePM25}</div>
+        <div className="text-xs text-gray-600">PM2.5 เฉลี่ย</div>
+      </div>
+      <div className="text-center">
+        <div className="text-lg font-semibold text-orange-600">{airStats.maxPM25}</div>
+        <div className="text-xs text-gray-600">PM2.5 สูงสุด</div>
+      </div>
     </div>
   );
 
   const getTitle = () => {
     switch (disasterType) {
+      case 'earthquake': return 'สถิติแผ่นดินไหว';
+      case 'heavyrain': return 'สถิติเซ็นเซอร์ฝน';
+      case 'wildfire': return 'สถิติจุดความร้อน';
+      case 'airpollution': return 'สถิติคุณภาพอากาศ';
+      default: return 'สถิติข้อมูล';
+    }
+  };
+
+  const renderStats = () => {
+    switch (disasterType) {
       case 'earthquake':
-        return 'สถิติแผ่นดินไหว';
+        return renderEarthquakeStats(stats as EarthquakeStats);
       case 'heavyrain':
-        return 'สถิติเซ็นเซอร์ฝน';
-      case 'flood':
-        return 'สถิติน้ำท่วม';
+        return renderRainSensorStats(stats as StatisticsWithRainViewer);
       case 'wildfire':
-        return 'สถิติไฟป่า';
-      case 'storm':
-        return 'สถิติพายุ';
+        return renderWildfireStats(stats as GISTDAStats);
+      case 'airpollution':
+        return renderAirPollutionStats(stats as AirPollutionStats);
       default:
-        return 'สถิติ';
+        return <p className="text-sm text-gray-600">ไม่รองรับการแสดงสถิติสำหรับประเภทนี้</p>;
     }
   };
 
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg">{getTitle()}</CardTitle>
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center justify-between">
+          {getTitle()}
+          <Badge variant="secondary" className="text-xs">
+            อัปเดตล่าสุด
+          </Badge>
+        </CardTitle>
       </CardHeader>
-      <CardContent className="px-4">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-          </div>
-        ) : stats ? (
-          disasterType === 'earthquake' 
-            ? renderEarthquakeStats(stats as EarthquakeStats)
-            : disasterType === 'heavyrain'
-            ? renderRainSensorStats(stats as RainSensorStats)
-            : disasterType === 'wildfire'
-            ? renderGISTDAStats(stats as GISTDAStats)
-            : renderComingSoonStats()
-        ) : (
-          renderComingSoonStats()
-        )}
+      <CardContent>
+        {renderStats()}
       </CardContent>
     </Card>
   );
 };
+
+export default StatisticsPanel;

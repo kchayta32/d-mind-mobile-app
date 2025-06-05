@@ -1,4 +1,3 @@
-
 export interface Earthquake {
   id: string;
   magnitude: number;
@@ -53,4 +52,26 @@ export interface RainViewerStats {
   futureFrames: number;
   latestTime: string;
   oldestTime: string;
+}
+
+export interface AirPollutionData {
+  id: string;
+  lat: number;
+  lng: number;
+  pm25?: number;
+  aod443?: number;
+  ssa443?: number;
+  no2trop?: number;
+  so2?: number;
+  o3total?: number;
+  uvai?: number;
+  timestamp: string;
+}
+
+export interface AirPollutionStats {
+  totalStations: number;
+  averagePM25: number;
+  maxPM25: number;
+  unhealthyStations: number;
+  last24Hours: number;
 }

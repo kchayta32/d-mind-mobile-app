@@ -1,13 +1,15 @@
 
 import React, { useState } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
-import { Earthquake, RainSensor } from './types';
+import { Earthquake, RainSensor, AirPollutionData } from './types';
 import { GISTDAHotspot } from './useGISTDAData';
 import { RainViewerData } from './useRainViewerData';
 import EarthquakeMarker from './EarthquakeMarker';
 import RainSensorMarker from './RainSensorMarker';
 import HotspotMarker from './HotspotMarker';
+import AirStationMarker from './AirStationMarker';
 import RainOverlay from './RainOverlay';
+import { WildfireWMSLayers } from './WildfireWMSLayers';
 import { MapControls } from './MapControls';
 import { MapOverlays } from './MapOverlays';
 import { DebugInfo } from './DebugInfo';
@@ -18,10 +20,12 @@ interface MapViewProps {
   earthquakes: Earthquake[];
   rainSensors: RainSensor[];
   hotspots: GISTDAHotspot[];
+  airStations: AirPollutionData[];
   rainData: RainViewerData | null;
   selectedType: DisasterType;
   magnitudeFilter: number;
   humidityFilter: number;
+  pm25Filter: number;
   isLoading: boolean;
 }
 
@@ -29,20 +33,26 @@ export const MapView: React.FC<MapViewProps> = ({
   earthquakes, 
   rainSensors,
   hotspots,
+  airStations,
   rainData,
   selectedType,
   magnitudeFilter,
   humidityFilter,
+  pm25Filter,
   isLoading 
 }) => {
   const [rainOverlayType, setRainOverlayType] = useState<'radar' | 'satellite'>('radar');
   const [rainTimeType, setRainTimeType] = useState<'past' | 'future'>('past');
   const [showRainOverlay, setShowRainOverlay] = useState(false);
+  const [showModisWMS, setShowModisWMS] = useState(true);
+  const [showViirsWMS, setShowViirsWMS] = useState(true);
+  const [showBurnScar, setShowBurnScar] = useState(false);
 
   console.log('MapView props:', { 
     earthquakes: earthquakes.length, 
     rainSensors: rainSensors.length,
     hotspots: hotspots.length,
+    airStations: airStations.length,
     rainData: rainData ? 'loaded' : 'null',
     selectedType, 
     isLoading 
@@ -53,10 +63,14 @@ export const MapView: React.FC<MapViewProps> = ({
   const filteredRainSensors = rainSensors.filter(sensor => 
     (sensor.humidity || 0) >= humidityFilter
   );
+  const filteredAirStations = airStations.filter(station =>
+    (station.pm25 || 0) >= pm25Filter
+  );
 
   console.log('Filtered data:', { 
     filteredEarthquakes: filteredEarthquakes.length, 
     filteredRainSensors: filteredRainSensors.length,
+    filteredAirStations: filteredAirStations.length,
     hotspots: hotspots.length
   });
 
@@ -82,6 +96,12 @@ export const MapView: React.FC<MapViewProps> = ({
         return hotspots.map((hotspot, index) => (
           <HotspotMarker key={`hotspot-${index}`} hotspot={hotspot} />
         ));
+
+      case 'airpollution':
+        console.log('Rendering air station markers:', filteredAirStations.length);
+        return filteredAirStations.map((station) => (
+          <AirStationMarker key={`air-station-${station.id}`} station={station} />
+        ));
       
       default:
         return null;
@@ -100,6 +120,15 @@ export const MapView: React.FC<MapViewProps> = ({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        
+        {/* WMS layers for wildfire */}
+        {selectedType === 'wildfire' && (
+          <WildfireWMSLayers
+            showModis={showModisWMS}
+            showViirs={showViirsWMS}
+            showBurnScar={showBurnScar}
+          />
+        )}
         
         {/* Rain overlay for heavy rain type */}
         {selectedType === 'heavyrain' && showRainOverlay && rainData && (
@@ -138,6 +167,9 @@ export const MapView: React.FC<MapViewProps> = ({
         humidityFilter={humidityFilter}
         rainData={rainData}
         hotspots={hotspots}
+        airStations={airStations}
+        filteredAirStations={filteredAirStations}
+        pm25Filter={pm25Filter}
       />
     </div>
   );

@@ -10,20 +10,23 @@ import { useEarthquakeData } from './useEarthquakeData';
 import { useRainSensorData } from './useRainSensorData';
 import { useRainViewerData } from './useRainViewerData';
 import { useGISTDAData } from './useGISTDAData';
+import { useAirPollutionData } from './useAirPollutionData';
 import { RefreshCw } from 'lucide-react';
 
-export type DisasterType = 'earthquake' | 'heavyrain' | 'flood' | 'wildfire' | 'storm';
+export type DisasterType = 'earthquake' | 'heavyrain' | 'flood' | 'wildfire' | 'storm' | 'airpollution';
 
 const DisasterMap: React.FC = () => {
   const [selectedType, setSelectedType] = useState<DisasterType>('earthquake');
   const [magnitudeFilter, setMagnitudeFilter] = useState<number>(0);
   const [humidityFilter, setHumidityFilter] = useState<number>(0);
+  const [pm25Filter, setPm25Filter] = useState<number>(0);
 
   // Data hooks
   const earthquakeData = useEarthquakeData();
   const rainSensorData = useRainSensorData();
   const rainViewerData = useRainViewerData();
   const gistdaData = useGISTDAData();
+  const airPollutionData = useAirPollutionData();
 
   const handleRefresh = () => {
     switch (selectedType) {
@@ -36,6 +39,9 @@ const DisasterMap: React.FC = () => {
         break;
       case 'wildfire':
         gistdaData.refetch();
+        break;
+      case 'airpollution':
+        airPollutionData.refetch();
         break;
     }
   };
@@ -62,6 +68,13 @@ const DisasterMap: React.FC = () => {
           stats: gistdaData.stats,
           isLoading: gistdaData.isLoading,
           error: gistdaData.error
+        };
+      case 'airpollution':
+        return {
+          data: airPollutionData.stations,
+          stats: airPollutionData.stats,
+          isLoading: airPollutionData.isLoading,
+          error: airPollutionData.error
         };
       default:
         return {
@@ -126,6 +139,8 @@ const DisasterMap: React.FC = () => {
               onMagnitudeChange={setMagnitudeFilter}
               humidityFilter={humidityFilter}
               onHumidityChange={setHumidityFilter}
+              pm25Filter={pm25Filter}
+              onPm25Change={setPm25Filter}
               selectedType={selectedType}
             />
           </div>
@@ -140,6 +155,7 @@ const DisasterMap: React.FC = () => {
                   {selectedType === 'flood' && 'แผนที่น้ำท่วม (เร็วๆ นี้)'}
                   {selectedType === 'wildfire' && 'แผนที่จุดความร้อน (ไฟป่า)'}
                   {selectedType === 'storm' && 'แผนที่พายุ (เร็วๆ นี้)'}
+                  {selectedType === 'airpollution' && 'แผนที่มลพิษทางอากาศ'}
                 </span>
                 {currentData.isLoading && (
                   <div className="text-sm text-gray-500 flex items-center gap-2">
@@ -155,10 +171,12 @@ const DisasterMap: React.FC = () => {
                   earthquakes={selectedType === 'earthquake' ? earthquakeData.earthquakes : []}
                   rainSensors={selectedType === 'heavyrain' ? rainSensorData.sensors : []}
                   hotspots={selectedType === 'wildfire' ? gistdaData.hotspots : []}
+                  airStations={selectedType === 'airpollution' ? airPollutionData.stations : []}
                   rainData={selectedType === 'heavyrain' ? rainViewerData.rainData : null}
                   selectedType={selectedType}
                   magnitudeFilter={magnitudeFilter}
                   humidityFilter={humidityFilter}
+                  pm25Filter={pm25Filter}
                   isLoading={currentData.isLoading}
                 />
               </div>

@@ -14,7 +14,8 @@ import {
   CloudRain, 
   Waves, 
   Flame, 
-  Wind
+  Wind,
+  AlertTriangle
 } from 'lucide-react';
 import { DisasterType } from './DisasterMap';
 
@@ -62,6 +63,15 @@ const disasterTypes: DisasterTypeOption[] = [
     status: 'active'
   },
   {
+    id: 'airpollution',
+    name: 'มลพิษอากาศ',
+    icon: <AlertTriangle className="h-4 w-4" />,
+    color: 'text-purple-700',
+    bgColor: 'bg-purple-100 border-purple-300 hover:bg-purple-200',
+    description: 'คุณภาพอากาศและ PM2.5',
+    status: 'active'
+  },
+  {
     id: 'flood',
     name: 'น้ำท่วม',
     icon: <Waves className="h-4 w-4" />,
@@ -74,8 +84,8 @@ const disasterTypes: DisasterTypeOption[] = [
     id: 'storm',
     name: 'พายุ',
     icon: <Wind className="h-4 w-4" />,
-    color: 'text-purple-700',
-    bgColor: 'bg-purple-100 border-purple-300 hover:bg-purple-200',
+    color: 'text-slate-700',
+    bgColor: 'bg-slate-100 border-slate-300 hover:bg-slate-200',
     description: 'การติดตามพายุ',
     status: 'coming-soon'
   }
@@ -95,7 +105,7 @@ const DisasterTypeSelector: React.FC<DisasterTypeSelectorProps> = ({
       <Carousel className="w-full">
         <CarouselContent className="-ml-1">
           {disasterTypes.map((type) => (
-            <CarouselItem key={type.id} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5">
+            <CarouselItem key={type.id} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/6">
               <Card 
                 className={`cursor-pointer transition-all duration-300 hover:shadow-md relative h-24 ${
                   selectedType === type.id 
