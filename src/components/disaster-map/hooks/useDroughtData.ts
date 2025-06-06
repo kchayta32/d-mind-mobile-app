@@ -16,6 +16,8 @@ export interface DroughtStats {
   averageRiskLevel: number;
   highRiskProvinces: number;
   provinces: DroughtProvinceData[];
+  nationalAverage: number;
+  topProvinces: Array<{ province: string; percentage: string; color: string }>;
   severityDistribution: {
     low: number;
     moderate: number;
@@ -39,6 +41,8 @@ export const useDroughtData = () => {
     averageRiskLevel: 0,
     highRiskProvinces: 0,
     provinces: [],
+    nationalAverage: 0,
+    topProvinces: [],
     severityDistribution: {
       low: 0,
       moderate: 0,
@@ -124,14 +128,24 @@ export const useDroughtData = () => {
         { name: 'อุทัยธานี', riskLevel: 54, coordinates: { lat: 15.3794, lng: 100.0244 }, color: getRiskColor(54), area: 5400, population: 61000 },
         { name: 'เพชรบูรณ์', riskLevel: 63, coordinates: { lat: 16.4193, lng: 101.1609 }, color: getRiskColor(63), area: 7100, population: 82000 },
         { name: 'ยโสธร', riskLevel: 74, coordinates: { lat: 15.7921, lng: 104.1456 }, color: getRiskColor(74), area: 6600, population: 77000 },
-        { name: 'อำนาจเจริญ', rinkLevel: 76, coordinates: { lat: 15.8651, lng: 104.6226 }, color: getRiskColor(76), area: 5900, population: 69000 },
+        { name: 'อำนาจเจริญ', riskLevel: 76, coordinates: { lat: 15.8651, lng: 104.6226 }, color: getRiskColor(76), area: 5900, population: 69000 },
         { name: 'พัทลุง', riskLevel: 25, coordinates: { lat: 7.6161, lng: 100.0810 }, color: getRiskColor(25), area: 2000, population: 29000 }
       ];
 
       const totalAffectedArea = mockProvinces.reduce((sum, p) => sum + p.area, 0);
       const totalAffectedPopulation = mockProvinces.reduce((sum, p) => sum + p.population, 0);
       const averageRiskLevel = Math.round(mockProvinces.reduce((sum, p) => sum + p.riskLevel, 0) / mockProvinces.length);
+      const nationalAverage = averageRiskLevel;
       const highRiskProvinces = mockProvinces.filter(p => p.riskLevel >= 60).length;
+
+      const topProvinces = mockProvinces
+        .sort((a, b) => b.riskLevel - a.riskLevel)
+        .slice(0, 5)
+        .map(p => ({
+          province: p.name,
+          percentage: `${p.riskLevel}%`,
+          color: p.color
+        }));
 
       const severityDistribution = {
         low: mockProvinces.filter(p => p.riskLevel < 40).length,
@@ -144,8 +158,10 @@ export const useDroughtData = () => {
         totalAffectedArea,
         totalAffectedPopulation,
         averageRiskLevel,
+        nationalAverage,
         highRiskProvinces,
         provinces: mockProvinces,
+        topProvinces,
         severityDistribution
       });
 

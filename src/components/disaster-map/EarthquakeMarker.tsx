@@ -87,9 +87,13 @@ const EarthquakeMarker: React.FC<EarthquakeMarkerProps> = ({ earthquake }) => {
     }
   };
 
+  // Use latitude/longitude from the earthquake object
+  const lat = earthquake.latitude || earthquake.lat;
+  const lng = earthquake.longitude || earthquake.lng;
+
   return (
     <Marker
-      position={[earthquake.lat, earthquake.lng]}
+      position={[lat, lng]}
       icon={createEarthquakeIcon(earthquake.magnitude)}
     >
       <Popup className="earthquake-popup">
@@ -137,7 +141,7 @@ const EarthquakeMarker: React.FC<EarthquakeMarkerProps> = ({ earthquake }) => {
             
             <div>
               <span className="font-semibold text-gray-600">ตำแหน่ง:</span>
-              <div className="text-gray-700">{earthquake.lat.toFixed(4)}°N, {earthquake.lng.toFixed(4)}°E</div>
+              <div className="text-gray-700">{lat.toFixed(4)}°N, {lng.toFixed(4)}°E</div>
             </div>
             
             <div>
@@ -145,10 +149,10 @@ const EarthquakeMarker: React.FC<EarthquakeMarkerProps> = ({ earthquake }) => {
               <div className="text-gray-700">{formatDate(earthquake.time)}</div>
             </div>
             
-            {earthquake.place && (
+            {earthquake.location && (
               <div>
                 <span className="font-semibold text-gray-600">สถานที่:</span>
-                <div className="text-gray-700">{earthquake.place}</div>
+                <div className="text-gray-700">{earthquake.location}</div>
               </div>
             )}
             

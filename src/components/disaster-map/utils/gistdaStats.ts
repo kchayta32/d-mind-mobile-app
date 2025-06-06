@@ -1,11 +1,11 @@
 
-import { GISTDAHotspot, GISTDAStats } from '../useGISTDAData';
+import { GISTDAHotspot, GISTDAStats, GISTDAData } from '../useGISTDAData';
 
 export const calculateGISTDAStats = (
   combinedHotspots: GISTDAHotspot[],
-  modisData?: { features?: GISTDAHotspot[] },
-  viirs3DaysData?: { features?: GISTDAHotspot[] },
-  viirs1DayData?: { features?: GISTDAHotspot[] }
+  modisData?: GISTDAData,
+  viirs3DaysData?: GISTDAData,
+  viirs1DayData?: GISTDAData
 ): GISTDAStats => {
   const modisCount = modisData?.features?.length || 0;
   const viirsCount = viirs3DaysData?.features?.length || 0;
@@ -14,7 +14,7 @@ export const calculateGISTDAStats = (
   
   // Calculate high confidence count
   const highConfidenceCount = combinedHotspots.filter(h => {
-    const confidence = h.properties.confidence;
+    const confidence = h.properties?.confidence || h.CONFIDENCE;
     if (typeof confidence === 'number') {
       return confidence >= 80;
     } else if (typeof confidence === 'string') {
@@ -25,7 +25,7 @@ export const calculateGISTDAStats = (
   
   // Calculate average confidence
   const numericConfidences = combinedHotspots
-    .map(h => h.properties.confidence)
+    .map(h => h.properties?.confidence || h.CONFIDENCE)
     .filter(c => typeof c === 'number') as number[];
   
   const averageConfidence = numericConfidences.length > 0 

@@ -16,13 +16,13 @@ const WildfireTimeChart: React.FC<WildfireTimeChartProps> = ({ hotspots }) => {
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
       
-      const dayHotspots = hotspots.filter(h => h.properties.acq_date === dateStr);
+      const dayHotspots = hotspots.filter(h => (h.properties?.acq_date || h.ACQ_DATE) === dateStr);
       
       days.push({
         date: date.toLocaleDateString('th-TH', { day: '2-digit', month: 'short' }),
         hotspots: dayHotspots.length,
-        modis: dayHotspots.filter(h => h.properties.instrument === 'MODIS').length,
-        viirs: dayHotspots.filter(h => h.properties.instrument === 'VIIRS').length
+        modis: dayHotspots.filter(h => (h.properties?.instrument || 'MODIS') === 'MODIS').length,
+        viirs: dayHotspots.filter(h => (h.properties?.instrument || 'VIIRS') === 'VIIRS').length
       });
     }
     return days;

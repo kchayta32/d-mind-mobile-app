@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +8,7 @@ import {
   AirPollutionStats,
   RainViewerStats 
 } from './types';
-import { GISTDAStats } from './useGISTDAData';
+import { WildfireStats } from './useGISTDAData';
 import { DroughtStats } from './hooks/useDroughtData';
 import { DisasterType } from './DisasterMap';
 
@@ -16,7 +17,7 @@ interface StatisticsWithRainViewer extends RainSensorStats {
 }
 
 interface StatisticsPanelProps {
-  stats: EarthquakeStats | StatisticsWithRainViewer | GISTDAStats | AirPollutionStats | DroughtStats | null;
+  stats: EarthquakeStats | StatisticsWithRainViewer | WildfireStats | AirPollutionStats | DroughtStats | null;
   isLoading: boolean;
   disasterType: DisasterType;
 }
@@ -104,23 +105,23 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ stats, isLoading, dis
     </div>
   );
 
-  const renderWildfireStats = (wildfireStats: GISTDAStats) => (
+  const renderWildfireStats = (wildfireStats: WildfireStats) => (
     <div className="grid grid-cols-2 gap-4">
       <div className="text-center">
         <div className="text-2xl font-bold text-red-600">{wildfireStats.totalHotspots}</div>
         <div className="text-xs text-gray-600">จุดความร้อนทั้งหมด</div>
       </div>
       <div className="text-center">
-        <div className="text-2xl font-bold text-orange-600">{wildfireStats.highConfidenceCount}</div>
+        <div className="text-2xl font-bold text-orange-600">{wildfireStats.highConfidence}</div>
         <div className="text-xs text-gray-600">ความเชื่อมั่นสูง</div>
       </div>
       <div className="text-center">
-        <div className="text-lg font-semibold text-blue-600">{wildfireStats.modisCount}</div>
-        <div className="text-xs text-gray-600">MODIS</div>
+        <div className="text-lg font-semibold text-blue-600">{wildfireStats.thailand.totalHotspots}</div>
+        <div className="text-xs text-gray-600">ในประเทศไทย</div>
       </div>
       <div className="text-center">
-        <div className="text-lg font-semibold text-purple-600">{wildfireStats.viirsCount}</div>
-        <div className="text-xs text-gray-600">VIIRS</div>
+        <div className="text-lg font-semibold text-purple-600">{wildfireStats.international.totalHotspots}</div>
+        <div className="text-xs text-gray-600">ต่างประเทศ</div>
       </div>
     </div>
   );
@@ -164,7 +165,7 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ stats, isLoading, dis
           {droughtStats.topProvinces.slice(0, 3).map((province, index) => (
             <div key={index} className="flex justify-between text-xs">
               <span>{province.province}</span>
-              <span className="font-semibold">{province.percentage}%</span>
+              <span className="font-semibold">{province.percentage}</span>
             </div>
           ))}
         </div>
@@ -190,7 +191,7 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ stats, isLoading, dis
       case 'heavyrain':
         return renderRainSensorStats(stats as StatisticsWithRainViewer);
       case 'wildfire':
-        return renderWildfireStats(stats as GISTDAStats);
+        return renderWildfireStats(stats as WildfireStats);
       case 'airpollution':
         return renderAirPollutionStats(stats as AirPollutionStats);
       case 'drought':

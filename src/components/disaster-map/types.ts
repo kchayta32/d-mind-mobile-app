@@ -7,6 +7,9 @@ export interface Earthquake {
   time: string;
   latitude: number;
   longitude: number;
+  lat: number;
+  lng: number;
+  place?: string;
   url?: string;
   isSignificant?: boolean;
 }

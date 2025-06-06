@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
@@ -18,6 +19,37 @@ export interface GISTDAHotspot {
   TYPE: number;
   province?: string;
   country?: string;
+  geometry?: {
+    coordinates: [number, number];
+  };
+  properties?: {
+    confidence: number | string;
+    instrument: string;
+    frp: number;
+    satellite: string;
+    pv_tn: string;
+    ap_tn: string;
+    th_date: string;
+    th_time: string;
+    village: string;
+    lu_name: string;
+    acq_date: string;
+    changwat?: string;
+  };
+}
+
+export interface GISTDAData {
+  features?: GISTDAHotspot[];
+}
+
+export interface GISTDAStats {
+  totalHotspots: number;
+  modisCount: number;
+  viirsCount: number;
+  highConfidenceCount: number;
+  averageConfidence: number;
+  last24Hours: number;
+  last7Days: number;
 }
 
 export interface WildfireStats {
@@ -152,6 +184,9 @@ export const useGISTDAData = (timeFilter: TimeFilter = '3days') => {
       const hoursAgo = Math.random() * 72; // Up to 3 days ago
       const hotspotDate = new Date(now.getTime() - hoursAgo * 60 * 60 * 1000);
       
+      const confidence = Math.floor(30 + Math.random() * 70);
+      const instrument = Math.random() > 0.5 ? 'MODIS' : 'VIIRS';
+      
       mockData.push({
         LATITUDE: lat,
         LONGITUDE: lng,
@@ -161,14 +196,31 @@ export const useGISTDAData = (timeFilter: TimeFilter = '3days') => {
         ACQ_DATE: hotspotDate.toISOString().split('T')[0],
         ACQ_TIME: hotspotDate.toTimeString().split(' ')[0].substring(0, 5),
         SATELLITE: Math.random() > 0.5 ? 'Terra' : 'Aqua',
-        CONFIDENCE: Math.floor(30 + Math.random() * 70),
+        CONFIDENCE: confidence,
         VERSION: '6.0',
         BRIGHT_T31: 280 + Math.random() * 50,
         FRP: Math.random() * 100,
         DAYNIGHT: hoursAgo % 24 < 12 ? 'D' : 'N',
         TYPE: 0,
         province,
-        country
+        country,
+        geometry: {
+          coordinates: [lng, lat]
+        },
+        properties: {
+          confidence,
+          instrument,
+          frp: Math.random() * 100,
+          satellite: Math.random() > 0.5 ? 'Terra' : 'Aqua',
+          pv_tn: province || 'Unknown',
+          ap_tn: 'District ' + Math.floor(Math.random() * 100),
+          th_date: hotspotDate.toISOString().split('T')[0],
+          th_time: hotspotDate.toTimeString().split(' ')[0].substring(0, 5),
+          village: 'Village ' + Math.floor(Math.random() * 100),
+          lu_name: 'Land Use Type',
+          acq_date: hotspotDate.toISOString().split('T')[0],
+          changwat: province
+        }
       });
     }
     
@@ -184,7 +236,24 @@ export const useGISTDAData = (timeFilter: TimeFilter = '3days') => {
         province: isInThailand(hotspot.LATITUDE, hotspot.LONGITUDE) 
           ? getProvinceFromCoordinates(hotspot.LATITUDE, hotspot.LONGITUDE) 
           : undefined,
-        country: getCountryFromCoordinates(hotspot.LATITUDE, hotspot.LONGITUDE)
+        country: getCountryFromCoordinates(hotspot.LATITUDE, hotspot.LONGITUDE),
+        geometry: {
+          coordinates: [hotspot.LONGITUDE, hotspot.LATITUDE]
+        },
+        properties: {
+          confidence: hotspot.CONFIDENCE,
+          instrument: hotspot.SATELLITE === 'Terra' || hotspot.SATELLITE === 'Aqua' ? 'MODIS' : 'VIIRS',
+          frp: hotspot.FRP || 0,
+          satellite: hotspot.SATELLITE,
+          pv_tn: hotspot.province || 'Unknown',
+          ap_tn: 'District',
+          th_date: hotspot.ACQ_DATE,
+          th_time: hotspot.ACQ_TIME,
+          village: 'Village',
+          lu_name: 'Land Use',
+          acq_date: hotspot.ACQ_DATE,
+          changwat: hotspot.province
+        }
       }));
     } else {
       processedHotspots = generateMockHotspotsData();

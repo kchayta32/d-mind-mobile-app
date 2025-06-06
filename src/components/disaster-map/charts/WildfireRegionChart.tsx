@@ -13,11 +13,12 @@ const WildfireRegionChart: React.FC<WildfireRegionChartProps> = ({ hotspots }) =
     
     // Filter hotspots to only include Thailand data
     const thailandHotspots = hotspots.filter(hotspot => 
-      hotspot.properties.changwat && hotspot.properties.changwat !== 'ไม่ระบุ'
+      (hotspot.properties?.changwat || hotspot.province) && 
+      (hotspot.properties?.changwat || hotspot.province) !== 'ไม่ระบุ'
     );
     
     thailandHotspots.forEach(hotspot => {
-      const region = hotspot.properties.changwat;
+      const region = hotspot.properties?.changwat || hotspot.province || 'อื่นๆ';
       regionCounts[region] = (regionCounts[region] || 0) + 1;
     });
     
