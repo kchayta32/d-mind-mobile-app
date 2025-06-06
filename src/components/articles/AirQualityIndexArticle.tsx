@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -65,8 +66,9 @@ const AirQualityIndexArticle: React.FC = () => {
                 </div>
               </div>
             </div>
-          </>
-        )
+          </div>
+        </>
+      )
     },
     TH: {
       title: "ดัชนีคุณภาพอากาศ",
@@ -121,8 +123,9 @@ const AirQualityIndexArticle: React.FC = () => {
                 </div>
               </div>
             </div>
-          </>
-        )
+          </div>
+        </>
+      )
     }
   };
 
@@ -165,7 +168,7 @@ const AirQualityIndexArticle: React.FC = () => {
               <p className="text-sm text-gray-500">{content[language].source}</p>
             </div>
 
-            {language === 'EN' ? content.EN.content : content.TH.content}
+            {content[language].content}
           </CardContent>
         </Card>
       </div>
