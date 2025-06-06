@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useViirs1DayData, useViirs3DaysData } from './hooks/useViirsData';
+import { useModisData } from './hooks/useModisData';
+import { calculateGISTDAStats } from './utils/gistdaStats';
 
 export interface GISTDAHotspot {
   id: string;
@@ -73,77 +75,10 @@ export const useGISTDAData = () => {
     last7Days: 0
   });
 
-  // Fetch VIIRS 1 day data
-  const { data: viirs1DayData } = useQuery({
-    queryKey: ['gistda-viirs-1day'],
-    queryFn: async () => {
-      console.log('Fetching GISTDA VIIRS 1 day data...');
-      
-      const response = await fetch(`${API_BASE_URL}/viirs/1day?limit=1000&offset=0&ct_tn=%E0%B8%A3%E0%B8%B2%E0%B8%8A%E0%B8%AD%E0%B8%B2%E0%B8%93%E0%B8%B2%E0%B8%88%E0%B8%B1%E0%B8%81%E0%B8%A3%E0%B9%84%E0%B8%97%E0%B8%A2`, {
-        headers: {
-          'accept': 'application/json',
-          'API-Key': API_KEY
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch GISTDA VIIRS 1 day data: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('GISTDA VIIRS 1 day data fetched:', data);
-      return data as GISTDAData;
-    },
-    refetchInterval: 900000,
-  });
-
-  // Fetch VIIRS 3 days data
-  const { data: viirs3DaysData, isLoading: isLoadingViirs3Days, error: viirs3DaysError } = useQuery({
-    queryKey: ['gistda-viirs-3days'],
-    queryFn: async () => {
-      console.log('Fetching GISTDA VIIRS 3 days data...');
-      
-      const response = await fetch(`${API_BASE_URL}/viirs/3days?limit=1000&offset=0&ct_tn=%E0%B8%A3%E0%B8%B2%E0%B8%8A%E0%B8%AD%E0%B8%B2%E0%B8%93%E0%B8%B2%E0%B8%88%E0%B8%B1%E0%B8%81%E0%B8%A3%E0%B9%84%E0%B8%97%E0%B8%A2`, {
-        headers: {
-          'accept': 'application/json',
-          'API-Key': API_KEY
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch GISTDA VIIRS 3 days data: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('GISTDA VIIRS 3 days data fetched:', data);
-      return data as GISTDAData;
-    },
-    refetchInterval: 900000,
-  });
-
-  // Keep existing MODIS data for backward compatibility
-  const { data: modisData, isLoading: isLoadingModis, error: modisError } = useQuery({
-    queryKey: ['gistda-modis'],
-    queryFn: async () => {
-      console.log('Fetching GISTDA MODIS data...');
-      
-      const response = await fetch(`https://disaster.gistda.or.th/api/1.0/documents/fire/hotspot/modis/3days?limit=1000&offset=0`, {
-        headers: {
-          'accept': 'application/json',
-          'API-Key': 'JMGZneff56qsmjWKbyYdYBUbTx8zHHOChXTD1Ogl8jmrEgnHbXiH3H5QvQwN3yg1'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch GISTDA MODIS data: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('GISTDA MODIS data fetched:', data);
-      return data as GISTDAData;
-    },
-    refetchInterval: 900000,
-  });
+  // Use the refactored hooks
+  const { data: viirs1DayData } = useViirs1DayData();
+  const { data: viirs3DaysData, isLoading: isLoadingViirs3Days, error: viirs3DaysError } = useViirs3DaysData();
+  const { data: modisData, isLoading: isLoadingModis, error: modisError } = useModisData();
 
   useEffect(() => {
     const combinedHotspots: GISTDAHotspot[] = [];
@@ -165,42 +100,8 @@ export const useGISTDAData = () => {
     console.log('Combined hotspots:', combinedHotspots.length);
     setHotspots(combinedHotspots);
 
-    // Calculate statistics
-    const modisCount = modisData?.features?.length || 0;
-    const viirsCount = viirs3DaysData?.features?.length || 0;
-    const viirs1DayCount = viirs1DayData?.features?.length || 0;
-    const totalHotspots = combinedHotspots.length;
-    
-    // Calculate high confidence count
-    const highConfidenceCount = combinedHotspots.filter(h => {
-      const confidence = h.properties.confidence;
-      if (typeof confidence === 'number') {
-        return confidence >= 80;
-      } else if (typeof confidence === 'string') {
-        return confidence === 'nominal' || confidence === 'high';
-      }
-      return false;
-    }).length;
-    
-    // Calculate average confidence
-    const numericConfidences = combinedHotspots
-      .map(h => h.properties.confidence)
-      .filter(c => typeof c === 'number') as number[];
-    
-    const averageConfidence = numericConfidences.length > 0 
-      ? numericConfidences.reduce((sum, c) => sum + c, 0) / numericConfidences.length 
-      : 0;
-
-    const newStats = {
-      totalHotspots,
-      modisCount,
-      viirsCount,
-      highConfidenceCount,
-      averageConfidence: Math.round(averageConfidence),
-      last24Hours: viirs1DayCount, // Only VIIRS 1 day data for 24 hours
-      last7Days: totalHotspots // All data is within 3 days, so use total
-    };
-
+    // Calculate statistics using the utility function
+    const newStats = calculateGISTDAStats(combinedHotspots, modisData, viirs3DaysData, viirs1DayData);
     console.log('Calculated GISTDA stats:', newStats);
     setStats(newStats);
   }, [modisData, viirs3DaysData, viirs1DayData]);

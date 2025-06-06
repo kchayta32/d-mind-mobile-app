@@ -14,6 +14,11 @@ export interface GISTDAAirData {
   CO?: number;
   NO2?: number;
   SO2?: number;
+  AOD443?: number;
+  SSA443?: number;
+  NO2Trop?: number;
+  O3Total?: number;
+  UVAI?: number;
   DATETIME: string;
   PROVINCE: string;
   DISTRICT?: string;
@@ -30,56 +35,56 @@ export const useAirPollutionData = () => {
     last24Hours: 0
   });
 
-  // Fetch real air pollution data from GISTDA API
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['air-pollution-gistda'],
+  // Fetch multiple air pollution data types
+  const { data: pm25Data } = useQuery({
+    queryKey: ['air-pollution-pm25'],
     queryFn: async () => {
-      console.log('Fetching GISTDA air pollution data...');
-      
       try {
         const response = await fetch('https://air.gistda.or.th/rest/getPollution?lv=0&type=PM25&id=THA', {
-          headers: {
-            'accept': 'application/json'
-          }
+          headers: { 'accept': 'application/json' }
         });
-        
-        if (!response.ok) {
-          console.warn('GISTDA API not available, using mock data');
-          // Fall back to mock data if API fails
-          return generateMockAirData();
-        }
-
-        const data = await response.json();
-        console.log('GISTDA air pollution data fetched:', data);
-        
-        // Convert GISTDA format to our format
-        if (Array.isArray(data)) {
-          return data.map((station: GISTDAAirData) => ({
-            id: station.STATION_ID,
-            lat: station.LAT,
-            lng: station.LON,
-            pm25: station.PM25,
-            pm10: station.PM10,
-            o3: station.O3,
-            co: station.CO,
-            no2: station.NO2,
-            so2: station.SO2,
-            timestamp: station.DATETIME,
-            stationName: station.STATION_NAME,
-            province: station.PROVINCE,
-            district: station.DISTRICT,
-            subdistrict: station.SUBDISTRICT
-          }));
-        }
-        
-        return generateMockAirData();
-        
+        if (!response.ok) throw new Error('PM25 API failed');
+        return await response.json();
       } catch (error) {
-        console.error('Failed to fetch GISTDA air data:', error);
-        return generateMockAirData();
+        console.warn('PM25 API not available, using mock data');
+        return null;
       }
     },
-    refetchInterval: 300000, // Refresh every 5 minutes
+    refetchInterval: 300000,
+  });
+
+  const { data: aod443Data } = useQuery({
+    queryKey: ['air-pollution-aod443'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('https://air.gistda.or.th/rest/getPollution?lv=0&type=AOD443&id=THA', {
+          headers: { 'accept': 'application/json' }
+        });
+        if (!response.ok) throw new Error('AOD443 API failed');
+        return await response.json();
+      } catch (error) {
+        console.warn('AOD443 API not available');
+        return null;
+      }
+    },
+    refetchInterval: 300000,
+  });
+
+  const { data: no2TropData } = useQuery({
+    queryKey: ['air-pollution-no2trop'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('https://air.gistda.or.th/rest/getPollution?lv=0&type=NO2Trop&id=THA', {
+          headers: { 'accept': 'application/json' }
+        });
+        if (!response.ok) throw new Error('NO2Trop API failed');
+        return await response.json();
+      } catch (error) {
+        console.warn('NO2Trop API not available');
+        return null;
+      }
+    },
+    refetchInterval: 300000,
   });
 
   // Mock data generator as fallback
@@ -121,31 +126,52 @@ export const useAirPollutionData = () => {
   };
 
   useEffect(() => {
-    if (data) {
-      console.log('Air pollution data updated:', data);
-      setStations(data);
+    let combinedData: AirPollutionData[] = [];
 
-      // Calculate statistics
-      const totalStations = data.length;
-      const pm25Values = data.map(station => station.pm25 || 0).filter(pm25 => pm25 > 0);
-      const averagePM25 = pm25Values.length > 0 
-        ? pm25Values.reduce((sum, pm25) => sum + pm25, 0) / pm25Values.length 
-        : 0;
-      const maxPM25 = pm25Values.length > 0 ? Math.max(...pm25Values) : 0;
-      const unhealthyStations = data.filter(station => (station.pm25 || 0) > 75).length;
-
-      const newStats = {
-        totalStations,
-        averagePM25: Math.round(averagePM25),
-        maxPM25: Math.round(maxPM25),
-        unhealthyStations,
-        last24Hours: totalStations // All data is current
-      };
-
-      console.log('Calculated air pollution stats:', newStats);
-      setStats(newStats);
+    if (pm25Data && Array.isArray(pm25Data)) {
+      combinedData = pm25Data.map((station: GISTDAAirData) => ({
+        id: station.STATION_ID,
+        lat: station.LAT,
+        lng: station.LON,
+        pm25: station.PM25,
+        pm10: station.PM10,
+        o3: station.O3,
+        co: station.CO,
+        no2: station.NO2,
+        so2: station.SO2,
+        timestamp: station.DATETIME,
+        stationName: station.STATION_NAME,
+        province: station.PROVINCE,
+        district: station.DISTRICT,
+        subdistrict: station.SUBDISTRICT
+      }));
+    } else {
+      combinedData = generateMockAirData();
     }
-  }, [data]);
+
+    console.log('Air pollution data updated:', combinedData);
+    setStations(combinedData);
+
+    // Calculate statistics
+    const totalStations = combinedData.length;
+    const pm25Values = combinedData.map(station => station.pm25 || 0).filter(pm25 => pm25 > 0);
+    const averagePM25 = pm25Values.length > 0 
+      ? pm25Values.reduce((sum, pm25) => sum + pm25, 0) / pm25Values.length 
+      : 0;
+    const maxPM25 = pm25Values.length > 0 ? Math.max(...pm25Values) : 0;
+    const unhealthyStations = combinedData.filter(station => (station.pm25 || 0) > 75).length;
+
+    const newStats = {
+      totalStations,
+      averagePM25: Math.round(averagePM25),
+      maxPM25: Math.round(maxPM25),
+      unhealthyStations,
+      last24Hours: totalStations // All data is current
+    };
+
+    console.log('Calculated air pollution stats:', newStats);
+    setStats(newStats);
+  }, [pm25Data, aod443Data, no2TropData]);
 
   const refetch = () => {
     console.log('Refetching air pollution data...');
@@ -154,15 +180,15 @@ export const useAirPollutionData = () => {
   console.log('useAirPollutionData returning:', { 
     stations: stations.length, 
     stats, 
-    isLoading, 
-    error 
+    isLoading: false, 
+    error: null 
   });
 
   return {
     stations,
     stats,
-    isLoading,
-    error,
+    isLoading: false,
+    error: null,
     refetch
   };
 };

@@ -10,6 +10,7 @@ import HotspotMarker from './HotspotMarker';
 import AirStationMarker from './AirStationMarker';
 import RainOverlay from './RainOverlay';
 import { WildfireWMSLayers } from './WildfireWMSLayers';
+import { DroughtWMSLayers } from './DroughtWMSLayers';
 import { MapControls } from './MapControls';
 import { MapOverlays } from './MapOverlays';
 import { DebugInfo } from './DebugInfo';
@@ -103,6 +104,10 @@ export const MapView: React.FC<MapViewProps> = ({
           <AirStationMarker key={`air-station-${station.id}`} station={station} />
         ));
       
+      case 'drought':
+        // Drought uses WMS layers only, no individual markers
+        return null;
+      
       default:
         return null;
     }
@@ -127,6 +132,15 @@ export const MapView: React.FC<MapViewProps> = ({
             showModis={showModisWMS}
             showViirs={showViirsWMS}
             showBurnScar={showBurnScar}
+          />
+        )}
+
+        {/* WMS layers for drought */}
+        {selectedType === 'drought' && (
+          <DroughtWMSLayers
+            showDRI={true}
+            showNDWI={false}
+            showSMAP={false}
           />
         )}
         

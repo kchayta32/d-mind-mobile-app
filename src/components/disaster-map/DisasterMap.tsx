@@ -6,13 +6,15 @@ import FilterControls from './FilterControls';
 import StatisticsPanel from './StatisticsPanel';
 import WildfireCharts from './WildfireCharts';
 import AirPollutionCharts from './AirPollutionCharts';
+import DroughtCharts from './DroughtCharts';
 import { useEarthquakeData } from './useEarthquakeData';
 import { useRainSensorData } from './useRainSensorData';
 import { useGISTDAData } from './useGISTDAData';
 import { useAirPollutionData } from './useAirPollutionData';
 import { useRainViewerData } from './useRainViewerData';
+import { useDroughtData } from './hooks/useDroughtData';
 
-export type DisasterType = 'earthquake' | 'heavyrain' | 'wildfire' | 'airpollution' | 'flood' | 'storm';
+export type DisasterType = 'earthquake' | 'heavyrain' | 'wildfire' | 'airpollution' | 'drought' | 'flood' | 'storm';
 
 const DisasterMap: React.FC = () => {
   const [selectedType, setSelectedType] = useState<DisasterType>('wildfire');
@@ -27,6 +29,7 @@ const DisasterMap: React.FC = () => {
   const { hotspots, stats: wildfireStats, isLoading: isLoadingWildfire } = useGISTDAData();
   const { stations: airStations, stats: airStats, isLoading: isLoadingAir } = useAirPollutionData();
   const { rainData, isLoading: isLoadingRainViewer } = useRainViewerData();
+  const { stats: droughtStats, isLoading: isLoadingDrought } = useDroughtData();
 
   // Enhanced rain stats with RainViewer data
   const enhancedRainStats = rainData ? {
@@ -46,6 +49,7 @@ const DisasterMap: React.FC = () => {
       case 'heavyrain': return enhancedRainStats;
       case 'wildfire': return wildfireStats;
       case 'airpollution': return airStats;
+      case 'drought': return droughtStats;
       default: return null;
     }
   };
@@ -56,6 +60,7 @@ const DisasterMap: React.FC = () => {
       case 'heavyrain': return isLoadingRain || isLoadingRainViewer;
       case 'wildfire': return isLoadingWildfire;
       case 'airpollution': return isLoadingAir;
+      case 'drought': return isLoadingDrought;
       default: return false;
     }
   };
@@ -120,6 +125,13 @@ const DisasterMap: React.FC = () => {
             <AirPollutionCharts 
               stations={airStations}
               stats={airStats}
+            />
+          )}
+
+          {/* Specific Charts for Drought */}
+          {selectedType === 'drought' && (
+            <DroughtCharts 
+              stats={droughtStats}
             />
           )}
         </div>
