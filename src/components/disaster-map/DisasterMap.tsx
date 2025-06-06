@@ -19,6 +19,7 @@ const DisasterMap: React.FC = () => {
   const [magnitudeFilter, setMagnitudeFilter] = useState(1.0);
   const [humidityFilter, setHumidityFilter] = useState(0);
   const [pm25Filter, setPm25Filter] = useState(0);
+  const [wildfireTimeFilter, setWildfireTimeFilter] = useState('3days');
 
   // Data hooks
   const { earthquakes, stats: earthquakeStats, isLoading: isLoadingEarthquakes } = useEarthquakeData();
@@ -95,6 +96,8 @@ const DisasterMap: React.FC = () => {
             onHumidityChange={setHumidityFilter}
             pm25Filter={pm25Filter}
             onPm25Change={setPm25Filter}
+            wildfireTimeFilter={wildfireTimeFilter}
+            onWildfireTimeFilterChange={setWildfireTimeFilter}
           />
           
           {/* Statistics Panel */}

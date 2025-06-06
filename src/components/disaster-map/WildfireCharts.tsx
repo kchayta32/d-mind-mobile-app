@@ -10,29 +10,6 @@ interface WildfireChartsProps {
 }
 
 export const WildfireCharts: React.FC<WildfireChartsProps> = ({ hotspots, stats }) => {
-  // Process data for top 5 provinces with hotspots
-  const provinceData = hotspots.reduce((acc, hotspot) => {
-    const province = hotspot.properties.pv_tn || 'ไม่ระบุ';
-    const instrument = hotspot.properties.instrument;
-    
-    if (!acc[province]) {
-      acc[province] = { province, VIIRS: 0, MODIS: 0, total: 0 };
-    }
-    
-    if (instrument === 'MODIS') {
-      acc[province].MODIS++;
-    } else if (instrument === 'VIIRS') {
-      acc[province].VIIRS++;
-    }
-    acc[province].total++;
-    
-    return acc;
-  }, {} as Record<string, { province: string; VIIRS: number; MODIS: number; total: number }>);
-
-  const top5Provinces = Object.values(provinceData)
-    .sort((a, b) => b.total - a.total)
-    .slice(0, 5);
-
   // Process land use data for MODIS (lu_name)
   const modisLandUseData = hotspots
     .filter(h => h.properties.instrument === 'MODIS')
@@ -64,6 +41,33 @@ export const WildfireCharts: React.FC<WildfireChartsProps> = ({ hotspots, stats 
     { name: 'ชุมชนและอื่น ๆ', value: viirsLandUseData['ชุมชนและอื่น ๆ'] || 0, color: '#800000' }
   ].filter(item => item.value > 0);
 
+  // Generate daily trend data for the last 7 days
+  const generateDailyTrend = () => {
+    const days = [];
+    const today = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      const dayHotspots = hotspots.filter(h => h.properties.acq_date === dateStr);
+      const viirsCount = dayHotspots.filter(h => h.properties.instrument === 'VIIRS').length;
+      const modisCount = dayHotspots.filter(h => h.properties.instrument === 'MODIS').length;
+      
+      days.push({
+        date: date.toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit' }),
+        VIIRS: viirsCount,
+        MODIS: modisCount,
+        total: viirsCount + modisCount
+      });
+    }
+    
+    return days;
+  };
+
+  const dailyTrendData = generateDailyTrend();
+
   return (
     <div className="space-y-6">
       {/* Statistics Summary */}
@@ -85,34 +89,33 @@ export const WildfireCharts: React.FC<WildfireChartsProps> = ({ hotspots, stats 
         </CardContent>
       </Card>
 
-      {/* Top 5 Provinces Chart - Horizontal Bar Chart */}
+      {/* 7-Day Disaster Situation Summary */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base text-center">5 อันดับ พื้นที่ที่มีจุดความร้อน VIIRS และ MODIS รายประเทศ (จุด)</CardTitle>
+          <CardTitle className="text-base text-center">สรุปสถานการณ์ภัยพิบัติย้อนหลัง 7 วัน</CardTitle>
         </CardHeader>
         <CardContent className="p-2">
           <div className="w-full h-80 sm:h-96">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                layout="horizontal"
-                data={top5Provinces}
-                margin={{ top: 20, right: 30, left: 100, bottom: 60 }}
+                data={dailyTrendData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                 barCategoryGap="20%"
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                 <XAxis 
-                  type="number" 
+                  dataKey="date"
                   axisLine={false}
                   tickLine={false}
                   tick={{ fontSize: 12, fill: '#666' }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
                 />
                 <YAxis 
-                  dataKey="province" 
-                  type="category" 
-                  width={90}
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 11, fill: '#333', textAnchor: 'end' }}
+                  tick={{ fontSize: 12, fill: '#666' }}
                 />
                 <Tooltip 
                   contentStyle={{ 
@@ -121,6 +124,7 @@ export const WildfireCharts: React.FC<WildfireChartsProps> = ({ hotspots, stats 
                     borderRadius: '4px',
                     fontSize: '12px'
                   }}
+                  labelFormatter={(label) => `วันที่: ${label}`}
                 />
                 <Legend 
                   verticalAlign="bottom"
@@ -133,14 +137,14 @@ export const WildfireCharts: React.FC<WildfireChartsProps> = ({ hotspots, stats 
                   stackId="a" 
                   fill="#DC2626" 
                   name="VIIRS"
-                  radius={[0, 2, 2, 0]}
+                  radius={[0, 0, 0, 0]}
                 />
                 <Bar 
                   dataKey="MODIS" 
                   stackId="a" 
                   fill="#2563EB" 
                   name="MODIS"
-                  radius={[0, 2, 2, 0]}
+                  radius={[2, 2, 0, 0]}
                 />
               </BarChart>
             </ResponsiveContainer>

@@ -38,13 +38,30 @@ export const useSharedDisasterAlerts = () => {
     refetchInterval: 60000,
   });
 
-  useEffect(() => {
-    const combinedData: DisasterAlert[] = [...dbAlerts];
+  // Helper function to check if a date is within the last 24 hours
+  const isWithinLast24Hours = (dateString: string): boolean => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    return date >= twentyFourHoursAgo;
+  };
 
-    // Add earthquake data as alerts with proper null checks
+  useEffect(() => {
+    const combinedData: DisasterAlert[] = [];
+
+    // Filter database alerts to only include those from the last 24 hours
+    const recentDbAlerts = dbAlerts.filter(alert => 
+      isWithinLast24Hours(alert.start_time) && alert.is_active
+    );
+    combinedData.push(...recentDbAlerts);
+
+    // Add earthquake data as alerts with proper null checks - only from last 24 hours
     earthquakes.forEach(eq => {
-      if (eq.magnitude >= 1.0 && eq.latitude !== undefined && eq.longitude !== undefined) {
-        // Use the location description if available, otherwise use magnitude info
+      if (eq.magnitude >= 1.0 && 
+          eq.latitude !== undefined && 
+          eq.longitude !== undefined &&
+          isWithinLast24Hours(eq.time)) {
+        
         const locationText = eq.location || `${eq.latitude.toFixed(4)}, ${eq.longitude.toFixed(4)}`;
         const magnitudeText = `M ${eq.magnitude}`;
         const displayLocation = eq.location ? `${magnitudeText} - ${eq.location}` : `${magnitudeText} - ${locationText}`;
@@ -65,9 +82,15 @@ export const useSharedDisasterAlerts = () => {
       }
     });
 
-    // Add rain sensor data as alerts for high humidity/rain with proper null checks
+    // Add rain sensor data as alerts for high humidity/rain - only from last 24 hours
     rainSensors.forEach(sensor => {
-      if (sensor.humidity && sensor.humidity >= 50 && sensor.coordinates) {
+      const sensorTime = sensor.inserted_at || sensor.created_at || new Date().toISOString();
+      
+      if (sensor.humidity && 
+          sensor.humidity >= 50 && 
+          sensor.coordinates &&
+          isWithinLast24Hours(sensorTime)) {
+        
         combinedData.push({
           id: `rain-${sensor.id}`,
           type: 'heavyrain',
@@ -75,10 +98,10 @@ export const useSharedDisasterAlerts = () => {
           location: `เซ็นเซอร์ฝน #${sensor.id}`,
           description: `ความชื้น ${sensor.humidity}% ${sensor.is_raining ? '(กำลังฝนตก)' : ''}`,
           coordinates: sensor.coordinates,
-          start_time: sensor.inserted_at || sensor.created_at || new Date().toISOString(),
+          start_time: sensorTime,
           is_active: sensor.is_raining || false,
-          created_at: sensor.inserted_at || sensor.created_at || new Date().toISOString(),
-          updated_at: sensor.inserted_at || sensor.created_at || new Date().toISOString(),
+          created_at: sensorTime,
+          updated_at: sensorTime,
           rain_intensity: sensor.humidity
         });
       }
