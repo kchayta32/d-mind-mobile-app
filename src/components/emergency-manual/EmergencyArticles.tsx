@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
@@ -17,6 +18,12 @@ const EmergencyArticles: React.FC = () => {
       title: 'UV Aerosol Index',
       subtitle: 'จาก earthdata.nasa.gov',
       description: 'ดัชนี UV Aerosol สำหรับติดตามอนุภาคในชั้นบรรยากาศ'
+    },
+    {
+      id: 'air-pollution-control-program',
+      title: 'Air Pollution Control Program',
+      subtitle: 'จาก air.moenv.gov.tw',
+      description: 'โครงการควบคุมมลพิษอากาศและมาตรการจัดการคุณภาพอากาศ'
     },
     {
       id: 'weather-forecast-july-2025',

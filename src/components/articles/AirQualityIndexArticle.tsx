@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft, Globe } from 'lucide-react';
 import AppLogo from '@/components/AppLogo';
 
@@ -191,6 +192,166 @@ const AirQualityIndexArticle: React.FC = () => {
                   <li>1-hour SO₂ values do not define higher AQI values (≥ 200). AQI values of 200 or greater are calculated with 24-hour SO₂ concentrations.</li>
                 </ol>
               </div>
+            </div>
+          </div>
+
+          <div id="tg3">
+            <h3 className="text-xl font-semibold mb-4">Real-time air quality indicator (real-time AQI)</h3>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              The MOENV issues real-time AQI as a reference for issuing early warnings and provides hourly monitoring data. The calculation of real-time AQI is the following:
+            </p>
+            <p className="text-gray-700 leading-relaxed mb-6">
+              The real-time concentration of each item is calculated based on the following equations, and compared against the following table to obtain the real-time sub-indicators of O₃, PM₂.₅, PM₁₀, CO, SO₂ and NO₂. The largest sub-indicator is the real-time AQI, and its corresponding item is the leading pollutant.
+            </p>
+
+            <ul className="space-y-2 mb-6 text-sm">
+              <li><strong>● O₃, 8h:</strong> value of the last 8-hour moving average (e.g. the 8-hour average concentration value of O₃ published at 10AM this morning is the average of monitoring data from 2AM to 9AM this morning)</li>
+              <li><strong>● O₃:</strong> real-time concentration value</li>
+              <li><strong>● PM₂.₅:</strong> 0.5 x average of the first 12 hours + 0.5 x average of the first 4 hours (2 entries of the first 4 hours are valid and 6 entries of the first 12 hours are valid)</li>
+              <li><strong>● PM₁₀:</strong> 0.5 x average of the first 12 hours + 0.5 x average of the first 4 hours (2 entries of the first 4 hours are valid and 6 entries of the first 12 hours are valid)</li>
+              <li><strong>● CO:</strong> value of the last 8-hour moving average (e.g. the 8-hour average concentration value of CO published at 10AM this morning is the average of monitoring data from 2AM to 9AM this morning)</li>
+              <li><strong>● SO₂:</strong> real-time concentration value</li>
+              <li><strong>● SO₂, 24h:</strong> average of concentration values in the last 24 hours (e.g. the 24-hour average concentration value of SO₂ published at 10AM this morning is the average of monitoring data from 10AM yesterday to 9AM today)</li>
+              <li><strong>● NO₂:</strong> real-time concentration value</li>
+            </ul>
+
+            <div className="bg-gray-50 p-4 rounded-lg mb-6">
+              <p className="text-sm"><strong>Note:</strong> A valid moving average of PM₂.₅ includes the first digit to the right of the decimal point, so the second digit to the right of the decimal point is rounded. Valid 8-hour moving average of O₃ and moving average of PM₁₀ should be integers, so the first digit to the right of the decimal point is rounded.</p>
+            </div>
+
+            <div className="overflow-x-auto mb-6">
+              <h4 className="text-lg font-semibold mb-4 text-center">The concentration of pollutants and air quality index value deputy table</h4>
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>AQI</TableHead>
+                    <TableHead>0-50</TableHead>
+                    <TableHead>51-100</TableHead>
+                    <TableHead>101-150</TableHead>
+                    <TableHead>151-200</TableHead>
+                    <TableHead>201-300</TableHead>
+                    <TableHead>301-400</TableHead>
+                    <TableHead>401-500</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-semibold">O₃, 8h (ppm)</TableCell>
+                    <TableCell>0.000-0.054</TableCell>
+                    <TableCell>0.055-0.070</TableCell>
+                    <TableCell>0.071-0.085</TableCell>
+                    <TableCell>0.086-0.105</TableCell>
+                    <TableCell>0.106-0.200</TableCell>
+                    <TableCell className="text-red-600">(2)</TableCell>
+                    <TableCell className="text-red-600">(2)</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-semibold">O₃ (ppm)</TableCell>
+                    <TableCell>-</TableCell>
+                    <TableCell>-</TableCell>
+                    <TableCell className="text-red-600">0.101-0.134</TableCell>
+                    <TableCell className="text-red-600">0.135-0.204</TableCell>
+                    <TableCell>0.205-0.404</TableCell>
+                    <TableCell>0.405-0.504</TableCell>
+                    <TableCell>0.505-0.604</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-semibold">PM₂.₅ (μg/m³)</TableCell>
+                    <TableCell className="text-red-600">0.0-12.4</TableCell>
+                    <TableCell className="text-red-600">12.5-30.4</TableCell>
+                    <TableCell className="text-red-600">30.5-50.4</TableCell>
+                    <TableCell className="text-red-600">50.5-125.4</TableCell>
+                    <TableCell className="text-red-600">125.5-225.4</TableCell>
+                    <TableCell className="text-red-600">225.5-325.4</TableCell>
+                    <TableCell className="text-red-600">325.5-500.4</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-semibold">PM₁₀ (μg/m³)</TableCell>
+                    <TableCell className="text-red-600">0-30</TableCell>
+                    <TableCell className="text-red-600">31-75</TableCell>
+                    <TableCell className="text-red-600">76-190</TableCell>
+                    <TableCell className="text-red-600">191-354</TableCell>
+                    <TableCell>355-424</TableCell>
+                    <TableCell>425-504</TableCell>
+                    <TableCell>505-604</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="text-sm text-gray-600 space-y-2">
+              <ol className="list-decimal list-inside space-y-1">
+                <li>Areas are generally required to report the AQI based on 8-hour ozone values. However, there are a small number of areas where an AQI based on 1-hour ozone values would be more precautionary. In these cases, in addition to calculating the 8-hour ozone index value, the 1-hour ozone value may be calculated, and the maximum of the two values reported.</li>
+                <li>8-hour O₃ values do not define higher AQI values (≥ 301). AQI values of 301 or higher are calculated with 1-hour O₃ concentrations.</li>
+                <li>1-hour SO₂ values do not define higher AQI values (≥ 200). AQI values of 200 or greater are calculated with 24-hour SO₂ concentrations.</li>
+              </ol>
+            </div>
+          </div>
+
+          <div id="tg4">
+            <h3 className="text-xl font-semibold mb-4">Air Quality Index and Activity Guidance</h3>
+            
+            <div className="overflow-x-auto">
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>AQI</TableHead>
+                    <TableHead>0-50</TableHead>
+                    <TableHead>51-100</TableHead>
+                    <TableHead>101-150</TableHead>
+                    <TableHead>151-200</TableHead>
+                    <TableHead>201-300</TableHead>
+                    <TableHead>301-500</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-semibold">Air Quality Index Levels of Health Concern</TableCell>
+                    <TableCell>Good</TableCell>
+                    <TableCell>Moderate</TableCell>
+                    <TableCell>Unhealthy for Sensitive Groups</TableCell>
+                    <TableCell>Unhealthy</TableCell>
+                    <TableCell>Very Unhealthy</TableCell>
+                    <TableCell>Hazardous</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-semibold">Status Color</TableCell>
+                    <TableCell className="bg-green-100"><strong>Green</strong></TableCell>
+                    <TableCell className="bg-yellow-100"><strong>Yellow</strong></TableCell>
+                    <TableCell className="bg-orange-100"><strong>Orange</strong></TableCell>
+                    <TableCell className="bg-red-100"><strong>Red</strong></TableCell>
+                    <TableCell className="bg-purple-100"><strong>Purple</strong></TableCell>
+                    <TableCell className="bg-red-200"><strong>Maroon</strong></TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-semibold">Impact on Human Health</TableCell>
+                    <TableCell>Air quality is considered satisfactory, and air pollution poses little or no risk.</TableCell>
+                    <TableCell>Air quality is acceptable; however, for some pollutants there may be a moderate health concern for a very small number of people who are unusually sensitive to air pollution.</TableCell>
+                    <TableCell>Members of sensitive groups may experience health effects. The general public is not likely to be affected.</TableCell>
+                    <TableCell>Everyone may begin to experience health effects; members of sensitive groups may experience more serious health effects.</TableCell>
+                    <TableCell>Health alert: everyone may experience more serious health effects.</TableCell>
+                    <TableCell>Health warnings of emergency conditions. The entire population is more likely to be affected.</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-semibold">Activity Guidance for the General Public</TableCell>
+                    <TableCell>Enjoy your usual outdoor activities.</TableCell>
+                    <TableCell>Enjoy your usual outdoor activities.</TableCell>
+                    <TableCell>1. Everyone experiencing discomfort such as sore eyes, cough or sore throat should consider reducing outdoor activities.<br/>2. For students, it's ok to be active outside, but are recommended to reduce prolonged strenuous exercise.</TableCell>
+                    <TableCell>1. Everyone experiencing discomfort such as sore eyes, cough or sore throat should reduce physical exertion, particularly outdoors.<br/>2. Students should avoid prolonged strenuous exercise, and take more breaks during outdoor activities.</TableCell>
+                    <TableCell>1. Everyone should reduce outdoor activities.<br/>2. Students should stop outdoor activities and move all activities and classes indoors.</TableCell>
+                    <TableCell>1. Everyone should avoid outdoor activities and keep doors and windows closed. If it is necessary to go out, please wear a mask.<br/>2. Students should stop outdoor activities and move all activities and classes indoors.</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-semibold">Activity Guidance for Sensitive Groups</TableCell>
+                    <TableCell>Enjoy your usual outdoor activities.</TableCell>
+                    <TableCell>Unusually sensitive groups are recommended to watch for symptoms such as coughing or shortness of breath, but can still be active outside.</TableCell>
+                    <TableCell>1. People with heart, respiratory and cardiovascular problems, children, teenagers and older adults are recommended to reduce physical exertion and outdoor activities.<br/>2. People with asthma may need to use their reliever inhalers more often.</TableCell>
+                    <TableCell>1. People with heart, respiratory and cardiovascular problems, children, teenagers and older adults are recommended to stay indoors and reduce physical exertion. If it is necessary to go out, please wear a mask.<br/>2. People with asthma may need to use their reliever inhalers more often.</TableCell>
+                    <TableCell>1. People with heart, respiratory and cardiovascular problems, children, teenagers and older adults should stay indoors and reduce physical exertion. If it is necessary to go out, please wear a mask.<br/>2. People with asthma should use their reliever inhalers more often.</TableCell>
+                    <TableCell>1. People with heart, respiratory and cardiovascular problems, children, teenagers and older adults should stay indoors and avoid physical exertion. If it is necessary to go out, please wear a mask.<br/>2. People with asthma should use their reliever inhalers more often.</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </div>
           </div>
         </div>

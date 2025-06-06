@@ -19,6 +19,7 @@ const AcademicArticles: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>('all');
 
   const academicArticles: AcademicArticle[] = [
+    // 2567 articles
     {
       id: 'pm25-so2-cognitive-2567',
       title: 'งานวิจัยใน Scientific Reports: ผลกระทบของ PM2.5 และ SO₂ ต่อการเสื่อมด้านการรับรู้',
@@ -58,6 +59,57 @@ const AcademicArticles: React.FC = () => {
       category: 'สุขภาพและมลพิษ',
       abstract: 'แม้ว่าจะถูกกล่าวถึงน้อยในงานวิจัยล่าสุด แต่ SO₂ ยังคงเป็นส่วนหนึ่งของการประเมินด้านสุขภาพ เช่น พบว่ามีส่วนเชื่อมโยงกับความเสี่ยงกับการลดลงด้านความคิด รวมถึงโรคลมชัก (ตามบทความใน PM และสุขภาพ)',
       url: 'https://pubmed.ncbi.nlm.nih.gov/39179784/'
+    },
+    // 2568 articles
+    {
+      id: 'bmc-neurology-epilepsy-2568',
+      title: 'งานใน BMC Neurology: ผลกระทบของหลายมลพิษต่อโรคลมชัก',
+      authors: 'BMC Neurology Research Team',
+      year: 2568,
+      journal: 'BMC Neurology',
+      category: 'สุขภาพและมลพิษ',
+      abstract: 'งานใน BMC Neurology (เม.ย. 2025) ศึกษาผลกระทบของหลายมลพิษ (PM2.5, NO₂, SO₂, O₃) ต่อโรคลมชัก ชี้ว่ามลพิษในอากาศอาจเพิ่มความเสี่ยงต่อการเป็นโรคลมชัก',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/40169939/'
+    },
+    {
+      id: 'aeronet-aod-ssa-2568',
+      title: 'งานวิจัยโดย AERONET: วิเคราะห์ข้อมูล AOD และ SSA',
+      authors: 'AERONET Research Team',
+      year: 2568,
+      journal: 'Atmospheric Chemistry and Physics',
+      category: 'ดาวเทียมและการตรวจวัด',
+      abstract: 'งานวิจัยโดย AERONET (เม.ย. 2025) วิเคราะห์ข้อมูล AOD และ SSA จากระดับ 2/1.5 โดยครอบคลุมสถานี 172 แห่ง ชี้ให้เห็นแนวโน้มของอนุภาคในชั้นบรรยากาศตั้งแต่ปี 2000 ขึ้นไป',
+      url: 'https://acp.copernicus.org/articles/25/4617/2025/'
+    },
+    {
+      id: 'nasa-modis-aod-pm25-2568',
+      title: 'งานนำเสนอของ NASA: แนวโน้ม AOD จาก MODIS และ PM2.5',
+      authors: 'NASA Research Team',
+      year: 2568,
+      journal: 'NASA Technical Reports',
+      category: 'ดาวเทียมและการตรวจวัด',
+      abstract: 'งานนำเสนอของ NASA (ม.ค. 2025) แสดงว่าแนวโน้ม AOD จาก MODIS สามารถใช้เป็นตัวแทนแนวโน้ม PM2.5 ได้ในเมืองเขตร้อนหลายแห่ง',
+      url: 'https://ntrs.nasa.gov/api/citations/20240016373/downloads/toth_ams_2025_talk_new.pdf'
+    },
+    {
+      id: 'tropomi-ml-no2-o3-2568',
+      title: 'โมเดล ML เพื่อประมาณค่า NO₂ และ O₃ จากข้อมูล TROPOMI',
+      authors: 'Machine Learning Research Team',
+      year: 2568,
+      journal: 'Remote Sensing of Environment',
+      category: 'ดาวเทียมและการตรวจวัด',
+      abstract: 'งานวิจัยเดือนที่ผ่านมา (ม.ค. 2025) พัฒนาโมเดล ML เพื่อประมาณค่า NO₂ และ O₃ ระดับพื้นผิวจากข้อมูล TROPOMI โดยใช้ความละเอียดเชิงพื้นที่สูงในเอเชียตะวันออก',
+      url: 'https://www.researchgate.net/publication/353289763_Estimation_of_surface-level_NO2_and_O3_concentrations_using_TROPOMI_data_and_machine_learning_over_East_Asia'
+    },
+    {
+      id: 'kaohsiung-climate-air-quality-2568',
+      title: 'การวิเคราะห์ปัจจัยภูมิอากาศต่อคุณภาพอากาศในเมืองท่า Kaohsiung',
+      authors: 'Kaohsiung Environmental Research Team',
+      year: 2568,
+      journal: 'Science of The Total Environment',
+      category: 'ภูมิอากาศและสิ่งแวดล้อม',
+      abstract: 'งานวิจัยวิเคราะห์ว่า ตัวแปรเช่นอุณหภูมิ ความชื้น ลม เปลี่ยนแปลงคุณภาพอากาศและ AQI อย่างไรในเมืองท่า Kaohsiung ใช้แบบจำลองเชิงสถิติเพื่อแยกว่าปัจจัยภูมิอากาศใดมีผลต่อระดับ PM₂.₅, NO₂, O₃ และค่า AQI โดยพบว่าปรากฏแนวโน้มแตกต่างกันในแต่ละฤดูกาล',
+      url: 'https://www.sciencedirect.com/science/article/pii/S240584402500074X'
     }
   ];
 

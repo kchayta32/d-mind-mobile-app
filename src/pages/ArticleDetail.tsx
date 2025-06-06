@@ -8,6 +8,7 @@ import PM25vsPM10Article from '@/components/articles/PM25vsPM10Article';
 import WeatherForecastJuly2025Article from '@/components/articles/WeatherForecastJuly2025Article';
 import AirQualityIndexArticle from '@/components/articles/AirQualityIndexArticle';
 import UVAerosolIndexArticle from '@/components/articles/UVAerosolIndexArticle';
+import AirPollutionControlProgramArticle from '@/components/articles/AirPollutionControlProgramArticle';
 import ArticleNotFound from '@/components/articles/ArticleNotFound';
 
 const ArticleDetail: React.FC = () => {
@@ -18,6 +19,8 @@ const ArticleDetail: React.FC = () => {
       return <AirQualityIndexArticle />;
     case 'uv-aerosol-index':
       return <UVAerosolIndexArticle />;
+    case 'air-pollution-control-program':
+      return <AirPollutionControlProgramArticle />;
     case 'weather-forecast-july-2025':
       return <WeatherForecastJuly2025Article />;
     case 'natural-disasters':
