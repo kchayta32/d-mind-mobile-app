@@ -11,8 +11,13 @@ const WildfireRegionChart: React.FC<WildfireRegionChartProps> = ({ hotspots }) =
   const generateRegionData = () => {
     const regionCounts: Record<string, number> = {};
     
-    hotspots.forEach(hotspot => {
-      const region = hotspot.properties.changwat || 'ไม่ระบุ';
+    // Filter hotspots to only include Thailand data
+    const thailandHotspots = hotspots.filter(hotspot => 
+      hotspot.properties.changwat && hotspot.properties.changwat !== 'ไม่ระบุ'
+    );
+    
+    thailandHotspots.forEach(hotspot => {
+      const region = hotspot.properties.changwat;
       regionCounts[region] = (regionCounts[region] || 0) + 1;
     });
     

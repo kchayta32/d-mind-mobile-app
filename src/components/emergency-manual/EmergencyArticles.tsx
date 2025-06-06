@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -9,6 +8,13 @@ const EmergencyArticles: React.FC = () => {
 
   // Static articles data
   const staticArticles = [
+    {
+      id: 'air-quality-index',
+      title: 'Air Quality Index',
+      category: 'มลพิษอากาศ',
+      summary: 'ดัชนีคุณภาพอากาศและผลกระทบต่อสุขภาพ รวมถึงคำแนะนำในการปฏิบัติตัวตามระดับ AQI ต่างๆ',
+      source: 'จาก airtw.moenv.gov.tw'
+    },
     {
       id: 'weather-forecast-july-2025',
       title: 'คาดหมายอากาศรายเดือน ก.ค. 2568',
@@ -47,7 +53,7 @@ const EmergencyArticles: React.FC = () => {
   ];
 
   const handleArticleClick = (articleId: string | number | undefined) => {
-    if (articleId === 'disaster-20years' || articleId === 'earthquake-3countries' || articleId === 'natural-disasters' || articleId === 'pm25-vs-pm10' || articleId === 'weather-forecast-july-2025') {
+    if (articleId === 'air-quality-index' || articleId === 'disaster-20years' || articleId === 'earthquake-3countries' || articleId === 'natural-disasters' || articleId === 'pm25-vs-pm10' || articleId === 'weather-forecast-july-2025') {
       navigate(`/article/${articleId}`);
     }
   };

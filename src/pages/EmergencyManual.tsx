@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EmergencyArticles from '@/components/emergency-manual/EmergencyArticles';
+import AcademicArticles from '@/components/emergency-manual/AcademicArticles';
 import AppLogo from '@/components/AppLogo';
 
 const EmergencyManual: React.FC = () => {
@@ -33,18 +33,24 @@ const EmergencyManual: React.FC = () => {
       {/* Main Content */}
       <div className="container max-w-md mx-auto p-4">
         <Tabs defaultValue="guidelines" className="w-full" onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-2 w-full mb-4 bg-white border border-blue-200">
+          <TabsList className="grid grid-cols-3 w-full mb-4 bg-white border border-blue-200">
             <TabsTrigger 
               value="guidelines" 
-              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white"
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white text-xs"
             >
               แนวทางปฏิบัติ
             </TabsTrigger>
             <TabsTrigger 
               value="articles"
-              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white"
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white text-xs"
             >
               บทความเตือนภัย
+            </TabsTrigger>
+            <TabsTrigger 
+              value="academic"
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white text-xs"
+            >
+              บทความวิชาการ
             </TabsTrigger>
           </TabsList>
 
@@ -91,6 +97,10 @@ const EmergencyManual: React.FC = () => {
 
           <TabsContent value="articles">
             <EmergencyArticles />
+          </TabsContent>
+
+          <TabsContent value="academic">
+            <AcademicArticles />
           </TabsContent>
         </Tabs>
       </div>
