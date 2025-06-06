@@ -8,6 +8,7 @@ import {
   RainViewerStats 
 } from './types';
 import { GISTDAStats } from './useGISTDAData';
+import { DroughtStats } from './hooks/useDroughtData';
 import { DisasterType } from './DisasterMap';
 
 interface StatisticsWithRainViewer extends RainSensorStats {
@@ -15,7 +16,7 @@ interface StatisticsWithRainViewer extends RainSensorStats {
 }
 
 interface StatisticsPanelProps {
-  stats: EarthquakeStats | StatisticsWithRainViewer | GISTDAStats | AirPollutionStats | null;
+  stats: EarthquakeStats | StatisticsWithRainViewer | GISTDAStats | AirPollutionStats | DroughtStats | null;
   isLoading: boolean;
   disasterType: DisasterType;
 }
@@ -145,12 +146,39 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ stats, isLoading, dis
     </div>
   );
 
+  const renderDroughtStats = (droughtStats: DroughtStats) => (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="text-center">
+          <div className="text-2xl font-bold text-orange-600">{droughtStats.nationalAverage.toFixed(1)}%</div>
+          <div className="text-xs text-gray-600">เฉลี่ยทั่วประเทศ</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-red-600">{droughtStats.topProvinces.length}</div>
+          <div className="text-xs text-gray-600">จังหวัดเสี่ยงสูง</div>
+        </div>
+      </div>
+      <div className="border-t pt-2">
+        <div className="text-xs text-gray-600 mb-1">5 จังหวัดเสี่ยงสูงสุด:</div>
+        <div className="space-y-1">
+          {droughtStats.topProvinces.slice(0, 3).map((province, index) => (
+            <div key={index} className="flex justify-between text-xs">
+              <span>{province.province}</span>
+              <span className="font-semibold">{province.percentage}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   const getTitle = () => {
     switch (disasterType) {
       case 'earthquake': return 'สถิติแผ่นดินไหว';
       case 'heavyrain': return 'สถิติเซ็นเซอร์ฝน';
       case 'wildfire': return 'สถิติจุดความร้อน';
       case 'airpollution': return 'สถิติคุณภาพอากาศ';
+      case 'drought': return 'สถิติภัยแล้ง';
       default: return 'สถิติข้อมูล';
     }
   };
@@ -165,6 +193,8 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({ stats, isLoading, dis
         return renderWildfireStats(stats as GISTDAStats);
       case 'airpollution':
         return renderAirPollutionStats(stats as AirPollutionStats);
+      case 'drought':
+        return renderDroughtStats(stats as DroughtStats);
       default:
         return <p className="text-sm text-gray-600">ไม่รองรับการแสดงสถิติสำหรับประเภทนี้</p>;
     }

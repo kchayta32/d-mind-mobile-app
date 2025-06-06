@@ -12,7 +12,7 @@ const WildfireRegionChart: React.FC<WildfireRegionChartProps> = ({ hotspots }) =
     const regionCounts: Record<string, number> = {};
     
     hotspots.forEach(hotspot => {
-      const region = hotspot.properties.re_royin || 'ไม่ระบุ';
+      const region = hotspot.properties.changwat || 'ไม่ระบุ';
       regionCounts[region] = (regionCounts[region] || 0) + 1;
     });
     
