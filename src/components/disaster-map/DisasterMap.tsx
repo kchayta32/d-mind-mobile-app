@@ -23,10 +23,10 @@ const DisasterMap: React.FC = () => {
   const [pm25Filter, setPm25Filter] = useState(0);
   const [wildfireTimeFilter, setWildfireTimeFilter] = useState('3days');
 
-  // Data hooks
+  // Data hooks - now passing timeFilter for wildfire data
   const { earthquakes, stats: earthquakeStats, isLoading: isLoadingEarthquakes } = useEarthquakeData();
   const { sensors: rainSensors, stats: rainStats, isLoading: isLoadingRain } = useRainSensorData();
-  const { hotspots, stats: wildfireStats, isLoading: isLoadingWildfire } = useGISTDAData();
+  const { hotspots, stats: wildfireStats, isLoading: isLoadingWildfire } = useGISTDAData(wildfireTimeFilter as any);
   const { stations: airStations, stats: airStats, isLoading: isLoadingAir } = useAirPollutionData();
   const { rainData, isLoading: isLoadingRainViewer } = useRainViewerData();
   const { stats: droughtStats, isLoading: isLoadingDrought } = useDroughtData();
