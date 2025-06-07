@@ -109,6 +109,10 @@ export const MapView: React.FC<MapViewProps> = ({
         // Drought uses WMS layers only, no individual markers
         return null;
       
+      case 'flood':
+        // Flood uses WMS layers only, no individual markers
+        return null;
+      
       default:
         return null;
     }
@@ -139,9 +143,17 @@ export const MapView: React.FC<MapViewProps> = ({
         {/* WMS layers for drought */}
         {selectedType === 'drought' && (
           <DroughtWMSLayers
-            showDRI={true}
-            showNDWI={false}
-            showSMAP={false}
+            selectedLayers={['dri']}
+            opacity={0.7}
+          />
+        )}
+
+        {/* WMS layers for flood */}
+        {selectedType === 'flood' && (
+          <FloodWMSLayers
+            timeFilter="7days"
+            showFrequency={true}
+            opacity={0.7}
           />
         )}
         
