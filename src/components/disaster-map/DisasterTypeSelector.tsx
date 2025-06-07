@@ -88,7 +88,7 @@ const disasterTypes: DisasterTypeOption[] = [
     color: 'text-cyan-700',
     bgColor: 'bg-cyan-100 border-cyan-300 hover:bg-cyan-200',
     description: 'พื้นที่เสี่ยงน้ำท่วม',
-    status: 'coming-soon'
+    status: 'active'
   },
   {
     id: 'storm',
