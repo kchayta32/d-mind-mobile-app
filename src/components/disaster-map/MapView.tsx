@@ -4,17 +4,11 @@ import { MapContainer, TileLayer } from 'react-leaflet';
 import { Earthquake, RainSensor, AirPollutionData } from './types';
 import { GISTDAHotspot } from './useGISTDAData';
 import { RainViewerData } from './useRainViewerData';
-import EarthquakeMarker from './EarthquakeMarker';
-import RainSensorMarker from './RainSensorMarker';
-import HotspotMarker from './HotspotMarker';
-import AirStationMarker from './AirStationMarker';
-import RainOverlay from './RainOverlay';
-import { WildfireWMSLayers } from './WildfireWMSLayers';
-import DroughtWMSLayers from './DroughtWMSLayers';
-import FloodWMSLayers from './FloodWMSLayers';
 import { MapControls } from './MapControls';
 import { MapOverlays } from './MapOverlays';
 import { DebugInfo } from './DebugInfo';
+import { MapLayers } from './map-components/MapLayers';
+import { MapMarkers } from './map-components/MapMarkers';
 import { DisasterType } from './DisasterMap';
 import 'leaflet/dist/leaflet.css';
 
@@ -88,45 +82,6 @@ export const MapView: React.FC<MapViewProps> = ({
   // Thailand center coordinates
   const center: [number, number] = [13.7563, 100.5018];
 
-  const renderMarkers = () => {
-    switch (selectedType) {
-      case 'earthquake':
-        console.log('Rendering earthquake markers:', filteredEarthquakes.length);
-        return filteredEarthquakes.map((earthquake) => (
-          <EarthquakeMarker key={earthquake.id} earthquake={earthquake} />
-        ));
-      
-      case 'heavyrain':
-        console.log('Rendering rain sensor markers:', filteredRainSensors.length);
-        return filteredRainSensors.map((sensor) => (
-          <RainSensorMarker key={`rain-sensor-${sensor.id}`} sensor={sensor} />
-        ));
-      
-      case 'wildfire':
-        console.log('Rendering hotspot markers:', hotspots.length);
-        return hotspots.map((hotspot, index) => (
-          <HotspotMarker key={`hotspot-${index}`} hotspot={hotspot} />
-        ));
-
-      case 'airpollution':
-        console.log('Rendering air station markers:', filteredAirStations.length);
-        return filteredAirStations.map((station) => (
-          <AirStationMarker key={`air-station-${station.id}`} station={station} />
-        ));
-      
-      case 'drought':
-        // Drought uses WMS layers only, no individual markers
-        return null;
-      
-      case 'flood':
-        // Flood uses WMS layers only, no individual markers
-        return null;
-      
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="relative h-full w-full">
       <MapContainer
@@ -140,42 +95,28 @@ export const MapView: React.FC<MapViewProps> = ({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
-        {/* WMS layers for wildfire */}
-        {selectedType === 'wildfire' && (
-          <WildfireWMSLayers
-            showModis={showModisWMS}
-            showViirs={showViirsWMS}
-            showBurnScar={showBurnScar}
-          />
-        )}
-
-        {/* WMS layers for drought */}
-        {selectedType === 'drought' && (
-          <DroughtWMSLayers
-            selectedLayers={droughtLayers}
-            opacity={0.7}
-          />
-        )}
-
-        {/* WMS layers for flood */}
-        {selectedType === 'flood' && (
-          <FloodWMSLayers
-            timeFilter={floodTimeFilter as '1day' | '3days' | '7days' | '30days'}
-            showFrequency={showFloodFrequency}
-            opacity={0.7}
-          />
-        )}
+        <MapLayers
+          selectedType={selectedType}
+          droughtLayers={droughtLayers}
+          floodTimeFilter={floodTimeFilter}
+          showFloodFrequency={showFloodFrequency}
+          showRainOverlay={showRainOverlay}
+          rainData={rainData}
+          rainOverlayType={rainOverlayType}
+          rainTimeType={rainTimeType}
+          showModisWMS={showModisWMS}
+          showViirsWMS={showViirsWMS}
+          showBurnScar={showBurnScar}
+        />
         
-        {/* Rain overlay for heavy rain type */}
-        {selectedType === 'heavyrain' && showRainOverlay && rainData && (
-          <RainOverlay 
-            rainData={rainData}
-            overlayType={rainOverlayType}
-            timeType={rainTimeType}
-          />
-        )}
-        
-        {!isLoading && renderMarkers()}
+        <MapMarkers
+          selectedType={selectedType}
+          filteredEarthquakes={filteredEarthquakes}
+          filteredRainSensors={filteredRainSensors}
+          hotspots={hotspots}
+          filteredAirStations={filteredAirStations}
+          isLoading={isLoading}
+        />
       </MapContainer>
       
       {/* Rain controls for heavy rain type */}

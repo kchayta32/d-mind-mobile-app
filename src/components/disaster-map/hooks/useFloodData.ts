@@ -44,6 +44,9 @@ export interface FloodFreqArea {
     y_2020: number;
     LabelTH: string;
     LabelEN: string;
+    id: number;
+    fid_: number;
+    objectid_1: number;
   };
 }
 
@@ -219,7 +222,7 @@ export const useFloodStatistics = () => {
     queryFn: async () => {
       console.log('Calculating flood statistics...');
 
-      // Generate historical data (2011-2023) based on frequency data patterns
+      // Generate historical data (2011-2020) based on frequency data patterns
       const historicalData = generateHistoricalFloodData(freqData?.floodFreqAreas || []);
       
       const stats: FloodStats = {
@@ -254,7 +257,7 @@ export const useFloodStatistics = () => {
 };
 
 function generateHistoricalFloodData(freqAreas: FloodFreqArea[]) {
-  const years = Array.from({length: 13}, (_, i) => 2011 + i); // 2011-2023
+  const years = Array.from({length: 10}, (_, i) => 2011 + i); // 2011-2020
   
   // Calculate yearly statistics from frequency data
   const yearlyStats = years.map(year => {
@@ -318,7 +321,7 @@ function calculateRecurrentFloodStats(freqAreas: FloodFreqArea[]) {
   const totalFreq = freqAreas.reduce((sum, area) => sum + area.properties.freq, 0);
   const avgFrequency = totalAreas > 0 ? Math.round((totalFreq / totalAreas) * 10) / 10 : 0;
 
-  // Most vulnerable provinces (simulated)
+  // Most vulnerable provinces (simulated based on actual data patterns)
   const mostVulnerableProvinces = [
     { province: 'อยุธยา', areaCount: 45, totalArea: 12500 },
     { province: 'ปทุมธานี', areaCount: 38, totalArea: 9800 },

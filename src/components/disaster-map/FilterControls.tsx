@@ -1,10 +1,13 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DisasterType } from './DisasterMap';
+import { EarthquakeFilters } from './filter-components/EarthquakeFilters';
+import { HeavyRainFilters } from './filter-components/HeavyRainFilters';
+import { WildfireFilters } from './filter-components/WildfireFilters';
+import { AirPollutionFilters } from './filter-components/AirPollutionFilters';
+import { DroughtFilters } from './filter-components/DroughtFilters';
+import { FloodFilters } from './filter-components/FloodFilters';
 
 interface FilterControlsProps {
   selectedType: DisasterType;
@@ -41,173 +44,56 @@ const FilterControls: React.FC<FilterControlsProps> = ({
   showFloodFrequency,
   onShowFloodFrequencyChange,
 }) => {
-  const handleDroughtLayerToggle = (layer: string, checked: boolean) => {
-    if (checked) {
-      onDroughtLayersChange([...droughtLayers, layer]);
-    } else {
-      onDroughtLayersChange(droughtLayers.filter(l => l !== layer));
-    }
-  };
-
   const renderFilters = () => {
     switch (selectedType) {
       case 'earthquake':
         return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="magnitude-filter" className="text-sm font-medium">
-                ขนาดแผ่นดินไหว: {magnitudeFilter}+
-              </Label>
-              <Slider
-                id="magnitude-filter"
-                min={1.0}
-                max={8.0}
-                step={0.1}
-                value={[magnitudeFilter]}
-                onValueChange={(value) => onMagnitudeChange(value[0])}
-                className="w-full mt-2"
-              />
-            </div>
-          </div>
+          <EarthquakeFilters
+            magnitudeFilter={magnitudeFilter}
+            onMagnitudeChange={onMagnitudeChange}
+          />
         );
 
       case 'heavyrain':
         return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="humidity-filter" className="text-sm font-medium">
-                ความชื้น: {humidityFilter}%+
-              </Label>
-              <Slider
-                id="humidity-filter"
-                min={0}
-                max={100}
-                step={5}
-                value={[humidityFilter]}
-                onValueChange={(value) => onHumidityChange(value[0])}
-                className="w-full mt-2"
-              />
-            </div>
-          </div>
+          <HeavyRainFilters
+            humidityFilter={humidityFilter}
+            onHumidityChange={onHumidityChange}
+          />
         );
 
       case 'wildfire':
         return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="wildfire-time-filter" className="text-sm font-medium">
-                ช่วงเวลาข้อมูล
-              </Label>
-              <Select value={wildfireTimeFilter} onValueChange={onWildfireTimeFilterChange}>
-                <SelectTrigger className="w-full mt-2">
-                  <SelectValue placeholder="เลือกช่วงเวลา" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1day">วันนี้ (ย้อนหลัง 1 วัน)</SelectItem>
-                  <SelectItem value="3days">3 วันล่าสุด</SelectItem>
-                  <SelectItem value="7days">7 วันล่าสุด</SelectItem>
-                  <SelectItem value="30days">30 วันล่าสุด</SelectItem>
-                  <SelectItem value="all">ทั้งหมด</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <WildfireFilters
+            wildfireTimeFilter={wildfireTimeFilter}
+            onWildfireTimeFilterChange={onWildfireTimeFilterChange}
+          />
         );
 
       case 'airpollution':
         return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="pm25-filter" className="text-sm font-medium">
-                PM2.5: {pm25Filter}+ μg/m³
-              </Label>
-              <Slider
-                id="pm25-filter"
-                min={0}
-                max={200}
-                step={5}
-                value={[pm25Filter]}
-                onValueChange={(value) => onPm25Change(value[0])}
-                className="w-full mt-2"
-              />
-            </div>
-          </div>
+          <AirPollutionFilters
+            pm25Filter={pm25Filter}
+            onPm25Change={onPm25Change}
+          />
         );
 
       case 'drought':
         return (
-          <div className="space-y-4">
-            <div>
-              <Label className="text-sm font-medium">ชั้นข้อมูลภัยแล้ง</Label>
-              <div className="mt-2 space-y-2">
-                <div className="flex items-center space-x-2">
-                  <input 
-                    type="checkbox" 
-                    id="dri" 
-                    className="rounded" 
-                    checked={droughtLayers.includes('dri')}
-                    onChange={(e) => handleDroughtLayerToggle('dri', e.target.checked)}
-                  />
-                  <label htmlFor="dri" className="text-xs">ดัชนีพื้นที่เสี่ยงภัยแล้ง (DRI)</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input 
-                    type="checkbox" 
-                    id="ndwi" 
-                    className="rounded" 
-                    checked={droughtLayers.includes('ndwi')}
-                    onChange={(e) => handleDroughtLayerToggle('ndwi', e.target.checked)}
-                  />
-                  <label htmlFor="ndwi" className="text-xs">ดัชนีความแตกต่างความชื้น (NDWI)</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input 
-                    type="checkbox" 
-                    id="smap" 
-                    className="rounded" 
-                    checked={droughtLayers.includes('smap')}
-                    onChange={(e) => handleDroughtLayerToggle('smap', e.target.checked)}
-                  />
-                  <label htmlFor="smap" className="text-xs">ความชื้นดิน (SMAP)</label>
-                </div>
-              </div>
-            </div>
-          </div>
+          <DroughtFilters
+            droughtLayers={droughtLayers}
+            onDroughtLayersChange={onDroughtLayersChange}
+          />
         );
 
       case 'flood':
         return (
-          <div className="space-y-4">
-            <div>
-              <Label className="text-sm font-medium">ช่วงเวลาข้อมูลน้ำท่วม</Label>
-              <Select value={floodTimeFilter} onValueChange={onFloodTimeFilterChange}>
-                <SelectTrigger className="w-full mt-2">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1day">วันนี้ (ย้อนหลัง 1 วัน)</SelectItem>
-                  <SelectItem value="3days">3 วันล่าสุด</SelectItem>
-                  <SelectItem value="7days">7 วันล่าสุด</SelectItem>
-                  <SelectItem value="30days">30 วันล่าสุด</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-sm font-medium">ข้อมูลเพิ่มเติม</Label>
-              <div className="mt-2 space-y-2">
-                <div className="flex items-center space-x-2">
-                  <input 
-                    type="checkbox" 
-                    id="flood-freq" 
-                    className="rounded" 
-                    checked={showFloodFrequency}
-                    onChange={(e) => onShowFloodFrequencyChange(e.target.checked)}
-                  />
-                  <label htmlFor="flood-freq" className="text-xs">พื้นที่น้ำท่วมซ้ำซาก</label>
-                </div>
-              </div>
-            </div>
-          </div>
+          <FloodFilters
+            floodTimeFilter={floodTimeFilter}
+            onFloodTimeFilterChange={onFloodTimeFilterChange}
+            showFloodFrequency={showFloodFrequency}
+            onShowFloodFrequencyChange={onShowFloodFrequencyChange}
+          />
         );
 
       default:
