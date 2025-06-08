@@ -1,32 +1,80 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Shield } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import EmergencyArticles from '@/components/emergency-manual/EmergencyArticles';
 import AcademicArticles from '@/components/emergency-manual/AcademicArticles';
+import AdminLogin from '@/components/admin/AdminLogin';
+import AdminPanel from '@/components/admin/AdminPanel';
 import AppLogo from '@/components/AppLogo';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 const EmergencyManual: React.FC = () => {
   const [activeTab, setActiveTab] = useState('guidelines');
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const { isAuthenticated, isLoading, login, logout } = useAdminAuth();
+
+  // Show admin login if requested and not authenticated
+  if (showAdminLogin && !isAuthenticated) {
+    return <AdminLogin onLogin={login} />;
+  }
+
+  // Show admin panel if authenticated
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
+        {/* Header */}
+        <header className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 shadow-lg">
+          <div className="container max-w-md mx-auto flex items-center">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="text-white mr-3 hover:bg-blue-400/30 rounded-full"
+              onClick={() => window.history.back()}
+            >
+              <ArrowLeft className="h-6 w-6" />
+            </Button>
+            <div className="flex items-center">
+              <AppLogo size="md" className="mr-4" />
+              <h1 className="text-xl font-bold">ระบบแอดมิน</h1>
+            </div>
+          </div>
+        </header>
+
+        {/* Admin Panel */}
+        <div className="container max-w-4xl mx-auto p-4">
+          <AdminPanel onLogout={logout} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 shadow-lg">
-        <div className="container max-w-md mx-auto flex items-center">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="text-white mr-3 hover:bg-blue-400/30 rounded-full"
-            onClick={() => window.history.back()}
-          >
-            <ArrowLeft className="h-6 w-6" />
-          </Button>
+        <div className="container max-w-md mx-auto flex items-center justify-between">
           <div className="flex items-center">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="text-white mr-3 hover:bg-blue-400/30 rounded-full"
+              onClick={() => window.history.back()}
+            >
+              <ArrowLeft className="h-6 w-6" />
+            </Button>
             <AppLogo size="md" className="mr-4" />
             <h1 className="text-xl font-bold">คู่มือและบทความ</h1>
           </div>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-white hover:bg-blue-400/30 rounded-full"
+            onClick={() => setShowAdminLogin(true)}
+          >
+            <Shield className="h-5 w-5" />
+          </Button>
         </div>
       </header>
 

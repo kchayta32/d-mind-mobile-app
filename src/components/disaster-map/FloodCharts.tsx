@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { FloodStats } from './hooks/useFloodData';
 
 interface FloodChartsProps {
@@ -25,28 +25,21 @@ const FloodCharts: React.FC<FloodChartsProps> = ({ stats }) => {
     );
   }
 
-  // Chart 1: Cumulative Flood Area 2011-2023 (ตามรูปที่แนบ)
-  const cumulativeChartData = stats.historicalData.cumulativeAreaByYear.map(item => ({
-    year: item.year.toString(),
-    area: item.cumulativeArea,
-    displayYear: (item.year + 543).toString() // Convert to Buddhist Era
-  }));
-
-  // Chart 2: Recurrent Flood Frequency
+  // Chart 1: Recurrent Flood Frequency
   const frequencyChartData = stats.recurrentFloods.byFrequency.map(item => ({
     frequency: `${item.frequency} ครั้ง`,
     count: item.count,
     area: item.totalArea
   }));
 
-  // Chart 3: Most Vulnerable Provinces
+  // Chart 2: Most Vulnerable Provinces (now vertical)
   const provinceChartData = stats.recurrentFloods.mostVulnerableProvinces.map(item => ({
     province: item.province,
     count: item.areaCount,
     area: item.totalArea
   }));
 
-  // Chart 4: Current Flood Status
+  // Chart 3: Current Flood Status
   const currentStatusData = [
     { name: 'เสี่ยงต่ำ', value: stats.currentFloods.bySeverity.low, color: '#22c55e' },
     { name: 'เสี่ยงปานกลาง', value: stats.currentFloods.bySeverity.medium, color: '#f59e0b' },
@@ -62,36 +55,6 @@ const FloodCharts: React.FC<FloodChartsProps> = ({ stats }) => {
 
   return (
     <div className="space-y-4">
-      {/* Cumulative Flood Area Chart */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">พื้นที่น้ำท่วมสะสม พ.ศ. 2554-2566</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="h-48">
-            <BarChart data={cumulativeChartData}>
-              <XAxis 
-                dataKey="displayYear" 
-                fontSize={10}
-                angle={-45}
-                textAnchor="end"
-                height={60}
-              />
-              <YAxis fontSize={10} />
-              <ChartTooltip 
-                content={<ChartTooltipContent />}
-                formatter={(value, name) => [
-                  typeof value === 'number' ? value.toLocaleString() : value,
-                  name === 'area' ? 'พื้นที่สะสม (ไร่)' : name
-                ]}
-                labelFormatter={(label) => `ปี ${label}`}
-              />
-              <Bar dataKey="area" fill="#3b82f6" radius={[2, 2, 0, 0]} />
-            </BarChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
-
       {/* Flood Frequency Analysis */}
       <Card>
         <CardHeader className="pb-2">
@@ -115,16 +78,16 @@ const FloodCharts: React.FC<FloodChartsProps> = ({ stats }) => {
         </CardContent>
       </Card>
 
-      {/* Most Vulnerable Provinces */}
+      {/* Most Vulnerable Provinces - Now Vertical Chart */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">จังหวัดเสี่ยงน้ำท่วม</CardTitle>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="h-48">
-            <BarChart data={provinceChartData} layout="horizontal">
-              <XAxis type="number" fontSize={10} />
-              <YAxis dataKey="province" type="category" fontSize={10} width={60} />
+          <ChartContainer config={chartConfig} className="h-64">
+            <BarChart data={provinceChartData}>
+              <XAxis dataKey="province" fontSize={10} angle={-45} textAnchor="end" height={80} />
+              <YAxis fontSize={10} />
               <ChartTooltip 
                 content={<ChartTooltipContent />}
                 formatter={(value, name) => [
@@ -132,7 +95,7 @@ const FloodCharts: React.FC<FloodChartsProps> = ({ stats }) => {
                   name === 'count' ? 'จำนวนพื้นที่' : name === 'area' ? 'พื้นที่รวม (ไร่)' : name
                 ]}
               />
-              <Bar dataKey="count" fill="#8b5cf6" radius={[0, 2, 2, 0]} />
+              <Bar dataKey="count" fill="#8b5cf6" radius={[2, 2, 0, 0]} />
             </BarChart>
           </ChartContainer>
         </CardContent>
