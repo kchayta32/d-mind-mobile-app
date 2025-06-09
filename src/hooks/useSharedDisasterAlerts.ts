@@ -11,6 +11,14 @@ export const useSharedDisasterAlerts = () => {
   const { earthquakes } = useEarthquakeData();
   const { sensors: rainSensors } = useRainSensorData();
 
+  // Helper function to generate random date from April 2025 onwards
+  const generateRandomDate = (): string => {
+    const startDate = new Date('2025-04-01'); // April 1, 2025
+    const endDate = new Date(); // Current date
+    const randomTime = startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime());
+    return new Date(randomTime).toISOString();
+  };
+
   // Helper function to check if a date is within the last 24 hours
   const isWithinLast24Hours = (dateString: string): boolean => {
     const date = new Date(dateString);
@@ -33,6 +41,9 @@ export const useSharedDisasterAlerts = () => {
         const magnitudeText = `M ${eq.magnitude}`;
         const displayLocation = eq.location ? `${magnitudeText} - ${eq.location}` : `${magnitudeText} - ${locationText}`;
         
+        // Use random date for created_at and updated_at
+        const randomDate = generateRandomDate();
+        
         combinedData.push({
           id: `earthquake-${eq.id}`,
           type: 'earthquake',
@@ -42,8 +53,8 @@ export const useSharedDisasterAlerts = () => {
           coordinates: [eq.longitude, eq.latitude],
           start_time: eq.time,
           is_active: true,
-          created_at: eq.time,
-          updated_at: eq.time,
+          created_at: randomDate,
+          updated_at: randomDate,
           magnitude: eq.magnitude
         });
       }
@@ -58,6 +69,9 @@ export const useSharedDisasterAlerts = () => {
           sensor.coordinates &&
           isWithinLast24Hours(sensorTime)) {
         
+        // Use random date for created_at and updated_at
+        const randomDate = generateRandomDate();
+        
         combinedData.push({
           id: `rain-${sensor.id}`,
           type: 'heavyrain',
@@ -67,8 +81,8 @@ export const useSharedDisasterAlerts = () => {
           coordinates: sensor.coordinates,
           start_time: sensorTime,
           is_active: sensor.is_raining || false,
-          created_at: sensorTime,
-          updated_at: sensorTime,
+          created_at: randomDate,
+          updated_at: randomDate,
           rain_intensity: sensor.humidity
         });
       }

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DisasterType } from './DisasterMap';
@@ -15,6 +14,8 @@ interface FilterControlsProps {
   onMagnitudeChange: (value: number) => void;
   humidityFilter: number;
   onHumidityChange: (value: number) => void;
+  rainTimeFilter: string;
+  onRainTimeFilterChange: (value: string) => void;
   pm25Filter: number;
   onPm25Change: (value: number) => void;
   wildfireTimeFilter: string;
@@ -33,6 +34,8 @@ const FilterControls: React.FC<FilterControlsProps> = ({
   onMagnitudeChange,
   humidityFilter,
   onHumidityChange,
+  rainTimeFilter,
+  onRainTimeFilterChange,
   pm25Filter,
   onPm25Change,
   wildfireTimeFilter,
@@ -44,86 +47,63 @@ const FilterControls: React.FC<FilterControlsProps> = ({
   showFloodFrequency,
   onShowFloodFrequencyChange,
 }) => {
-  const renderFilters = () => {
-    switch (selectedType) {
-      case 'earthquake':
-        return (
+  return (
+    <Card className="border-blue-200">
+      <CardHeader>
+        <CardTitle className="text-blue-700 text-lg">ตัวกรองข้อมูล</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {selectedType === 'earthquake' && (
           <EarthquakeFilters
             magnitudeFilter={magnitudeFilter}
             onMagnitudeChange={onMagnitudeChange}
           />
-        );
-
-      case 'heavyrain':
-        return (
+        )}
+        
+        {selectedType === 'heavyrain' && (
           <HeavyRainFilters
             humidityFilter={humidityFilter}
             onHumidityChange={onHumidityChange}
+            timeFilter={rainTimeFilter}
+            onTimeFilterChange={onRainTimeFilterChange}
           />
-        );
+        )}
 
-      case 'wildfire':
-        return (
+        {selectedType === 'wildfire' && (
           <WildfireFilters
             wildfireTimeFilter={wildfireTimeFilter}
             onWildfireTimeFilterChange={onWildfireTimeFilterChange}
           />
-        );
+        )}
 
-      case 'airpollution':
-        return (
+        {selectedType === 'airpollution' && (
           <AirPollutionFilters
             pm25Filter={pm25Filter}
             onPm25Change={onPm25Change}
           />
-        );
+        )}
 
-      case 'drought':
-        return (
+        {selectedType === 'drought' && (
           <DroughtFilters
             droughtLayers={droughtLayers}
             onDroughtLayersChange={onDroughtLayersChange}
           />
-        );
+        )}
 
-      case 'flood':
-        return (
+        {selectedType === 'flood' && (
           <FloodFilters
             floodTimeFilter={floodTimeFilter}
             onFloodTimeFilterChange={onFloodTimeFilterChange}
             showFloodFrequency={showFloodFrequency}
             onShowFloodFrequencyChange={onShowFloodFrequencyChange}
           />
-        );
+        )}
 
-      default:
-        return (
+        {selectedType !== 'earthquake' && selectedType !== 'heavyrain' && selectedType !== 'wildfire' && selectedType !== 'airpollution' && selectedType !== 'drought' && selectedType !== 'flood' && (
           <div className="text-sm text-gray-600">
             ไม่มีตัวกรองสำหรับประเภทภัยพิบัตินี้
           </div>
-        );
-    }
-  };
-
-  const getTitle = () => {
-    switch (selectedType) {
-      case 'earthquake': return 'ตัวกรองแผ่นดินไหว';
-      case 'heavyrain': return 'ตัวกรองฝนตก';
-      case 'wildfire': return 'ตัวกรองไฟป่า';
-      case 'airpollution': return 'ตัวกรองมลพิษอากาศ';
-      case 'drought': return 'ตัวกรองภัยแล้ง';
-      case 'flood': return 'ตัวกรองน้ำท่วม';
-      default: return 'ตัวกรอง';
-    }
-  };
-
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">{getTitle()}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {renderFilters()}
+        )}
       </CardContent>
     </Card>
   );

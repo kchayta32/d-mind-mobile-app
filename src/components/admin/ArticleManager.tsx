@@ -1,82 +1,23 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { ArrowLeft, Plus, Edit, Save, X } from 'lucide-react';
-import RichTextEditor from './RichTextEditor';
-import ImageUpload from './ImageUpload';
-
-interface Article {
-  id: string;
-  title: string;
-  subtitle: string;
-  description: string;
-  image: string;
-  content: string;
-  created_at: string;
-}
-
-interface ArticleManagerProps {
-  onBack: () => void;
-  type: 'article' | 'guide';
-}
+import { ArrowLeft } from 'lucide-react';
+import { ArticleList } from './article/ArticleList';
+import { ArticleForm } from './article/ArticleForm';
+import { useArticleManager } from './article/useArticleManager';
+import { ArticleManagerProps } from './article/types';
 
 const ArticleManager: React.FC<ArticleManagerProps> = ({ onBack, type }) => {
-  const [articles, setArticles] = useState<Article[]>([
-    {
-      id: 'sample-1',
-      title: type === 'article' ? 'บทความตัวอย่าง' : 'คู่มือตัวอย่าง',
-      subtitle: 'จาก ระบบจัดการแอดมิน',
-      description: 'นี่คือตัวอย่างบทความสำหรับการทดสอบระบบ',
-      image: '/lovable-uploads/70e87fa1-9284-4474-bda5-04c19250a4d5.png',
-      content: '<h2>ตัวอย่างเนื้อหา</h2><p>นี่คือตัวอย่างเนื้อหาที่สามารถจัดรูปแบบได้ด้วย <strong>HTML</strong></p><ul><li>รายการที่ 1</li><li>รายการที่ 2</li></ul>',
-      created_at: new Date().toISOString()
-    }
-  ]);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingArticle, setEditingArticle] = useState<Article | null>(null);
-
-  const handleCreateNew = () => {
-    const newArticle: Article = {
-      id: `new-${Date.now()}`,
-      title: '',
-      subtitle: '',
-      description: '',
-      image: '',
-      content: '',
-      created_at: new Date().toISOString()
-    };
-    setEditingArticle(newArticle);
-    setIsEditing(true);
-  };
-
-  const handleEdit = (article: Article) => {
-    setEditingArticle({ ...article });
-    setIsEditing(true);
-  };
-
-  const handleSave = () => {
-    if (!editingArticle) return;
-
-    const existingIndex = articles.findIndex(a => a.id === editingArticle.id);
-    if (existingIndex >= 0) {
-      const updated = [...articles];
-      updated[existingIndex] = editingArticle;
-      setArticles(updated);
-    } else {
-      setArticles([...articles, editingArticle]);
-    }
-    
-    setIsEditing(false);
-    setEditingArticle(null);
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    setEditingArticle(null);
-  };
+  const {
+    articles,
+    isEditing,
+    editingArticle,
+    handleCreateNew,
+    handleEdit,
+    handleSave,
+    handleCancel,
+    updateEditingArticle
+  } = useArticleManager(type);
 
   const typeLabel = type === 'article' ? 'บทความ' : 'คู่มือ';
 
@@ -95,115 +36,20 @@ const ArticleManager: React.FC<ArticleManagerProps> = ({ onBack, type }) => {
       </div>
 
       {!isEditing ? (
-        <>
-          <Button
-            onClick={handleCreateNew}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            เพิ่ม{typeLabel}ใหม่
-          </Button>
-
-          <div className="space-y-4">
-            {articles.map((article) => (
-              <Card key={article.id} className="border-blue-200">
-                <CardContent className="p-4">
-                  <div className="flex gap-4">
-                    <img 
-                      src={article.image || '/lovable-uploads/70e87fa1-9284-4474-bda5-04c19250a4d5.png'} 
-                      alt={article.title}
-                      className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                    />
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold text-blue-700 mb-1">{article.title || 'ไม่มีชื่อเรื่อง'}</h3>
-                      <p className="text-sm text-gray-500 mb-2">{article.subtitle}</p>
-                      <p className="text-gray-700 text-sm">{article.description}</p>
-                      <p className="text-xs text-gray-400 mt-2">
-                        สร้างเมื่อ: {new Date(article.created_at).toLocaleDateString('th-TH')}
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(article)}
-                      className="flex items-center gap-2"
-                    >
-                      <Edit className="w-4 h-4" />
-                      แก้ไข
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </>
+        <ArticleList
+          articles={articles}
+          onCreateNew={handleCreateNew}
+          onEdit={handleEdit}
+          typeLabel={typeLabel}
+        />
       ) : (
-        <Card className="border-blue-200">
-          <CardHeader>
-            <CardTitle className="text-blue-700">
-              {editingArticle?.id.startsWith('new-') ? `เพิ่ม${typeLabel}ใหม่` : `แก้ไข${typeLabel}`}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <Label htmlFor="title">ชื่อเรื่อง</Label>
-              <Input
-                id="title"
-                value={editingArticle?.title || ''}
-                onChange={(e) => setEditingArticle(prev => prev ? {...prev, title: e.target.value} : null)}
-                placeholder={`ระบุชื่อ${typeLabel}`}
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="subtitle">คำบรรยาย</Label>
-              <Input
-                id="subtitle"
-                value={editingArticle?.subtitle || ''}
-                onChange={(e) => setEditingArticle(prev => prev ? {...prev, subtitle: e.target.value} : null)}
-                placeholder="แหล่งที่มาหรือคำบรรยายย่อ"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="description">รายละเอียดสั้น</Label>
-              <Input
-                id="description"
-                value={editingArticle?.description || ''}
-                onChange={(e) => setEditingArticle(prev => prev ? {...prev, description: e.target.value} : null)}
-                placeholder="รายละเอียดสั้นๆ ที่จะแสดงในรายการ"
-              />
-            </div>
-            
-            <ImageUpload
-              value={editingArticle?.image || ''}
-              onChange={(url) => setEditingArticle(prev => prev ? {...prev, image: url} : null)}
-              label={`รูปภาพ${typeLabel}`}
-            />
-            
-            <div>
-              <Label htmlFor="content">เนื้อหา</Label>
-              <div className="mt-2">
-                <RichTextEditor
-                  value={editingArticle?.content || ''}
-                  onChange={(content) => setEditingArticle(prev => prev ? {...prev, content} : null)}
-                  placeholder={`เขียนเนื้อหาของ${typeLabel}ที่นี่...`}
-                />
-              </div>
-            </div>
-            
-            <div className="flex gap-2">
-              <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
-                <Save className="w-4 h-4 mr-2" />
-                บันทึก
-              </Button>
-              <Button variant="outline" onClick={handleCancel}>
-                <X className="w-4 h-4 mr-2" />
-                ยกเลิก
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <ArticleForm
+          article={editingArticle}
+          onSave={handleSave}
+          onCancel={handleCancel}
+          onUpdate={updateEditingArticle}
+          typeLabel={typeLabel}
+        />
       )}
     </div>
   );

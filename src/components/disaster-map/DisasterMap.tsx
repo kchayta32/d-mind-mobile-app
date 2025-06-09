@@ -22,15 +22,16 @@ const DisasterMap: React.FC = () => {
   const [selectedType, setSelectedType] = useState<DisasterType>('wildfire');
   const [magnitudeFilter, setMagnitudeFilter] = useState(1.0);
   const [humidityFilter, setHumidityFilter] = useState(0);
+  const [rainTimeFilter, setRainTimeFilter] = useState('realtime');
   const [pm25Filter, setPm25Filter] = useState(0);
   const [wildfireTimeFilter, setWildfireTimeFilter] = useState('3days');
   const [droughtLayers, setDroughtLayers] = useState(['dri']);
   const [floodTimeFilter, setFloodTimeFilter] = useState('7days');
   const [showFloodFrequency, setShowFloodFrequency] = useState(true);
 
-  // Data hooks - now including Open-Meteo flood data
+  // Data hooks - now including time filter for rain sensors
   const { earthquakes, stats: earthquakeStats, isLoading: isLoadingEarthquakes } = useEarthquakeData();
-  const { sensors: rainSensors, stats: rainStats, isLoading: isLoadingRain } = useRainSensorData();
+  const { sensors: rainSensors, stats: rainStats, isLoading: isLoadingRain } = useRainSensorData(rainTimeFilter);
   const { hotspots, stats: wildfireStats, isLoading: isLoadingWildfire } = useGISTDAData(wildfireTimeFilter as any);
   const { stations: airStations, stats: airStats, isLoading: isLoadingAir } = useAirPollutionData();
   const { rainData, isLoading: isLoadingRainViewer } = useRainViewerData();
@@ -112,6 +113,8 @@ const DisasterMap: React.FC = () => {
             onMagnitudeChange={setMagnitudeFilter}
             humidityFilter={humidityFilter}
             onHumidityChange={setHumidityFilter}
+            rainTimeFilter={rainTimeFilter}
+            onRainTimeFilterChange={setRainTimeFilter}
             pm25Filter={pm25Filter}
             onPm25Change={setPm25Filter}
             wildfireTimeFilter={wildfireTimeFilter}
