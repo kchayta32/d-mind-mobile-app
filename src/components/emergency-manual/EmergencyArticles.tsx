@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +14,7 @@ const EmergencyArticles: React.FC = () => {
       subtitle: 'จาก airtw.moenv.gov.tw',
       description: 'ดัชนีคุณภาพอากาศและตัวบ่งชี้มลพิษทางอากาศ',
       image: '/lovable-uploads/70e87fa1-9284-4474-bda5-04c19250a4d5.png',
-      created_at: '2024-01-15'
+      created_at: '2024-04-15'
     },
     {
       id: 'uv-aerosol-index',
@@ -23,7 +22,7 @@ const EmergencyArticles: React.FC = () => {
       subtitle: 'จาก earthdata.nasa.gov',
       description: 'ดัชนี UV Aerosol สำหรับติดตามอนุภาคในชั้นบรรยากาศ',
       image: '/lovable-uploads/7799a9ff-3b81-4e41-9c7b-b6054d5e7b62.png',
-      created_at: '2024-03-20'
+      created_at: '2024-05-20'
     },
     {
       id: 'air-pollution-control-program',
@@ -31,7 +30,7 @@ const EmergencyArticles: React.FC = () => {
       subtitle: 'จาก air.moenv.gov.tw',
       description: 'โครงการควบคุมมลพิษอากาศและมาตรการจัดการคุณภาพอากาศ',
       image: '/lovable-uploads/9b24d25c-901c-4aaf-98dd-78419a5984cd.png',
-      created_at: '2024-05-10'
+      created_at: '2024-07-10'
     },
     {
       id: 'weather-forecast-july-2025',
@@ -39,7 +38,7 @@ const EmergencyArticles: React.FC = () => {
       subtitle: 'จาก กรมอุตุนิยมวิทยา',
       description: 'การพยากรณ์อากาศและสภาพภูมิอากาศในเดือนกรกฎาคม 2568',
       image: '/lovable-uploads/9ee04c09-ef87-44e4-b06d-424087a59578.png',
-      created_at: '2024-07-05'
+      created_at: '2024-09-05'
     },
     {
       id: 'natural-disasters',
@@ -47,7 +46,7 @@ const EmergencyArticles: React.FC = () => {
       subtitle: 'จาก กรมป้องกันและบรรเทาสาธารณภัย',
       description: 'ข้อมูลเกี่ยวกับภัยธรรมชาติที่เกิดขึ้นในประเทศไทย',
       image: '/lovable-uploads/aa72c068-2cf3-4b36-be9e-a7eb6351cb9d.png',
-      created_at: '2024-09-12'
+      created_at: '2024-11-12'
     },
     {
       id: 'earthquake-3countries',
@@ -55,7 +54,7 @@ const EmergencyArticles: React.FC = () => {
       subtitle: 'จาก USGS และ TMD',
       description: 'ข้อมูลแผ่นดินไหวในไทย เมียนมาร์ และลาว',
       image: '/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png',
-      created_at: '2024-11-25'
+      created_at: '2024-12-25'
     },
     {
       id: 'disaster-20years',
@@ -63,7 +62,7 @@ const EmergencyArticles: React.FC = () => {
       subtitle: 'จาก องค์การบรรเทาทุกข์แห่งชาติ',
       description: 'สถิติและแนวโน้มของภัยพิบัติในช่วง 20 ปีที่ผ่านมา',
       image: '/lovable-uploads/bc9cca0f-39cd-462c-a13b-c60172f3fd2e.png',
-      created_at: '2024-12-01'
+      created_at: '2025-01-01'
     },
     {
       id: 'pm25-vs-pm10',
@@ -71,7 +70,15 @@ const EmergencyArticles: React.FC = () => {
       subtitle: 'จาก กรมควบคุมมลพิษ',
       description: 'เปรียบเทียบคุณสมบัติและผลกระทบของ PM2.5 และ PM10',
       image: '/lovable-uploads/70e87fa1-9284-4474-bda5-04c19250a4d5.png',
-      created_at: '2025-01-10'
+      created_at: '2025-02-10'
+    },
+    {
+      id: 'earthquake-response-guide',
+      title: '20 ปี ไทยสูญเสียจาก \'ภัยพิบัติ\' แค่ไหน ในวันที่โลกกำลังเผชิญกับความรุนแรงจาก \'โลกรวน\'',
+      subtitle: 'จาก thairath.co.th',
+      description: 'วิธีรับมือแผ่นดินไหว ควรทำอย่างไร มีข้อห้ามอะไรบ้าง',
+      image: 'https://static.thairath.co.th/media/dFQROr7oWzulq5Fa5K33t0GHlpONycxjrqHvHm6kPoArPPyVyaiSbN7K5XZ3mw0omYY.jpg',
+      created_at: '2025-06-10'
     }
   ];
 
