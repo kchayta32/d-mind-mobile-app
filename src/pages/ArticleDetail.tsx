@@ -9,7 +9,6 @@ import WeatherForecastJuly2025Article from '@/components/articles/WeatherForecas
 import AirQualityIndexArticle from '@/components/articles/AirQualityIndexArticle';
 import UVAerosolIndexArticle from '@/components/articles/UVAerosolIndexArticle';
 import AirPollutionControlProgramArticle from '@/components/articles/AirPollutionControlProgramArticle';
-import EarthquakeResponseArticle from '@/components/articles/EarthquakeResponseArticle';
 import ArticleNotFound from '@/components/articles/ArticleNotFound';
 
 const ArticleDetail: React.FC = () => {
@@ -32,8 +31,6 @@ const ArticleDetail: React.FC = () => {
       return <DisasterTwentyYearsArticle />;
     case 'pm25-vs-pm10':
       return <PM25vsPM10Article />;
-    case 'earthquake-response-guide':
-      return <EarthquakeResponseArticle />;
     default:
       return <ArticleNotFound />;
   }
