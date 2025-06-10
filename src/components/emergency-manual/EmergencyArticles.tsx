@@ -1,141 +1,109 @@
-
-import React, { useState, useMemo } from 'react';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { ArticleTimeline } from './ArticleTimeline';
 
 const EmergencyArticles: React.FC = () => {
   const navigate = useNavigate();
-  const [dateRange, setDateRange] = useState<{ start: Date; end: Date } | null>(null);
 
   const articles = [
     {
-      id: 'air-quality-index',
-      title: 'Air Quality Index',
-      subtitle: 'จาก airtw.moenv.gov.tw',
-      description: 'ดัชนีคุณภาพอากาศและตัวบ่งชี้มลพิษทางอากาศ',
-      image: '/lovable-uploads/70e87fa1-9284-4474-bda5-04c19250a4d5.png',
-      created_at: '2024-01-15'
+      id: 'earthquake-response-guide',
+      title: '20 ปี ไทยสูญเสียจาก \'ภัยพิบัติ\' แค่ไหน ในวันที่โลกกำลังเผชิญกับความรุนแรงจาก \'โลกรวน\'',
+      subtitle: 'จาก thairath.co.th',
+      description: 'วิธีรับมือแผ่นดินไหว ควรทำอย่างไร มีข้อห้ามอะไรบ้าง - คู่มือปฏิบัติตัวเมื่อเกิดแผ่นดินไหวเบื้องต้น',
+      image: 'https://static.thairath.co.th/media/dFQROr7oWzulq5Fa5K33t0GHlpONycxjrqHvHm6kPoArPPyVyaiSbN7K5XZ3mw0omYY.jpg',
+      date: '10 มิถุนายน 2568'
     },
     {
-      id: 'uv-aerosol-index',
-      title: 'UV Aerosol Index',
-      subtitle: 'จาก earthdata.nasa.gov',
-      description: 'ดัชนี UV Aerosol สำหรับติดตามอนุภาคในชั้นบรรยากาศ',
-      image: '/lovable-uploads/7799a9ff-3b81-4e41-9c7b-b6054d5e7b62.png',
-      created_at: '2024-03-20'
+      id: 'natural-disasters',
+      title: 'ประเทศไทยเผชิญความเสี่ยงจากภัยพิบัติทางธรรมชาติอะไรบ้าง?',
+      subtitle: 'D-MIND',
+      description: 'เจาะลึกภัยพิบัติทางธรรมชาติที่ประเทศไทยต้องเผชิญ พร้อมแนวทางรับมือและป้องกัน',
+      image: '/lovable-uploads/6f968999-a951-4cae-8a98-595ca5939451.png',
+      date: '25 พฤษภาคม 2568'
     },
     {
-      id: 'air-pollution-control-program',
-      title: 'Air Pollution Control Program',
-      subtitle: 'จาก air.moenv.gov.tw',
-      description: 'โครงการควบคุมมลพิษอากาศและมาตรการจัดการคุณภาพอากาศ',
+      id: 'earthquake-3countries',
+      title: 'แผ่นดินไหวเกิดใหม่ 3 ประเทศ เมียนมา ลาว ไทย แรงสุด สะเทือนเชียงราย',
+      subtitle: 'จาก bangkokbiznews.com',
+      description: 'จับตาแผ่นดินไหวเกิดใหม่ 3 ประเทศ เมียนมา-ลาว-ไทย รู้สึกแรงสั่นสะเทือนที่เชียงราย',
       image: '/lovable-uploads/9b24d25c-901c-4aaf-98dd-78419a5984cd.png',
-      created_at: '2024-05-10'
+      date: '30 พฤษภาคม 2568'
+    },
+    {
+      id: 'disaster-20years',
+      title: '20 ปี “สึนามิ” ความทรงจำที่ไม่เคยจางหาย',
+      subtitle: 'Thai PBS',
+      description: 'ย้อนรอยเหตุการณ์สึนามิถล่มไทยเมื่อ 20 ปีก่อน ความสูญเสียและความเปลี่ยนแปลง',
+      image: '/lovable-uploads/f9c96949-a35f-499f-869c-a087ca98945c.png',
+      date: '26 ธันวาคม 2567'
+    },
+    {
+      id: 'pm25-vs-pm10',
+      title: 'PM2.5 VS PM10 ต่างกันอย่างไร?',
+      subtitle: 'D-MIND',
+      description: 'PM2.5 กับ PM10 คืออะไร? มีความแตกต่างกันอย่างไร? และส่งผลกระทบต่อสุขภาพอย่างไร?',
+      image: '/lovable-uploads/c7e3982d-6a45-4176-8561-509f59992441.png',
+      date: '15 พฤษภาคม 2568'
     },
     {
       id: 'weather-forecast-july-2025',
       title: 'พยากรณ์อากาศ กรกฎาคม 2568',
-      subtitle: 'จาก กรมอุตุนิยมวิทยา',
-      description: 'การพยากรณ์อากาศและสภาพภูมิอากาศในเดือนกรกฎาคม 2568',
-      image: '/lovable-uploads/9ee04c09-ef87-44e4-b06d-424087a59578.png',
-      created_at: '2024-07-05'
+      subtitle: 'กรมอุตุนิยมวิทยา',
+      description: 'พยากรณ์อากาศตลอดเดือนกรกฎาคม 2568 เตรียมรับมือกับสภาพอากาศที่เปลี่ยนแปลง',
+      image: '/lovable-uploads/649b9559-f395-4999-a559-59c481124c69.png',
+      date: '1 กรกฎาคม 2568'
     },
     {
-      id: 'natural-disasters',
-      title: 'ภัยธรรมชาติในประเทศไทย',
-      subtitle: 'จาก กรมป้องกันและบรรเทาสาธารณภัย',
-      description: 'ข้อมูลเกี่ยวกับภัยธรรมชาติที่เกิดขึ้นในประเทศไทย',
-      image: '/lovable-uploads/aa72c068-2cf3-4b36-be9e-a7eb6351cb9d.png',
-      created_at: '2024-09-12'
+      id: 'air-quality-index',
+      title: 'Air Quality Index คืออะไร?',
+      subtitle: 'D-MIND',
+      description: 'Air Quality Index (AQI) คืออะไร? มีความสำคัญอย่างไร? และส่งผลกระทบต่อสุขภาพอย่างไร?',
+      image: '/lovable-uploads/4955996f-4a9a-4499-8941-9444a9f99c17.png',
+      date: '10 พฤษภาคม 2568'
     },
     {
-      id: 'earthquake-3countries',
-      title: 'แผ่นดินไหวในภูมิภาคเอเชียตะวันออกเฉียงใต้',
-      subtitle: 'จาก USGS และ TMD',
-      description: 'ข้อมูลแผ่นดินไหวในไทย เมียนมาร์ และลาว',
-      image: '/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png',
-      created_at: '2024-11-25'
+      id: 'uv-aerosol-index',
+      title: 'UV Aerosol Index คืออะไร?',
+      subtitle: 'D-MIND',
+      description: 'UV Aerosol Index (UVAI) คืออะไร? มีความสำคัญอย่างไร? และส่งผลกระทบต่อสุขภาพอย่างไร?',
+      image: '/lovable-uploads/c9943689-6967-48f1-89ca-1a0116140a4a.png',
+      date: '5 พฤษภาคม 2568'
     },
     {
-      id: 'disaster-20years',
-      title: 'ภัยพิบัติ 20 ปีที่ผ่านมา',
-      subtitle: 'จาก องค์การบรรเทาทุกข์แห่งชาติ',
-      description: 'สถิติและแนวโน้มของภัยพิบัติในช่วง 20 ปีที่ผ่านมา',
-      image: '/lovable-uploads/bc9cca0f-39cd-462c-a13b-c60172f3fd2e.png',
-      created_at: '2024-12-01'
+      id: 'air-pollution-control-program',
+      title: 'โครงการควบคุมมลพิษทางอากาศ',
+      subtitle: 'กระทรวงทรัพยากรธรรมชาติและสิ่งแวดล้อม',
+      description: 'โครงการควบคุมมลพิษทางอากาศของประเทศไทย มีอะไรบ้าง? และมีเป้าหมายอย่างไร?',
+      image: '/lovable-uploads/6f968999-a951-4cae-8a98-595ca5939451.png',
+      date: '1 พฤษภาคม 2568'
     },
-    {
-      id: 'pm25-vs-pm10',
-      title: 'PM2.5 vs PM10: ความแตกต่างและผลกระทบ',
-      subtitle: 'จาก กรมควบคุมมลพิษ',
-      description: 'เปรียบเทียบคุณสมบัติและผลกระทบของ PM2.5 และ PM10',
-      image: '/lovable-uploads/70e87fa1-9284-4474-bda5-04c19250a4d5.png',
-      created_at: '2025-01-10'
-    }
   ];
 
-  const filteredArticles = useMemo(() => {
-    if (!dateRange) return articles;
-    
-    return articles.filter(article => {
-      const articleDate = new Date(article.created_at);
-      return articleDate >= dateRange.start && articleDate <= dateRange.end;
-    });
-  }, [dateRange]);
-
-  const handleArticleClick = (articleId: string) => {
-    navigate(`/article/${articleId}`);
-  };
-
-  const handleDateRangeChange = (startDate: Date, endDate: Date) => {
-    setDateRange({ start: startDate, end: endDate });
-  };
-
   return (
-    <div className="space-y-4">
-      <ArticleTimeline 
-        onDateRangeChange={handleDateRangeChange}
-        articles={articles}
-      />
-      
-      {filteredArticles.map((article) => (
-        <Card 
-          key={article.id} 
-          className="cursor-pointer hover:shadow-md transition-shadow border-blue-200"
-          onClick={() => handleArticleClick(article.id)}
-        >
-          <CardContent className="p-4">
-            <div className="flex gap-4">
-              <img 
-                src={article.image} 
-                alt={article.title}
-                className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-              />
-              <div className="flex-1">
-                <h3 className="text-lg font-bold text-blue-700 mb-1">{article.title}</h3>
-                <p className="text-sm text-gray-500 mb-2">{article.subtitle}</p>
-                <p className="text-gray-700 text-sm">{article.description}</p>
-                <p className="text-xs text-blue-600 mt-2">
-                  โพสต์: {new Date(article.created_at).toLocaleDateString('th-TH', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}
-                </p>
-              </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {articles.map((article) => (
+        <Card key={article.id} className="bg-white shadow-md rounded-lg overflow-hidden">
+          <img
+            src={article.image}
+            alt={article.title}
+            className="w-full h-48 object-cover"
+          />
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">{article.title}</h3>
+            <p className="text-gray-600 text-sm mb-3">{article.subtitle}</p>
+            <p className="text-gray-500 text-sm mb-4">{article.description}</p>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-400 text-xs">วันที่ {article.date}</span>
+              <Button size="sm" onClick={() => navigate(`/article/${article.id}`)}>
+                อ่านเพิ่มเติม <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
             </div>
           </CardContent>
         </Card>
       ))}
-      
-      {filteredArticles.length === 0 && (
-        <Card className="border-blue-200">
-          <CardContent className="p-8 text-center">
-            <p className="text-gray-500">ไม่พบบทความในช่วงวันที่ที่เลือก</p>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };
