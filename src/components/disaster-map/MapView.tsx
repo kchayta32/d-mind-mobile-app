@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import { Earthquake, RainSensor, AirPollutionData } from './types';
@@ -11,6 +12,7 @@ import { DebugInfo } from './DebugInfo';
 import { DisasterType } from './DisasterMap';
 import 'leaflet/dist/leaflet.css';
 import { FloodDataPoint } from './hooks/useOpenMeteoFloodData';
+import { OpenMeteoRainDataPoint } from './hooks/useOpenMeteoRainData';
 import { UserLocationMarker } from './UserLocationMarker';
 import { LocationControls } from './LocationControls';
 
@@ -21,6 +23,7 @@ interface MapViewProps {
   airStations: AirPollutionData[];
   rainData: RainViewerData | null;
   floodDataPoints: FloodDataPoint[];
+  openMeteoRainData: OpenMeteoRainDataPoint[];
   selectedType: DisasterType;
   magnitudeFilter: number;
   humidityFilter: number;
@@ -38,6 +41,7 @@ export const MapView: React.FC<MapViewProps> = ({
   airStations,
   rainData,
   floodDataPoints,
+  openMeteoRainData,
   selectedType,
   magnitudeFilter,
   humidityFilter,
@@ -62,6 +66,7 @@ export const MapView: React.FC<MapViewProps> = ({
     airStations: airStations.length,
     rainData: rainData ? 'loaded' : 'null',
     floodDataPoints: floodDataPoints.length,
+    openMeteoRainData: openMeteoRainData.length,
     selectedType, 
     droughtLayers,
     floodTimeFilter,
@@ -82,7 +87,8 @@ export const MapView: React.FC<MapViewProps> = ({
     filteredEarthquakes: filteredEarthquakes.length, 
     filteredRainSensors: filteredRainSensors.length,
     filteredAirStations: filteredAirStations.length,
-    hotspots: hotspots.length
+    hotspots: hotspots.length,
+    openMeteoRainData: openMeteoRainData.length
   });
 
   // Thailand center coordinates
@@ -126,6 +132,7 @@ export const MapView: React.FC<MapViewProps> = ({
             hotspots={hotspots}
             filteredAirStations={filteredAirStations}
             floodDataPoints={floodDataPoints}
+            openMeteoRainData={openMeteoRainData}
           />
         )}
       </MapContainer>

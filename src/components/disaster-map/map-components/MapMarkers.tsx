@@ -5,9 +5,11 @@ import RainSensorMarker from '../RainSensorMarker';
 import HotspotMarker from '../HotspotMarker';
 import AirStationMarker from '../AirStationMarker';
 import { FloodDataMarker } from '../FloodDataMarker';
+import { OpenMeteoWeatherMarker } from '../OpenMeteoWeatherMarker';
 import { Earthquake, RainSensor, AirPollutionData } from '../types';
 import { GISTDAHotspot } from '../useGISTDAData';
 import { FloodDataPoint } from '../hooks/useOpenMeteoFloodData';
+import { OpenMeteoRainDataPoint } from '../hooks/useOpenMeteoRainData';
 import { DisasterType } from '../DisasterMap';
 
 interface MapMarkersProps {
@@ -17,6 +19,7 @@ interface MapMarkersProps {
   hotspots: GISTDAHotspot[];
   filteredAirStations: AirPollutionData[];
   floodDataPoints?: FloodDataPoint[];
+  openMeteoRainData?: OpenMeteoRainDataPoint[];
 }
 
 export const MapMarkers: React.FC<MapMarkersProps> = ({
@@ -25,7 +28,8 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
   filteredRainSensors,
   hotspots,
   filteredAirStations,
-  floodDataPoints = []
+  floodDataPoints = [],
+  openMeteoRainData = []
 }) => {
   return (
     <>
@@ -37,6 +41,11 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
       {/* Rain sensor markers */}
       {selectedType === 'heavyrain' && filteredRainSensors.map((sensor) => (
         <RainSensorMarker key={sensor.id} sensor={sensor} />
+      ))}
+
+      {/* Open-Meteo rain data markers */}
+      {selectedType === 'openmeteorain' && openMeteoRainData.map((dataPoint, index) => (
+        <OpenMeteoWeatherMarker key={`openmeteo-${index}`} dataPoint={dataPoint} />
       ))}
 
       {/* Wildfire hotspot markers */}

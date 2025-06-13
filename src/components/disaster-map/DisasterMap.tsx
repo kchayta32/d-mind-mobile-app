@@ -15,8 +15,9 @@ import { useRainViewerData } from './useRainViewerData';
 import { useDroughtData } from './hooks/useDroughtData';
 import { useFloodStatistics } from './hooks/useFloodData';
 import { useOpenMeteoFloodData } from './hooks/useOpenMeteoFloodData';
+import { useOpenMeteoRainData } from './hooks/useOpenMeteoRainData';
 
-export type DisasterType = 'earthquake' | 'heavyrain' | 'wildfire' | 'airpollution' | 'drought' | 'flood' | 'storm';
+export type DisasterType = 'earthquake' | 'heavyrain' | 'openmeteorain' | 'wildfire' | 'airpollution' | 'drought' | 'flood' | 'storm';
 
 const DisasterMap: React.FC = () => {
   const [selectedType, setSelectedType] = useState<DisasterType>('wildfire');
@@ -29,7 +30,7 @@ const DisasterMap: React.FC = () => {
   const [floodTimeFilter, setFloodTimeFilter] = useState('7days');
   const [showFloodFrequency, setShowFloodFrequency] = useState(true);
 
-  // Data hooks - now including time filter for rain sensors
+  // Data hooks - now including Open-Meteo rain data
   const { earthquakes, stats: earthquakeStats, isLoading: isLoadingEarthquakes } = useEarthquakeData();
   const { sensors: rainSensors, stats: rainStats, isLoading: isLoadingRain } = useRainSensorData(rainTimeFilter);
   const { hotspots, stats: wildfireStats, isLoading: isLoadingWildfire } = useGISTDAData(wildfireTimeFilter as any);
@@ -38,6 +39,7 @@ const DisasterMap: React.FC = () => {
   const { stats: droughtStats, isLoading: isLoadingDrought } = useDroughtData();
   const { data: floodStats, isLoading: isLoadingFlood } = useFloodStatistics();
   const { data: floodDataPoints, isLoading: isLoadingOpenMeteoFlood } = useOpenMeteoFloodData();
+  const { data: openMeteoRainData, isLoading: isLoadingOpenMeteoRain } = useOpenMeteoRainData();
 
   // Enhanced rain stats with RainViewer data
   const enhancedRainStats = rainData ? {
@@ -55,6 +57,13 @@ const DisasterMap: React.FC = () => {
     switch (selectedType) {
       case 'earthquake': return earthquakeStats;
       case 'heavyrain': return enhancedRainStats;
+      case 'openmeteorain': return {
+        totalStations: openMeteoRainData?.length || 0,
+        activeRainStations: openMeteoRainData?.filter(d => d.weatherData.current.rain > 0).length || 0,
+        maxRainfall: Math.max(...(openMeteoRainData?.map(d => d.weatherData.current.rain) || [0])),
+        avgTemperature: openMeteoRainData?.reduce((sum, d) => sum + d.weatherData.current.temperature2m, 0) / (openMeteoRainData?.length || 1) || 0,
+        lastUpdated: openMeteoRainData?.[0]?.weatherData.current.time.toISOString() || new Date().toISOString()
+      };
       case 'wildfire': return wildfireStats;
       case 'airpollution': return airStats;
       case 'drought': return droughtStats;
@@ -67,6 +76,7 @@ const DisasterMap: React.FC = () => {
     switch (selectedType) {
       case 'earthquake': return isLoadingEarthquakes;
       case 'heavyrain': return isLoadingRain || isLoadingRainViewer;
+      case 'openmeteorain': return isLoadingOpenMeteoRain;
       case 'wildfire': return isLoadingWildfire;
       case 'airpollution': return isLoadingAir;
       case 'drought': return isLoadingDrought;
@@ -93,6 +103,7 @@ const DisasterMap: React.FC = () => {
             airStations={airStations}
             rainData={rainData}
             floodDataPoints={floodDataPoints || []}
+            openMeteoRainData={openMeteoRainData || []}
             selectedType={selectedType}
             magnitudeFilter={magnitudeFilter}
             humidityFilter={humidityFilter}
