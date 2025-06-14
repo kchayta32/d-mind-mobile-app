@@ -63,15 +63,21 @@ const RainSensorMarker: React.FC<RainSensorMarkerProps> = ({ sensor }) => {
     return 'bg-green-100 text-green-800';
   };
 
-  // Ensure coordinates exist
+  // Ensure coordinates exist and are valid
   if (!sensor.coordinates || !Array.isArray(sensor.coordinates) || sensor.coordinates.length !== 2) {
     console.warn('Invalid coordinates for sensor:', sensor);
     return null;
   }
 
+  const [lat, lng] = sensor.coordinates;
+  if (typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) {
+    console.warn('Invalid coordinate values for sensor:', sensor);
+    return null;
+  }
+
   return (
     <Marker
-      position={sensor.coordinates}
+      position={[lat, lng]}
       icon={createRainIcon(sensor.is_raining, sensor.humidity)}
     >
       <Popup maxWidth={300}>

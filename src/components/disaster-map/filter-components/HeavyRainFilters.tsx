@@ -26,7 +26,7 @@ export const HeavyRainFilters: React.FC<HeavyRainFiltersProps> = ({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="realtime">เรียลไทม์ (ปัจจุบัน)</SelectItem>
+            <SelectItem value="realtime">เรียลไทม์ (24 ชม.)</SelectItem>
             <SelectItem value="3days">3 วันล่าสุด</SelectItem>
             <SelectItem value="7days">7 วันล่าสุด</SelectItem>
           </SelectContent>
@@ -35,7 +35,7 @@ export const HeavyRainFilters: React.FC<HeavyRainFiltersProps> = ({
       
       <div>
         <Label htmlFor="humidity-filter" className="text-sm font-medium">
-          ความชื้น: {humidityFilter}%+
+          ความชื้นขั้นต่ำ: {humidityFilter}%
         </Label>
         <Slider
           id="humidity-filter"
@@ -49,7 +49,7 @@ export const HeavyRainFilters: React.FC<HeavyRainFiltersProps> = ({
       </div>
       
       <div className="text-xs text-gray-600 mt-2 p-2 bg-blue-50 rounded">
-        <strong>ข้อมูลเซ็นเซอร์ฝน:</strong> แสดงตำแหน่งเซ็นเซอร์วัดความชื้นและสถานะฝนตก
+        <strong>ข้อมูลเซ็นเซอร์ฝน:</strong> แสดงตำแหน่งเซ็นเซอร์วัดความชื้นและสถานะฝนตก จากฐานข้อมูล Supabase
       </div>
     </div>
   );

@@ -31,6 +31,14 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
   floodDataPoints = [],
   openMeteoRainData = []
 }) => {
+  console.log('MapMarkers rendering with:', {
+    selectedType,
+    filteredRainSensors: filteredRainSensors.length,
+    filteredEarthquakes: filteredEarthquakes.length,
+    hotspots: hotspots.length,
+    filteredAirStations: filteredAirStations.length
+  });
+
   return (
     <>
       {/* Earthquake markers */}
@@ -39,9 +47,12 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
       ))}
 
       {/* Rain sensor markers */}
-      {selectedType === 'heavyrain' && filteredRainSensors.map((sensor) => (
-        <RainSensorMarker key={sensor.id} sensor={sensor} />
-      ))}
+      {selectedType === 'heavyrain' && filteredRainSensors.map((sensor) => {
+        console.log('Rendering rain sensor:', sensor.id, sensor.coordinates);
+        return (
+          <RainSensorMarker key={sensor.id} sensor={sensor} />
+        );
+      })}
 
       {/* Open-Meteo rain data markers */}
       {selectedType === 'openmeteorain' && openMeteoRainData.map((dataPoint, index) => (

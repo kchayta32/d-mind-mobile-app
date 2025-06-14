@@ -24,7 +24,7 @@ export const useRainSensorData = (timeFilter: string = 'realtime') => {
         return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       case 'realtime':
       default:
-        return new Date(now.getTime() - 1 * 60 * 60 * 1000); // Last hour for realtime
+        return new Date(now.getTime() - 24 * 60 * 60 * 1000); // Last 24 hours for realtime
     }
   };
 
@@ -43,6 +43,7 @@ export const useRainSensorData = (timeFilter: string = 'realtime') => {
       if (timeFilter !== 'realtime') {
         query = query.gte('inserted_at', dateFilter.toISOString());
       } else {
+        // For realtime, get recent data from last 24 hours
         query = query.gte('inserted_at', dateFilter.toISOString());
       }
       
@@ -56,7 +57,7 @@ export const useRainSensorData = (timeFilter: string = 'realtime') => {
       console.log('Rain sensor data fetched:', data?.length || 0, 'records');
       return data || [];
     },
-    refetchInterval: timeFilter === 'realtime' ? 30000 : 60000, // More frequent for realtime
+    refetchInterval: timeFilter === 'realtime' ? 30000 : 60000,
   });
 
   useEffect(() => {
@@ -64,40 +65,22 @@ export const useRainSensorData = (timeFilter: string = 'realtime') => {
       console.log('Processing rain sensor data:', sensorData.length, 'records');
       
       // Transform the data to include coordinates
-      const transformedSensors: RainSensor[] = sensorData.map((sensor, index) => {
-        // Use actual coordinates if available, otherwise generate mock ones for Thailand
-        let coordinates: [number, number];
-        
+      const transformedSensors: RainSensor[] = sensorData.map((sensor) => {
+        // Use actual coordinates if available, otherwise skip this sensor
         if (sensor.latitude && sensor.longitude) {
-          coordinates = [sensor.latitude, sensor.longitude];
-        } else {
-          // Generate mock coordinates based on sensor ID for Thailand regions
-          const hash = (sensor.id || index).toString().split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-          const regions = [
-            [13.7563, 100.5018], // Bangkok
-            [18.7883, 98.9853],  // Chiang Mai
-            [16.4637, 102.8236], // Khon Kaen
-            [7.8804, 98.3923],   // Phuket
-            [12.9236, 100.8824], // Pattaya
-          ];
-          const regionIndex = hash % regions.length;
-          const baseCoords = regions[regionIndex];
-          
-          // Add some randomness around the base coordinates
-          const latOffset = ((hash % 200) - 100) / 1000; // ±0.1 degree
-          const lngOffset = ((hash % 200) - 100) / 1000;
-          
-          coordinates = [
-            baseCoords[0] + latOffset,
-            baseCoords[1] + lngOffset
-          ];
+          return {
+            id: sensor.id,
+            latitude: sensor.latitude,
+            longitude: sensor.longitude,
+            coordinates: [sensor.latitude, sensor.longitude] as [number, number],
+            humidity: sensor.humidity,
+            is_raining: sensor.is_raining,
+            inserted_at: sensor.inserted_at,
+            created_at: sensor.created_at
+          };
         }
-
-        return {
-          ...sensor,
-          coordinates
-        };
-      });
+        return null;
+      }).filter(Boolean) as RainSensor[];
 
       console.log('Transformed sensors:', transformedSensors.length);
       setSensors(transformedSensors);
