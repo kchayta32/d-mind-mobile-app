@@ -71,18 +71,23 @@ export interface OpenMeteoRainDataPoint {
   weatherData: OpenMeteoWeatherData;
 }
 
-// อัปเดตชื่อจังหวัดให้ตรงกับตำแหน่งจริงบนแผนที่
+// อัปเดตตำแหน่งและชื่อจังหวัดให้ตรงกับตำแหน่งจริงในประเทศไทย
 const THAILAND_WEATHER_POINTS = [
-  { lat: 13.7498, lon: 100.5165, name: 'กรุงเทพฯ' },
-  { lat: 14.7981, lon: 100.654, name: 'ปทุมธานี' },
-  { lat: 18.7904, lon: 98.9847, name: 'เชียงใหม่' },
-  { lat: 17.3667, lon: 104.8667, name: 'อุดรธานี' },
-  { lat: 16.4322, lon: 102.8236, name: 'หนองคาย' },
-  { lat: 14.9707, lon: 102.102, name: 'ขอนแก่น' },
+  { lat: 13.7563, lon: 100.5018, name: 'กรุงเทพมหานคร' },
+  { lat: 18.7883, lon: 98.9853, name: 'เชียงใหม่' },
+  { lat: 17.3514, lon: 104.8381, name: 'อุดรธานี' },
+  { lat: 16.4419, lon: 102.8360, name: 'ขอนแก่น' },
+  { lat: 15.2520, lon: 104.8569, name: 'หนองคาย' },
   { lat: 12.6091, lon: 101.0828, name: 'ชลบุรี' },
-  { lat: 9.1326, lon: 99.1356, name: 'สุราษฎร์ธานี' },
+  { lat: 9.1326, lon: 99.3292, name: 'สุราษฎร์ธานี' },
   { lat: 7.8804, lon: 98.3923, name: 'ภูเก็ต' },
-  { lat: 6.5204, lon: 101.1218, name: 'สงขลา' },
+  { lat: 6.9955, lon: 100.4664, name: 'สงขลา' },
+  { lat: 14.3532, lon: 100.5706, name: 'นครปฐม' },
+  { lat: 19.9071, lon: 99.8831, name: 'เชียงราย' },
+  { lat: 15.7907, lon: 100.2925, name: 'เพชรบูรณ์' },
+  { lat: 14.0227, lon: 99.5283, name: 'กาญจนบุรี' },
+  { lat: 8.4304, lon: 99.9581, name: 'นครศรีธรรมราช' },
+  { lat: 11.8564, lon: 99.9605, name: 'ระนอง' }
 ];
 
 async function fetchOpenMeteoWeatherData(): Promise<OpenMeteoRainDataPoint[]> {

@@ -36,7 +36,8 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
     filteredRainSensors: filteredRainSensors.length,
     filteredEarthquakes: filteredEarthquakes.length,
     hotspots: hotspots.length,
-    filteredAirStations: filteredAirStations.length
+    filteredAirStations: filteredAirStations.length,
+    openMeteoRainData: openMeteoRainData.length
   });
 
   return (
@@ -56,7 +57,10 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
 
       {/* Open-Meteo rain data markers */}
       {selectedType === 'openmeteorain' && openMeteoRainData.map((dataPoint, index) => (
-        <OpenMeteoWeatherMarker key={`openmeteo-${index}`} dataPoint={dataPoint} />
+        <OpenMeteoWeatherMarker 
+          key={`openmeteo-${dataPoint.locationName}-${index}`} 
+          dataPoint={dataPoint} 
+        />
       ))}
 
       {/* Wildfire hotspot markers */}

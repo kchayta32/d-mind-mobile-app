@@ -3,17 +3,18 @@ import React, { useEffect, useState } from 'react';
 import { Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 
-// Create a custom user location icon
+// Create a custom user location icon with higher z-index
 const userLocationIcon = new L.Icon({
   iconUrl: 'data:image/svg+xml;base64,' + btoa(`
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
-      <circle cx="12" cy="12" r="8" fill="#3B82F6" stroke="white" stroke-width="3"/>
-      <circle cx="12" cy="12" r="3" fill="white"/>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" width="32" height="32">
+      <circle cx="16" cy="16" r="12" fill="#3B82F6" stroke="white" stroke-width="4"/>
+      <circle cx="16" cy="16" r="6" fill="white"/>
+      <circle cx="16" cy="16" r="3" fill="#3B82F6"/>
     </svg>
   `),
-  iconSize: [24, 24],
-  iconAnchor: [12, 12],
-  popupAnchor: [0, -12],
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
+  popupAnchor: [0, -16],
 });
 
 interface UserLocationMarkerProps {
@@ -86,13 +87,20 @@ export const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({ showLoca
   }
 
   return (
-    <Marker position={position} icon={userLocationIcon}>
+    <Marker 
+      position={position} 
+      icon={userLocationIcon}
+      zIndexOffset={1000}
+    >
       <Popup>
         <div className="text-center">
-          <div className="font-semibold text-blue-600">ตำแหน่งของคุณ</div>
-          <div className="text-sm text-gray-600 mt-1">
+          <div className="font-semibold text-blue-600 mb-2">📍 ตำแหน่งของคุณ</div>
+          <div className="text-sm text-gray-600 space-y-1">
             <div>ละติจูด: {position[0].toFixed(6)}</div>
             <div>ลองจิจูด: {position[1].toFixed(6)}</div>
+            <div className="mt-2 text-xs text-blue-500">
+              อัปเดตแบบเรียลไทม์
+            </div>
           </div>
         </div>
       </Popup>
