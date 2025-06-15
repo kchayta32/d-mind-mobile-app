@@ -14,7 +14,8 @@ export const ArticleTimeline: React.FC<TimelineFilterProps> = ({ onDateRangeChan
   // Generate date range from articles (mock dates for demo)
   const dateRange = useMemo(() => {
     const now = new Date();
-    const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+    //const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+    const twoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, now.getDate());
     
     // Mock creation dates for articles
     const mockDates = [
@@ -24,7 +25,7 @@ export const ArticleTimeline: React.FC<TimelineFilterProps> = ({ onDateRangeChan
     ];
 
     return {
-      min: oneYearAgo,
+      min: twoMonthsAgo,
       max: now,
       dates: mockDates.sort((a, b) => a.getTime() - b.getTime())
     };
@@ -144,13 +145,13 @@ export const ArticleTimeline: React.FC<TimelineFilterProps> = ({ onDateRangeChan
               1 เดือนล่าสุด
             </button>
             <button
-              onClick={() => handleRangeChange([75, 100])}
+              onClick={() => handleRangeChange([50, 100])}
               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium shadow-md"
             >
               2 เดือนล่าสุด
             </button>
             <button
-              onClick={() => handleRangeChange([25, 100])}
+              onClick={() => handleRangeChange([0, 100])}
               className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm font-medium shadow-md"
             >
               ทั้งหมด
