@@ -2,6 +2,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { ChatMessage } from '@/types/chat';
+import { sanitizeAndParseMarkdown } from '@/utils/markdownUtils';
 
 interface ChatMessagesProps {
   messages: ChatMessage[];
@@ -45,7 +46,12 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading }) => {
           >
             {msg.sender === 'assistant' && <div className="font-semibold mb-2 text-blue-600">ผู้ช่วย AI D-MIND</div>}
             {msg.sender === 'user' && <div className="font-semibold mb-2 text-right text-blue-100">คุณ</div>}
-            <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+            <div 
+              className="text-sm whitespace-pre-wrap leading-relaxed"
+              dangerouslySetInnerHTML={{
+                __html: sanitizeAndParseMarkdown(msg.content)
+              }}
+            />
           </div>
           
           {msg.sender === 'user' && (

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ChatMessage } from '@/types/chat';
 import { Loader2, Send, Mic, MicOff, Volume2 } from 'lucide-react';
+import { sanitizeAndParseMarkdown } from '@/utils/markdownUtils';
 
 interface EnhancedChatBotProps {
   className?: string;
@@ -258,7 +258,12 @@ const EnhancedChatBot: React.FC<EnhancedChatBotProps> = ({ className }) => {
                       <span className="font-semibold text-blue-600">Dr.Mind</span>
                     </div>
                   )}
-                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                  <div 
+                    className="text-sm whitespace-pre-wrap leading-relaxed"
+                    dangerouslySetInnerHTML={{
+                      __html: sanitizeAndParseMarkdown(msg.content)
+                    }}
+                  />
                 </div>
               </div>
             ))}
