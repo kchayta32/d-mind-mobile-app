@@ -1,6 +1,5 @@
 
 import React, { useEffect, useState } from 'react';
-import { Progress } from '@/components/ui/progress';
 
 const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
   const [progress, setProgress] = useState(0);
@@ -59,12 +58,14 @@ const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
           กำลังโหลด...
         </div>
         
-        {/* Progress bar */}
+        {/* Simple progress bar without Radix UI */}
         <div className="w-80 mt-4">
-          <Progress 
-            value={progress} 
-            className="h-3 bg-blue-100 border border-blue-200" 
-          />
+          <div className="h-3 w-full bg-blue-100 border border-blue-200 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
           <div className="text-center mt-3 text-blue-500 text-sm font-medium">
             {progress}%
           </div>
