@@ -21,6 +21,7 @@ interface RequestData {
   message: string;
   chatHistory?: Message[];
   systemPrompt?: string;
+  useDocuments?: boolean;
   searchQuery?: string;
 }
 
@@ -47,51 +48,54 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceRole);
     
     const requestData: RequestData = await req.json();
-    const { message, chatHistory = [], systemPrompt = "คุณคือผู้ช่วยในแอพเตือนภัยฉุกเฉิน คุณให้คำแนะนำเกี่ยวกับความปลอดภัยและการรับมือกับภัยพิบัติต่างๆ", searchQuery } = requestData;
+    const { message, chatHistory = [], systemPrompt = "คุณคือผู้ช่วยในแอพเตือนภัยฉุกเฉิน คุณให้คำแนะนำเกี่ยวกับความปลอดภัยและการรับมือกับภัยพิบัติต่างๆ", useDocuments = false, searchQuery } = requestData;
 
-    // Generate search query from user message if not provided
-    const queryToSearch = searchQuery || message;
-
-    // ค้นหาข้อมูลที่เกี่ยวข้องจากตาราง documents
     let contextFromDocuments = "";
-    try {
-      // แบ่งคำค้นหาเป็นคำย่อยเพื่อป้องกันข้อผิดพลาด syntax error in tsquery
-      const searchTerms = queryToSearch.split(/\s+/).filter(term => {
-        // กรองคำที่มีแนวโน้มสร้างปัญหากับ tsquery
-        const invalidChars = /['"\\:&|!()[\]{}<>=@\-\+\*\?]/g;
-        return term.length > 1 && !invalidChars.test(term);
-      });
-      
-      // หากมีคำค้นหาที่ใช้ได้
-      if (searchTerms.length > 0) {
-        // สร้าง simple query แบบปลอดภัย
-        const safeQuery = searchTerms.join(' | '); // ใช้ OR operator ระหว่างคำ
+    
+    // ดึงข้อมูลจาก documents table ก่อนเสมอถ้า useDocuments เป็น true
+    if (useDocuments) {
+      try {
+        // ใช้ query จากผู้ใช้หรือ searchQuery ที่ส่งมา
+        const queryToSearch = searchQuery || message;
         
-        console.log(`Searching with terms: ${safeQuery}`);
+        // แบ่งคำค้นหาเป็นคำย่อยเพื่อป้องกันข้อผิดพลาด syntax error in tsquery
+        const searchTerms = queryToSearch.split(/\s+/).filter(term => {
+          // กรองคำที่มีแนวโน้มสร้างปัญหากับ tsquery
+          const invalidChars = /['"\\:&|!()[\]{}<>=@\-\+\*\?]/g;
+          return term.length > 1 && !invalidChars.test(term);
+        });
         
-        const { data: documents, error } = await supabase
-          .from('documents')
-          .select('content, metadata')
-          .textSearch('content', safeQuery, {
-            config: 'simple'
-          })
-          .limit(3);
+        // หากมีคำค้นหาที่ใช้ได้
+        if (searchTerms.length > 0) {
+          // สร้าง simple query แบบปลอดภัย
+          const safeQuery = searchTerms.join(' | '); // ใช้ OR operator ระหว่างคำ
+          
+          console.log(`Searching with terms: ${safeQuery}`);
+          
+          const { data: documents, error } = await supabase
+            .from('documents')
+            .select('content, metadata')
+            .textSearch('content', safeQuery, {
+              config: 'simple'
+            })
+            .limit(5);
 
-        if (error) {
-          console.error('Error fetching documents:', error);
-        } else if (documents && documents.length > 0) {
-          contextFromDocuments = "ข้อมูลเพิ่มเติมที่เกี่ยวข้อง:\n\n" + 
-            documents.map(doc => doc.content).join("\n\n");
-          console.log(`Found ${documents.length} relevant documents`);
+          if (error) {
+            console.error('Error fetching documents:', error);
+          } else if (documents && documents.length > 0) {
+            contextFromDocuments = "ข้อมูลเพิ่มเติมที่เกี่ยวข้อง:\n\n" + 
+              documents.map(doc => doc.content).join("\n\n");
+            console.log(`Found ${documents.length} relevant documents`);
+          } else {
+            console.log('No relevant documents found');
+          }
         } else {
-          console.log('No relevant documents found');
+          console.log('No valid search terms found in query');
         }
-      } else {
-        console.log('No valid search terms found in query');
+      } catch (searchError) {
+        console.error('Search error:', searchError);
+        // ถ้าเกิดข้อผิดพลาดในการค้นหา ให้ดำเนินการต่อโดยไม่มีข้อมูลเพิ่มเติม
       }
-    } catch (searchError) {
-      console.error('Search error:', searchError);
-      // ถ้าเกิดข้อผิดพลาดในการค้นหา ให้ดำเนินการต่อโดยไม่มีข้อมูลเพิ่มเติม
     }
 
     // สร้างประวัติการแชทและเพิ่มข้อความผู้ใช้ปัจจุบัน
