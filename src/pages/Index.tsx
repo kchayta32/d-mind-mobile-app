@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DisasterAlert from '@/components/DisasterAlert';
@@ -54,6 +53,10 @@ const Index = () => {
   
   const handleVictimReportsClick = () => {
     navigate('/victim-reports');
+  };
+
+  const handleLineClick = () => {
+    window.open('https://line.me/R/ti/p/@307rcire', '_blank');
   };
 
   if (isMobile) {
@@ -154,6 +157,25 @@ const Index = () => {
               แหล่งข้อมูลฉุกเฉิน
             </h2>
             <DisasterResources />
+          </div>
+
+          {/* LINE Contact Button */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <div className="h-1 w-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full mr-3"></div>
+              ติดต่อเรา
+            </h2>
+            <Button 
+              className="w-full bg-green-500 hover:bg-green-600 text-white shadow-md rounded-xl py-4 font-semibold text-base transition-all duration-200"
+              onClick={handleLineClick}
+            >
+              <div className="flex items-center justify-center">
+                <svg className="w-6 h-6 mr-3" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12.5 2C7.1 2 2.7 5.6 2.7 10.1c0 2.4 1.2 4.5 3.1 6.1-.4 1.4-1.3 4.8-1.3 4.8s-.1.4.2.4c.2 0 .4-.1.5-.2 0 0 3.7-2.5 5.4-3.7.5.1 1 .1 1.4.1 5.4 0 9.8-3.6 9.8-8.1S17.9 2 12.5 2z"/>
+                </svg>
+                เพิ่มเพื่อน LINE
+              </div>
+            </Button>
           </div>
 
           {/* Bottom spacing for better scroll experience */}
