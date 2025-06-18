@@ -1,16 +1,17 @@
 
-import React, { Suspense } from 'react';
-import { useNavigate } from 'react-router-dom';
-import DisasterAlert from '@/components/DisasterAlert';
-import NavBar from '@/components/NavBar';
-import DisasterResources from '@/components/DisasterResources';
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MessageSquare } from 'lucide-react';
-import ErrorBoundary from '@/components/ErrorBoundary';
-
-// Lazy load heavy components
-const LazyDisasterMap = React.lazy(() => import('@/components/DisasterMap'));
-const LazyEnhancedChatBot = React.lazy(() => import('@/components/chat/EnhancedChatBot'));
+import { 
+  MessageSquare, 
+  BookOpen, 
+  Phone, 
+  AlertTriangle, 
+  MessageCircle,
+  BarChart3,
+  Settings,
+  Share2
+} from 'lucide-react';
 
 interface MobileMainContentProps {
   onAssistantClick: () => void;
@@ -27,122 +28,154 @@ const MobileMainContent: React.FC<MobileMainContentProps> = ({
   onContactsClick,
   onAlertsClick,
   onVictimReportsClick,
-  onLineClick
+  onLineClick,
 }) => {
   return (
-    <main className="px-4 py-6 space-y-6 max-w-md mx-auto">
-      {/* Alert Section */}
-      <div className="space-y-4">
-        <DisasterAlert isActive={true} />
-      </div>
-      
-      {/* Navigation Section */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-          <div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full mr-3"></div>
-          เมนูหลัก
-        </h2>
-        <NavBar 
-          onAssistantClick={onAssistantClick}
-          onManualClick={onManualClick}
-          onContactsClick={onContactsClick}
-          onAlertsClick={onAlertsClick}
-        />
-      </div>
-      
-      {/* Emergency Report Button */}
-      <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-2xl shadow-lg p-1">
-        <Button 
-          className="w-full bg-red-600 hover:bg-red-700 text-white shadow-none border-0 rounded-xl py-4 font-semibold text-base transition-all duration-200"
-          onClick={onVictimReportsClick}
-        >
-          <MessageSquare className="mr-3 h-5 w-5" />
-          รายงานสถานะผู้ประสบภัย
-        </Button>
-      </div>
-      
-      {/* Disaster Map Section with Lazy Loading */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-800 flex items-center">
-            <div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full mr-3"></div>
-            แผนที่ภัยพิบัติ
-          </h2>
-          <p className="text-sm text-gray-600 mt-1">ข้อมูลสถานการณ์แบบเรียลไทม์</p>
-        </div>
-        <div className="h-[1000px] relative overflow-auto">
-          <div className="min-h-full">
-            <ErrorBoundary fallback={<div className="p-4 text-center text-red-500">เกิดข้อผิดพลาดในการโหลดแผนที่</div>}>
-              <Suspense fallback={
-                <div className="h-full flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
-                    <p className="mt-2 text-gray-600">กำลังโหลดแผนที่...</p>
-                  </div>
-                </div>
-              }>
-                <LazyDisasterMap />
-              </Suspense>
-            </ErrorBoundary>
+    <main className="flex-1 p-4 pb-20">
+      {/* Hero Section */}
+      <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-blue-100">
+        <div className="text-center">
+          <div className="bg-gradient-to-br from-blue-100 to-purple-100 rounded-full p-4 w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+            <MessageSquare className="h-10 w-10 text-blue-600" />
           </div>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">
+            ยินดีต้อนรับสู่ D-MIND
+          </h2>
+          <p className="text-gray-600 text-sm leading-relaxed">
+            ระบบติดตามภัยพิบัติและแจ้งเตือนอัจฉริยะ
+            พร้อมให้ความช่วยเหลือคุณตลอด 24 ชั่วโมง
+          </p>
         </div>
       </div>
 
-      {/* Enhanced AI Chat Section with Lazy Loading */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-50 to-purple-100 px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-800 flex items-center">
-            <div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mr-3"></div>
-            ปรึกษาผู้เชี่ยวชาญ
-          </h2>
-          <p className="text-sm text-gray-600 mt-1">Dr.Mind ผู้เชี่ยวชาญด้านภัยธรรมชาติและแพทย์ฉุกเฉิน</p>
-        </div>
-        <div className="p-0">
-          <ErrorBoundary fallback={<div className="p-4 text-center text-red-500">เกิดข้อผิดพลาดในการโหลดชาทบอท</div>}>
-            <Suspense fallback={
-              <div className="h-64 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="animate-spin w-6 h-6 border-4 border-purple-500 border-t-transparent rounded-full mx-auto"></div>
-                  <p className="mt-2 text-gray-600">กำลังโหลดชาทบอท...</p>
-                </div>
+      {/* Quick Actions Grid */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <Card className="hover:shadow-lg transition-all duration-200 border-blue-100">
+          <CardContent className="p-4">
+            <Button 
+              onClick={onAssistantClick}
+              className="w-full h-auto flex flex-col items-center space-y-3 bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 py-6"
+            >
+              <MessageSquare className="h-8 w-8" />
+              <div className="text-center">
+                <div className="font-semibold">ปรึกษา Dr.Mind</div>
+                <div className="text-xs opacity-90">ผู้เชี่ยวชาญ AI</div>
               </div>
-            }>
-              <LazyEnhancedChatBot />
-            </Suspense>
-          </ErrorBoundary>
-        </div>
-      </div>
-      
-      {/* Resources Section */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-          <div className="h-1 w-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full mr-3"></div>
-          แหล่งข้อมูลฉุกเฉิน
-        </h2>
-        <DisasterResources />
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-all duration-200 border-green-100">
+          <CardContent className="p-4">
+            <Button 
+              onClick={onManualClick}
+              className="w-full h-auto flex flex-col items-center space-y-3 bg-gradient-to-br from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white border-0 py-6"
+            >
+              <BookOpen className="h-8 w-8" />
+              <div className="text-center">
+                <div className="font-semibold">คู่มือฉุกเฉิน</div>
+                <div className="text-xs opacity-90">แนวทางปฏิบัติ</div>
+              </div>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* LINE Contact Button */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-          <div className="h-1 w-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full mr-3"></div>
-          ติดต่อเรา
-        </h2>
+      {/* New Features Grid */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <Card className="hover:shadow-lg transition-all duration-200 border-orange-100">
+          <CardContent className="p-4">
+            <Button 
+              onClick={() => window.location.href = '/dashboard'}
+              className="w-full h-auto flex flex-col items-center space-y-3 bg-gradient-to-br from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white border-0 py-6"
+            >
+              <BarChart3 className="h-8 w-8" />
+              <div className="text-center">
+                <div className="font-semibold">แดชบอร์ด</div>
+                <div className="text-xs opacity-90">สถิติภัยพิบัติ</div>
+              </div>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-all duration-200 border-purple-100">
+          <CardContent className="p-4">
+            <Button 
+              onClick={() => window.location.href = '/shared-data'}
+              className="w-full h-auto flex flex-col items-center space-y-3 bg-gradient-to-br from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 py-6"
+            >
+              <Share2 className="h-8 w-8" />
+              <div className="text-center">
+                <div className="font-semibold">ข้อมูลแชร์</div>
+                <div className="text-xs opacity-90">แชร์ภัยพิบัติ</div>
+              </div>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Secondary Actions */}
+      <div className="space-y-3 mb-6">
         <Button 
-          className="w-full bg-green-500 hover:bg-green-600 text-white shadow-md rounded-xl py-4 font-semibold text-base transition-all duration-200"
-          onClick={onLineClick}
+          onClick={onAlertsClick}
+          className="w-full bg-white hover:bg-orange-50 text-orange-700 border-2 border-orange-200 hover:border-orange-300 h-14 text-left justify-start"
         >
-          <div className="flex items-center justify-center">
-            <svg className="w-6 h-6 mr-3" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12.5 2C7.1 2 2.7 5.6 2.7 10.1c0 2.4 1.2 4.5 3.1 6.1-.4 1.4-1.3 4.8-1.3 4.8s-.1.4.2.4c.2 0 .4-.1.5-.2 0 0 3.7-2.5 5.4-3.7.5.1 1 .1 1.4.1 5.4 0 9.8-3.6 9.8-8.1S17.9 2 12.5 2z"/>
-            </svg>
-            เพิ่มเพื่อน LINE
+          <AlertTriangle className="mr-3 h-5 w-5" />
+          <div>
+            <div className="font-semibold">การแจ้งเตือนภัยพิบัติ</div>
+            <div className="text-sm opacity-75">ข้อมูลเตือนภัยล่าสุด</div>
+          </div>
+        </Button>
+
+        <Button 
+          onClick={onContactsClick}
+          className="w-full bg-white hover:bg-blue-50 text-blue-700 border-2 border-blue-200 hover:border-blue-300 h-14 text-left justify-start"
+        >
+          <Phone className="mr-3 h-5 w-5" />
+          <div>
+            <div className="font-semibold">เบอร์โทรฉุกเฉิน</div>
+            <div className="text-sm opacity-75">หน่วยงานช่วยเหลือ</div>
+          </div>
+        </Button>
+
+        <Button 
+          onClick={() => window.location.href = '/settings'}
+          className="w-full bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 h-14 text-left justify-start"
+        >
+          <Settings className="mr-3 h-5 w-5" />
+          <div>
+            <div className="font-semibold">การตั้งค่า</div>
+            <div className="text-sm opacity-75">พื้นที่ที่สนใจ</div>
           </div>
         </Button>
       </div>
 
-      {/* Bottom spacing for better scroll experience */}
-      <div className="h-6"></div>
+      {/* Emergency Report Button */}
+      <Card className="bg-gradient-to-r from-red-500 to-red-600 text-white border-0 shadow-lg">
+        <CardContent className="p-4">
+          <Button 
+            onClick={onVictimReportsClick}
+            className="w-full bg-transparent hover:bg-white/10 text-white border-2 border-white/20 hover:border-white/40 h-16"
+          >
+            <MessageCircle className="mr-3 h-6 w-6" />
+            <div className="text-left">
+              <div className="font-bold text-lg">รายงานสถานะผู้ประสบภัย</div>
+              <div className="text-sm opacity-90">แจ้งสถานการณ์ฉุกเฉิน</div>
+            </div>
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* LINE Contact */}
+      <div className="mt-6 text-center">
+        <Button 
+          onClick={onLineClick}
+          className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-full shadow-lg"
+        >
+          <MessageCircle className="mr-2 h-5 w-5" />
+          ติดต่อผ่าน LINE
+        </Button>
+      </div>
     </main>
   );
 };

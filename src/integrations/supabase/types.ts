@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      disaster_statistics: {
+        Row: {
+          affected_area: number | null
+          count: number
+          created_at: string
+          date: string
+          disaster_type: string
+          id: string
+          metadata: Json | null
+          province: string
+          severity_level: number
+        }
+        Insert: {
+          affected_area?: number | null
+          count?: number
+          created_at?: string
+          date: string
+          disaster_type: string
+          id?: string
+          metadata?: Json | null
+          province: string
+          severity_level?: number
+        }
+        Update: {
+          affected_area?: number | null
+          count?: number
+          created_at?: string
+          date?: string
+          disaster_type?: string
+          id?: string
+          metadata?: Json | null
+          province?: string
+          severity_level?: number
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           content: string | null
@@ -120,6 +156,72 @@ export type Database = {
           updated_at?: string
           user_interface_rating?: number | null
           would_recommend?: number | null
+        }
+        Relationships: []
+      }
+      shared_disaster_data: {
+        Row: {
+          created_at: string
+          data: Json
+          disaster_type: string
+          expires_at: string | null
+          id: string
+          is_public: boolean | null
+          location: Json
+          shared_with: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data: Json
+          disaster_type: string
+          expires_at?: string | null
+          id?: string
+          is_public?: boolean | null
+          location: Json
+          shared_with?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          disaster_type?: string
+          expires_at?: string | null
+          id?: string
+          is_public?: boolean | null
+          location?: Json
+          shared_with?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          notification_settings: Json
+          preferred_areas: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notification_settings?: Json
+          preferred_areas?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notification_settings?: Json
+          preferred_areas?: Json
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
