@@ -137,6 +137,54 @@ export type Database = {
         }
         Relationships: []
       }
+      incident_reports: {
+        Row: {
+          contact_info: string | null
+          coordinates: Json | null
+          created_at: string
+          description: string
+          id: string
+          image_urls: string[] | null
+          is_verified: boolean
+          location: string | null
+          severity_level: number
+          status: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          contact_info?: string | null
+          coordinates?: Json | null
+          created_at?: string
+          description: string
+          id?: string
+          image_urls?: string[] | null
+          is_verified?: boolean
+          location?: string | null
+          severity_level?: number
+          status?: string
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          contact_info?: string | null
+          coordinates?: Json | null
+          created_at?: string
+          description?: string
+          id?: string
+          image_urls?: string[] | null
+          is_verified?: boolean
+          location?: string | null
+          severity_level?: number
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       n8n_chat_histories: {
         Row: {
           id: number

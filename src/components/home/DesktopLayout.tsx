@@ -5,7 +5,7 @@ import DisasterAlert from '@/components/DisasterAlert';
 import NavBar from '@/components/NavBar';
 import DisasterResources from '@/components/DisasterResources';
 import { Button } from '@/components/ui/button';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, FileText } from 'lucide-react';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 // Lazy load heavy components
@@ -18,6 +18,7 @@ interface DesktopLayoutProps {
   onContactsClick: () => void;
   onAlertsClick: () => void;
   onVictimReportsClick: () => void;
+  onIncidentReportsClick: () => void;
 }
 
 const DesktopLayout: React.FC<DesktopLayoutProps> = ({
@@ -25,7 +26,8 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({
   onManualClick,
   onContactsClick,
   onAlertsClick,
-  onVictimReportsClick
+  onVictimReportsClick,
+  onIncidentReportsClick
 }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex">
@@ -60,15 +62,26 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({
             />
           </div>
           
-          {/* Victim Reports Button */}
+          {/* Reporting Section */}
           <div className="pt-4 border-t border-gray-100">
-            <Button 
-              className="w-full bg-red-600 hover:bg-red-700 text-white shadow-md"
-              onClick={onVictimReportsClick}
-            >
-              <MessageSquare className="mr-2 h-4 w-4" />
-              รายงานสถานะผู้ประสบภัย
-            </Button>
+            <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">รายงาน</h3>
+            <div className="space-y-2">
+              <Button 
+                className="w-full bg-red-600 hover:bg-red-700 text-white shadow-md justify-start"
+                onClick={onVictimReportsClick}
+              >
+                <MessageSquare className="mr-2 h-4 w-4" />
+                รายงานสถานะผู้ประสบภัย
+              </Button>
+              
+              <Button 
+                className="w-full bg-orange-600 hover:bg-orange-700 text-white shadow-md justify-start"
+                onClick={onIncidentReportsClick}
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                รายงานเหตุการณ์ภัยพิบัติ
+              </Button>
+            </div>
           </div>
           
           <div className="pt-4">
