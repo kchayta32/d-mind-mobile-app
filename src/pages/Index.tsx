@@ -1,3 +1,4 @@
+
 import React, { useEffect, useLayoutEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -85,6 +86,10 @@ const Index = () => {
     navigate('/victim-reports');
   };
 
+  const handleIncidentReportsClick = () => {
+    navigate('/incident-reports');
+  };
+
   const handleLineClick = () => {
     window.open('https://line.me/R/ti/p/@307rcire', '_blank');
   };
@@ -100,6 +105,7 @@ const Index = () => {
             onContactsClick={handleContactsClick}
             onAlertsClick={handleAlertsClick}
             onVictimReportsClick={handleVictimReportsClick}
+            onIncidentReportsClick={handleIncidentReportsClick}
             onLineClick={handleLineClick}
           />
         </div>
@@ -115,6 +121,7 @@ const Index = () => {
         onContactsClick={handleContactsClick}
         onAlertsClick={handleAlertsClick}
         onVictimReportsClick={handleVictimReportsClick}
+        onIncidentReportsClick={handleIncidentReportsClick}
       />
     </ErrorBoundary>
   );

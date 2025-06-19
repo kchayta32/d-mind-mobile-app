@@ -13,6 +13,7 @@ import EmergencyManual from "./pages/EmergencyManual";
 import EmergencyContacts from "./pages/EmergencyContacts";
 import Alerts from "./pages/Alerts";
 import VictimReports from "./pages/VictimReports";
+import IncidentReports from "./pages/IncidentReports";
 import SatisfactionSurvey from "./pages/SatisfactionSurvey";
 import AppGuide from "./pages/AppGuide";
 import ArticleDetail from "./pages/ArticleDetail";
@@ -46,6 +47,7 @@ const App = () => {
             <Route path="/contacts" element={<EmergencyContacts />} />
             <Route path="/alerts" element={<Alerts />} />
             <Route path="/victim-reports" element={<VictimReports />} />
+            <Route path="/incident-reports" element={<IncidentReports />} />
             <Route path="/satisfaction-survey" element={<SatisfactionSurvey />} />
             <Route path="/app-guide" element={<AppGuide />} />
             <Route path="/article/:id" element={<ArticleDetail />} />
