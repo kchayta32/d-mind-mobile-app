@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -173,7 +174,7 @@ const DesktopLayout: React.FC = () => {
                 <CardContent>
                   <Button 
                     className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-                    onClick={onDisasterMapClick}
+                    onClick={handleDisasterMapClick}
                   >
                     <Map className="mr-2 h-4 w-4" />
                     ดูแผนที่และสถิติ
