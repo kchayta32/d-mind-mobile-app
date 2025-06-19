@@ -8,6 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { MapPin, Clock, Phone, Camera, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
+import { Database } from '@/integrations/supabase/types';
+
+type IncidentReportRow = Database['public']['Tables']['incident_reports']['Row'];
 
 interface IncidentReport {
   id: string;
@@ -37,7 +40,36 @@ const IncidentReportsList: React.FC = () => {
         .limit(50);
 
       if (error) throw error;
-      return data as IncidentReport[];
+      
+      // Transform the data to match our IncidentReport interface
+      return data.map((report: IncidentReportRow): IncidentReport => {
+        // Handle coordinates transformation
+        let coordinates: { lat: number; lng: number } | null = null;
+        if (report.coordinates && typeof report.coordinates === 'object' && report.coordinates !== null) {
+          const coords = report.coordinates as any;
+          if (coords.lat !== undefined && coords.lng !== undefined) {
+            coordinates = {
+              lat: Number(coords.lat) || 0,
+              lng: Number(coords.lng) || 0
+            };
+          }
+        }
+
+        return {
+          id: report.id,
+          type: report.type,
+          title: report.title,
+          description: report.description,
+          location: report.location || '',
+          coordinates,
+          severity_level: report.severity_level,
+          contact_info: report.contact_info || '',
+          image_urls: report.image_urls || [],
+          status: report.status,
+          is_verified: report.is_verified,
+          created_at: report.created_at
+        };
+      });
     },
     refetchInterval: 30000
   });
