@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { AlertTriangle, Map, Shield, MessageSquare, HeartHandshake, FileText, MessageCircle } from 'lucide-react';
+import { AlertTriangle, Map, Shield, MessageSquare, HeartHandshake, FileText, MessageCircle, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -12,6 +12,7 @@ interface MobileMainContentProps {
   onVictimReportsClick: () => void;
   onIncidentReportsClick: () => void;
   onLineClick: () => void;
+  onDisasterMapClick: () => void;
 }
 
 const MobileMainContent: React.FC<MobileMainContentProps> = ({
@@ -21,7 +22,8 @@ const MobileMainContent: React.FC<MobileMainContentProps> = ({
   onAlertsClick,
   onVictimReportsClick,
   onIncidentReportsClick,
-  onLineClick
+  onLineClick,
+  onDisasterMapClick
 }) => {
   return (
     <main className="container mx-auto p-4 space-y-6 max-w-7xl">
@@ -43,6 +45,23 @@ const MobileMainContent: React.FC<MobileMainContentProps> = ({
           <span className="text-sm font-medium">แจ้งเตือนภัย</span>
         </Button>
       </div>
+
+      {/* Disaster Map & Statistics */}
+      <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
+        <CardContent className="p-4">
+          <h2 className="text-lg font-bold text-purple-700 mb-3 flex items-center">
+            <BarChart3 className="mr-2 h-5 w-5" />
+            แผนที่และสถิติภัยพิบัติ
+          </h2>
+          <Button 
+            className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center gap-2"
+            onClick={onDisasterMapClick}
+          >
+            <Map className="h-5 w-5" />
+            ดูแผนที่ภัยพิบัติแบบเรียลไทม์
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Emergency Services */}
       <Card className="bg-gradient-to-r from-red-50 to-orange-50 border-red-200">
