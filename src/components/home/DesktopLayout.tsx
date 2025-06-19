@@ -1,19 +1,16 @@
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { Suspense } from 'react';
+import { useNavigate } from 'react-router-dom';
+import DisasterAlert from '@/components/DisasterAlert';
+import NavBar from '@/components/NavBar';
+import DisasterResources from '@/components/DisasterResources';
 import { Button } from '@/components/ui/button';
-import { 
-  MessageCircle, 
-  BookOpen, 
-  Phone, 
-  FileText, 
-  Bell,
-  MessageSquare,
-  Shield
-} from 'lucide-react';
-import RealtimeAlertsSection from './RealtimeAlertsSection';
-import QuickAlertSettings from './QuickAlertSettings';
-import DisasterMap from '@/components/DisasterMap';
+import { MessageSquare } from 'lucide-react';
+import ErrorBoundary from '@/components/ErrorBoundary';
+
+// Lazy load heavy components
+const LazyDisasterMap = React.lazy(() => import('@/components/DisasterMap'));
+const LazyEnhancedChatBot = React.lazy(() => import('@/components/chat/EnhancedChatBot'));
 
 interface DesktopLayoutProps {
   onAssistantClick: () => void;
@@ -31,116 +28,114 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({
   onVictimReportsClick
 }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Shield className="h-8 w-8 text-guardian-purple" />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  <span className="text-guardian-purple">D-Mind</span>
-                </h1>
-                <p className="text-sm text-gray-600">ระบบจัดการภัยพิบัติอัจฉริยะ</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <Button onClick={onAlertsClick} variant="outline" size="sm">
-                <Bell className="h-4 w-4 mr-2" />
-                การแจ้งเตือน
-              </Button>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex">
+      {/* Sidebar */}
+      <aside className="w-72 bg-white shadow-xl border-r border-blue-100 flex flex-col">
+        {/* Sidebar Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
+          <div className="flex items-center mb-3">
+            <img 
+              src="/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png" 
+              alt="D-MIND Logo" 
+              className="h-10 w-10 mr-3"
+            />
+            <h1 className="text-xl font-bold">D-MIND</h1>
+          </div>
+          <p className="text-sm opacity-90 leading-relaxed">
+            ระบบติดตามภัยพิบัติและแจ้งเตือนอัจฉริยะ
+          </p>
+        </div>
+
+        {/* Navigation */}
+        <div className="p-6 space-y-4 flex-1">
+          <DisasterAlert isActive={true} />
+          
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">เมนูหลัก</h3>
+            <NavBar 
+              onAssistantClick={onAssistantClick}
+              onManualClick={onManualClick}
+              onContactsClick={onContactsClick}
+              onAlertsClick={onAlertsClick}
+            />
+          </div>
+          
+          {/* Victim Reports Button */}
+          <div className="pt-4 border-t border-gray-100">
+            <Button 
+              className="w-full bg-red-600 hover:bg-red-700 text-white shadow-md"
+              onClick={onVictimReportsClick}
+            >
+              <MessageSquare className="mr-2 h-4 w-4" />
+              รายงานสถานะผู้ประสบภัย
+            </Button>
+          </div>
+          
+          <div className="pt-4">
+            <DisasterResources />
           </div>
         </div>
-      </header>
+      </aside>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Alerts & Settings */}
-          <div className="space-y-6">
-            <RealtimeAlertsSection />
-            <QuickAlertSettings />
-          </div>
-
-          {/* Middle Column - Map */}
-          <div className="lg:col-span-2">
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle>แผนที่ภัยพิบัติแบบเรียลไทม์</CardTitle>
-                <CardDescription>
-                  ติดตามสถานการณ์ภัยพิบัติทั่วประเทศไทย
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-96 rounded-lg overflow-hidden">
-                  <DisasterMap />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Bottom Section - Services */}
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-6">บริการหลัก</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={onAssistantClick}>
-              <CardContent className="p-6 text-center">
-                <MessageCircle className="h-12 w-12 mx-auto mb-4 text-blue-500" />
-                <h3 className="font-semibold mb-2">AI ผู้ช่วย</h3>
-                <p className="text-sm text-gray-600">ปรึกษาเรื่องภัยพิบัติและการป้องกัน</p>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={onManualClick}>
-              <CardContent className="p-6 text-center">
-                <BookOpen className="h-12 w-12 mx-auto mb-4 text-green-500" />
-                <h3 className="font-semibold mb-2">คู่มือฉุกเฉิน</h3>
-                <p className="text-sm text-gray-600">วิธีปฏิบัติตัวในสถานการณ์ฉุกเฉิน</p>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={onContactsClick}>
-              <CardContent className="p-6 text-center">
-                <Phone className="h-12 w-12 mx-auto mb-4 text-red-500" />
-                <h3 className="font-semibold mb-2">เบอร์ฉุกเฉิน</h3>
-                <p className="text-sm text-gray-600">หมายเลขติดต่อหน่วยงานสำคัญ</p>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={onVictimReportsClick}>
-              <CardContent className="p-6 text-center">
-                <FileText className="h-12 w-12 mx-auto mb-4 text-orange-500" />
-                <h3 className="font-semibold mb-2">รายงานผู้ประสบภัย</h3>
-                <p className="text-sm text-gray-600">แจ้งเหตุการณ์และขอความช่วยเหลือ</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* LINE Integration */}
-        <div className="mt-8">
-          <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <MessageSquare className="h-8 w-8 text-green-600" />
-                  <div>
-                    <h3 className="font-semibold text-green-800">ติดต่อผ่าน LINE Official</h3>
-                    <p className="text-sm text-green-700">รับข้อมูลและการแจ้งเตือนผ่าน LINE @dmind</p>
-                  </div>
-                </div>
-                <Button 
-                  onClick={() => window.open('https://line.me/R/ti/p/@307rcire', '_blank')}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  เพิ่มเพื่อน
-                </Button>
+      <main className="flex-1 flex flex-col">
+        {/* Top Bar */}
+        <header className="bg-white shadow-sm border-b border-gray-200 p-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-gray-800">แผงควบคุมหลัก</h2>
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-600">
+                สถานะระบบ: <span className="text-green-600 font-medium">ออนไลน์</span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+        </header>
+
+        {/* Content Area - Split layout */}
+        <div className="flex-1 p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Map Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="p-4 border-b border-gray-200 bg-gray-50">
+              <h3 className="font-semibold text-gray-800">แผนที่ภัยพิบัติ</h3>
+              <p className="text-sm text-gray-600 mt-1">ข้อมูลสถานการณ์แบบเรียลไทม์</p>
+            </div>
+            <div className="p-6 h-[calc(100%-80px)] min-h-[500px]">
+              <ErrorBoundary fallback={<div className="text-red-500 text-center">เกิดข้อผิดพลาดในการโหลดแผนที่</div>}>
+                <Suspense fallback={
+                  <div className="h-full flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
+                      <p className="mt-2 text-gray-600">กำลังโหลดแผนที่...</p>
+                    </div>
+                  </div>
+                }>
+                  <LazyDisasterMap />
+                </Suspense>
+              </ErrorBoundary>
+            </div>
+          </div>
+
+          {/* Enhanced Chatbot Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+              <h3 className="font-semibold text-gray-800">ปรึกษาผู้เชี่ยวชาญ</h3>
+              <p className="text-sm text-gray-600 mt-1">Dr.Mind ผู้เชี่ยวชาญด้านภัยธรรมชาติและแพทย์ฉุกเฉิน</p>
+            </div>
+            <div className="h-[calc(100%-80px)]">
+              <ErrorBoundary fallback={<div className="text-red-500 text-center p-4">เกิดข้อผิดพลาดในการโหลดชาทบอท</div>}>
+                <Suspense fallback={
+                  <div className="h-full flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="animate-spin w-6 h-6 border-4 border-purple-500 border-t-transparent rounded-full mx-auto"></div>
+                      <p className="mt-2 text-gray-600">กำลังโหลดชาทบอท...</p>
+                    </div>
+                  </div>
+                }>
+                  <LazyEnhancedChatBot className="h-full border-0 shadow-none" />
+                </Suspense>
+              </ErrorBoundary>
+            </div>
+          </div>
         </div>
       </main>
     </div>

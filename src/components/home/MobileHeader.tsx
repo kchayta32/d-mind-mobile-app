@@ -1,68 +1,27 @@
 
 import React from 'react';
-import { Shield, Bell } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useRealtimeAlerts } from '@/hooks/useRealtimeAlerts';
-import { useNavigate } from 'react-router-dom';
 
-const MobileHeader = () => {
-  const { relevantAlerts } = useRealtimeAlerts();
-  const navigate = useNavigate();
-  
-  const activeAlerts = relevantAlerts.filter(alert => alert.is_active);
-  const highSeverityAlerts = activeAlerts.filter(alert => alert.severity_level >= 4);
-
+const MobileHeader: React.FC = () => {
   return (
-    <header className="bg-white shadow-lg">
-      <div className="px-4 py-4">
+    <header className="bg-white shadow-lg border-b border-blue-100 sticky top-0 z-50">
+      <div className="px-6 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Shield className="h-8 w-8 text-guardian-purple" />
+          <div className="flex items-center space-x-3">
+            <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-2 rounded-xl shadow-md">
+              <img 
+                src="/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png" 
+                alt="D-MIND Logo" 
+                className="h-6 w-6"
+              />
+            </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">
-                <span className="text-guardian-purple">D-Mind</span>
-              </h1>
-              <p className="text-xs text-gray-600">ระบบจัดการภัยพิบัติ</p>
+              <h1 className="text-xl font-bold text-gray-800">D-MIND</h1>
+              <p className="text-xs text-gray-500 font-medium">Disaster Monitoring System</p>
             </div>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/alerts')}
-              className="relative"
-            >
-              <Bell className={`h-5 w-5 ${highSeverityAlerts.length > 0 ? 'text-red-500' : 'text-gray-500'}`} />
-              {activeAlerts.length > 0 && (
-                <Badge 
-                  variant={highSeverityAlerts.length > 0 ? "destructive" : "secondary"}
-                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                >
-                  {activeAlerts.length > 9 ? '9+' : activeAlerts.length}
-                </Badge>
-              )}
-            </Button>
-          </div>
-        </div>
-        
-        {/* Status Bar */}
-        <div className="mt-3 pt-3 border-t border-gray-100">
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-gray-600">ระบบทำงานปกติ</span>
-            </div>
-            <div className="text-gray-500">
-              {activeAlerts.length > 0 ? (
-                <span className="text-orange-600 font-medium">
-                  {activeAlerts.length} การแจ้งเตือนใหม่
-                </span>
-              ) : (
-                'ไม่มีการแจ้งเตือน'
-              )}
-            </div>
+          <div className="flex items-center space-x-2">
+            <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-xs text-gray-600 font-medium">ออนไลน์</span>
           </div>
         </div>
       </div>
