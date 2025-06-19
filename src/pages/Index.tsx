@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useLayoutEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useOfflineMode } from '@/hooks/useOfflineMode';
@@ -15,20 +15,42 @@ const Index = () => {
   const { isOnline, cacheData } = useOfflineMode();
   const { requestPermission } = useNotifications();
 
-  // Fix auto-scroll issue
-  useEffect(() => {
+  // Prevent auto-scroll with useLayoutEffect for immediate execution
+  useLayoutEffect(() => {
+    // Force scroll to top immediately
     window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
     
-    const preventAutoScroll = (e: Event) => {
-      e.preventDefault();
-    };
-    
-    const timeoutId = setTimeout(() => {
+    // Prevent any scroll restoration
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+  }, []);
+
+  // Additional scroll prevention with useEffect
+  useEffect(() => {
+    const preventAutoScroll = () => {
       window.scrollTo(0, 0);
-    }, 100);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+
+    // Multiple prevention methods
+    preventAutoScroll();
+    
+    const timeoutId = setTimeout(preventAutoScroll, 0);
+    const intervalId = setInterval(preventAutoScroll, 100);
+    
+    // Stop the interval after 1 second
+    const stopInterval = setTimeout(() => {
+      clearInterval(intervalId);
+    }, 1000);
 
     return () => {
       clearTimeout(timeoutId);
+      clearInterval(intervalId);
+      clearTimeout(stopInterval);
     };
   }, []);
 
@@ -39,7 +61,7 @@ const Index = () => {
       setTimeout(() => {
         requestPermission();
         localStorage.setItem('dmind-notification-requested', 'true');
-      }, 3000); // Wait 3 seconds before asking
+      }, 3000);
     }
   }, [requestPermission]);
 

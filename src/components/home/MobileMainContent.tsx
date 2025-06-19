@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import DisasterAlert from '@/components/DisasterAlert';
 import NavBar from '@/components/NavBar';
 import DisasterResources from '@/components/DisasterResources';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
+import EmergencyAlertSystem from '@/components/notifications/EmergencyAlertSystem';
 import { Button } from '@/components/ui/button';
 import { MessageSquare } from 'lucide-react';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -34,6 +36,24 @@ const MobileMainContent: React.FC<MobileMainContentProps> = ({
       {/* Alert Section */}
       <div className="space-y-4">
         <DisasterAlert isActive={true} />
+      </div>
+
+      {/* Emergency Alert System */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+          <div className="h-1 w-8 bg-gradient-to-r from-red-500 to-red-600 rounded-full mr-3"></div>
+          ระบบแจ้งเตือนฉุกเฉิน
+        </h2>
+        <EmergencyAlertSystem />
+      </div>
+
+      {/* Notification Center */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+          <div className="h-1 w-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full mr-3"></div>
+          ตั้งค่าการแจ้งเตือน
+        </h2>
+        <NotificationCenter />
       </div>
       
       {/* Navigation Section */}

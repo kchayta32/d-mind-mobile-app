@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState, useEffect } from "react";
 import LoadingScreen from "./components/LoadingScreen";
+import { useServiceWorker } from "./hooks/useServiceWorker";
 import Index from "./pages/Index";
 import AIAssistant from "./pages/AIAssistant";
 import EmergencyManual from "./pages/EmergencyManual";
@@ -22,6 +23,7 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
+  useServiceWorker(); // Initialize service worker
 
   const handleLoadingComplete = () => {
     setIsLoading(false);
