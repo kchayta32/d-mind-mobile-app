@@ -9,6 +9,47 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      alert_deliveries: {
+        Row: {
+          alert_id: string | null
+          created_at: string | null
+          delivered_at: string | null
+          delivery_method: string
+          delivery_status: string
+          id: string
+          read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          alert_id?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          delivery_method: string
+          delivery_status?: string
+          id?: string
+          read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          alert_id?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          delivery_method?: string
+          delivery_status?: string
+          id?: string
+          read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_deliveries_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "realtime_alerts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       disaster_statistics: {
         Row: {
           affected_area: number | null
@@ -114,6 +155,63 @@ export type Database = {
         }
         Relationships: []
       }
+      realtime_alerts: {
+        Row: {
+          affected_provinces: string[] | null
+          alert_type: string
+          coordinates: Json
+          created_at: string | null
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          message: string
+          metadata: Json | null
+          radius_km: number
+          severity_level: number
+          title: string
+          updated_at: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          affected_provinces?: string[] | null
+          alert_type: string
+          coordinates: Json
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message: string
+          metadata?: Json | null
+          radius_km?: number
+          severity_level: number
+          title: string
+          updated_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          affected_provinces?: string[] | null
+          alert_type?: string
+          coordinates?: Json
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message?: string
+          metadata?: Json | null
+          radius_km?: number
+          severity_level?: number
+          title?: string
+          updated_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: []
+      }
       satisfaction_surveys: {
         Row: {
           ai_assistant_rating: number | null
@@ -198,6 +296,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_alert_subscriptions: {
+        Row: {
+          alert_types: string[]
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          location_preferences: Json
+          min_severity_level: number
+          notification_methods: Json
+          radius_km: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          alert_types: string[]
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          location_preferences: Json
+          min_severity_level?: number
+          notification_methods?: Json
+          radius_km?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          alert_types?: string[]
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          location_preferences?: Json
+          min_severity_level?: number
+          notification_methods?: Json
+          radius_km?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           created_at: string
@@ -266,6 +403,16 @@ export type Database = {
       binary_quantize: {
         Args: { "": string } | { "": unknown }
         Returns: unknown
+      }
+      calculate_distance: {
+        Args: { lat1: number; lon1: number; lat2: number; lon2: number }
+        Returns: number
+      }
+      get_users_in_alert_radius: {
+        Args: { alert_coordinates: Json; alert_radius: number }
+        Returns: {
+          user_id: string
+        }[]
       }
       halfvec_avg: {
         Args: { "": number[] }
