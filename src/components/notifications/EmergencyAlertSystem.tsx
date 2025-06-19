@@ -59,7 +59,15 @@ const EmergencyAlertSystem: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as EmergencyAlert[];
+      
+      // Transform data to match our interface
+      return data.map(alert => ({
+        ...alert,
+        coordinates: typeof alert.coordinates === 'object' && alert.coordinates !== null 
+          ? alert.coordinates as { lat: number; lng: number }
+          : { lat: 0, lng: 0 },
+        affected_provinces: alert.affected_provinces || []
+      })) as EmergencyAlert[];
     },
     refetchInterval: 30000 // Refetch every 30 seconds
   });
@@ -77,25 +85,15 @@ const EmergencyAlertSystem: React.FC = () => {
           filter: 'severity_level.gte.4'
         },
         (payload) => {
-          const newAlert = payload.new as EmergencyAlert;
+          const newAlert = payload.new as any;
           
-          // Send push notification
+          // Send push notification without actions
           sendNotification(`🚨 ${newAlert.title}`, {
             body: newAlert.message,
             icon: "/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png",
             badge: "/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png",
             tag: `emergency-${newAlert.id}`,
-            requireInteraction: true,
-            actions: [
-              {
-                action: 'view',
-                title: 'ดูรายละเอียด'
-              },
-              {
-                action: 'close',
-                title: 'ปิด'
-              }
-            ]
+            requireInteraction: true
           });
 
           // Show toast

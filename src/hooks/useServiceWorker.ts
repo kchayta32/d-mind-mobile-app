@@ -21,10 +21,14 @@ export const useServiceWorker = () => {
                   toast({
                     title: "อัปเดตใหม่พร้อมใช้งาน",
                     description: "รีเฟรชหน้าเพื่อใช้เวอร์ชันล่าสุด",
-                    action: {
-                      altText: "รีเฟรช",
-                      onClick: () => window.location.reload()
-                    }
+                    action: (
+                      <button 
+                        onClick={() => window.location.reload()}
+                        className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                      >
+                        รีเฟรช
+                      </button>
+                    )
                   });
                 }
               });
@@ -44,12 +48,16 @@ export const useServiceWorker = () => {
         toast({
           title: "ติดตั้งแอป D-MIND",
           description: "เพิ่มไปยังหน้าจอหลักเพื่อเข้าถึงได้ง่ายขึ้น",
-          action: {
-            altText: "ติดตั้ง",
-            onClick: () => {
-              (e as any).prompt();
-            }
-          }
+          action: (
+            <button 
+              onClick={() => {
+                (e as any).prompt();
+              }}
+              className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+            >
+              ติดตั้ง
+            </button>
+          )
         });
       });
     }
