@@ -1,4 +1,3 @@
-
 import React, { useEffect, useLayoutEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -54,14 +53,15 @@ const Index = () => {
     };
   }, []);
 
-  // Request notification permission on first load
+  // Request notification permission immediately on first load
   useEffect(() => {
     const hasRequestedPermission = localStorage.getItem('dmind-notification-requested');
     if (!hasRequestedPermission) {
+      // Request permission immediately when app loads
       setTimeout(() => {
         requestPermission();
         localStorage.setItem('dmind-notification-requested', 'true');
-      }, 3000);
+      }, 1000); // Reduced from 3000 to 1000ms
     }
   }, [requestPermission]);
 
