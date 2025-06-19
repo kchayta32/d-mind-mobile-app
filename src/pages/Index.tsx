@@ -94,6 +94,12 @@ const Index = () => {
     window.open('https://line.me/R/ti/p/@307rcire', '_blank');
   };
 
+  const handleDisasterMapClick = () => {
+    // For now, we'll navigate to the alerts page which contains the disaster map
+    // In the future, this could be a dedicated disaster map page
+    navigate('/alerts');
+  };
+
   if (isMobile) {
     return (
       <ErrorBoundary>
@@ -107,6 +113,7 @@ const Index = () => {
             onVictimReportsClick={handleVictimReportsClick}
             onIncidentReportsClick={handleIncidentReportsClick}
             onLineClick={handleLineClick}
+            onDisasterMapClick={handleDisasterMapClick}
           />
         </div>
       </ErrorBoundary>
@@ -115,14 +122,7 @@ const Index = () => {
 
   return (
     <ErrorBoundary>
-      <DesktopLayout
-        onAssistantClick={handleAssistantClick}
-        onManualClick={handleManualClick}
-        onContactsClick={handleContactsClick}
-        onAlertsClick={handleAlertsClick}
-        onVictimReportsClick={handleVictimReportsClick}
-        onIncidentReportsClick={handleIncidentReportsClick}
-      />
+      <DesktopLayout />
     </ErrorBoundary>
   );
 };
