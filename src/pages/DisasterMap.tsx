@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import DisasterMapComponent from '@/components/DisasterMap';
 import { DisasterMapSidebar } from '@/components/disaster-map/DisasterMapSidebar';
+import MobileUsageTip from '@/components/disaster-map/MobileUsageTip';
 
 const DisasterMap: React.FC = () => {
   const navigate = useNavigate();
@@ -57,6 +58,9 @@ const DisasterMap: React.FC = () => {
             </div>
           </div>
         </div>
+        
+        {/* Mobile Usage Tip */}
+        {isMobile && <MobileUsageTip />}
       </div>
     </SidebarProvider>
   );
