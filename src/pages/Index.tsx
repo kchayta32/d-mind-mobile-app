@@ -1,4 +1,3 @@
-
 import React, { useEffect, useLayoutEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -95,9 +94,7 @@ const Index = () => {
   };
 
   const handleDisasterMapClick = () => {
-    // For now, we'll navigate to the alerts page which contains the disaster map
-    // In the future, this could be a dedicated disaster map page
-    navigate('/alerts');
+    navigate('/disaster-map');
   };
 
   if (isMobile) {
