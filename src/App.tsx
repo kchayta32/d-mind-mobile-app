@@ -4,8 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useState, useEffect } from "react";
-import LoadingScreen from "./components/LoadingScreen";
 import { useServiceWorker } from "./hooks/useServiceWorker";
 import Index from "./pages/Index";
 import AIAssistant from "./pages/AIAssistant";
@@ -47,37 +45,13 @@ const AppRoutes = () => {
   );
 };
 
-const AppContent = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isReactReady, setIsReactReady] = useState(false);
-
-  useEffect(() => {
-    // Ensure React is fully ready before rendering providers
-    setIsReactReady(true);
-  }, []);
-
-  const handleLoadingComplete = () => {
-    setIsLoading(false);
-  };
-
-  if (!isReactReady) {
-    return null; // Don't render anything until React is ready
-  }
-
-  if (isLoading) {
-    return <LoadingScreen onComplete={handleLoadingComplete} />;
-  }
-
-  return <AppRoutes />;
-};
-
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <AppContent />
+        <AppRoutes />
       </TooltipProvider>
     </QueryClientProvider>
   );
