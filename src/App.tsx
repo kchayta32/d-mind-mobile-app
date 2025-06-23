@@ -24,31 +24,24 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isReady, setIsReady] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Initialize app with proper timing
+  // Ensure React is fully initialized before rendering any components with hooks
   useEffect(() => {
-    // Ensure React is fully initialized before rendering components with hooks
     const timer = setTimeout(() => {
-      setIsReady(true);
-    }, 100);
+      setIsInitialized(true);
+    }, 50); // Very short delay to ensure React is ready
 
     return () => clearTimeout(timer);
   }, []);
 
-  const handleLoadingComplete = () => {
-    setIsLoading(false);
-  };
-
-  // Show loading screen while initializing
-  if (isLoading) {
-    return <LoadingScreen onComplete={handleLoadingComplete} />;
-  }
-
   // Show nothing while React is initializing to prevent hook errors
-  if (!isReady) {
-    return null;
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
+        <div className="text-blue-600 text-lg">Loading...</div>
+      </div>
+    );
   }
 
   return (
@@ -56,10 +49,25 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <AppRoutes />
+        <AppContent />
       </TooltipProvider>
     </QueryClientProvider>
   );
+};
+
+const AppContent = () => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  const handleLoadingComplete = () => {
+    setIsLoading(false);
+  };
+
+  // Show loading screen while app is loading
+  if (isLoading) {
+    return <LoadingScreen onComplete={handleLoadingComplete} />;
+  }
+
+  return <AppRoutes />;
 };
 
 const AppRoutes = () => {
