@@ -25,14 +25,37 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
-  useServiceWorker(); // Initialize service worker
+  const [isReactReady, setIsReactReady] = useState(false);
+  
+  // Ensure React is fully initialized before rendering any hooks
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsReactReady(true);
+    }, 50);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleLoadingComplete = () => {
     setIsLoading(false);
   };
 
+  // Don't render anything until React is ready
+  if (!isReactReady) {
+    return <div>Loading...</div>;
+  }
+
+  // Only after React is ready, we can use components with hooks
+  return (
+    <ReactApp isLoading={isLoading} onLoadingComplete={handleLoadingComplete} />
+  );
+};
+
+const ReactApp = ({ isLoading, onLoadingComplete }: { isLoading: boolean; onLoadingComplete: () => void }) => {
+  useServiceWorker(); // Initialize service worker
+
   if (isLoading) {
-    return <LoadingScreen onComplete={handleLoadingComplete} />;
+    return <LoadingScreen onComplete={onLoadingComplete} />;
   }
 
   return (
