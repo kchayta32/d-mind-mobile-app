@@ -62,13 +62,16 @@ const MetricsOverview: React.FC<MetricsOverviewProps> = ({
   const highSeverityAlerts = activeAlerts.filter(a => a.severity_level >= 4).length;
   const totalAffectedAreas = [...new Set(disasterStats.map(s => s.province))].length;
 
+  // Define trend values properly
+  const alertTrend: 'up' | 'neutral' = activeAlerts.length > 5 ? 'up' : 'neutral';
+
   const metrics = [
     {
       title: "การแจ้งเตือนที่ใช้งานอยู่",
       value: activeAlerts.length,
       description: `${highSeverityAlerts} รายการมีความรุนแรงสูง`,
       icon: <AlertTriangle className="h-4 w-4 text-orange-500" />,
-      trend: (activeAlerts.length > 5 ? 'up' : 'neutral') as const,
+      trend: alertTrend,
       trendValue: "24 ชม. ที่ผ่านมา"
     },
     {
