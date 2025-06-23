@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -167,7 +168,7 @@ const DesktopLayout: React.FC = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center text-purple-700">
                     <BarChart3 className="mr-2 h-5 w-5" />
-                    แผนที่ภัยพิบัติ
+                    แผนที่และสถิติภัยพิบัติ
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
