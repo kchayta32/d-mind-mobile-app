@@ -4,6 +4,19 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
+// Wait for React to be fully loaded
+const waitForReact = () => {
+  return new Promise<void>((resolve) => {
+    if (React && React.useState && React.useContext) {
+      resolve();
+    } else {
+      setTimeout(() => {
+        waitForReact().then(resolve);
+      }, 10);
+    }
+  });
+};
+
 // Prevent auto-scroll and restore behavior
 if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
@@ -26,13 +39,21 @@ window.addEventListener('beforeunload', () => {
   preventScroll();
 });
 
-const rootElement = document.getElementById("root");
-if (!rootElement) throw new Error('Failed to find the root element');
+const initializeApp = async () => {
+  // Wait for React to be ready
+  await waitForReact();
+  
+  const rootElement = document.getElementById("root");
+  if (!rootElement) throw new Error('Failed to find the root element');
 
-const root = createRoot(rootElement);
+  const root = createRoot(rootElement);
 
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+};
+
+// Initialize the app
+initializeApp().catch(console.error);

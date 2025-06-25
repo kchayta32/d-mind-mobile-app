@@ -18,34 +18,49 @@ import ArticleDetail from "./pages/ArticleDetail";
 import ResourceDetail from "./pages/ResourceDetail";
 import DisasterMap from "./pages/DisasterMap";
 import NotFound from "./pages/NotFound";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
+// Safe component wrapper to ensure React is available
+const SafeWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Early return if React hooks aren't available
+  if (!React || !React.useState || !React.useContext) {
+    return <div>Loading...</div>;
+  }
+  
+  return <>{children}</>;
+};
+
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/assistant" element={<AIAssistant />} />
-            <Route path="/manual" element={<EmergencyManual />} />
-            <Route path="/contacts" element={<EmergencyContacts />} />
-            <Route path="/alerts" element={<Alerts />} />
-            <Route path="/disaster-map" element={<DisasterMap />} />
-            <Route path="/victim-reports" element={<VictimReports />} />
-            <Route path="/incident-reports" element={<IncidentReports />} />
-            <Route path="/satisfaction-survey" element={<SatisfactionSurvey />} />
-            <Route path="/app-guide" element={<AppGuide />} />
-            <Route path="/article/:id" element={<ArticleDetail />} />
-            <Route path="/resource/:id" element={<ResourceDetail />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster />
-          <Sonner />
-        </BrowserRouter>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <SafeWrapper>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/assistant" element={<AIAssistant />} />
+                <Route path="/manual" element={<EmergencyManual />} />
+                <Route path="/contacts" element={<EmergencyContacts />} />
+                <Route path="/alerts" element={<Alerts />} />
+                <Route path="/disaster-map" element={<DisasterMap />} />
+                <Route path="/victim-reports" element={<VictimReports />} />
+                <Route path="/incident-reports" element={<IncidentReports />} />
+                <Route path="/satisfaction-survey" element={<SatisfactionSurvey />} />
+                <Route path="/app-guide" element={<AppGuide />} />
+                <Route path="/article/:id" element={<ArticleDetail />} />
+                <Route path="/resource/:id" element={<ResourceDetail />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <Toaster />
+              <Sonner />
+            </BrowserRouter>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </SafeWrapper>
+    </ErrorBoundary>
   );
 };
 
