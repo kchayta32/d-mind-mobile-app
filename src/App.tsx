@@ -28,7 +28,6 @@ const queryClient = new QueryClient();
 // Separate component to handle the service worker after providers are set up
 const AppContent = () => {
   const [isLoading, setIsLoading] = useState(true);
-  useServiceWorker(); // Now this will work since all providers are available
 
   const handleLoadingComplete = () => {
     setIsLoading(false);
@@ -61,12 +60,19 @@ const AppContent = () => {
   );
 };
 
+// New component to handle service worker initialization
+const ServiceWorkerManager = () => {
+  useServiceWorker();
+  return null;
+};
+
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <ServiceWorkerManager />
         <AppContent />
       </TooltipProvider>
     </QueryClientProvider>
