@@ -2,10 +2,11 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "next-themes";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState, useEffect } from "react";
 import LoadingScreen from "./components/LoadingScreen";
-import { useServiceWorker } from "./hooks/useServiceWorker";
+// import { useServiceWorker } from "./hooks/useServiceWorker"; // Temporarily disabled
 import Index from "./pages/Index";
 import AIAssistant from "./pages/AIAssistant";
 import EmergencyManual from "./pages/EmergencyManual";
@@ -47,7 +48,8 @@ const AppRoutes = () => {
 const AppContent = () => {
   const [isLoading, setIsLoading] = useState(true);
   
-  useServiceWorker(); // Initialize service worker
+  // Temporarily disable service worker to fix React hooks issue
+  // useServiceWorker(); 
 
   const handleLoadingComplete = () => {
     setIsLoading(false);
@@ -63,9 +65,11 @@ const AppContent = () => {
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppContent />
-      <Toaster />
-      <Sonner />
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <AppContent />
+        <Toaster />
+        <Sonner />
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };
