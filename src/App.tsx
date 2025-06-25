@@ -24,69 +24,61 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Simple service worker registration
-const registerServiceWorker = () => {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker
-      .register('/sw.js')
-      .then((registration) => {
-        console.log('SW registered: ', registration);
-      })
-      .catch((error) => {
-        console.log('SW registration failed: ', error);
-      });
-  }
-};
-
-const AppContent = () => {
+const App = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const [isAppReady, setIsAppReady] = useState(false);
 
   const handleLoadingComplete = () => {
     setIsLoading(false);
+    // Small delay to ensure providers are ready
+    setTimeout(() => {
+      setIsAppReady(true);
+      // Register service worker after everything is ready
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker
+          .register('/sw.js')
+          .then((registration) => {
+            console.log('SW registered: ', registration);
+          })
+          .catch((error) => {
+            console.log('SW registration failed: ', error);
+          });
+      }
+    }, 100);
   };
-
-  // Register service worker after loading is complete
-  useEffect(() => {
-    if (!isLoading) {
-      // Small delay to ensure everything is ready
-      setTimeout(registerServiceWorker, 100);
-    }
-  }, [isLoading]);
 
   if (isLoading) {
     return <LoadingScreen onComplete={handleLoadingComplete} />;
   }
 
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/assistant" element={<AIAssistant />} />
-        <Route path="/manual" element={<EmergencyManual />} />
-        <Route path="/contacts" element={<EmergencyContacts />} />
-        <Route path="/alerts" element={<Alerts />} />
-        <Route path="/disaster-map" element={<DisasterMap />} />
-        <Route path="/victim-reports" element={<VictimReports />} />
-        <Route path="/incident-reports" element={<IncidentReports />} />
-        <Route path="/satisfaction-survey" element={<SatisfactionSurvey />} />
-        <Route path="/app-guide" element={<AppGuide />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/notifications" element={<NotificationSettings />} />
-        <Route path="/article/:id" element={<ArticleDetail />} />
-        <Route path="/resource/:id" element={<ResourceDetail />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
-  );
-};
+  if (!isAppReady) {
+    return <div>Loading...</div>;
+  }
 
-const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <AppContent />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/assistant" element={<AIAssistant />} />
+            <Route path="/manual" element={<EmergencyManual />} />
+            <Route path="/contacts" element={<EmergencyContacts />} />
+            <Route path="/alerts" element={<Alerts />} />
+            <Route path="/disaster-map" element={<DisasterMap />} />
+            <Route path="/victim-reports" element={<VictimReports />} />
+            <Route path="/incident-reports" element={<IncidentReports />} />
+            <Route path="/satisfaction-survey" element={<SatisfactionSurvey />} />
+            <Route path="/app-guide" element={<AppGuide />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/notifications" element={<NotificationSettings />} />
+            <Route path="/article/:id" element={<ArticleDetail />} />
+            <Route path="/resource/:id" element={<ResourceDetail />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   );
