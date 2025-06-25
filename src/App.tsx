@@ -61,9 +61,9 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <AppContent />
         <Toaster />
         <Sonner />
-        <AppContent />
       </TooltipProvider>
     </QueryClientProvider>
   );
