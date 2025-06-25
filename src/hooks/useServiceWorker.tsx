@@ -6,11 +6,13 @@ export const useServiceWorker = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for existing service worker registration
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      // Check for updates on existing registration
-      navigator.serviceWorker.getRegistration().then((registration) => {
-        if (registration) {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((registration) => {
+          console.log('SW registered: ', registration);
+          
+          // Check for updates
           registration.addEventListener('updatefound', () => {
             const newWorker = registration.installing;
             if (newWorker) {
@@ -32,8 +34,10 @@ export const useServiceWorker = () => {
               });
             }
           });
-        }
-      });
+        })
+        .catch((error) => {
+          console.log('SW registration failed: ', error);
+        });
     }
   }, [toast]);
 
