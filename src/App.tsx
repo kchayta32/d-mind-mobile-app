@@ -25,10 +25,12 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Separate component to handle the service worker after providers are set up
+// Component that uses hooks - only rendered after React is ready
 const AppContent = () => {
   const [isLoading, setIsLoading] = useState(true);
-  useServiceWorker(); // Now this will work since all providers are available
+  
+  // Only use service worker hook after component is mounted
+  useServiceWorker();
 
   const handleLoadingComplete = () => {
     setIsLoading(false);
@@ -62,6 +64,25 @@ const AppContent = () => {
 };
 
 const App = () => {
+  const [isReactReady, setIsReactReady] = useState(false);
+
+  useEffect(() => {
+    // Ensure React is fully initialized before rendering providers
+    const timer = setTimeout(() => {
+      setIsReactReady(true);
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!isReactReady) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
+        <div className="text-blue-600">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
