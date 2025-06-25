@@ -85,8 +85,16 @@ const Index = () => {
     navigate('/victim-reports');
   };
 
+  const handleIncidentReportsClick = () => {
+    navigate('/incident-reports');
+  };
+
   const handleLineClick = () => {
     window.open('https://line.me/R/ti/p/@307rcire', '_blank');
+  };
+
+  const handleDisasterMapClick = () => {
+    navigate('/disaster-map');
   };
 
   if (isMobile) {
@@ -100,7 +108,9 @@ const Index = () => {
             onContactsClick={handleContactsClick}
             onAlertsClick={handleAlertsClick}
             onVictimReportsClick={handleVictimReportsClick}
+            onIncidentReportsClick={handleIncidentReportsClick}
             onLineClick={handleLineClick}
+            onDisasterMapClick={handleDisasterMapClick}
           />
         </div>
       </ErrorBoundary>
@@ -109,13 +119,7 @@ const Index = () => {
 
   return (
     <ErrorBoundary>
-      <DesktopLayout
-        onAssistantClick={handleAssistantClick}
-        onManualClick={handleManualClick}
-        onContactsClick={handleContactsClick}
-        onAlertsClick={handleAlertsClick}
-        onVictimReportsClick={handleVictimReportsClick}
-      />
+      <DesktopLayout />
     </ErrorBoundary>
   );
 };

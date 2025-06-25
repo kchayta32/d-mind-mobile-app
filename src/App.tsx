@@ -13,47 +13,30 @@ import EmergencyManual from "./pages/EmergencyManual";
 import EmergencyContacts from "./pages/EmergencyContacts";
 import Alerts from "./pages/Alerts";
 import VictimReports from "./pages/VictimReports";
+import IncidentReports from "./pages/IncidentReports";
 import SatisfactionSurvey from "./pages/SatisfactionSurvey";
 import AppGuide from "./pages/AppGuide";
 import ArticleDetail from "./pages/ArticleDetail";
 import ResourceDetail from "./pages/ResourceDetail";
+import DisasterMap from "./pages/DisasterMap";
+import Analytics from "./pages/Analytics";
+import NotificationSettings from "./pages/NotificationSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Component that handles the main app after React is fully ready
+// Separate component to handle the service worker after providers are set up
 const AppContent = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [isReactReady, setIsReactReady] = useState(false);
-
-  // Ensure React is fully initialized before rendering providers
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsReactReady(true);
-    }, 50);
-    
-    return () => clearTimeout(timer);
-  }, []);
+  useServiceWorker(); // Now this will work since all providers are available
 
   const handleLoadingComplete = () => {
     setIsLoading(false);
   };
 
-  // Don't render anything until React is ready
-  if (!isReactReady) {
-    return null;
-  }
-
   if (isLoading) {
     return <LoadingScreen onComplete={handleLoadingComplete} />;
   }
-
-  return <MainApp />;
-};
-
-// Component that uses the service worker hook after React is ready
-const MainApp = () => {
-  useServiceWorker(); // Now this is called after React is fully initialized
 
   return (
     <BrowserRouter>
@@ -63,9 +46,13 @@ const MainApp = () => {
         <Route path="/manual" element={<EmergencyManual />} />
         <Route path="/contacts" element={<EmergencyContacts />} />
         <Route path="/alerts" element={<Alerts />} />
+        <Route path="/disaster-map" element={<DisasterMap />} />
         <Route path="/victim-reports" element={<VictimReports />} />
+        <Route path="/incident-reports" element={<IncidentReports />} />
         <Route path="/satisfaction-survey" element={<SatisfactionSurvey />} />
         <Route path="/app-guide" element={<AppGuide />} />
+        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/notifications" element={<NotificationSettings />} />
         <Route path="/article/:id" element={<ArticleDetail />} />
         <Route path="/resource/:id" element={<ResourceDetail />} />
         <Route path="*" element={<NotFound />} />
@@ -75,22 +62,6 @@ const MainApp = () => {
 };
 
 const App = () => {
-  const [isProviderReady, setIsProviderReady] = useState(false);
-
-  // Delay provider initialization to ensure React is completely ready
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsProviderReady(true);
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Render a minimal loading state until providers are ready
-  if (!isProviderReady) {
-    return <div style={{ display: 'none' }}>Loading...</div>;
-  }
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
