@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState, useEffect } from "react";
 import LoadingScreen from "./components/LoadingScreen";
-import { useServiceWorker } from "./hooks/useServiceWorker";
 import Index from "./pages/Index";
 import AIAssistant from "./pages/AIAssistant";
 import EmergencyManual from "./pages/EmergencyManual";
@@ -25,18 +24,8 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Separate component to handle the service worker after providers are set up
-const AppContent = () => {
-  const [isLoading, setIsLoading] = useState(true);
-
-  const handleLoadingComplete = () => {
-    setIsLoading(false);
-  };
-
-  if (isLoading) {
-    return <LoadingScreen onComplete={handleLoadingComplete} />;
-  }
-
+// Main app content with routing
+const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
@@ -60,9 +49,61 @@ const AppContent = () => {
   );
 };
 
-// New component to handle service worker initialization
+// Component that handles loading and service worker after everything is mounted
+const AppContent = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isServiceWorkerReady, setIsServiceWorkerReady] = useState(false);
+
+  const handleLoadingComplete = () => {
+    setIsLoading(false);
+  };
+
+  // Initialize service worker after component mounts and providers are ready
+  useEffect(() => {
+    // Add a small delay to ensure all providers are fully initialized
+    const timer = setTimeout(() => {
+      setIsServiceWorkerReady(true);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <LoadingScreen onComplete={handleLoadingComplete} />;
+  }
+
+  return (
+    <>
+      {isServiceWorkerReady && <ServiceWorkerManager />}
+      <AppRoutes />
+    </>
+  );
+};
+
+// Service worker component that only renders after everything is ready
 const ServiceWorkerManager = () => {
-  useServiceWorker();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
+    // Inline service worker logic to avoid hook issues
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((registration) => {
+          console.log('SW registered: ', registration);
+        })
+        .catch((error) => {
+          console.log('SW registration failed: ', error);
+        });
+    }
+  }, [isMounted]);
+
   return null;
 };
 
@@ -72,7 +113,6 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <ServiceWorkerManager />
         <AppContent />
       </TooltipProvider>
     </QueryClientProvider>
