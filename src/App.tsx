@@ -21,20 +21,16 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Separate component to handle hooks after React is ready
+// Component that handles the main app after React is fully ready
 const AppContent = () => {
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Only initialize service worker after component is mounted
+  const [isReactReady, setIsReactReady] = useState(false);
+
+  // Ensure React is fully initialized before rendering providers
   useEffect(() => {
-    // Delay service worker initialization to ensure React is ready
     const timer = setTimeout(() => {
-      try {
-        // This will be called in a separate component that uses the hook
-      } catch (error) {
-        console.error('Service worker initialization error:', error);
-      }
-    }, 100);
+      setIsReactReady(true);
+    }, 50);
     
     return () => clearTimeout(timer);
   }, []);
@@ -42,6 +38,11 @@ const AppContent = () => {
   const handleLoadingComplete = () => {
     setIsLoading(false);
   };
+
+  // Don't render anything until React is ready
+  if (!isReactReady) {
+    return null;
+  }
 
   if (isLoading) {
     return <LoadingScreen onComplete={handleLoadingComplete} />;
@@ -74,6 +75,22 @@ const MainApp = () => {
 };
 
 const App = () => {
+  const [isProviderReady, setIsProviderReady] = useState(false);
+
+  // Delay provider initialization to ensure React is completely ready
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsProviderReady(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Render a minimal loading state until providers are ready
+  if (!isProviderReady) {
+    return <div style={{ display: 'none' }}>Loading...</div>;
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
