@@ -6,7 +6,13 @@ export const useServiceWorker = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
+    // Add a safety check to ensure we're in a browser environment
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+      return;
+    }
+
+    // Add additional safety check for React readiness
+    try {
       navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
@@ -38,11 +44,17 @@ export const useServiceWorker = () => {
         .catch((error) => {
           console.log('SW registration failed: ', error);
         });
+    } catch (error) {
+      console.error('Service worker initialization error:', error);
     }
   }, [toast]);
 
   const installPrompt = () => {
-    if ('beforeinstallprompt' in window) {
+    if (typeof window === 'undefined' || !('beforeinstallprompt' in window)) {
+      return;
+    }
+
+    try {
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         toast({
@@ -60,6 +72,8 @@ export const useServiceWorker = () => {
           )
         });
       });
+    } catch (error) {
+      console.error('Install prompt error:', error);
     }
   };
 

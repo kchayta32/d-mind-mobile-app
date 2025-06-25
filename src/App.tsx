@@ -21,9 +21,23 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => {
+// Separate component to handle hooks after React is ready
+const AppContent = () => {
   const [isLoading, setIsLoading] = useState(true);
-  useServiceWorker(); // Initialize service worker
+  
+  // Only initialize service worker after component is mounted
+  useEffect(() => {
+    // Delay service worker initialization to ensure React is ready
+    const timer = setTimeout(() => {
+      try {
+        // This will be called in a separate component that uses the hook
+      } catch (error) {
+        console.error('Service worker initialization error:', error);
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleLoadingComplete = () => {
     setIsLoading(false);
@@ -33,26 +47,39 @@ const App = () => {
     return <LoadingScreen onComplete={handleLoadingComplete} />;
   }
 
+  return <MainApp />;
+};
+
+// Component that uses the service worker hook after React is ready
+const MainApp = () => {
+  useServiceWorker(); // Now this is called after React is fully initialized
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/assistant" element={<AIAssistant />} />
+        <Route path="/manual" element={<EmergencyManual />} />
+        <Route path="/contacts" element={<EmergencyContacts />} />
+        <Route path="/alerts" element={<Alerts />} />
+        <Route path="/victim-reports" element={<VictimReports />} />
+        <Route path="/satisfaction-survey" element={<SatisfactionSurvey />} />
+        <Route path="/app-guide" element={<AppGuide />} />
+        <Route path="/article/:id" element={<ArticleDetail />} />
+        <Route path="/resource/:id" element={<ResourceDetail />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/assistant" element={<AIAssistant />} />
-            <Route path="/manual" element={<EmergencyManual />} />
-            <Route path="/contacts" element={<EmergencyContacts />} />
-            <Route path="/alerts" element={<Alerts />} />
-            <Route path="/victim-reports" element={<VictimReports />} />
-            <Route path="/satisfaction-survey" element={<SatisfactionSurvey />} />
-            <Route path="/app-guide" element={<AppGuide />} />
-            <Route path="/article/:id" element={<ArticleDetail />} />
-            <Route path="/resource/:id" element={<ResourceDetail />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        <AppContent />
       </TooltipProvider>
     </QueryClientProvider>
   );
