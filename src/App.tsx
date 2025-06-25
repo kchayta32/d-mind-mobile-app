@@ -19,16 +19,13 @@ import AppGuide from "./pages/AppGuide";
 import ArticleDetail from "./pages/ArticleDetail";
 import ResourceDetail from "./pages/ResourceDetail";
 import DisasterMap from "./pages/DisasterMap";
-import Analytics from "./pages/Analytics";
-import NotificationSettings from "./pages/NotificationSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Separate component to handle the service worker after providers are set up
-const AppContent = () => {
+const App = () => {
   const [isLoading, setIsLoading] = useState(true);
-  useServiceWorker(); // Now this will work since all providers are available
+  useServiceWorker(); // Initialize service worker
 
   const handleLoadingComplete = () => {
     setIsLoading(false);
@@ -39,35 +36,27 @@ const AppContent = () => {
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/assistant" element={<AIAssistant />} />
-        <Route path="/manual" element={<EmergencyManual />} />
-        <Route path="/contacts" element={<EmergencyContacts />} />
-        <Route path="/alerts" element={<Alerts />} />
-        <Route path="/disaster-map" element={<DisasterMap />} />
-        <Route path="/victim-reports" element={<VictimReports />} />
-        <Route path="/incident-reports" element={<IncidentReports />} />
-        <Route path="/satisfaction-survey" element={<SatisfactionSurvey />} />
-        <Route path="/app-guide" element={<AppGuide />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/notifications" element={<NotificationSettings />} />
-        <Route path="/article/:id" element={<ArticleDetail />} />
-        <Route path="/resource/:id" element={<ResourceDetail />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
-  );
-};
-
-const App = () => {
-  return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <AppContent />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/assistant" element={<AIAssistant />} />
+            <Route path="/manual" element={<EmergencyManual />} />
+            <Route path="/contacts" element={<EmergencyContacts />} />
+            <Route path="/alerts" element={<Alerts />} />
+            <Route path="/disaster-map" element={<DisasterMap />} />
+            <Route path="/victim-reports" element={<VictimReports />} />
+            <Route path="/incident-reports" element={<IncidentReports />} />
+            <Route path="/satisfaction-survey" element={<SatisfactionSurvey />} />
+            <Route path="/app-guide" element={<AppGuide />} />
+            <Route path="/article/:id" element={<ArticleDetail />} />
+            <Route path="/resource/:id" element={<ResourceDetail />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   );

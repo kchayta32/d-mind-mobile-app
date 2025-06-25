@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, Map, Users, TrendingUp, MapPin, Globe, BarChart3, Bell, Settings } from 'lucide-react';
+import { AlertTriangle, Map, Users, TrendingUp, MapPin, Globe, BarChart3 } from 'lucide-react';
 import NavBar from '@/components/NavBar';
 import MobileMainContent from './MobileMainContent';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -19,13 +18,13 @@ const DesktopLayout: React.FC = () => {
   const handleAlertsClick = () => navigate('/alerts');
   const handleVictimReportsClick = () => navigate('/victim-reports');
   const handleIncidentReportsClick = () => navigate('/incident-reports');
-  const handleAnalyticsClick = () => navigate('/analytics');
-  const handleNotificationsClick = () => navigate('/notifications');
   const handleLineClick = () => {
     window.open('https://line.me/ti/p/@yourbotid', '_blank');
   };
   const handleDisasterMapClick = () => {
-    navigate('/disaster-map');
+    // For now, we'll navigate to the alerts page which contains the disaster map
+    // In the future, this could be a dedicated disaster map page
+    navigate('/alerts');
   };
 
   if (isMobile) {
@@ -77,26 +76,6 @@ const DesktopLayout: React.FC = () => {
                   onContactsClick={handleContactsClick}
                   onAlertsClick={handleAlertsClick}
                 />
-
-                {/* Additional Navigation */}
-                <div className="space-y-2 pt-4 border-t">
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-start"
-                    onClick={handleAnalyticsClick}
-                  >
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                    Dashboard Analytics
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-start"
-                    onClick={handleNotificationsClick}
-                  >
-                    <Bell className="mr-2 h-4 w-4" />
-                    การตั้งค่าการแจ้งเตือน
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           </div>
@@ -158,7 +137,7 @@ const DesktopLayout: React.FC = () => {
             </div>
 
             {/* Main Action Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Emergency Reports */}
               <Card className="bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow border-0">
                 <CardHeader>
@@ -183,40 +162,21 @@ const DesktopLayout: React.FC = () => {
                 </CardContent>
               </Card>
 
-              {/* Analytics Dashboard */}
+              {/* Disaster Map */}
               <Card className="bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow border-0">
                 <CardHeader>
-                  <CardTitle className="flex items-center text-blue-700">
+                  <CardTitle className="flex items-center text-purple-700">
                     <BarChart3 className="mr-2 h-5 w-5" />
-                    Dashboard และสถิติ
+                    แผนที่ภัยพิบัติ
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Button 
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                    onClick={handleAnalyticsClick}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    onClick={handleDisasterMapClick}
                   >
-                    <TrendingUp className="mr-2 h-4 w-4" />
-                    ดูสถิติและแผนภูมิ
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Notifications */}
-              <Card className="bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow border-0">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-green-700">
-                    <Bell className="mr-2 h-5 w-5" />
-                    การแจ้งเตือนอัจฉริยะ
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
-                    onClick={handleNotificationsClick}
-                  >
-                    <Settings className="mr-2 h-4 w-4" />
-                    ตั้งค่าการแจ้งเตือน
+                    <Map className="mr-2 h-4 w-4" />
+                    ดูแผนที่และสถิติ
                   </Button>
                 </CardContent>
               </Card>

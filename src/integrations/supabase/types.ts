@@ -50,39 +50,6 @@ export type Database = {
           },
         ]
       }
-      analytics_data: {
-        Row: {
-          created_at: string
-          date_recorded: string
-          id: string
-          location_data: Json | null
-          metadata: Json | null
-          metric_name: string
-          metric_type: string
-          metric_value: number
-        }
-        Insert: {
-          created_at?: string
-          date_recorded?: string
-          id?: string
-          location_data?: Json | null
-          metadata?: Json | null
-          metric_name: string
-          metric_type: string
-          metric_value: number
-        }
-        Update: {
-          created_at?: string
-          date_recorded?: string
-          id?: string
-          location_data?: Json | null
-          metadata?: Json | null
-          metric_name?: string
-          metric_type?: string
-          metric_value?: number
-        }
-        Relationships: []
-      }
       disaster_statistics: {
         Row: {
           affected_area: number | null
@@ -233,51 +200,6 @@ export type Database = {
           id?: number
           message?: Json
           session_id?: string
-        }
-        Relationships: []
-      }
-      notifications: {
-        Row: {
-          created_at: string
-          delivered_at: string | null
-          delivery_methods: Json
-          id: string
-          location_data: Json | null
-          message: string
-          read_at: string | null
-          severity_level: number
-          title: string
-          type: string
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          delivered_at?: string | null
-          delivery_methods?: Json
-          id?: string
-          location_data?: Json | null
-          message: string
-          read_at?: string | null
-          severity_level?: number
-          title: string
-          type?: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          delivered_at?: string | null
-          delivery_methods?: Json
-          id?: string
-          location_data?: Json | null
-          message?: string
-          read_at?: string | null
-          severity_level?: number
-          title?: string
-          type?: string
-          updated_at?: string
-          user_id?: string | null
         }
         Relationships: []
       }
@@ -461,36 +383,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_locations: {
-        Row: {
-          coordinates: Json
-          created_at: string
-          id: string
-          is_active: boolean
-          location_name: string | null
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          coordinates: Json
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          location_name?: string | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          coordinates?: Json
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          location_name?: string | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       user_preferences: {
         Row: {
           created_at: string
@@ -563,13 +455,6 @@ export type Database = {
       calculate_distance: {
         Args: { lat1: number; lon1: number; lat2: number; lon2: number }
         Returns: number
-      }
-      get_nearby_users: {
-        Args: { alert_lat: number; alert_lng: number; radius_km?: number }
-        Returns: {
-          user_id: string
-          distance_km: number
-        }[]
       }
       get_users_in_alert_radius: {
         Args: { alert_coordinates: Json; alert_radius: number }
@@ -649,10 +534,6 @@ export type Database = {
       sparsevec_typmod_in: {
         Args: { "": unknown[] }
         Returns: number
-      }
-      update_analytics_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
       }
       vector_avg: {
         Args: { "": number[] }

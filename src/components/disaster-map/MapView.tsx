@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import { Earthquake, RainSensor, AirPollutionData } from './types';
@@ -61,12 +62,11 @@ export const MapView: React.FC<MapViewProps> = ({
   const [showUserLocation, setShowUserLocation] = useState(false);
   const mapRef = useRef<any>(null);
 
-  // Pass map reference to parent component for navigation control
+  // Pass map reference to parent component
   useEffect(() => {
     if (mapRef.current && onLocationSelect) {
-      // Store the map reference in the parent's callback context
-      const mapInstance = mapRef.current;
-      console.log('Map instance ready for navigation:', mapInstance);
+      // This allows the parent to control the map
+      window.disasterMapRef = mapRef.current;
     }
   }, [mapRef.current, onLocationSelect]);
 
