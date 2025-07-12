@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState, useEffect } from "react";
 import LoadingScreen from "./components/LoadingScreen";
-import { useServiceWorker } from "./hooks/useServiceWorker";
+import ServiceWorkerProvider from "./components/ServiceWorkerProvider";
 import Index from "./pages/Index";
 import AIAssistant from "./pages/AIAssistant";
 import EmergencyManual from "./pages/EmergencyManual";
@@ -27,9 +27,6 @@ const queryClient = new QueryClient();
 // Main app content after all providers are ready
 const AppRoutes = () => {
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Service worker hook - only called after providers are established
-  useServiceWorker();
 
   const handleLoadingComplete = () => {
     setIsLoading(false);
@@ -78,7 +75,11 @@ const AppWithProviders = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppRoutes />
+      {providersReady && (
+        <ServiceWorkerProvider>
+          <AppRoutes />
+        </ServiceWorkerProvider>
+      )}
       {providersReady && (
         <>
           <Toaster />
