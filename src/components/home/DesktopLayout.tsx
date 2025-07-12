@@ -188,7 +188,7 @@ const DesktopLayout: React.FC = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center text-blue-700">
                     <BarChart3 className="mr-2 h-5 w-5" />
-                    Dashboard และสถิติ
+                    แผนที่และสถิติภัยพิบัติ
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
