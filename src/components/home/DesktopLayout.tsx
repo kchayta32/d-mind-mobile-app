@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, Map, Users, TrendingUp, MapPin, Globe, BarChart3, Bell, Settings } from 'lucide-react';
+import { AlertTriangle, Map, Users, TrendingUp, MapPin, Globe, BarChart3, Bell, Settings, Activity } from 'lucide-react';
 import NavBar from '@/components/NavBar';
 import MobileMainContent from './MobileMainContent';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -198,6 +198,25 @@ const DesktopLayout: React.FC = () => {
                   >
                     <TrendingUp className="mr-2 h-4 w-4" />
                     ดูสถิติและแผนภูมิ
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Real-time Disaster Data */}
+              <Card className="bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow border-0">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-purple-700">
+                    <Activity className="mr-2 h-5 w-5" />
+                    ข้อมูลภัยพิบัติแบบเรียลไทม์
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    onClick={handleDisasterMapClick}
+                  >
+                    <Map className="mr-2 h-4 w-4" />
+                    ดูข้อมูลแบบเรียลไทม์
                   </Button>
                 </CardContent>
               </Card>

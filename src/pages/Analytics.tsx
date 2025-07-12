@@ -1,13 +1,16 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, BarChart3, PieChart, TrendingUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Loader2, BarChart3, PieChart, TrendingUp, ArrowLeft, Home } from 'lucide-react';
 import DashboardChart from '@/components/analytics/DashboardChart';
 import MetricsOverview from '@/components/analytics/MetricsOverview';
 
 const Analytics: React.FC = () => {
+  const navigate = useNavigate();
   const { processedData, activeAlerts, incidentReports, disasterStats, isLoading } = useAnalytics();
 
   if (isLoading) {
@@ -56,9 +59,19 @@ const Analytics: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container mx-auto px-6 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard Analytics</h1>
-          <p className="text-gray-600">ภาพรวมและสถิติระบบติดตามภัยพิบัติ</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard Analytics</h1>
+            <p className="text-gray-600">ภาพรวมและสถิติระบบติดตามภัยพิบัติ</p>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 hover:bg-blue-50"
+          >
+            <Home className="h-4 w-4" />
+            กลับหน้าหลัก
+          </Button>
         </div>
 
         {/* Metrics Overview */}
