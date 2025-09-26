@@ -188,7 +188,7 @@ const DesktopLayout: React.FC = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center text-blue-700">
                     <BarChart3 className="mr-2 h-5 w-5" />
-                    แผนที่และสถิติภัยพิบัติ
+                    สถิติภัยพิบัติ
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -207,7 +207,7 @@ const DesktopLayout: React.FC = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center text-purple-700">
                     <Activity className="mr-2 h-5 w-5" />
-                    ข้อมูลภัยพิบัติแบบเรียลไทม์
+                    แผนที่และข้อมูลภัยพิบัติ
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -216,7 +216,7 @@ const DesktopLayout: React.FC = () => {
                     onClick={handleDisasterMapClick}
                   >
                     <Map className="mr-2 h-4 w-4" />
-                    ดูข้อมูลแบบเรียลไทม์
+                    ดูแผนที่
                   </Button>
                 </CardContent>
               </Card>
