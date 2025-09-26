@@ -94,7 +94,7 @@ const DesktopLayout: React.FC = () => {
                     onClick={handleNotificationsClick}
                   >
                     <Bell className="mr-2 h-4 w-4" />
-                    พร้อมให้ใช้งานใน Version แอพพลิเคชัน
+                    การตั้งค่าการแจ้งเตือน
                   </Button>
                 </div>
               </CardContent>
