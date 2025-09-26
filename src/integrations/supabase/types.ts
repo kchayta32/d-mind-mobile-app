@@ -644,36 +644,7 @@ export type Database = {
       }
     }
     Views: {
-      victim_reports_public: {
-        Row: {
-          contact: string | null
-          coordinates: Json | null
-          created_at: string | null
-          description_status: string | null
-          id: string | null
-          name: string | null
-          status: string | null
-        }
-        Insert: {
-          contact?: never
-          coordinates?: Json | null
-          created_at?: string | null
-          description_status?: never
-          id?: string | null
-          name?: never
-          status?: string | null
-        }
-        Update: {
-          contact?: never
-          coordinates?: Json | null
-          created_at?: string | null
-          description_status?: never
-          id?: string | null
-          name?: never
-          status?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       binary_quantize: {
