@@ -17,6 +17,44 @@ interface SinkholeNewsItem {
 
 const SinkholeNews: React.FC = () => {
   const [selectedNews, setSelectedNews] = useState<SinkholeNewsItem | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  // Handle body scroll lock
+  React.useEffect(() => {
+    if (isSheetOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isSheetOpen]);
+
+  // Handle ESC key
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isSheetOpen) {
+        closeSheet();
+      }
+    };
+
+    if (isSheetOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isSheetOpen]);
+
+  const openSheet = (news: SinkholeNewsItem) => {
+    setSelectedNews(news);
+    setIsSheetOpen(true);
+  };
+
+  const closeSheet = () => {
+    setIsSheetOpen(false);
+    setSelectedNews(null);
+  };
 
   // Sample news data - ปกติจะดึงจาก API
   const newsItems: SinkholeNewsItem[] = [
@@ -32,9 +70,6 @@ const SinkholeNews: React.FC = () => {
     }
   ];
 
-  const handleNewsClick = (news: SinkholeNewsItem) => {
-    setSelectedNews(news);
-  };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -55,92 +90,150 @@ const SinkholeNews: React.FC = () => {
   };
 
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold text-amber-800 flex items-center gap-2">
-          <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
-          ข่าวแผ่นดินยุบ/ดินทรุด
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          ข่าวล่าสุด 1 เดือนที่ผ่านมา
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {newsItems.map((news) => (
-          <div key={news.id} className="border rounded-lg p-3 hover:bg-accent/50 transition-colors">
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <span className={`text-xs px-2 py-1 rounded-full border ${getSeverityColor(news.severity)}`}>
-                {getSeverityText(news.severity)}
-              </span>
-              <div className="text-xs text-muted-foreground flex items-center gap-2">
-                <Calendar className="w-3 h-3" />
-                {news.date}
-                <Clock className="w-3 h-3" />
-                {news.time}
+    <>
+      <Card className="h-full">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-semibold text-amber-800 flex items-center gap-2">
+            <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+            ข่าวแผ่นดินยุบ/ดินทรุด
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            ข่าวล่าสุด 1 เดือนที่ผ่านมา
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {newsItems.map((news) => (
+            <div key={news.id} className="border rounded-lg p-3 hover:bg-accent/50 transition-colors">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <span className={`text-xs px-2 py-1 rounded-full border ${getSeverityColor(news.severity)}`}>
+                  {getSeverityText(news.severity)}
+                </span>
+                <div className="text-xs text-muted-foreground flex items-center gap-2">
+                  <Calendar className="w-3 h-3" />
+                  {news.date}
+                  <Clock className="w-3 h-3" />
+                  {news.time}
+                </div>
+              </div>
+              
+              <h4 className="font-medium text-sm mb-2 line-clamp-2">
+                {news.title}
+              </h4>
+              
+              <p className="text-xs text-muted-foreground mb-2">
+                {news.summary}
+              </p>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-blue-600">
+                  📍 {news.location}
+                </span>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-xs h-7"
+                  onClick={() => openSheet(news)}
+                >
+                  <ExternalLink className="w-3 h-3 mr-1" />
+                  อ่านต่อ
+                </Button>
+              </div>
+              
+              <div className="text-xs text-gray-500 mt-1">
+                จาก {news.source}
               </div>
             </div>
-            
-            <h4 className="font-medium text-sm mb-2 line-clamp-2">
-              {news.title}
-            </h4>
-            
-            <p className="text-xs text-muted-foreground mb-2">
-              {news.summary}
-            </p>
-            
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-blue-600">
-                📍 {news.location}
-              </span>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-xs h-7"
-                    onClick={() => handleNewsClick(news)}
-                  >
-                    <ExternalLink className="w-3 h-3 mr-1" />
-                    อ่านต่อ
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="fixed inset-8 md:inset-16 z-50 max-w-3xl max-h-[70vh] overflow-y-auto bg-background border shadow-lg">
-                  <div className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm" />
-                  <DialogHeader>
-                    <DialogTitle className="text-left">
-                      {news.title}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span>แหล่งที่มา: {news.source}</span>
-                      <span>{news.date} {news.time}</span>
-                    </div>
-                    <div className="prose prose-sm max-w-none">
-                      <iframe 
-                        src="/src/data/sinkhole-news.html"
-                        className="w-full h-96 border rounded"
-                        title="ข่าวเต็ม"
-                      />
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+          ))}
+          
+          {newsItems.length === 0 && (
+            <div className="text-center py-6 text-muted-foreground">
+              <p className="text-sm">ไม่มีข่าวใหม่ในช่วงนี้</p>
             </div>
-            
-            <div className="text-xs text-gray-500 mt-1">
-              จาก {news.source}
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Right Sheet */}
+      {isSheetOpen && selectedNews && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/25 z-40" 
+            onClick={closeSheet}
+          />
+          
+          {/* Sheet Panel */}
+          <div className="fixed right-0 top-0 w-[92vw] sm:w-[520px] max-w-[560px] h-screen overflow-y-auto rounded-l-2xl bg-white z-50">
+            {/* Header */}
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-amber-800 flex items-center gap-2">
+                <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+                ข่าวแผ่นดินยุบ
+              </h2>
+              <button
+                onClick={closeSheet}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="ปิด"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-4">
+              {/* News Meta Info */}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="font-medium text-gray-700">แหล่งที่มา:</span>
+                  <p className="text-gray-600 mt-1">{selectedNews.source}</p>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">วันที่:</span>
+                  <p className="text-gray-600 mt-1">{selectedNews.date} {selectedNews.time}</p>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">สถานที่:</span>
+                  <p className="text-gray-600 mt-1">{selectedNews.location}</p>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">ระดับความรุนแรง:</span>
+                  <span className={`inline-block mt-1 text-xs px-2 py-1 rounded-full border ${getSeverityColor(selectedNews.severity)}`}>
+                    {getSeverityText(selectedNews.severity)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Title */}
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 leading-tight">
+                  {selectedNews.title}
+                </h3>
+              </div>
+
+              {/* Summary */}
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <h4 className="font-medium text-amber-800 mb-2">สรุปข่าว</h4>
+                <p className="text-gray-700 leading-relaxed">{selectedNews.summary}</p>
+              </div>
+
+              {/* Full Article */}
+              <div>
+                <h4 className="font-medium text-gray-800 mb-3">ข่าวเต็ม</h4>
+                <div className="aspect-video w-full border rounded-lg overflow-hidden">
+                  <iframe 
+                    src="/src/data/sinkhole-news.html"
+                    className="w-full h-full"
+                    title="ข่าวเต็ม"
+                  />
+                </div>
+              </div>
             </div>
           </div>
-        ))}
-        
-        {newsItems.length === 0 && (
-          <div className="text-center py-6 text-muted-foreground">
-            <p className="text-sm">ไม่มีข่าวใหม่ในช่วงนี้</p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+        </>
+      )}
+    </>
   );
 };
 
