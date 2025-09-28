@@ -64,7 +64,7 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
   return (
     <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-4">
       {/* Main Map */}
-      <div className="lg:col-span-3 h-[400px] md:h-[500px] lg:h-full">
+      <div className="lg:col-span-3 h-[400px] md:h-[500px] lg:h-full [&:has([data-state=open])]:pointer-events-none">
         <MapView
           earthquakes={earthquakes}
           rainSensors={rainSensors}

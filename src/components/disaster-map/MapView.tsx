@@ -109,7 +109,7 @@ export const MapView: React.FC<MapViewProps> = ({
   const center: [number, number] = [13.7563, 100.5018];
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full z-0">
       <MapContainer
         ref={mapRef}
         center={center}
