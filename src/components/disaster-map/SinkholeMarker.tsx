@@ -68,6 +68,37 @@ const SinkholeMarker: React.FC<SinkholeMarkerProps> = ({ sinkhole }) => {
   const [showImageDialog, setShowImageDialog] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
+  // Handle body scroll and focus management
+  React.useEffect(() => {
+    if (showImageDialog) {
+      document.body.style.overflow = 'hidden';
+      // Focus management would go here in a real implementation
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showImageDialog]);
+
+  const closeModal = () => {
+    setShowImageDialog(false);
+  };
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      closeModal();
+    }
+  };
+
+  React.useEffect(() => {
+    if (showImageDialog) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [showImageDialog]);
+
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'high': return 'destructive';
@@ -152,80 +183,119 @@ const SinkholeMarker: React.FC<SinkholeMarkerProps> = ({ sinkhole }) => {
         </Popup>
       </Marker>
 
-      {/* Image Gallery Dialog */}
-      <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Mountain className="w-5 h-5 text-amber-600" />
-              รูปภาพเหตุการณ์: {sinkhole.title}
-            </DialogTitle>
-          </DialogHeader>
+      {/* Image Gallery Modal */}
+      {showImageDialog && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 z-40 bg-black/40" 
+            onClick={closeModal}
+          />
           
-          <div className="space-y-4">
-            {/* Main Image Display */}
-            <div className="relative">
-              <img
-                src={allImages[selectedImageIndex]}
-                alt={`รูปภาพ ${selectedImageIndex + 1}`}
-                className="w-full h-96 object-cover rounded-lg"
-              />
-              <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-1 rounded">
-                รูปที่ {selectedImageIndex + 1} จาก {allImages.length}
-              </div>
-            </div>
+          {/* Modal Panel */}
+          <div className="fixed inset-0 z-50 flex items-start justify-center p-4 md:p-6">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="modal-title"
+              className="relative w-full max-w-[900px] md:max-w-[780px] lg:max-w-[860px] max-h-[86vh] overflow-y-auto rounded-2xl bg-white shadow-2xl ring-1 ring-black/5"
+            >
+              {/* Close Button */}
+              <button
+                onClick={closeModal}
+                className="absolute right-3 top-3 z-10 rounded-full p-2 hover:bg-black/5 transition-colors"
+                aria-label="ปิดหน้าต่าง"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
 
-            {/* Thumbnail Navigation */}
-            {allImages.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {allImages.map((image, index) => (
-                  <img
-                    key={index}
-                    src={image}
-                    alt={`รูปย่อ ${index + 1}`}
-                    className={`w-20 h-20 object-cover rounded cursor-pointer flex-shrink-0 transition-all ${
-                      selectedImageIndex === index 
-                        ? 'ring-2 ring-amber-500 opacity-100' 
-                        : 'opacity-70 hover:opacity-90'
-                    }`}
-                    onClick={() => setSelectedImageIndex(index)}
+              <div className="p-4 md:p-6">
+                {/* Header */}
+                <h2 id="modal-title" className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Mountain className="w-5 h-5 text-amber-600" />
+                  ภาพรวมเหตุการณ์: {sinkhole.title}
+                </h2>
+
+                {/* Main Image */}
+                <div className="aspect-video h-56 md:h-72 w-full overflow-hidden rounded-xl mb-4">
+                  <img 
+                    src={allImages[selectedImageIndex]} 
+                    alt={`รูปภาพเหตุการณ์ ${selectedImageIndex + 1}`}
+                    className="h-full w-full object-cover" 
                   />
-                ))}
-              </div>
-            )}
+                </div>
 
-            {/* Event Details */}
-            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium text-gray-700">สถานที่:</span>
-                  <p className="text-gray-600">{sinkhole.location}</p>
+                {/* Thumbnail Grid */}
+                {allImages.length > 1 && (
+                  <div className="mb-6 grid grid-cols-4 gap-3 h-24 overflow-hidden">
+                    {allImages.map((image, index) => (
+                      <button
+                        key={index}
+                        className={`h-20 overflow-hidden rounded-lg ring-1 transition-all ${
+                          selectedImageIndex === index 
+                            ? 'ring-2 ring-amber-500' 
+                            : 'ring-black/10 hover:ring-amber-300'
+                        }`}
+                        onClick={() => setSelectedImageIndex(index)}
+                      >
+                        <img 
+                          src={image} 
+                          alt={`รูปย่อ ${index + 1}`}
+                          className="h-full w-full object-cover" 
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Details Grid */}
+                <div className="grid md:grid-cols-2 gap-6 text-sm mb-4">
+                  <div>
+                    <span className="font-medium text-gray-700">สถานที่:</span>
+                    <p className="text-gray-600 mt-1">{sinkhole.location}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">วันที่เกิดเหตุ:</span>
+                    <p className="text-gray-600 mt-1">{sinkhole.date}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">ขนาดประมาณ:</span>
+                    <p className="text-gray-600 mt-1">{sinkhole.estimatedSize}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">สาเหตุเบื้องต้น:</span>
+                    <p className="text-gray-600 mt-1">{sinkhole.cause}</p>
+                  </div>
                 </div>
-                <div>
-                  <span className="font-medium text-gray-700">วันที่เกิดเหตุ:</span>
-                  <p className="text-gray-600">{sinkhole.date}</p>
+
+                {/* Description */}
+                <div className="mb-4">
+                  <span className="font-medium text-gray-700">รายละเอียด:</span>
+                  <p className="text-gray-700 mt-2 leading-7">{sinkhole.description}</p>
                 </div>
-                <div>
-                  <span className="font-medium text-gray-700">ขนาดประมาณ:</span>
-                  <p className="text-gray-600">{sinkhole.estimatedSize}</p>
+
+                {/* Status */}
+                <div className="mb-6">
+                  <span className="font-medium text-gray-700">สถานะ:</span>
+                  <p className="text-gray-600 mt-1">{sinkhole.status}</p>
                 </div>
-                <div>
-                  <span className="font-medium text-gray-700">สาเหตุเบื้องต้น:</span>
-                  <p className="text-gray-600">{sinkhole.cause}</p>
+
+                {/* Action Button */}
+                <div className="flex justify-end">
+                  <Button 
+                    className="bg-amber-600 hover:bg-amber-700 text-white"
+                    onClick={closeModal}
+                  >
+                    ปิดหน้าต่าง
+                  </Button>
                 </div>
-              </div>
-              <div>
-                <span className="font-medium text-gray-700">รายละเอียด:</span>
-                <p className="text-gray-600 mt-1">{sinkhole.description}</p>
-              </div>
-              <div>
-                <span className="font-medium text-gray-700">สถานะ:</span>
-                <p className="text-gray-600">{sinkhole.status}</p>
               </div>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </>
+      )}
     </>
   );
 };
