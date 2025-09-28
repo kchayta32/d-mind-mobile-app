@@ -219,14 +219,37 @@ const SinkholeNews: React.FC = () => {
               </div>
 
               {/* Full Article */}
-              <div>
-                <h4 className="font-medium text-gray-800 mb-3">ข่าวเต็ม</h4>
-                <div className="aspect-video w-full border rounded-lg overflow-hidden">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200 rounded-xl p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-blue-900 text-lg">ข่าวเต็ม</h4>
+                    <p className="text-blue-700/70 text-sm">รายละเอียดครบถ้วนจากแหล่งข่าว</p>
+                  </div>
+                </div>
+                
+                <div className="aspect-video w-full bg-white rounded-lg shadow-sm border border-blue-200/50 overflow-hidden">
                   <iframe 
                     src="/src/data/sinkhole-news.html"
                     className="w-full h-full"
                     title="ข่าวเต็ม"
                   />
+                </div>
+                
+                <div className="mt-4 flex items-center justify-between text-xs text-blue-600/80">
+                  <span className="flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clipRule="evenodd" />
+                    </svg>
+                    เนื้อหาจากแหล่งข่าวต้นฉบับ
+                  </span>
+                  <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                    อัปเดตล่าสุด
+                  </span>
                 </div>
               </div>
             </div>
