@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useOfflineMode } from '@/hooks/useOfflineMode';
 import { useNotifications } from '@/hooks/useNotifications';
-import MobileHeader from '@/components/home/MobileHeader';
-import MobileMainContent from '@/components/home/MobileMainContent';
-import DesktopLayout from '@/components/home/DesktopLayout';
+import NewMobileLayout from '@/components/home/NewMobileLayout';
+import NewDesktopLayout from '@/components/home/NewDesktopLayout';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 const Index = () => {
@@ -65,61 +64,17 @@ const Index = () => {
     }
   }, [requestPermission]);
 
-  const handleAssistantClick = () => {
-    navigate('/assistant');
-  };
-
-  const handleManualClick = () => {
-    navigate('/manual');
-  };
-
-  const handleContactsClick = () => {
-    navigate('/contacts');
-  };
-
-  const handleAlertsClick = () => {
-    navigate('/alerts');
-  };
-  
-  const handleVictimReportsClick = () => {
-    navigate('/victim-reports');
-  };
-
-  const handleIncidentReportsClick = () => {
-    navigate('/incident-reports');
-  };
-
-  const handleLineClick = () => {
-    window.open('https://line.me/R/ti/p/@307rcire', '_blank');
-  };
-
-  const handleDisasterMapClick = () => {
-    navigate('/disaster-map');
-  };
-
   if (isMobile) {
     return (
       <ErrorBoundary>
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100">
-          <MobileHeader />
-          <MobileMainContent
-            onAssistantClick={handleAssistantClick}
-            onManualClick={handleManualClick}
-            onContactsClick={handleContactsClick}
-            onAlertsClick={handleAlertsClick}
-            onVictimReportsClick={handleVictimReportsClick}
-            onIncidentReportsClick={handleIncidentReportsClick}
-            onLineClick={handleLineClick}
-            onDisasterMapClick={handleDisasterMapClick}
-          />
-        </div>
+        <NewMobileLayout />
       </ErrorBoundary>
     );
   }
 
   return (
     <ErrorBoundary>
-      <DesktopLayout />
+      <NewDesktopLayout />
     </ErrorBoundary>
   );
 };

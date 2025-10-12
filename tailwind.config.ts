@@ -20,7 +20,9 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['"Prompt"', 'system-ui', 'sans-serif'],
+				sans: ['"Prompt"', '"Inter"', 'system-ui', 'sans-serif'],
+				prompt: ['"Prompt"', 'sans-serif'],
+				inter: ['"Inter"', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
