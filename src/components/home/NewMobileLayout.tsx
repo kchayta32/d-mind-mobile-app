@@ -81,7 +81,7 @@ const NewMobileLayout: React.FC = () => {
       <div className="bg-gradient-to-br from-primary via-blue-600 to-blue-700 px-4 py-8 text-white">
         <h2 className="text-2xl font-bold mb-2">ยินดีต้อนรับ</h2>
         <p className="text-blue-100 text-sm mb-4">
-          ระบบแจ้งเตือนภัยพิบัติอัจฉริยะ
+          ระบบติดตามภัยพิบัติและแจ้งเตือนอัจฉริยะ
         </p>
         <Button 
           className="w-full bg-white text-primary hover:bg-gray-100"
