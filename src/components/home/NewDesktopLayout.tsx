@@ -24,7 +24,7 @@ const NewDesktopLayout: React.FC = () => {
     { labelTh: 'บริการฉุกเฉิน', labelEn: 'Emergency Call', route: '/contacts' },
     { labelTh: 'รายงานผู้ประสบภัย', labelEn: 'Victim Reports', route: '/victim-reports' },
     { labelTh: 'รายงานเหตุการณ์', labelEn: 'Incident Reports', route: '/incident-reports' },
-    { labelTh: 'ประเมินความพึงพอใจ', labelEn: 'Evaluate Satisfaction', route: '/survey' },
+    { labelTh: 'ประเมินความพึงพอใจ', labelEn: 'Evaluate Satisfaction', route: '/satisfaction-survey' },
     { labelTh: 'บทความ / งานวิจัย', labelEn: 'Research', route: '/manual' },
     { labelTh: 'เกี่ยวกับเรา', labelEn: 'About', route: '/app-guide' },
     { labelTh: 'ติดต่อเรา', labelEn: 'Contact', route: '/contacts' },
