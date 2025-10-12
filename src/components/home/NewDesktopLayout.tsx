@@ -26,6 +26,7 @@ const NewDesktopLayout: React.FC = () => {
     { labelTh: 'รายงานเหตุการณ์', labelEn: 'Incident Reports', route: '/incident-reports' },
     { labelTh: 'ประเมินความพึงพอใจ', labelEn: 'Evaluate Satisfaction', route: '/satisfaction-survey' },
     { labelTh: 'บทความ / งานวิจัย', labelEn: 'Research', route: '/manual' },
+    { labelTh: 'คุยกับเอไอ', labelEn: 'Assistant', route: '/assistant' },
     { labelTh: 'เกี่ยวกับเรา', labelEn: 'About', route: '/app-guide' },
     { labelTh: 'ติดต่อเรา', labelEn: 'Contact', route: '/contacts' },
   ];
