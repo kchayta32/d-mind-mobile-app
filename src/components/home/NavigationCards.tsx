@@ -44,7 +44,7 @@ const NavigationCards: React.FC = () => {
       titleTh: 'ประเมินความพึงพอใจ',
       titleEn: 'Evaluate Satisfaction',
       description: 'แบบสำรวจความพึงพอใจ',
-      route: '/survey',
+      route: '/satisfaction-survey',
       color: 'bg-yellow-500'
     },
     {
