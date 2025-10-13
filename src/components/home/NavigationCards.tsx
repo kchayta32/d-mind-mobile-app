@@ -75,6 +75,17 @@ const NavigationCards: React.FC = () => {
     }
   ];
 
+  // ฟังก์ชันจัดการการคลิก
+  const handleNavigation = (item: NavigationItem) => {
+    if (item.href) {
+      // สำหรับ External Link (มี href) ให้เปิดหน้าใหม่
+      window.open(item.href, '_blank');
+    } else if (item.route) {
+      // สำหรับ Internal Link (มี route) ให้ใช้ navigate
+      navigate(item.route);
+    }
+  };
+  
   return (
     <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4">
