@@ -41,7 +41,7 @@ const HeroSection: React.FC = () => {
               D-MIND
             </h1>
             <p className="text-xl md:text-2xl text-blue-100 font-medium mb-2">
-              Disaster Monitoring and Intelligent Notification Device
+              A Disaster Monitoring and Intelligent Notification System
             </p>
             <p className="text-blue-200 text-lg">
               ระบบติดตามภัยพิบัติ • แจ้งเตือนอัจฉริยะ
@@ -82,7 +82,7 @@ const HeroSection: React.FC = () => {
                   className="bg-primary hover:bg-primary/90 text-white shadow-lg"
                   onClick={() => navigate('/disaster-map')}
                 >
-                  ดูแผนที่แบบเรียลไทม์
+                  ดูแผนที่์
                 </Button>
                 <Button 
                   size="lg" 
