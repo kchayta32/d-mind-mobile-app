@@ -1,6 +1,7 @@
 import React from 'react';
 import HeroSection from './HeroSection';
 import NavigationCards from './NavigationCards';
+import DailyStatsCard from './DailyStatsCard';
 import { Button } from '@/components/ui/button';
 import { Moon, Sun, Globe, Menu, X, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -123,6 +124,11 @@ const NewDesktopLayout: React.FC = () => {
       <div className="pt-16">
         {/* Hero Section */}
         <HeroSection />
+
+        {/* Daily Statistics */}
+        <div className="container mx-auto px-4 py-8">
+          <DailyStatsCard />
+        </div>
 
         {/* Navigation Cards */}
         <NavigationCards />

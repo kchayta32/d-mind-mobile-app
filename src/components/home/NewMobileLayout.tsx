@@ -14,12 +14,14 @@ import {
   MapPin
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useDailyDisasterStats } from '@/hooks/useDailyDisasterStats';
 
 const NewMobileLayout: React.FC = () => {
   const navigate = useNavigate();
   const [isDark, setIsDark] = React.useState(false);
   const [language, setLanguage] = React.useState<'th' | 'en'>('th');
   const [activeTab, setActiveTab] = React.useState('home');
+  const { stats, isLoading } = useDailyDisasterStats();
 
   React.useEffect(() => {
     if (isDark) {
@@ -95,22 +97,38 @@ const NewMobileLayout: React.FC = () => {
       <div className="px-4 -mt-4">
         <Card className="shadow-xl">
           <CardContent className="p-4">
+            <div className="mb-2 text-center">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                สถิติภัยพิบัติวันนี้
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                รีเซ็ตทุก 0:00 น.
+              </p>
+            </div>
             <div className="grid grid-cols-4 gap-2 text-center">
               <div>
-                <div className="text-xl font-bold text-yellow-600">12</div>
-                <div className="text-xs text-gray-600">แผ่นดินไหว</div>
+                <div className="text-xl font-bold text-yellow-600">
+                  {isLoading ? '-' : stats.earthquakes}
+                </div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">แผ่นดินไหว</div>
               </div>
               <div>
-                <div className="text-xl font-bold text-blue-600">8</div>
-                <div className="text-xs text-gray-600">น้ำท่วม</div>
+                <div className="text-xl font-bold text-blue-600">
+                  {isLoading ? '-' : stats.floods}
+                </div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">น้ำท่วม</div>
               </div>
               <div>
-                <div className="text-xl font-bold text-orange-600">5</div>
-                <div className="text-xs text-gray-600">ดินถล่ม</div>
+                <div className="text-xl font-bold text-orange-600">
+                  {isLoading ? '-' : stats.landslides}
+                </div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">ดินถล่ม</div>
               </div>
               <div>
-                <div className="text-xl font-bold text-red-600">3</div>
-                <div className="text-xs text-gray-600">ไฟป่า</div>
+                <div className="text-xl font-bold text-red-600">
+                  {isLoading ? '-' : stats.wildfires}
+                </div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">ไฟป่า</div>
               </div>
             </div>
           </CardContent>
