@@ -9,16 +9,26 @@ interface FloodWMSLayersProps {
   opacity: number;
 }
 
+const API_KEY = 'UIKDdatC5lgDcdrGxBJfyjHRlvRSvKQFGjY8A3mG00fj99MqcWCd2VxVTkcfkVX6';
+
 const FloodWMSLayers: React.FC<FloodWMSLayersProps> = ({ timeFilter, showFrequency, opacity }) => {
   const map = useMap();
 
   useEffect(() => {
     const layers: L.Layer[] = [];
 
-    // Current flood areas
+    // Map timeframes to available API endpoints
+    const apiTimeframe = timeFilter === '7days' || timeFilter === '30days' ? '3days' : timeFilter;
+
+    // Current flood areas using GISTDA API Gateway WMS
     if (timeFilter) {
-      const floodLayer = L.tileLayer(`https://vallaris.dragonfly.gistda.or.th/core/api/maps/1.0-beta/maps/flood_${timeFilter}/wmts/{z}/{x}/{y}.png?api_key=p8MB6HQYNFiJMbBigdrXVVC6mvwuj0EkVpXNxI17eogPueG7ed3UvdUDGMvdSLPM`, {
-        attribution: `GISTDA - Flood ${timeFilter}`,
+      const wmsUrl = `https://api-gateway.gistda.or.th/api/2.0/resources/maps/flood/${apiTimeframe}/wms?api_key=${API_KEY}`;
+      
+      const floodLayer = L.tileLayer.wms(wmsUrl, {
+        layers: Object.keys({})[0] || '',
+        format: 'image/png',
+        transparent: true,
+        attribution: `GISTDA - พื้นที่น้ำท่วม ${timeFilter}`,
         opacity,
         maxZoom: 18,
       });
@@ -29,8 +39,13 @@ const FloodWMSLayers: React.FC<FloodWMSLayersProps> = ({ timeFilter, showFrequen
 
     // Recurrent flood areas
     if (showFrequency) {
-      const freqLayer = L.tileLayer('https://vallaris.dragonfly.gistda.or.th/core/api/maps/1.0-beta/maps/flood_freq/wmts/{z}/{x}/{y}.png?api_key=p8MB6HQYNFiJMbBigdrXVVC6mvwuj0EkVpXNxI17eogPueG7ed3UvdUDGMvdSLPM', {
-        attribution: 'GISTDA - Recurrent Flood Areas',
+      const freqUrl = `https://api-gateway.gistda.or.th/api/2.0/resources/maps/flood-freq/wms?api_key=${API_KEY}`;
+      
+      const freqLayer = L.tileLayer.wms(freqUrl, {
+        layers: Object.keys({})[0] || '',
+        format: 'image/png',
+        transparent: true,
+        attribution: 'GISTDA - พื้นที่น้ำท่วมซ้ำซาก',
         opacity: opacity * 0.7,
         maxZoom: 18,
       });

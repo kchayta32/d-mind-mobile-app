@@ -45,7 +45,7 @@ const FloodCharts: React.FC<FloodChartsProps> = ({ stats }) => {
           <div className="grid grid-cols-2 gap-4">
             <div className="text-center">
               <div className="text-lg font-bold text-blue-600">
-                {stats.currentFloods?.total || 0}
+                {stats.currentFloods?.affectedAreas || 0}
               </div>
               <div className="text-xs text-gray-600">พื้นที่น้ำท่วมปัจจุบัน</div>
             </div>

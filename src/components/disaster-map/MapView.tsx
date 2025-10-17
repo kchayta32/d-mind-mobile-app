@@ -11,6 +11,7 @@ import { DebugInfo } from './DebugInfo';
 import { DisasterType } from './DisasterMap';
 import 'leaflet/dist/leaflet.css';
 import { FloodDataPoint } from './hooks/useOpenMeteoFloodData';
+import { FloodFeature } from './hooks/useGISTDAFloodData';
 import { OpenMeteoRainDataPoint } from './hooks/useOpenMeteoRainData';
 import { SinkholeData } from '../../hooks/useSinkholeData';
 import { UserLocationMarker } from './UserLocationMarker';
@@ -22,6 +23,7 @@ interface MapViewProps {
   hotspots: GISTDAHotspot[];
   airStations: AirPollutionData[];
   rainData: RainViewerData | null;
+  gistdaFloodFeatures: FloodFeature[];
   floodDataPoints: FloodDataPoint[];
   openMeteoRainData: OpenMeteoRainDataPoint[];
   sinkholes: SinkholeData[];
@@ -37,11 +39,12 @@ interface MapViewProps {
 }
 
 export const MapView: React.FC<MapViewProps> = ({ 
-  earthquakes, 
+  earthquakes,
   rainSensors,
   hotspots,
   airStations,
   rainData,
+  gistdaFloodFeatures,
   floodDataPoints,
   openMeteoRainData,
   sinkholes,
@@ -146,6 +149,7 @@ export const MapView: React.FC<MapViewProps> = ({
             filteredRainSensors={filteredRainSensors}
             hotspots={hotspots}
             filteredAirStations={filteredAirStations}
+            gistdaFloodFeatures={gistdaFloodFeatures}
             floodDataPoints={floodDataPoints}
             openMeteoRainData={openMeteoRainData}
             sinkholes={sinkholes}

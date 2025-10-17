@@ -1,25 +1,22 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-const API_KEY = 'wFaHcoOyzK53pVqspkI9Mvobjm5vWzHVOwGOjzW4f2nAAvsVf8CETklHpX1peaDF';
+const API_KEY = 'UIKDdatC5lgDcdrGxBJfyjHRlvRSvKQFGjY8A3mG00fj99MqcWCd2VxVTkcfkVX6';
 const API_BASE_URL = 'https://api-gateway.gistda.or.th/api/2.0/resources/features';
 
 export interface FloodArea {
+  id: string;
   geometry: {
-    coordinates: number[][];
+    coordinates: number[][][][];
     type: string;
   };
   properties: {
-    area_hectares: number;
-    depth_cm: number;
-    duration_hours: number;
-    affected_population: number;
-    province: string;
-    district: string;
-    village: string;
-    flood_date: string;
-    severity_level: 'low' | 'medium' | 'high' | 'severe';
-    damage_estimate: number;
+    area: number;
+    depth: number;
+    severity: 'low' | 'medium' | 'high';
+    location: string;
+    affectedPopulation: number;
+    timestamp: string;
   };
 }
 
@@ -40,21 +37,15 @@ export interface WaterHyacinth {
 
 export interface FloodStats {
   currentFloods: {
-    total: number;
-    byTimeframe: {
-      today: number;
-      last3Days: number;
-      last7Days: number;
-      last30Days: number;
-    };
-    bySeverity: {
+    totalArea: number;
+    affectedAreas: number;
+    affectedPopulation: number;
+    severity: {
       low: number;
       medium: number;
       high: number;
-      severe: number;
     };
-    totalAffectedArea: number;
-    totalAffectedPopulation: number;
+    averageDepth: number;
   };
   historicalData: {
     yearlyStats: Array<{
@@ -83,19 +74,48 @@ export interface FloodStats {
 export const useFloodData = (timeFilter: '1day' | '3days' | '7days' | '30days' = '7days') => {
   return useQuery({
     queryKey: ['flood-data', timeFilter],
-    queryFn: async () => {
-      console.log('Fetching flood data for timeframe:', timeFilter);
+    queryFn: async (): Promise<FloodArea[]> => {
+      console.log(`Fetching flood data for timeFilter: ${timeFilter}`);
       
-      // For now, return mock data as the flood endpoint structure is not clear
-      const mockFloodAreas: FloodArea[] = [];
+      // Map timeframes to API endpoints
+      const apiTimeframe = timeFilter === '7days' || timeFilter === '30days' ? '3days' : timeFilter;
+      const url = `${API_BASE_URL}/flood/${apiTimeframe}`;
       
-      return {
-        floodAreas: mockFloodAreas,
-        totalCount: 0,
-        timeframe: timeFilter
-      };
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'API-Key': API_KEY,
+            'accept': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log(`Fetched ${data.numberReturned} flood areas from GISTDA`);
+        
+        // Convert to FloodArea format
+        return data.features.map((feature: any) => ({
+          id: feature.id,
+          geometry: feature.geometry,
+          properties: {
+            area: feature.properties.f_area,
+            depth: 0,
+            severity: feature.properties.f_area > 1000000 ? 'high' : feature.properties.f_area > 500000 ? 'medium' : 'low',
+            location: `${feature.properties.tb_tn}, ${feature.properties.ap_tn}, ${feature.properties.pv_tn}`,
+            affectedPopulation: feature.properties.population || feature.properties.population_2 || 0,
+            timestamp: feature.properties._updatedAt
+          }
+        }));
+      } catch (error) {
+        console.error('Error fetching flood data:', error);
+        return [];
+      }
     },
-    refetchInterval: 300000, // 5 minutes
+    refetchInterval: 600000, // 10 minutes
+    staleTime: 300000, // 5 minutes
   });
 };
 
@@ -129,44 +149,40 @@ export const useWaterHyacinthData = () => {
 };
 
 export const useFloodStatistics = () => {
-  const { data: currentData } = useFloodData('30days');
-  const { data: hyacinthData } = useWaterHyacinthData();
+  const { data: floodAreas, isLoading: floodLoading } = useFloodData();
+  const { data: hyacinthData, isLoading: hyacinthLoading } = useWaterHyacinthData();
 
   return useQuery({
-    queryKey: ['flood-statistics', currentData, hyacinthData],
-    queryFn: async () => {
-      console.log('Calculating flood statistics...');
+    queryKey: ['flood-statistics', floodAreas, hyacinthData],
+    queryFn: async (): Promise<FloodStats> => {
+      const totalArea = floodAreas?.reduce((sum, area) => sum + area.properties.area, 0) || 0;
+      const affectedPopulation = floodAreas?.reduce(
+        (sum, area) => sum + (area.properties.affectedPopulation || 0), 
+        0
+      ) || 0;
 
-      // Generate historical data (2011-2023) based on known flood events
-      const historicalData = generateHistoricalFloodData();
-      
-      const stats: FloodStats = {
-        currentFloods: {
-          total: currentData?.totalCount || 0,
-          byTimeframe: {
-            today: 0,
-            last3Days: 0,
-            last7Days: 0,
-            last30Days: currentData?.totalCount || 0
-          },
-          bySeverity: {
-            low: 0,
-            medium: 0,
-            high: 0,
-            severe: 0
-          },
-          totalAffectedArea: 0,
-          totalAffectedPopulation: 0
-        },
-        historicalData,
-        waterObstructions: calculateWaterObstructionStats(hyacinthData?.hyacinthAreas || [])
+      const severityCounts = {
+        low: floodAreas?.filter(a => a.properties.severity === 'low').length || 0,
+        medium: floodAreas?.filter(a => a.properties.severity === 'medium').length || 0,
+        high: floodAreas?.filter(a => a.properties.severity === 'high').length || 0,
       };
 
-      console.log('Flood statistics calculated:', stats);
-      return stats;
+      console.log(`Flood statistics: ${floodAreas?.length || 0} areas, total ${(totalArea / 1000000).toFixed(2)} km²`);
+
+      return {
+        currentFloods: {
+          totalArea,
+          affectedAreas: floodAreas?.length || 0,
+          affectedPopulation: Math.round(affectedPopulation),
+          severity: severityCounts,
+          averageDepth: 0,
+        },
+        historicalData: generateHistoricalFloodData(),
+        waterObstructions: calculateWaterObstructionStats(hyacinthData?.hyacinthAreas || []),
+      };
     },
-    enabled: !!(currentData || hyacinthData),
-    refetchInterval: 600000, // 10 minutes
+    enabled: !!floodAreas || !!hyacinthData,
+    refetchInterval: 600000,
   });
 };
 

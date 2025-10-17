@@ -6,7 +6,8 @@ import { useGISTDAData } from '../useGISTDAData';
 import { useAirPollutionData } from '../useAirPollutionData';
 import { useRainViewerData } from '../useRainViewerData';
 import { useDroughtData } from './useDroughtData';
-import { useFloodStatistics } from './useFloodData';
+import { useFloodStatistics, useFloodData } from './useFloodData';
+import { useGISTDAFloodData } from './useGISTDAFloodData';
 import { useOpenMeteoFloodData } from './useOpenMeteoFloodData';
 import { useOpenMeteoRainData } from './useOpenMeteoRainData';
 import { 
@@ -27,7 +28,8 @@ interface StatisticsWithRainViewer extends RainSensorStats {
 
 export const useDisasterMapData = (
   rainTimeFilter: string,
-  wildfireTimeFilter: string
+  wildfireTimeFilter: string,
+  floodTimeFilter: string
 ) => {
   const { earthquakes, stats: earthquakeStats, isLoading: isLoadingEarthquakes } = useEarthquakeData();
   const { sensors: rainSensors, stats: rainStats, isLoading: isLoadingRain } = useRainSensorData(rainTimeFilter);
@@ -35,6 +37,7 @@ export const useDisasterMapData = (
   const { stations: airStations, stats: airStats, isLoading: isLoadingAir } = useAirPollutionData();
   const { rainData, isLoading: isLoadingRainViewer } = useRainViewerData();
   const { stats: droughtStats, isLoading: isLoadingDrought } = useDroughtData();
+  const { data: gistdaFloodData, isLoading: isLoadingGISTDAFlood } = useGISTDAFloodData(floodTimeFilter as any);
   const { data: floodStats, isLoading: isLoadingFlood } = useFloodStatistics();
   const { data: floodDataPoints, isLoading: isLoadingOpenMeteoFlood } = useOpenMeteoFloodData();
   const { data: openMeteoRainData, isLoading: isLoadingOpenMeteoRain } = useOpenMeteoRainData();
@@ -82,8 +85,8 @@ export const useDisasterMapData = (
       case 'wildfire': return isLoadingWildfire;
       case 'airpollution': return isLoadingAir;
       case 'drought': return isLoadingDrought;
-      case 'flood': return isLoadingFlood || isLoadingOpenMeteoFlood;
-      case 'sinkhole': return false; // Will be handled by component directly
+      case 'flood': return isLoadingFlood || isLoadingOpenMeteoFlood || isLoadingGISTDAFlood;
+      case 'sinkhole': return false;
       default: return false;
     }
   };
@@ -94,6 +97,7 @@ export const useDisasterMapData = (
     hotspots,
     airStations,
     rainData,
+    gistdaFloodFeatures: gistdaFloodData?.features || [],
     floodDataPoints: floodDataPoints || [],
     openMeteoRainData: openMeteoRainData || [],
     wildfireStats,

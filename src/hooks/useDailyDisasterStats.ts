@@ -56,6 +56,22 @@ export const useDailyDisasterStats = () => {
           }
         });
 
+        // Fetch GISTDA flood data for accurate count
+        try {
+          const floodResponse = await fetch('https://api-gateway.gistda.or.th/api/2.0/resources/features/flood/1day', {
+            headers: {
+              'API-Key': 'UIKDdatC5lgDcdrGxBJfyjHRlvRSvKQFGjY8A3mG00fj99MqcWCd2VxVTkcfkVX6',
+              'accept': 'application/json'
+            }
+          });
+          if (floodResponse.ok) {
+            const floodData = await floodResponse.json();
+            dailyStats.floods = floodData.numberReturned || dailyStats.floods;
+          }
+        } catch (error) {
+          console.error('Error fetching GISTDA flood data:', error);
+        }
+
         setStats(dailyStats);
       } catch (error) {
         console.error('Error fetching daily stats:', error);

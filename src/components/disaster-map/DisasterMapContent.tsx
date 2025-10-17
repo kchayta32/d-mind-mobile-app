@@ -49,6 +49,7 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
     hotspots,
     airStations,
     rainData,
+    gistdaFloodFeatures,
     floodDataPoints,
     openMeteoRainData,
     wildfireStats,
@@ -57,7 +58,7 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
     floodStats,
     getCurrentStats,
     getCurrentLoading,
-  } = useDisasterMapData(rainTimeFilter, wildfireTimeFilter);
+  } = useDisasterMapData(rainTimeFilter, wildfireTimeFilter, floodTimeFilter);
 
   const { sinkholes, stats: sinkholeStats } = useSinkholeData();
 
@@ -71,6 +72,7 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
           hotspots={hotspots}
           airStations={airStations}
           rainData={rainData}
+          gistdaFloodFeatures={gistdaFloodFeatures}
           floodDataPoints={floodDataPoints}
           openMeteoRainData={openMeteoRainData}
           sinkholes={sinkholes}

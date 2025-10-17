@@ -5,11 +5,13 @@ import RainSensorMarker from '../RainSensorMarker';
 import HotspotMarker from '../HotspotMarker';
 import AirStationMarker from '../AirStationMarker';
 import { FloodDataMarker } from '../FloodDataMarker';
+import { FloodMarker } from '../FloodMarker';
 import { OpenMeteoWeatherMarker } from '../OpenMeteoWeatherMarker';
 import SinkholeMarker from '../SinkholeMarker';
 import { Earthquake, RainSensor, AirPollutionData } from '../types';
 import { GISTDAHotspot } from '../useGISTDAData';
 import { FloodDataPoint } from '../hooks/useOpenMeteoFloodData';
+import { FloodFeature, getFloodCenter } from '../hooks/useGISTDAFloodData';
 import { OpenMeteoRainDataPoint } from '../hooks/useOpenMeteoRainData';
 import { SinkholeData } from '../../../hooks/useSinkholeData';
 import { DisasterType } from '../DisasterMap';
@@ -21,6 +23,7 @@ interface MapMarkersProps {
   hotspots: GISTDAHotspot[];
   filteredAirStations: AirPollutionData[];
   floodDataPoints?: FloodDataPoint[];
+  gistdaFloodFeatures?: FloodFeature[];
   openMeteoRainData?: OpenMeteoRainDataPoint[];
   sinkholes: SinkholeData[];
 }
@@ -32,6 +35,7 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
   hotspots,
   filteredAirStations,
   floodDataPoints = [],
+  gistdaFloodFeatures = [],
   openMeteoRainData = [],
   sinkholes
 }) => {
@@ -41,7 +45,8 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
     filteredEarthquakes: filteredEarthquakes.length,
     hotspots: hotspots.length,
     filteredAirStations: filteredAirStations.length,
-    openMeteoRainData: openMeteoRainData.length
+    openMeteoRainData: openMeteoRainData.length,
+    gistdaFloodFeatures: gistdaFloodFeatures.length
   });
 
   return (
@@ -77,9 +82,17 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
         <AirStationMarker key={station.id} station={station} />
       ))}
 
-      {/* Flood data markers */}
+      {/* GISTDA Flood markers */}
+      {selectedType === 'flood' && gistdaFloodFeatures.map((feature, index) => {
+        const center = getFloodCenter(feature);
+        return (
+          <FloodMarker key={`gistda-flood-${feature.id}-${index}`} feature={feature} center={center} />
+        );
+      })}
+
+      {/* Open-Meteo Flood data markers (river discharge) */}
       {selectedType === 'flood' && floodDataPoints.map((floodPoint, index) => (
-        <FloodDataMarker key={`flood-${index}`} floodPoint={floodPoint} />
+        <FloodDataMarker key={`flood-river-${index}`} floodPoint={floodPoint} />
       ))}
 
       {/* Sinkhole markers */}
