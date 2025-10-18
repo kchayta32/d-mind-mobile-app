@@ -51,21 +51,20 @@ export const DroughtFilters: React.FC<DroughtFiltersProps> = ({
             </label>
           </div>
           <div className="flex items-center space-x-2">
-            <input 
-              type="checkbox" 
-              id="smap" 
-              className="rounded peer" 
-              checked={droughtLayers.includes('smap')}
-              onChange={(e) => handleDroughtLayerToggle('smap', e.target.checked)}
-              disabled
-            />
-            <label 
+            <input 
+              type="checkbox" 
+              id="smap" 
+              className="rounded peer" 
+              checked={droughtLayers.includes('smap')}
+              onChange={(e) => handleDroughtLayerToggle('smap', e.target.checked)}
+              disabled 
+            />
+            <label 
               htmlFor="smap" 
               className="text-xs peer-disabled:opacity-50"
             >
-              ความชื้นดิน (SMAP)
-            </label>
-          </div>
+              ความชื้นดิน (SMAP)
+            </label>
         </div>
       </div>
     </div>
