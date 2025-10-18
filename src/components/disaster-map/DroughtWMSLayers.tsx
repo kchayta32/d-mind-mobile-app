@@ -16,7 +16,7 @@ const DroughtWMSLayers: React.FC<DroughtWMSLayersProps> = ({ selectedLayers, opa
 
     // DRI (Drought Risk Index) Layer
     if (selectedLayers.includes('dri')) {
-      const driLayer = L.tileLayer('https://vallaris.dragonfly.gistda.or.th/core/api/maps/1.0-beta/maps/dri_7days/wmts/{z}/{x}/{y}.png?api_key=p8MB6HQYNFiJMbBigdrXVVC6mvwuj0EkVpXNxI17eogPueG7ed3UvdUDGMvdSLPM', {
+      const driLayer = L.tileLayer('https://api-gateway.gistda.or.th/api/2.0/resources/maps/dri/7days/wmts/{z}/{x}/{y}.png?api_key=UIKDdatC5lgDcdrGxBJfyjHRlvRSvKQFGjY8A3mG00fj99MqcWCd2VxVTkcfkVX6', {
         attribution: 'GISTDA - DRI 7 days',
         opacity,
         maxZoom: 18,

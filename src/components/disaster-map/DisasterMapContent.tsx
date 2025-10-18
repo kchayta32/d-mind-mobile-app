@@ -35,6 +35,8 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
     setPm25Filter,
     wildfireTimeFilter,
     setWildfireTimeFilter,
+    showBurnFreq,
+    setShowBurnFreq,
     droughtLayers,
     setDroughtLayers,
     floodTimeFilter,
@@ -83,6 +85,8 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
           droughtLayers={droughtLayers}
           floodTimeFilter={floodTimeFilter}
           showFloodFrequency={showFloodFrequency}
+          wildfireTimeFilter={wildfireTimeFilter}
+          showBurnFreq={showBurnFreq}
           isLoading={getCurrentLoading(selectedType)}
           onLocationSelect={onLocationSelect}
         />
@@ -103,6 +107,8 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
           onPm25Change={setPm25Filter}
           wildfireTimeFilter={wildfireTimeFilter}
           onWildfireTimeFilterChange={setWildfireTimeFilter}
+          showBurnFreq={showBurnFreq}
+          onShowBurnFreqChange={setShowBurnFreq}
           droughtLayers={droughtLayers}
           onDroughtLayersChange={setDroughtLayers}
           floodTimeFilter={floodTimeFilter}

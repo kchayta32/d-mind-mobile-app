@@ -9,6 +9,7 @@ export const useDisasterMapState = () => {
   const [rainTimeFilter, setRainTimeFilter] = useState('realtime');
   const [pm25Filter, setPm25Filter] = useState(0);
   const [wildfireTimeFilter, setWildfireTimeFilter] = useState('3days');
+  const [showBurnFreq, setShowBurnFreq] = useState(false);
   const [droughtLayers, setDroughtLayers] = useState(['dri']);
   const [floodTimeFilter, setFloodTimeFilter] = useState('3days');
   const [showFloodFrequency, setShowFloodFrequency] = useState(true);
@@ -26,6 +27,8 @@ export const useDisasterMapState = () => {
     setPm25Filter,
     wildfireTimeFilter,
     setWildfireTimeFilter,
+    showBurnFreq,
+    setShowBurnFreq,
     droughtLayers,
     setDroughtLayers,
     floodTimeFilter,

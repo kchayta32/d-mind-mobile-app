@@ -6,17 +6,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 interface WildfireFiltersProps {
   wildfireTimeFilter: string;
   onWildfireTimeFilterChange: (value: string) => void;
+  showBurnFreq: boolean;
+  onShowBurnFreqChange: (value: boolean) => void;
 }
 
 export const WildfireFilters: React.FC<WildfireFiltersProps> = ({
   wildfireTimeFilter,
-  onWildfireTimeFilterChange
+  onWildfireTimeFilterChange,
+  showBurnFreq,
+  onShowBurnFreqChange
 }) => {
   return (
     <div className="space-y-4">
       <div>
         <Label htmlFor="wildfire-time-filter" className="text-sm font-medium">
-          ช่วงเวลาข้อมูล
+          ช่วงเวลาข้อมูล VIIRS
         </Label>
         <Select value={wildfireTimeFilter} onValueChange={onWildfireTimeFilterChange}>
           <SelectTrigger className="w-full mt-2">
@@ -27,9 +31,21 @@ export const WildfireFilters: React.FC<WildfireFiltersProps> = ({
             <SelectItem value="3days">3 วันล่าสุด</SelectItem>
             <SelectItem value="7days">7 วันล่าสุด</SelectItem>
             <SelectItem value="30days">30 วันล่าสุด</SelectItem>
-            <SelectItem value="all">ทั้งหมด</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+      
+      <div className="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          id="burn-freq"
+          checked={showBurnFreq}
+          onChange={(e) => onShowBurnFreqChange(e.target.checked)}
+          className="rounded"
+        />
+        <Label htmlFor="burn-freq" className="text-sm font-medium">
+          แสดงพื้นที่เผาไหม้ซ้ำซาก
+        </Label>
       </div>
     </div>
   );

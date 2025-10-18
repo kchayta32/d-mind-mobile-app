@@ -34,6 +34,8 @@ interface MapViewProps {
   droughtLayers: string[];
   floodTimeFilter: string;
   showFloodFrequency: boolean;
+  wildfireTimeFilter: string;
+  showBurnFreq: boolean;
   isLoading: boolean;
   onLocationSelect?: (lat: number, lon: number, name: string) => void;
 }
@@ -55,6 +57,8 @@ export const MapView: React.FC<MapViewProps> = ({
   droughtLayers,
   floodTimeFilter,
   showFloodFrequency,
+  wildfireTimeFilter,
+  showBurnFreq,
   isLoading,
   onLocationSelect
 }) => {
@@ -137,9 +141,8 @@ export const MapView: React.FC<MapViewProps> = ({
           rainData={rainData}
           rainOverlayType={rainOverlayType}
           rainTimeType={rainTimeType}
-          showModisWMS={showModisWMS}
-          showViirsWMS={showViirsWMS}
-          showBurnScar={showBurnScar}
+          wildfireTimeFilter={wildfireTimeFilter}
+          showBurnFreq={showBurnFreq}
         />
         
         {!isLoading && (

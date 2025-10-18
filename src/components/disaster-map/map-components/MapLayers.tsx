@@ -16,9 +16,8 @@ interface MapLayersProps {
   rainData: RainViewerData | null;
   rainOverlayType: 'radar' | 'satellite';
   rainTimeType: 'past' | 'future';
-  showModisWMS: boolean;
-  showViirsWMS: boolean;
-  showBurnScar: boolean;
+  wildfireTimeFilter: string;
+  showBurnFreq: boolean;
 }
 
 export const MapLayers: React.FC<MapLayersProps> = ({
@@ -30,18 +29,16 @@ export const MapLayers: React.FC<MapLayersProps> = ({
   rainData,
   rainOverlayType,
   rainTimeType,
-  showModisWMS,
-  showViirsWMS,
-  showBurnScar
+  wildfireTimeFilter,
+  showBurnFreq
 }) => {
   return (
     <>
       {/* WMS layers for wildfire */}
       {selectedType === 'wildfire' && (
         <WildfireWMSLayers
-          showModis={showModisWMS}
-          showViirs={showViirsWMS}
-          showBurnScar={showBurnScar}
+          timeFilter={wildfireTimeFilter}
+          showBurnFreq={showBurnFreq}
         />
       )}
 

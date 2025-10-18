@@ -20,6 +20,8 @@ interface FilterControlsProps {
   onPm25Change: (value: number) => void;
   wildfireTimeFilter: string;
   onWildfireTimeFilterChange: (value: string) => void;
+  showBurnFreq: boolean;
+  onShowBurnFreqChange: (value: boolean) => void;
   droughtLayers: string[];
   onDroughtLayersChange: (layers: string[]) => void;
   floodTimeFilter: string;
@@ -40,6 +42,8 @@ const FilterControls: React.FC<FilterControlsProps> = ({
   onPm25Change,
   wildfireTimeFilter,
   onWildfireTimeFilterChange,
+  showBurnFreq,
+  onShowBurnFreqChange,
   droughtLayers,
   onDroughtLayersChange,
   floodTimeFilter,
@@ -73,6 +77,8 @@ const FilterControls: React.FC<FilterControlsProps> = ({
           <WildfireFilters
             wildfireTimeFilter={wildfireTimeFilter}
             onWildfireTimeFilterChange={onWildfireTimeFilterChange}
+            showBurnFreq={showBurnFreq}
+            onShowBurnFreqChange={onShowBurnFreqChange}
           />
         )}
 

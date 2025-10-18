@@ -3,51 +3,38 @@ import React from 'react';
 import { WMSTileLayer } from 'react-leaflet';
 
 interface WildfireWMSLayersProps {
-  showModis: boolean;
-  showViirs: boolean;
-  showBurnScar: boolean;
+  timeFilter: string;
+  showBurnFreq: boolean;
 }
 
 export const WildfireWMSLayers: React.FC<WildfireWMSLayersProps> = ({
-  showModis,
-  showViirs,
-  showBurnScar
+  timeFilter,
+  showBurnFreq
 }) => {
-  const API_KEY = 'JMGZneff56qsmjWKbyYdYBUbTx8zHHOChXTD1Ogl8jmrEgnHbXiH3H5QvQwN3yg1';
-  const baseUrl = 'https://disaster.gistda.or.th/api/1.0/documents/fire';
+  const API_KEY = 'UIKDdatC5lgDcdrGxBJfyjHRlvRSvKQFGjY8A3mG00fj99MqcWCd2VxVTkcfkVX6';
+  const baseUrl = 'https://api-gateway.gistda.or.th/api/2.0/resources/maps';
 
   return (
     <>
-      {showModis && (
+      {timeFilter && (
         <WMSTileLayer
-          url={`${baseUrl}/hotspot/modis/3days/wms?api_key=${API_KEY}`}
-          layers="6359f6be39c0f34eb9a98387"
-          format="image/png"
-          transparent={true}
-          opacity={0.7}
-          attribution="GISTDA MODIS Hotspots"
-        />
-      )}
-      
-      {showViirs && (
-        <WMSTileLayer
-          url={`${baseUrl}/hotspot/viirs/3days/wms?api_key=${API_KEY}`}
+          url={`${baseUrl}/viirs/${timeFilter}/wmts?api_key=${API_KEY}`}
           layers="viirs"
           format="image/png"
           transparent={true}
           opacity={0.7}
-          attribution="GISTDA VIIRS Hotspots"
+          attribution={`GISTDA VIIRS Hotspots ${timeFilter}`}
         />
       )}
       
-      {showBurnScar && (
+      {showBurnFreq && (
         <WMSTileLayer
-          url={`${baseUrl}/burn-scar/wms?api_key=${API_KEY}`}
-          layers="635a0e19f6827ec70ee68e8a"
+          url={`${baseUrl}/burn-freq/wmts?api_key=${API_KEY}`}
+          layers="burn-freq"
           format="image/png"
           transparent={true}
           opacity={0.6}
-          attribution="GISTDA Burn Scar"
+          attribution="GISTDA Burn Frequency"
         />
       )}
     </>
