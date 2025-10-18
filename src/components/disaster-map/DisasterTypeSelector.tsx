@@ -53,7 +53,7 @@ const disasterTypes: Array<{
     label: 'ข้อมูลฝน Open-Meteo',
     icon: <CloudDrizzle className="w-4 h-4" />,
     color: 'bg-indigo-500 hover:bg-indigo-600',
-    available: true
+    available: false
   },
   {
     type: 'wildfire',
@@ -74,7 +74,7 @@ const disasterTypes: Array<{
     label: 'ภัยแล้ง',
     icon: <Sun className="w-4 h-4" />,
     color: 'bg-yellow-500 hover:bg-yellow-600',
-    available: false
+    available: true
   },
   {
     type: 'flood',
