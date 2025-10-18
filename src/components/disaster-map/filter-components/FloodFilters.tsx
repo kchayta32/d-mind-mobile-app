@@ -27,8 +27,8 @@ export const FloodFilters: React.FC<FloodFiltersProps> = ({
           <SelectContent>
             <SelectItem value="1day">วันนี้ (ย้อนหลัง 1 วัน)</SelectItem>
             <SelectItem value="3days">3 วันล่าสุด</SelectItem>
-            <SelectItem value="7days">7 วันล่าสุด</SelectItem>
-            <SelectItem value="30days">30 วันล่าสุด</SelectItem>
+            <SelectItem value="7days" disabled>7 วันล่าสุด (ไม่พร้อมใช้งาน)</SelectItem>
+            <SelectItem value="30days" disabled>30 วันล่าสุด (ไม่พร้อมใช้งาน)</SelectItem>
           </SelectContent>
         </Select>
       </div>
