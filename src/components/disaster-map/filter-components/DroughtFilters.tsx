@@ -35,14 +35,20 @@ export const DroughtFilters: React.FC<DroughtFiltersProps> = ({
             <label htmlFor="dri" className="text-xs">ดัชนีพื้นที่เสี่ยงภัยแล้ง (DRI)</label>
           </div>
           <div className="flex items-center space-x-2">
-            <input 
-              type="checkbox" 
-              id="ndwi" 
-              className="rounded" 
-              checked={droughtLayers.includes('ndwi')}
-              onChange={(e) => handleDroughtLayerToggle('ndwi', e.target.checked)}
-            />
-            <label htmlFor="ndwi" className="text-xs">ดัชนีความแตกต่างความชื้น (NDWI)</label>
+            <input 
+              type="checkbox" 
+              id="ndwi" 
+              className="rounded peer" 
+              checked={droughtLayers.includes('ndwi')}
+              onChange={(e) => handleDroughtLayerToggle('ndwi', e.target.checked)}
+              disabled 
+            />
+            <label 
+              htmlFor="ndwi" 
+              className="text-xs peer-disabled:opacity-50"
+            >
+              ดัชนีความแตกต่างความชื้น (NDWI)
+            </label>
           </div>
           <div className="flex items-center space-x-2">
             <input 
@@ -51,8 +57,14 @@ export const DroughtFilters: React.FC<DroughtFiltersProps> = ({
               className="rounded" 
               checked={droughtLayers.includes('smap')}
               onChange={(e) => handleDroughtLayerToggle('smap', e.target.checked)}
+              disabled
             />
-            <label htmlFor="smap" className="text-xs">ความชื้นดิน (SMAP)</label>
+            <label 
+              htmlFor="ndwi" 
+              className="text-xs peer-disabled:opacity-50"
+            >
+              ความชื้นดิน (SMAP)
+            </label>
           </div>
         </div>
       </div>
