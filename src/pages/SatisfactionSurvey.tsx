@@ -78,7 +78,7 @@ const SatisfactionSurvey: React.FC = () => {
                       </div>
                       <div>
                         <h3 className="font-semibold text-lg mb-2">
-                          ความพึงพอใจในการใช้งาน Demo แอพ<br>
+                          ความพึงพอใจในการใช้งาน Demo แอพ <br>
                           D-MIND
                         </h3>
                         <p className="text-sm text-muted-foreground">
