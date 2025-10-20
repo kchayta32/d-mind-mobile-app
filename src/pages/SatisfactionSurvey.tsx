@@ -158,6 +158,8 @@ const SatisfactionSurvey: React.FC = () => {
                   onClick={() => setViewMode('results')}
                   className="w-full bg-purple-600 hover:bg-purple-700"
                   size="lg"
+                  // Add the disabled attribute here
+                  disabled={true} // or simply 'disabled' in plain HTML
                 >
                   <BarChart3 className="h-5 w-5 mr-2" />
                   ดูผลการประเมินความพึงพอใจ
