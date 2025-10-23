@@ -27,14 +27,12 @@ const HeroSection: React.FC = () => {
             <h1 className="text-5xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
               D-MIND
             </h1>
-            <div className="inline-block bg-white/60 backdrop-blur-sm px-8 py-6 rounded-2xl shadow-lg">
-              <p className="text-xl md:text-2xl text-gray-900 font-semibold mb-2">
-                A Disaster Monitoring and Intelligent Notification System
-              </p>
-              <p className="text-gray-800 text-lg font-medium">
-                ระบบติดตามภัยพิบัติ • แจ้งเตือนอัจฉริยะ
-              </p>
-            </div>
+            <p className="text-xl md:text-2xl text-blue-100 font-medium mb-2">
+              A Disaster Monitoring and Intelligent Notification System
+            </p>
+            <p className="text-blue-200 text-lg">
+              ระบบติดตามภัยพิบัติ • แจ้งเตือนอัจฉริยะ
+            </p>
           </div>
 
           {/* Description and CTA */}

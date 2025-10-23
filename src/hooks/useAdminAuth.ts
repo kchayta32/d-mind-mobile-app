@@ -25,7 +25,7 @@ export const useAdminAuth = () => {
 
   const login = async (username: string, password: string): Promise<boolean> => {
     // Simple authentication check
-    if (username === 'admin-dmind' && password === '1212312121') {
+    if (username === 'admindmind' && password === '1212312121!') {
       localStorage.setItem('admin_authenticated', 'true');
       setAuthState({
         isAuthenticated: true,

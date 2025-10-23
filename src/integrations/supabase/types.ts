@@ -88,48 +88,6 @@ export type Database = {
         }
         Relationships: []
       }
-      booth_surveys: {
-        Row: {
-          age: string
-          booth_ratings: Json
-          consent: boolean
-          created_at: string
-          follow_interest: string | null
-          gender: string
-          id: string
-          improvements: string | null
-          knew_before: string
-          most_liked: string | null
-          status: string
-        }
-        Insert: {
-          age: string
-          booth_ratings: Json
-          consent?: boolean
-          created_at?: string
-          follow_interest?: string | null
-          gender: string
-          id?: string
-          improvements?: string | null
-          knew_before: string
-          most_liked?: string | null
-          status: string
-        }
-        Update: {
-          age?: string
-          booth_ratings?: Json
-          consent?: boolean
-          created_at?: string
-          follow_interest?: string | null
-          gender?: string
-          id?: string
-          improvements?: string | null
-          knew_before?: string
-          most_liked?: string | null
-          status?: string
-        }
-        Relationships: []
-      }
       damage_assessments: {
         Row: {
           assessment_result: Json
@@ -188,51 +146,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      demo_app_surveys: {
-        Row: {
-          age: string
-          consent: boolean
-          created_at: string
-          device: string
-          gender: string
-          id: string
-          improvements: string | null
-          likes: string | null
-          mobile_app_interest: string | null
-          occupation: string
-          useful_features: string[]
-          ux_ratings: Json
-        }
-        Insert: {
-          age: string
-          consent?: boolean
-          created_at?: string
-          device: string
-          gender: string
-          id?: string
-          improvements?: string | null
-          likes?: string | null
-          mobile_app_interest?: string | null
-          occupation: string
-          useful_features?: string[]
-          ux_ratings: Json
-        }
-        Update: {
-          age?: string
-          consent?: boolean
-          created_at?: string
-          device?: string
-          gender?: string
-          id?: string
-          improvements?: string | null
-          likes?: string | null
-          mobile_app_interest?: string | null
-          occupation?: string
-          useful_features?: string[]
-          ux_ratings?: Json
-        }
-        Relationships: []
       }
       disaster_statistics: {
         Row: {
