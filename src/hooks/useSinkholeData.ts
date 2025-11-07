@@ -35,8 +35,27 @@ export const useSinkholeData = () => {
       try {
         setIsLoading(true);
         
-        // ข้อมูลจำลองจากเหตุการณ์จริงในดุสิต กทม. และญี่ปุ่น
+        // ข้อมูลจำลองจากเหตุการณ์จริงในดุสิต กทม. ญี่ปุ่น และแม่ฮ่องสอน
         const mockData: SinkholeData[] = [
+          {
+            id: 'sinkhole-mae-gopi-001',
+            latitude: 18.1978,
+            longitude: 98.4419,
+            title: 'ดินถล่มบ้านแม่โกปี่',
+            location: 'บ้านแม่โกปี่ ต.แม่ยวมน้อย อ.ขุนยวม จ.แม่ฮ่องสอน',
+            date: '14 สิงหาคม 2567',
+            severity: 'high',
+            description: 'น้ำป่าไหลหลากดินโคลนถล่มเร่งช่วย 400 ชีวิตถูกตัดขาด เกิดเหตุน้ำป่าไหลหลากเข้าท่วมบ้านแม่โกปี่ มีรายงานหญิงอายุ 65 ปีเสียชีวิต 1 คน ถนนระยะ 17 กิโลเมตรถูกตัดขาด ชาวบ้านกว่า 400 คนต้องการอาหารน้ำดื่ม ไม่มีไฟฟ้าและสัญญาณโทรศัพท์ หน่วยเฉพาะกิจสิงหนาทเข้าช่วยเหลือ',
+            mainImage: 'https://news.thaipbs.or.th/media/TSNBg3wSBdng7ijMhT0vcKuBqwYR05PK7tOJNt5fpQb.jpg',
+            additionalImages: [
+              'https://news.thaipbs.or.th/media/TSNBg3wSBdng7ijMhT0vcKuBqwYR05Qt9mrM9hfBchj.jpg',
+              'https://news.thaipbs.or.th/media/TSNBg3wSBdng7ijMhT0vcKuBqwYR05aMLub0pY8eZtR.jpg',
+              'https://news.thaipbs.or.th/media/TSNBg3wSBdng7ijMhT0vcKuBqwYR05XTJUZpWdGlbGO.jpg'
+            ],
+            estimatedSize: 'พื้นที่ได้รับผลกระทบ 17 กิโลเมตร',
+            cause: 'น้ำป่าไหลหลากและดินโคลนถล่มจากฝนตกหนักต่อเนื่อง',
+            status: 'ฉุกเฉิน - 400 คนถูกตัดขาด กำลังดำเนินการช่วยเหลือ'
+          },
           {
             id: 'sinkhole-dusit-001',
             latitude: 13.7878,
