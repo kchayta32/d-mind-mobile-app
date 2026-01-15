@@ -39,16 +39,13 @@ export const useRainViewerData = () => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['rainviewer-data'],
     queryFn: async () => {
-      console.log('Fetching RainViewer data...');
-      
       const response = await fetch('https://api.rainviewer.com/public/weather-maps.json');
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch RainViewer data');
       }
 
       const data = await response.json();
-      console.log('RainViewer data fetched:', data);
       return data as RainViewerData;
     },
     refetchInterval: 600000, // Refresh every 10 minutes
@@ -56,16 +53,15 @@ export const useRainViewerData = () => {
 
   useEffect(() => {
     if (data) {
-      console.log('Processing RainViewer data:', data);
       setRainData(data);
 
       // Calculate statistics
       const pastFrames = data.radar?.past?.length || 0;
       const futureFrames = data.radar?.nowcast?.length || 0;
-      
+
       let latestTime = '';
       let oldestTime = '';
-      
+
       if (pastFrames > 0) {
         const latestFrame = data.radar.past[pastFrames - 1];
         const oldestFrame = data.radar.past[0];
@@ -80,17 +76,9 @@ export const useRainViewerData = () => {
         oldestTime
       };
 
-      console.log('Calculated RainViewer stats:', newStats);
       setStats(newStats);
     }
   }, [data]);
-
-  console.log('useRainViewerData returning:', { 
-    rainData: rainData ? 'loaded' : 'null', 
-    stats, 
-    isLoading, 
-    error 
-  });
 
   return {
     rainData,

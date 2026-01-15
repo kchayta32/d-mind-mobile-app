@@ -1,73 +1,64 @@
-# Welcome to your Lovable project
+# D-MIND: Disaster Management & Information System
 
-## Project info
+![D-MIND Logo](/public/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png)
 
-**URL**: https://lovable.dev/projects/3dbe0d54-4a5d-4127-9cc4-76a44ad44e5e
+**D-MIND** (Disaster Monitor) is a comprehensive web application designed to track disaster events, provide emergency resources, and notify users of critical alerts in real-time. It has been redesigned with a mobile-first approach to ensure accessibility and usability in emergency situations.
 
-## How can I edit this code?
+## Key Features
 
-There are several ways of editing your application.
+### 📱 Mobile-First Design
+The application now features a fully responsive layout optimized for mobile devices.
+-   **Persistent Bottom Navigation**: Easy access to key sections (Home, Map, Emergency Contacts, Manuals).
+-   **Mobile Layout**: A specialized wrapper ensures a consistent experience on smaller screens.
 
-**Use Lovable**
+### 🔔 Real-time Notifications
+Stay informed with instant alerts.
+-   **System Alerts**: The app listens for real-time updates from our disaster database (Supabase) and triggers system notifications.
+-   **In-App Toasts**: Visual feedback within the application when new incidents are reported.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/3dbe0d54-4a5d-4127-9cc4-76a44ad44e5e) and start prompting.
+### 🗺️ Disaster Tracking
+-   **Interactive Map**: Visualize disaster locations and affected areas.
+-   **Daily Stats**: View summary statistics for earthquakes, floods, landslides, and wildfires.
 
-Changes made via Lovable will be committed automatically to this repo.
+### 🆘 Emergency Resources
+-   **Emergency Contacts**: One-tap access to essential phone numbers.
+-   **Manuals & Guides**: Offline-capable resources for emergency preparedness.
 
-**Use your preferred IDE**
+## Technology Stack
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+This project is built with modern web technologies:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+-   **Frontend**: React (Vite), TypeScript
+-   **Styling**: Tailwind CSS, shadcn/ui
+-   **Backend / Realtime**: Supabase
+-   **Map**: Leaflet / React-Leaflet
 
-Follow these steps:
+## Getting Started
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+To run this project locally:
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+1.  **Clone the repository**
+    ```sh
+    git clone <YOUR_GIT_URL>
+    cd d-mind-ai
+    ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+2.  **Install dependencies**
+    ```sh
+    npm install
+    ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+3.  **Start the development server**
+    ```sh
+    npm run dev
+    ```
 
-**Edit a file directly in GitHub**
+## Project Structure
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+-   `src/components/layout/MobileLayout.tsx`: The main wrapper for the mobile view.
+-   `src/components/notifications/NotificationManager.tsx`: Handles real-time subscriptions and alerts.
+-   `src/pages`: Contains the individual route components.
 
-**Use GitHub Codespaces**
+## Deployment
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/3dbe0d54-4a5d-4127-9cc4-76a44ad44e5e) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This project is ready for deployment on platforms like Vercel or Netlify. Ensure you configured your Supabase environment variables correctly.

@@ -5,20 +5,23 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Loader2, BarChart3, PieChart, TrendingUp, ArrowLeft, Home } from 'lucide-react';
+import { Loader2, BarChart3, TrendingUp, ArrowLeft, Home } from 'lucide-react';
 import DashboardChart from '@/components/analytics/DashboardChart';
 import MetricsOverview from '@/components/analytics/MetricsOverview';
+import HistoricalChart from '@/components/analytics/HistoricalChart';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Analytics: React.FC = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const { processedData, activeAlerts, incidentReports, disasterStats, isLoading } = useAnalytics();
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600">กำลังโหลดข้อมูลสถิติ...</p>
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-600" />
+          <p className="text-gray-600 dark:text-gray-400">กำลังโหลดข้อมูลสถิติ...</p>
         </div>
       </div>
     );
@@ -41,7 +44,7 @@ const Analytics: React.FC = () => {
   }));
 
   const provinceData = Object.entries(processedData.provinceStats)
-    .sort(([,a], [,b]) => (b as number) - (a as number))
+    .sort(([, a], [, b]) => (b as number) - (a as number))
     .slice(0, 10)
     .map(([name, value]) => ({
       name: name,
@@ -49,11 +52,64 @@ const Analytics: React.FC = () => {
     }));
 
   const statusData = Object.entries(processedData.incidentStatus).map(([name, value]) => ({
-    name: name === 'pending' ? 'รอดำเนินการ' : 
-          name === 'in_progress' ? 'กำลังดำเนินการ' : 
-          name === 'resolved' ? 'แก้ไขแล้ว' : name,
+    name: name === 'pending' ? 'รอดำเนินการ' :
+      name === 'in_progress' ? 'กำลังดำเนินการ' :
+        name === 'resolved' ? 'แก้ไขแล้ว' : name,
     value: value as number
   }));
+
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 pb-24">
+        {/* Modern Header */}
+        <header className="bg-gradient-to-r from-purple-500 via-violet-500 to-indigo-500 text-white pt-6 pb-8 px-5 rounded-b-3xl shadow-xl">
+          <div className="flex items-center gap-3 mb-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white/90 hover:bg-white/20 rounded-xl"
+              onClick={() => navigate('/')}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex items-center gap-3">
+              <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+                <BarChart3 className="h-5 w-5" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold">Dashboard Analytics</h1>
+                <p className="text-white/70 text-xs">ภาพรวมและสถิติระบบ</p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Content */}
+        <div className="px-4 pt-5 space-y-4">
+          {/* Metrics Overview */}
+          <MetricsOverview
+            activeAlerts={activeAlerts}
+            incidentReports={incidentReports}
+            disasterStats={disasterStats}
+          />
+
+          {/* Charts */}
+          <DashboardChart
+            title="การแจ้งเตือนตามระดับความรุนแรง"
+            description="จำนวนการแจ้งเตือนที่ใช้งานอยู่"
+            data={severityData}
+            type="pie"
+          />
+          <DashboardChart
+            title="ประเภทภัยพิบัติ"
+            description="การแบ่งตามประเภท"
+            data={disasterTypeData}
+            type="bar"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -64,8 +120,8 @@ const Analytics: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard Analytics</h1>
             <p className="text-gray-600">ภาพรวมและสถิติระบบติดตามภัยพิบัติ</p>
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => navigate('/')}
             className="flex items-center gap-2 hover:bg-blue-50"
           >
@@ -76,7 +132,7 @@ const Analytics: React.FC = () => {
 
         {/* Metrics Overview */}
         <div className="mb-8">
-          <MetricsOverview 
+          <MetricsOverview
             activeAlerts={activeAlerts}
             incidentReports={incidentReports}
             disasterStats={disasterStats}
@@ -85,11 +141,12 @@ const Analytics: React.FC = () => {
 
         {/* Charts Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full lg:w-[600px] grid-cols-4">
+          <TabsList className="grid w-full lg:w-[750px] grid-cols-5">
             <TabsTrigger value="overview">ภาพรวม</TabsTrigger>
             <TabsTrigger value="disasters">ภัยพิบัติ</TabsTrigger>
             <TabsTrigger value="incidents">เหตุการณ์</TabsTrigger>
             <TabsTrigger value="geography">พื้นที่</TabsTrigger>
+            <TabsTrigger value="history">ประวัติ</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -176,6 +233,10 @@ const Analytics: React.FC = () => {
               type="bar"
               height={400}
             />
+          </TabsContent>
+
+          <TabsContent value="history" className="space-y-6">
+            <HistoricalChart />
           </TabsContent>
         </Tabs>
       </div>

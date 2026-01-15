@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { DisasterType } from './DisasterMap';
+import { DisasterType } from './types';
 
 interface MapOverlaysProps {
   selectedType: DisasterType;
@@ -26,7 +26,7 @@ export const MapOverlays: React.FC<MapOverlaysProps> = ({ selectedType, isLoadin
 
   const renderLoading = () => {
     if (!isLoading) return null;
-    
+
     return (
       <div className="absolute inset-0 bg-white bg-opacity-70 flex items-center justify-center z-[1000]">
         <div className="text-center">

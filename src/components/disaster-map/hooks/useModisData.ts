@@ -7,14 +7,14 @@ export const useModisData = () => {
     queryKey: ['gistda-modis'],
     queryFn: async () => {
       console.log('Fetching GISTDA MODIS data...');
-      
+
       const response = await fetch(`https://disaster.gistda.or.th/api/1.0/documents/fire/hotspot/modis/3days?limit=1000&offset=0`, {
         headers: {
           'accept': 'application/json',
-          'API-Key': 'JMGZneff56qsmjWKbyYdYBUbTx8zHHOChXTD1Ogl8jmrEgnHbXiH3H5QvQwN3yg1'
+          'API-Key': import.meta.env.VITE_GISTDA_FIRE_API_KEY || ''
         }
       });
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch GISTDA MODIS data: ${response.status}`);
       }

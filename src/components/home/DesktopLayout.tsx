@@ -25,7 +25,7 @@ const DesktopLayout: React.FC = () => {
     window.open('https://line.me/ti/p/@yourbotid', '_blank');
   };
   const handleDisasterMapClick = () => {
-    navigate('/disaster-map');
+    navigate('/risk-zones');
   };
 
   if (isMobile) {
@@ -53,9 +53,9 @@ const DesktopLayout: React.FC = () => {
               <CardHeader className="pb-4">
                 <div className="flex items-center space-x-3">
                   <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-3 rounded-xl shadow-lg">
-                    <img 
-                      src="/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png" 
-                      alt="D-MIND Logo" 
+                    <img
+                      src="/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png"
+                      alt="D-MIND Logo"
                       className="h-8 w-8"
                     />
                   </div>
@@ -70,8 +70,8 @@ const DesktopLayout: React.FC = () => {
                   <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
                   <span className="text-sm font-medium">System Online</span>
                 </div>
-                
-                <NavBar 
+
+                <NavBar
                   onAssistantClick={handleAssistantClick}
                   onManualClick={handleManualClick}
                   onContactsClick={handleContactsClick}
@@ -80,16 +80,16 @@ const DesktopLayout: React.FC = () => {
 
                 {/* Additional Navigation */}
                 <div className="space-y-2 pt-4 border-t">
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className="w-full justify-start"
                     onClick={handleAnalyticsClick}
                   >
                     <BarChart3 className="mr-2 h-4 w-4" />
                     Dashboard Analytics
                   </Button>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className="w-full justify-start"
                     onClick={handleNotificationsClick}
                   >
@@ -131,7 +131,7 @@ const DesktopLayout: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card className="bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow border-0">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -143,7 +143,7 @@ const DesktopLayout: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card className="bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow border-0">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -168,13 +168,13 @@ const DesktopLayout: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button 
+                  <Button
                     className="w-full bg-red-600 hover:bg-red-700 text-white"
                     onClick={handleVictimReportsClick}
                   >
                     รายงานผู้ประสบภัย
                   </Button>
-                  <Button 
+                  <Button
                     className="w-full bg-orange-600 hover:bg-orange-700 text-white"
                     onClick={handleIncidentReportsClick}
                   >
@@ -198,7 +198,7 @@ const DesktopLayout: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Button 
+                  <Button
                     className="w-full bg-gray-400 hover:bg-gray-400 text-white cursor-not-allowed"
                     disabled
                   >
@@ -217,7 +217,7 @@ const DesktopLayout: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Button 
+                  <Button
                     className="w-full bg-purple-600 hover:bg-purple-700 text-white"
                     onClick={handleDisasterMapClick}
                   >
@@ -236,7 +236,7 @@ const DesktopLayout: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Button 
+                  <Button
                     className="w-full bg-green-600 hover:bg-green-700 text-white"
                     onClick={handleNotificationsClick}
                   >
@@ -264,7 +264,7 @@ const DesktopLayout: React.FC = () => {
                     </div>
                     <Badge variant="outline" className="text-yellow-600">ปานกลาง</Badge>
                   </div>
-                  
+
                   <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
                     <div className="flex items-center space-x-3">
                       <Map className="h-4 w-4 text-blue-600" />

@@ -22,7 +22,7 @@ export const useEnhancedNotifications = () => {
     radius_km: 50,
     severity_threshold: 3
   });
-  
+
   const { sendNotification } = useNotifications();
   const { coordinates } = useGeolocation();
   const queryClient = useQueryClient();
@@ -93,7 +93,7 @@ export const useEnhancedNotifications = () => {
         },
         (payload) => {
           const alert = payload.new as any;
-          
+
           // Check if user is within alert radius
           if (coordinates && alert.coordinates) {
             const distance = calculateDistance(
@@ -146,9 +146,13 @@ export const useEnhancedNotifications = () => {
   // Auto-save location when coordinates change
   useEffect(() => {
     if (coordinates) {
-      saveLocationMutation.mutate(coordinates);
+      // Only save if coordinates have meaningful values
+      if (coordinates.lat !== 0 && coordinates.lng !== 0) {
+        saveLocationMutation.mutate(coordinates);
+      }
     }
-  }, [coordinates]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coordinates?.lat, coordinates?.lng]);
 
   const updatePreferences = useCallback((newPreferences: Partial<NotificationPreferences>) => {
     setPreferences(prev => ({ ...prev, ...newPreferences }));
@@ -178,9 +182,9 @@ const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: numbe
   const R = 6371; // Earth's radius in kilometers
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLng/2) * Math.sin(dLng/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 };

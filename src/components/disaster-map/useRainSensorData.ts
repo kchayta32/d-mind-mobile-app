@@ -31,14 +31,12 @@ export const useRainSensorData = (timeFilter: string = 'realtime') => {
   const { data: sensorData, isLoading, error, refetch } = useQuery({
     queryKey: ['rain-sensors', timeFilter],
     queryFn: async () => {
-      console.log('Fetching rain sensor data with filter:', timeFilter);
-      
       const dateFilter = getDateFilter();
-      
+
       let query = supabase
         .from('from_rain_sensor')
         .select('*');
-      
+
       // Apply time filter
       if (timeFilter !== 'realtime') {
         query = query.gte('inserted_at', dateFilter.toISOString());
@@ -46,7 +44,7 @@ export const useRainSensorData = (timeFilter: string = 'realtime') => {
         // For realtime, get recent data from last 24 hours
         query = query.gte('inserted_at', dateFilter.toISOString());
       }
-      
+
       const { data, error } = await query.order('inserted_at', { ascending: false });
 
       if (error) {
@@ -54,7 +52,6 @@ export const useRainSensorData = (timeFilter: string = 'realtime') => {
         throw error;
       }
 
-      console.log('Rain sensor data fetched:', data?.length || 0, 'records');
       return data || [];
     },
     refetchInterval: timeFilter === 'realtime' ? 30000 : 60000,
@@ -62,8 +59,6 @@ export const useRainSensorData = (timeFilter: string = 'realtime') => {
 
   useEffect(() => {
     if (sensorData && Array.isArray(sensorData)) {
-      console.log('Processing rain sensor data:', sensorData.length, 'records');
-      
       // Transform the data to include coordinates
       const transformedSensors: RainSensor[] = sensorData.map((sensor) => {
         // Use actual coordinates if available, otherwise skip this sensor
@@ -82,14 +77,13 @@ export const useRainSensorData = (timeFilter: string = 'realtime') => {
         return null;
       }).filter(Boolean) as RainSensor[];
 
-      console.log('Transformed sensors:', transformedSensors.length);
       setSensors(transformedSensors);
 
       // Calculate statistics
       const now = new Date();
       const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-      const recentSensors = transformedSensors.filter(sensor => 
+      const recentSensors = transformedSensors.filter(sensor =>
         sensor.inserted_at && new Date(sensor.inserted_at) >= last24Hours
       );
 
@@ -97,13 +91,13 @@ export const useRainSensorData = (timeFilter: string = 'realtime') => {
       const humidityValues = transformedSensors
         .filter(sensor => sensor.humidity !== null && sensor.humidity !== undefined)
         .map(sensor => sensor.humidity!);
-      
-      const averageHumidity = humidityValues.length > 0 
-        ? humidityValues.reduce((sum, h) => sum + h, 0) / humidityValues.length 
+
+      const averageHumidity = humidityValues.length > 0
+        ? humidityValues.reduce((sum, h) => sum + h, 0) / humidityValues.length
         : 0;
-      
-      const maxHumidity = humidityValues.length > 0 
-        ? Math.max(...humidityValues) 
+
+      const maxHumidity = humidityValues.length > 0
+        ? Math.max(...humidityValues)
         : 0;
 
       const newStats = {
@@ -114,10 +108,8 @@ export const useRainSensorData = (timeFilter: string = 'realtime') => {
         last24Hours: recentSensors.length
       };
 
-      console.log('Calculated stats:', newStats);
       setStats(newStats);
     } else {
-      console.log('No sensor data or invalid data format');
       setSensors([]);
       setStats({
         total: 0,

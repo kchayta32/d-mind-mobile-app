@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Marker, Popup } from 'react-leaflet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Mountain, Calendar, MapPin, AlertTriangle, Images } from 'lucide-react';
-import L from 'leaflet';
+import { MapLibreMarker } from './maplibre/MapLibreMarker';
 
 interface SinkholeData {
   id: string;
@@ -26,45 +25,8 @@ interface SinkholeMarkerProps {
   sinkhole: SinkholeData;
 }
 
-// Custom icon for sinkhole markers
-const sinkholeIcon = new L.DivIcon({
-  html: `
-    <div style="
-      background: linear-gradient(135deg, #D97706, #F59E0B);
-      border: 3px solid white;
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      position: relative;
-    ">
-      <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
-        <path d="M5 21h14l-7-12L5 21z"/>
-        <circle cx="12" cy="17" r="1"/>
-        <path d="M12 13v2"/>
-      </svg>
-      <div style="
-        position: absolute;
-        top: -8px;
-        right: -8px;
-        background: #EF4444;
-        border: 2px solid white;
-        border-radius: 50%;
-        width: 12px;
-        height: 12px;
-      "></div>
-    </div>
-  `,
-  className: 'sinkhole-marker',
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor: [0, -32],
-});
-
 const SinkholeMarker: React.FC<SinkholeMarkerProps> = ({ sinkhole }) => {
+  const [showPopup, setShowPopup] = useState(false);
   const [showImageDialog, setShowImageDialog] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
@@ -119,71 +81,112 @@ const SinkholeMarker: React.FC<SinkholeMarkerProps> = ({ sinkhole }) => {
 
   const allImages = [sinkhole.mainImage, ...sinkhole.additionalImages];
 
+  const PopupContent = (
+    <div className="space-y-3 p-2 min-w-[280px]">
+      {/* Header */}
+      <div className="flex items-start gap-2">
+        <Mountain className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+        <div className="flex-1">
+          <h3 className="font-semibold text-sm mb-1">{sinkhole.title}</h3>
+          <Badge variant={getSeverityColor(sinkhole.severity)} className="text-xs">
+            {getSeverityText(sinkhole.severity)}
+          </Badge>
+        </div>
+      </div>
+
+      {/* Main Image */}
+      <div className="relative">
+        <img
+          src={sinkhole.mainImage}
+          alt={sinkhole.title}
+          className="w-full h-32 object-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowImageDialog(true);
+          }}
+        />
+        {sinkhole.additionalImages.length > 0 && (
+          <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
+            <Images className="w-3 h-3" />
+            +{sinkhole.additionalImages.length}
+          </div>
+        )}
+      </div>
+
+      {/* Details */}
+      <div className="space-y-2 text-xs">
+        <div className="flex items-center gap-2">
+          <MapPin className="w-3 h-3 text-gray-500" />
+          <span className="text-gray-700">{sinkhole.location}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Calendar className="w-3 h-3 text-gray-500" />
+          <span className="text-gray-700">{sinkhole.date}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="w-3 h-3 text-gray-500" />
+          <span className="text-gray-700">ขนาด: {sinkhole.estimatedSize}</span>
+        </div>
+      </div>
+
+      <p className="text-xs text-gray-600 line-clamp-3">
+        {sinkhole.description}
+      </p>
+    </div>
+  );
+
   return (
     <>
-      <Marker position={[sinkhole.latitude, sinkhole.longitude]} icon={sinkholeIcon}>
-        <Popup maxWidth={300} className="sinkhole-popup">
-          <div className="space-y-3 p-2">
-            {/* Header */}
-            <div className="flex items-start gap-2">
-              <Mountain className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="font-semibold text-sm mb-1">{sinkhole.title}</h3>
-                <Badge variant={getSeverityColor(sinkhole.severity)} className="text-xs">
-                  {getSeverityText(sinkhole.severity)}
-                </Badge>
-              </div>
-            </div>
-
-            {/* Main Image */}
-            <div className="relative">
-              <img
-                src={sinkhole.mainImage}
-                alt={sinkhole.title}
-                className="w-full h-32 object-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => setShowImageDialog(true)}
-              />
-              {sinkhole.additionalImages.length > 0 && (
-                <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
-                  <Images className="w-3 h-3" />
-                  +{sinkhole.additionalImages.length}
-                </div>
-              )}
-            </div>
-
-            {/* Details */}
-            <div className="space-y-2 text-xs">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-3 h-3 text-gray-500" />
-                <span className="text-gray-700">{sinkhole.location}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="w-3 h-3 text-gray-500" />
-                <span className="text-gray-700">{sinkhole.date}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-3 h-3 text-gray-500" />
-                <span className="text-gray-700">ขนาด: {sinkhole.estimatedSize}</span>
-              </div>
-            </div>
-
-            <p className="text-xs text-gray-600 line-clamp-3">
-              {sinkhole.description}
-            </p>
-          </div>
-        </Popup>
-      </Marker>
+      <MapLibreMarker
+        latitude={sinkhole.latitude}
+        longitude={sinkhole.longitude}
+        showPopup={showPopup}
+        popupContent={PopupContent}
+        onClosePopup={() => setShowPopup(false)}
+        onClick={() => setShowPopup(!showPopup)}
+        className="cursor-pointer"
+      >
+        <div className="sinkhole-marker" style={{
+          background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 50%, #B45309 100%)',
+          border: '3px solid white',
+          borderRadius: '50%',
+          width: '34px',
+          height: '34px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 4px 14px rgba(217, 119, 6, 0.5), 0 0 0 4px rgba(217, 119, 6, 0.2)',
+          position: 'relative'
+        }}>
+          <svg width="18" height="18" fill="white" viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}>
+            <path d="M5 21h14l-7-12L5 21z" />
+            <circle cx="12" cy="17" r="1" />
+            <path d="M12 13v2" />
+          </svg>
+          <div style={{
+            position: 'absolute',
+            top: '-6px',
+            right: '-6px',
+            background: 'linear-gradient(135deg, #EF4444, #DC2626)',
+            border: '2px solid white',
+            borderRadius: '50%',
+            width: '14px',
+            height: '14px',
+            boxShadow: '0 2px 6px rgba(239, 68, 68, 0.5)'
+          }}></div>
+        </div>
+      </MapLibreMarker>
 
       {/* Image Gallery Modal */}
       {showImageDialog && (
         <>
           {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/40" 
+          <div
+            className="fixed inset-0 bg-black/40"
             style={{ zIndex: 9998 }}
             onClick={closeModal}
           />
-          
+
           {/* Modal Panel */}
           <div className="fixed inset-0 flex items-start justify-center p-4 md:p-6" style={{ zIndex: 9999 }}>
             <div
@@ -212,10 +215,10 @@ const SinkholeMarker: React.FC<SinkholeMarkerProps> = ({ sinkhole }) => {
 
                 {/* Main Image */}
                 <div className="aspect-video h-56 md:h-72 w-full overflow-hidden rounded-xl mb-4">
-                  <img 
-                    src={allImages[selectedImageIndex]} 
+                  <img
+                    src={allImages[selectedImageIndex]}
                     alt={`รูปภาพเหตุการณ์ ${selectedImageIndex + 1}`}
-                    className="h-full w-full object-cover" 
+                    className="h-full w-full object-cover"
                   />
                 </div>
 
@@ -225,17 +228,16 @@ const SinkholeMarker: React.FC<SinkholeMarkerProps> = ({ sinkhole }) => {
                     {allImages.map((image, index) => (
                       <button
                         key={index}
-                        className={`h-20 overflow-hidden rounded-lg ring-1 transition-all ${
-                          selectedImageIndex === index 
-                            ? 'ring-2 ring-amber-500' 
-                            : 'ring-black/10 hover:ring-amber-300'
-                        }`}
+                        className={`h-20 overflow-hidden rounded-lg ring-1 transition-all ${selectedImageIndex === index
+                          ? 'ring-2 ring-amber-500'
+                          : 'ring-black/10 hover:ring-amber-300'
+                          }`}
                         onClick={() => setSelectedImageIndex(index)}
                       >
-                        <img 
-                          src={image} 
+                        <img
+                          src={image}
                           alt={`รูปย่อ ${index + 1}`}
-                          className="h-full w-full object-cover" 
+                          className="h-full w-full object-cover"
                         />
                       </button>
                     ))}
@@ -276,7 +278,7 @@ const SinkholeMarker: React.FC<SinkholeMarkerProps> = ({ sinkhole }) => {
 
                 {/* Action Button */}
                 <div className="flex justify-end">
-                  <Button 
+                  <Button
                     className="bg-amber-600 hover:bg-amber-700 text-white"
                     onClick={closeModal}
                   >
@@ -292,4 +294,4 @@ const SinkholeMarker: React.FC<SinkholeMarkerProps> = ({ sinkhole }) => {
   );
 };
 
-export default SinkholeMarker;
+export default React.memo(SinkholeMarker);

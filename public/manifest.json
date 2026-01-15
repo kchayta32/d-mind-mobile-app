@@ -1,0 +1,26 @@
+{
+    "name": "D-MIND Disaster Monitor",
+    "short_name": "D-MIND",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#3b82f6",
+    "description": "Intelligent Disaster Monitoring and Alert System",
+    "icons": [
+        {
+            "src": "/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "orientation": "portrait",
+    "categories": [
+        "education",
+        "weather"
+    ]
+}

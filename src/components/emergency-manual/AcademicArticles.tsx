@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Download, ChevronDown } from 'lucide-react';
@@ -151,8 +150,8 @@ const AcademicArticles: React.FC = () => {
 
   const years = ['2560', '2561', '2562', '2563', '2564', '2565', '2566', '2567', '2568'];
 
-  const filteredArticles = selectedYear === 'all' 
-    ? academicArticles 
+  const filteredArticles = selectedYear === 'all'
+    ? academicArticles
     : academicArticles.filter(article => article.year.toString() === selectedYear);
 
   const handleDownload = (url: string, filename: string) => {
@@ -166,10 +165,10 @@ const AcademicArticles: React.FC = () => {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
-              <Download className="w-4 h-4" />
-              Download Article
-              <ChevronDown className="w-4 h-4" />
+            <Button variant="outline" size="sm" className="flex items-center gap-1 text-xs h-7 px-2">
+              <Download className="w-3 h-3" />
+              <span className="hidden sm:inline">Download</span>
+              <ChevronDown className="w-3 h-3" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -203,48 +202,68 @@ const AcademicArticles: React.FC = () => {
     }
 
     return (
-      <Button 
-        variant="outline" 
-        size="sm" 
+      <Button
+        variant="outline"
+        size="sm"
         onClick={() => handleDownload(article.url!, 'article')}
-        className="flex items-center gap-2"
+        className="flex items-center gap-1 text-xs h-7 px-2"
       >
-        <Download className="w-4 h-4" />
-        View Article
+        <Download className="w-3 h-3" />
+        <span className="hidden sm:inline">View</span> Article
       </Button>
     );
   };
 
   return (
-    <div className="space-y-4">
-      {/* Year Filter */}
-      <div className="flex items-center gap-4 mb-6">
-        <label className="text-sm font-medium text-gray-700">กรองตามปี:</label>
-        <Select value={selectedYear} onValueChange={setSelectedYear}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="เลือกปี" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">ทุกปี</SelectItem>
-            {years.map((year) => (
-              <SelectItem key={year} value={year}>พ.ศ. {year}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className="space-y-3">
+      {/* Compact Year Filter Pills */}
+      <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-2 shadow-sm border border-gray-100 dark:border-slate-700">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap px-1">ปี:</span>
+          <button
+            onClick={() => setSelectedYear('all')}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-300 transform hover:scale-105 ${selectedYear === 'all'
+              ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md shadow-blue-500/30'
+              : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+              }`}
+          >
+            ทั้งหมด
+          </button>
+          {years.slice().reverse().map((year) => (
+            <button
+              key={year}
+              onClick={() => setSelectedYear(year)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-300 transform hover:scale-105 ${selectedYear === year
+                ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md shadow-blue-500/30'
+                : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+                }`}
+            >
+              {year}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center justify-between mt-1.5 px-1">
+          <span className="text-[10px] text-gray-400">กำลังแสดง</span>
+          <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400">
+            บทความ{selectedYear === 'all' ? 'ทั้งหมด' : `ปี ${selectedYear}`}
+          </span>
+        </div>
       </div>
 
       {/* Articles List */}
       <div className="space-y-4">
         {filteredArticles.map((article) => (
           <Card key={article.id} className="overflow-hidden hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex justify-between items-start mb-2">
-                <h2 className="text-lg font-bold text-blue-700 flex-1 mr-4">
+            <CardContent className="p-3">
+              <div className="flex flex-col gap-2 mb-2">
+                <h2 className="text-sm font-bold text-blue-700 leading-snug">
                   {article.title}
                 </h2>
-                <DownloadButton article={article} />
+                <div className="self-start">
+                  <DownloadButton article={article} />
+                </div>
               </div>
-              
+
               <div className="mb-2 space-y-1">
                 <p className="text-sm text-gray-600">
                   <strong>ผู้เขียน:</strong> {article.authors}
@@ -258,16 +277,16 @@ const AcademicArticles: React.FC = () => {
                   </p>
                 )}
                 {article.url && (
-                  <p className="text-sm text-gray-600">
-                    <strong>URL:</strong> <a href={article.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{article.url}</a>
+                  <p className="text-xs text-gray-600 break-all">
+                    <strong>URL:</strong> <a href={article.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{article.url.length > 50 ? article.url.substring(0, 50) + '...' : article.url}</a>
                   </p>
                 )}
               </div>
-              
+
               <div className="inline-block bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs mb-3">
                 {article.category}
               </div>
-              
+
               <p className="text-sm text-gray-700 leading-relaxed">
                 <strong>บทคัดย่อ:</strong> {article.abstract}
               </p>
@@ -276,12 +295,14 @@ const AcademicArticles: React.FC = () => {
         ))}
       </div>
 
-      {filteredArticles.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          ไม่พบบทความในปีที่เลือก
-        </div>
-      )}
-    </div>
+      {
+        filteredArticles.length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            ไม่พบบทความในปีที่เลือก
+          </div>
+        )
+      }
+    </div >
   );
 };
 

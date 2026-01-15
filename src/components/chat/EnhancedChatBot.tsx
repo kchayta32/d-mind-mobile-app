@@ -124,7 +124,7 @@ const EnhancedChatBot: React.FC<EnhancedChatBotProps> = ({ className }) => {
 
   const handleSendMessage = async (e: React.FormEvent, questionText?: string) => {
     e.preventDefault();
-    
+
     const messageText = questionText || message;
     if (!messageText.trim()) return;
 
@@ -135,11 +135,11 @@ const EnhancedChatBot: React.FC<EnhancedChatBotProps> = ({ className }) => {
       sender: 'user',
       timestamp: new Date()
     };
-    
+
     setMessages(prev => [...prev, userMessage]);
     setMessage('');
     setIsLoading(true);
-    
+
     try {
       // สร้างประวัติการแชทในรูปแบบที่ OpenAI ต้องการ
       const chatHistory = messages.slice(1).map(msg => ({
@@ -175,10 +175,10 @@ const EnhancedChatBot: React.FC<EnhancedChatBotProps> = ({ className }) => {
       if (isVoiceMode) {
         speakText(data.response);
       }
-      
+
     } catch (error) {
       console.error('Error calling AI:', error);
-      
+
       toast({
         title: "ขออภัย",
         description: "เกิดข้อผิดพลาดในการเรียกใช้ AI กรุณาลองอีกครั้ง",
@@ -190,75 +190,93 @@ const EnhancedChatBot: React.FC<EnhancedChatBotProps> = ({ className }) => {
   };
 
   return (
-    <Card className={`w-full shadow-lg ${className}`}>
-      <CardHeader className="pb-2 bg-gradient-to-r from-blue-50 to-purple-50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-lg">👨‍⚕️</span>
+    <Card className={`w-full flex flex-col overflow-hidden ${className}`}>
+      {/* Enhanced Header with Gradient */}
+      <CardHeader className="py-3 px-4 bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 flex-none relative overflow-hidden">
+        {/* Decorative circles */}
+        <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+        <div className="absolute -left-4 -bottom-4 w-16 h-16 bg-white/5 rounded-full blur-lg"></div>
+
+        <div className="flex items-center justify-between relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg border border-white/30">
+              <span className="text-xl">👨‍⚕️</span>
             </div>
             <div>
-              <CardTitle className="text-lg font-medium text-gray-800">Dr.Mind - ผู้เชี่ยวชาญฉุกเฉิน</CardTitle>
-              <p className="text-sm text-gray-600">ภัยธรรมชาติ & แพทย์ฉุกเฉิน</p>
+              <CardTitle className="text-base font-semibold text-white drop-shadow-sm">Dr.Mind - ผู้เชี่ยวชาญฉุกเฉิน</CardTitle>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                <p className="text-xs text-white/80">ภัยธรรมชาติ & แพทย์ฉุกเฉิน</p>
+              </div>
             </div>
           </div>
-          <div className="flex space-x-2">
-            <Button
-              variant={isVoiceMode ? "default" : "outline"}
-              size="sm"
-              onClick={() => setIsVoiceMode(!isVoiceMode)}
-              className="text-xs"
-            >
-              <Volume2 className="w-4 h-4 mr-1" />
-              เสียง
-            </Button>
-          </div>
+          <Button
+            variant={isVoiceMode ? "default" : "outline"}
+            size="sm"
+            onClick={() => setIsVoiceMode(!isVoiceMode)}
+            className={`text-[10px] h-8 px-3 rounded-full transition-all duration-200 ${isVoiceMode
+              ? 'bg-white text-blue-600 hover:bg-blue-50 shadow-md'
+              : 'bg-white/20 text-white border-white/30 hover:bg-white/30 backdrop-blur-sm'
+              }`}
+          >
+            <Volume2 className="w-3.5 h-3.5 mr-1.5" />
+            เสียง
+          </Button>
         </div>
       </CardHeader>
 
-      {/* Frequent Questions - Scrollable */}
-      <div className="px-4 py-3 bg-gray-50 border-b">
-        <p className="text-sm font-medium text-gray-700 mb-2">💡 คำถามที่พบบ่อย</p>
-        <ScrollArea className="w-full">
-          <div className="flex space-x-3 pb-2">
+      {/* Frequent Questions - Horizontal Scroll */}
+      <div className="px-3 py-2.5 bg-gradient-to-b from-blue-50/80 to-white border-b border-blue-100/50 flex-none">
+        <p className="text-[11px] font-medium text-gray-600 mb-2 flex items-center gap-1.5">
+          <span className="text-amber-500">💡</span> คำถามที่พบบ่อย
+        </p>
+        {/* Horizontal scrollable container */}
+        <div
+          className="overflow-x-auto scrollbar-hide pb-1"
+          style={{
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
+          }}
+        >
+          <div className="flex gap-2 w-max">
             {frequentQuestions.map((question, index) => (
               <Button
                 key={index}
                 variant="outline"
                 size="sm"
-                className="whitespace-nowrap bg-white hover:bg-blue-50 border-blue-200 text-blue-700 rounded-full px-4 py-2 text-xs"
+                className="whitespace-nowrap flex-shrink-0 bg-white hover:bg-blue-50 active:bg-blue-100 border-blue-200 hover:border-blue-300 text-blue-700 rounded-full px-3 py-1.5 text-[11px] h-7 shadow-sm hover:shadow transition-all duration-150"
                 onClick={() => handleQuestionSelect(question)}
               >
                 {question}
               </Button>
             ))}
           </div>
-        </ScrollArea>
+        </div>
       </div>
 
-      <CardContent className="p-0 flex flex-col h-96">
+      <CardContent className="p-0 flex flex-col flex-1 min-h-0">
         {/* Messages */}
-        <ScrollArea className="flex-1 p-4">
+        <ScrollArea className="flex-1 p-4 bg-gradient-to-b from-slate-50/50 to-white">
           <div className="space-y-4">
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in-0 slide-in-from-bottom-2 duration-300`}
               >
                 <div
-                  className={`px-4 py-3 rounded-2xl max-w-[80%] ${
-                    msg.sender === 'user'
-                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-br-md'
-                      : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 rounded-bl-md border'
-                  }`}
+                  className={`px-4 py-3 rounded-2xl max-w-[85%] shadow-sm ${msg.sender === 'user'
+                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-br-sm'
+                    : 'bg-white text-gray-800 rounded-bl-sm border border-gray-100 shadow-md'
+                    }`}
                 >
                   {msg.sender === 'assistant' && (
-                    <div className="flex items-center mb-2">
-                      <span className="text-lg mr-2">👨‍⚕️</span>
-                      <span className="font-semibold text-blue-600">Dr.Mind</span>
+                    <div className="flex items-center mb-2 pb-1.5 border-b border-gray-100">
+                      <span className="text-sm mr-1.5">👨‍⚕️</span>
+                      <span className="font-semibold text-blue-600 text-xs">Dr.Mind</span>
                     </div>
                   )}
-                  <div 
+                  <div
                     className="text-sm whitespace-pre-wrap leading-relaxed"
                     dangerouslySetInnerHTML={{
                       __html: sanitizeAndParseMarkdown(msg.content)
@@ -268,15 +286,20 @@ const EnhancedChatBot: React.FC<EnhancedChatBotProps> = ({ className }) => {
               </div>
             ))}
             {isLoading && (
-              <div className="flex justify-start">
-                <div className="px-4 py-3 rounded-2xl bg-gray-100 border rounded-bl-md">
-                  <div className="flex items-center">
-                    <span className="text-lg mr-2">👨‍⚕️</span>
-                    <span className="font-semibold text-blue-600 mr-2">Dr.Mind</span>
+              <div className="flex justify-start animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
+                <div className="px-4 py-3 rounded-2xl bg-white border border-gray-100 rounded-bl-sm shadow-md">
+                  <div className="flex items-center mb-2 pb-1.5 border-b border-gray-100">
+                    <span className="text-sm mr-1.5">👨‍⚕️</span>
+                    <span className="font-semibold text-blue-600 text-xs">Dr.Mind</span>
                   </div>
-                  <div className="flex items-center mt-2">
-                    <Loader2 size={16} className="animate-spin mr-2 text-blue-500" />
-                    <span className="text-sm text-gray-600">กำลังพิมพ์...</span>
+                  <div className="flex items-center gap-2">
+                    <Loader2 size={14} className="animate-spin text-blue-500" />
+                    <span className="text-sm text-gray-500">กำลังพิมพ์...</span>
+                    <div className="flex gap-0.5">
+                      <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                      <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                      <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -286,13 +309,13 @@ const EnhancedChatBot: React.FC<EnhancedChatBotProps> = ({ className }) => {
         </ScrollArea>
 
         {/* Input */}
-        <div className="p-4 border-t bg-white">
+        <div className="p-3 border-t border-gray-100 bg-white/80 backdrop-blur-sm flex-none pb-safe">
           <form onSubmit={handleSendMessage} className="flex gap-2">
             <Input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="ถามคำถามเกี่ยวกับภัยพิบัติหรือการปฐมพยาบาล..."
-              className="flex-1"
+              placeholder="ถามคำถามเกี่ยวกับภัยพิบัติ..."
+              className="flex-1 h-10 text-sm rounded-full px-4 bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all duration-200"
               disabled={isLoading}
             />
             <Button
@@ -301,21 +324,25 @@ const EnhancedChatBot: React.FC<EnhancedChatBotProps> = ({ className }) => {
               size="icon"
               onClick={toggleVoiceListening}
               disabled={isLoading}
-              className={isListening ? 'bg-red-100 border-red-300' : ''}
+              className={`h-10 w-10 rounded-full transition-all duration-200 ${isListening
+                  ? 'bg-red-50 border-red-300 text-red-600 animate-pulse'
+                  : 'hover:bg-gray-100 border-gray-200'
+                }`}
             >
-              {isListening ? <MicOff className="w-4 h-4 text-red-600" /> : <Mic className="w-4 h-4" />}
+              {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4 text-gray-600" />}
             </Button>
-            <Button 
-              type="submit" 
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-              disabled={isLoading}
+            <Button
+              type="submit"
+              className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
+              size="icon"
+              disabled={isLoading || !message.trim()}
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </Button>
           </form>
         </div>
       </CardContent>
-    </Card>
+    </Card >
   );
 };
 

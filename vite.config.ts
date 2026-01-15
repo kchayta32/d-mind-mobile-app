@@ -17,6 +17,21 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "react-map-gl": path.resolve(__dirname, "./node_modules/react-map-gl/dist/maplibre.js"),
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Separate maplibre-gl into its own chunk
+          'maplibre': ['maplibre-gl'],
+          // Separate react-map-gl into its own chunk
+          'react-map-gl': ['react-map-gl'],
+          // Separate recharts (charting library)
+          'recharts': ['recharts'],
+        },
+      },
     },
   },
 }));

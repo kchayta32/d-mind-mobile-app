@@ -1,7 +1,5 @@
-
-import { useEffect } from 'react';
-import { useMap } from 'react-leaflet';
-import L from 'leaflet';
+import React from 'react';
+import { Source, Layer } from 'react-map-gl';
 
 interface FloodWMSLayersProps {
   timeFilter: '1day' | '3days' | '7days' | '30days';
@@ -9,59 +7,51 @@ interface FloodWMSLayersProps {
   opacity: number;
 }
 
-const API_KEY = 'UIKDdatC5lgDcdrGxBJfyjHRlvRSvKQFGjY8A3mG00fj99MqcWCd2VxVTkcfkVX6';
+const API_KEY = import.meta.env.VITE_GISTDA_DISASTER_API_KEY || '';
 
 const FloodWMSLayers: React.FC<FloodWMSLayersProps> = ({ timeFilter, showFrequency, opacity }) => {
-  const map = useMap();
+  // Map timeframes to available API endpoints
+  const apiTimeframe = timeFilter === '7days' || timeFilter === '30days' ? '3days' : timeFilter;
 
-  useEffect(() => {
-    const layers: L.Layer[] = [];
+  return (
+    <>
+      {/* Current flood areas - using WMTS XYZ format */}
+      {timeFilter && (
+        <Source
+          id="flood-wms-source"
+          type="raster"
+          tiles={[
+            `https://api-gateway.gistda.or.th/api/2.0/resources/maps/flood/${apiTimeframe}/wmts/{z}/{x}/{y}.png?api_key=${API_KEY}`
+          ]}
+          tileSize={256}
+        >
+          <Layer
+            id="flood-wms-layer"
+            type="raster"
+            paint={{ 'raster-opacity': opacity }}
+          />
+        </Source>
+      )}
 
-    // Map timeframes to available API endpoints
-    const apiTimeframe = timeFilter === '7days' || timeFilter === '30days' ? '3days' : timeFilter;
-
-    // Current flood areas using GISTDA API Gateway WMS
-    if (timeFilter) {
-      const wmsUrl = `https://api-gateway.gistda.or.th/api/2.0/resources/maps/flood/${apiTimeframe}/wms?api_key=${API_KEY}`;
-      
-      const floodLayer = L.tileLayer.wms(wmsUrl, {
-        layers: Object.keys({})[0] || '',
-        format: 'image/png',
-        transparent: true,
-        attribution: `GISTDA - พื้นที่น้ำท่วม ${timeFilter}`,
-        opacity,
-        maxZoom: 18,
-      });
-      
-      floodLayer.addTo(map);
-      layers.push(floodLayer);
-    }
-
-    // Recurrent flood areas
-    if (showFrequency) {
-      const freqUrl = `https://api-gateway.gistda.or.th/api/2.0/resources/maps/flood-freq/wms?api_key=${API_KEY}`;
-      
-      const freqLayer = L.tileLayer.wms(freqUrl, {
-        layers: Object.keys({})[0] || '',
-        format: 'image/png',
-        transparent: true,
-        attribution: 'GISTDA - พื้นที่น้ำท่วมซ้ำซาก',
-        opacity: opacity * 0.7,
-        maxZoom: 18,
-      });
-      
-      freqLayer.addTo(map);
-      layers.push(freqLayer);
-    }
-
-    return () => {
-      layers.forEach(layer => {
-        map.removeLayer(layer);
-      });
-    };
-  }, [map, timeFilter, showFrequency, opacity]);
-
-  return null;
+      {/* Recurrent flood areas - using WMTS XYZ format */}
+      {showFrequency && (
+        <Source
+          id="flood-freq-source"
+          type="raster"
+          tiles={[
+            `https://api-gateway.gistda.or.th/api/2.0/resources/maps/flood-freq/wmts/{z}/{x}/{y}.png?api_key=${API_KEY}`
+          ]}
+          tileSize={256}
+        >
+          <Layer
+            id="flood-freq-layer"
+            type="raster"
+            paint={{ 'raster-opacity': opacity * 0.7 }}
+          />
+        </Source>
+      )}
+    </>
+  );
 };
 
 export default FloodWMSLayers;

@@ -21,11 +21,11 @@ export const useDailyDisasterStats = () => {
     const fetchDailyStats = async () => {
       try {
         setIsLoading(true);
-        
+
         // Get timestamp for 24 hours ago
         const twentyFourHoursAgo = new Date();
         twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
-        
+
         // Fetch alerts from last 24 hours
         const { data: alerts, error } = await supabase
           .from('realtime_alerts')
@@ -60,7 +60,7 @@ export const useDailyDisasterStats = () => {
         try {
           const floodResponse = await fetch('https://api-gateway.gistda.or.th/api/2.0/resources/features/flood/1day', {
             headers: {
-              'API-Key': 'UIKDdatC5lgDcdrGxBJfyjHRlvRSvKQFGjY8A3mG00fj99MqcWCd2VxVTkcfkVX6',
+              'API-Key': import.meta.env.VITE_GISTDA_DISASTER_API_KEY || '',
               'accept': 'application/json'
             }
           });

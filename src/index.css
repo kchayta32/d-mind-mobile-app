@@ -1,7 +1,18 @@
+@import 'maplibre-gl/dist/maplibre-gl.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Hide scrollbar for horizontal scroll */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
 
 @layer base {
   :root {
@@ -130,5 +141,198 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Leaflet Popup Custom Styles */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 0;
+  overflow: hidden;
+  max-width: 280px !important;
+}
+
+.leaflet-popup-content {
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 8px;
+}
+
+/* Enhanced Close Button */
+.leaflet-popup-close-button {
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 24px !important;
+  font-weight: bold !important;
+  color: #374151 !important;
+  background-color: #f3f4f6 !important;
+  border-radius: 50% !important;
+  top: 8px !important;
+  right: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+  transition: all 0.2s ease !important;
+  z-index: 10 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.leaflet-popup-close-button:hover {
+  background-color: #ef4444 !important;
+  color: white !important;
+  transform: scale(1.1);
+}
+
+.leaflet-popup-close-button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Mobile-optimized popup */
+@media (max-width: 640px) {
+  .leaflet-popup-content-wrapper {
+    max-width: calc(100vw - 32px) !important;
+  }
+
+  .leaflet-popup-content {
+    font-size: 13px;
+    max-height: 60vh;
+  }
+
+  .leaflet-popup-close-button {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 28px !important;
+    top: 6px !important;
+    right: 6px !important;
+  }
+}
+
+/* Popup tip styling */
+.leaflet-popup-tip-container {
+  margin-top: -1px;
+}
+
+.leaflet-popup-tip {
+  box-shadow: none;
+}
+
+/* ============================================
+   DISASTER MARKER ANIMATIONS
+   ============================================ */
+
+/* Earthquake Marker - Seismic Pulse Effect */
+.earthquake-marker {
+  animation: earthquake-pulse 2s ease-in-out infinite;
+  will-change: transform, filter;
+}
+
+@keyframes earthquake-pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
+  }
+
+  50% {
+    transform: scale(1.12);
+    filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.9));
+  }
+}
+
+/* Wildfire Hotspot - Flame Glow Effect */
+.hotspot-marker,
+.hotspot-cluster {
+  animation: flame-glow 1.5s ease-in-out infinite alternate;
+  will-change: filter;
+}
+
+@keyframes flame-glow {
+  from {
+    filter: drop-shadow(0 0 6px rgba(249, 115, 22, 0.7)) brightness(1);
+  }
+
+  to {
+    filter: drop-shadow(0 0 14px rgba(239, 68, 68, 1)) brightness(1.1);
+  }
+}
+
+/* Flood Marker - Wave Effect */
+.flood-marker {
+  animation: wave-pulse 2.5s ease-in-out infinite;
+  will-change: transform, filter;
+}
+
+@keyframes wave-pulse {
+
+  0%,
+  100% {
+    transform: translateY(0);
+    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5));
+  }
+
+  50% {
+    transform: translateY(-4px);
+    filter: drop-shadow(0 0 14px rgba(59, 130, 246, 0.8));
+  }
+}
+
+/* Sinkhole Marker - Depth Shadow Effect */
+.sinkhole-marker {
+  animation: sinkhole-depth 2.5s ease-in-out infinite;
+  will-change: filter, transform;
+}
+
+@keyframes sinkhole-depth {
+
+  0%,
+  100% {
+    filter: drop-shadow(0 4px 8px rgba(217, 119, 6, 0.6));
+    transform: scale(1);
+  }
+
+  50% {
+    filter: drop-shadow(0 6px 18px rgba(217, 119, 6, 0.9));
+    transform: scale(1.05);
+  }
+}
+
+/* Rain Sensor Marker - Drip Effect */
+.rain-marker {
+  animation: rain-drip 1.8s ease-in-out infinite;
+  will-change: transform, filter;
+}
+
+@keyframes rain-drip {
+
+  0%,
+  100% {
+    transform: translateY(0);
+    filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.5));
+  }
+
+  50% {
+    transform: translateY(-2px);
+    filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.8));
+  }
+}
+
+/* Reduce animation for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+
+  .earthquake-marker,
+  .hotspot-marker,
+  .hotspot-cluster,
+  .flood-marker,
+  .sinkhole-marker,
+  .rain-marker {
+    animation: none;
   }
 }

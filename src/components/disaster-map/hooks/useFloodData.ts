@@ -1,7 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-const API_KEY = 'UIKDdatC5lgDcdrGxBJfyjHRlvRSvKQFGjY8A3mG00fj99MqcWCd2VxVTkcfkVX6';
+const API_KEY = import.meta.env.VITE_GISTDA_DISASTER_API_KEY || '';
 const API_BASE_URL = 'https://api-gateway.gistda.or.th/api/2.0/resources/features';
 
 export interface FloodArea {
@@ -75,12 +75,10 @@ export const useFloodData = (timeFilter: '1day' | '3days' | '7days' | '30days' =
   return useQuery({
     queryKey: ['flood-data', timeFilter],
     queryFn: async (): Promise<FloodArea[]> => {
-      console.log(`Fetching flood data for timeFilter: ${timeFilter}`);
-      
       // Map timeframes to API endpoints
       const apiTimeframe = timeFilter === '7days' || timeFilter === '30days' ? '3days' : timeFilter;
       const url = `${API_BASE_URL}/flood/${apiTimeframe}`;
-      
+
       try {
         const response = await fetch(url, {
           headers: {
@@ -88,14 +86,13 @@ export const useFloodData = (timeFilter: '1day' | '3days' | '7days' | '30days' =
             'accept': 'application/json'
           }
         });
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        console.log(`Fetched ${data.numberReturned} flood areas from GISTDA`);
-        
+
         // Convert to FloodArea format
         return data.features.map((feature: any) => ({
           id: feature.id,
@@ -123,22 +120,19 @@ export const useWaterHyacinthData = () => {
   return useQuery({
     queryKey: ['water-hyacinth-data'],
     queryFn: async () => {
-      console.log('Fetching water hyacinth data...');
-      
       const response = await fetch(`${API_BASE_URL}/water_hyacinth?limit=100&offset=0&sort=desc`, {
         headers: {
           'accept': 'application/json',
           'API-Key': API_KEY
         }
       });
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch water hyacinth data: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('Water hyacinth data fetched:', data);
-      
+
       return {
         hyacinthAreas: data.features as WaterHyacinth[],
         totalCount: data.numberMatched || 0
@@ -157,7 +151,7 @@ export const useFloodStatistics = () => {
     queryFn: async (): Promise<FloodStats> => {
       const totalArea = floodAreas?.reduce((sum, area) => sum + area.properties.area, 0) || 0;
       const affectedPopulation = floodAreas?.reduce(
-        (sum, area) => sum + (area.properties.affectedPopulation || 0), 
+        (sum, area) => sum + (area.properties.affectedPopulation || 0),
         0
       ) || 0;
 
@@ -166,8 +160,6 @@ export const useFloodStatistics = () => {
         medium: floodAreas?.filter(a => a.properties.severity === 'medium').length || 0,
         high: floodAreas?.filter(a => a.properties.severity === 'high').length || 0,
       };
-
-      console.log(`Flood statistics: ${floodAreas?.length || 0} areas, total ${(totalArea / 1000000).toFixed(2)} km²`);
 
       return {
         currentFloods: {
@@ -215,7 +207,7 @@ function generateHistoricalFloodData() {
   });
 
   // Find peak year
-  const peakYear = yearlyStats.reduce((peak, current) => 
+  const peakYear = yearlyStats.reduce((peak, current) =>
     current.totalArea > peak.totalArea ? current : peak
   );
 
@@ -232,7 +224,7 @@ function generateHistoricalFloodData() {
 function calculateWaterObstructionStats(hyacinthAreas: WaterHyacinth[]) {
   const totalHyacinthAreas = hyacinthAreas.length;
   const totalCoverage = hyacinthAreas.reduce((sum, area) => sum + area.properties.area_km2, 0);
-  const avgCoveragePercent = totalHyacinthAreas > 0 
+  const avgCoveragePercent = totalHyacinthAreas > 0
     ? Math.round(hyacinthAreas.reduce((sum, area) => sum + area.properties.coverage_percent, 0) / totalHyacinthAreas)
     : 0;
   const criticalAreas = hyacinthAreas.filter(area => area.properties.severity === 'high').length;

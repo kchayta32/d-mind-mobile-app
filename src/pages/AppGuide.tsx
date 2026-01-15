@@ -1,241 +1,175 @@
-
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Map, Bot, Phone, BookOpen, Bell, Star, MessageSquare } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import AppLogo from '@/components/AppLogo';
+import { ArrowLeft, Info, Map, Bot, Phone, BookOpen, Bell, MessageSquare, Lightbulb, HelpCircle } from 'lucide-react';
 
 const AppGuide: React.FC = () => {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('overview');
+
+  const features = [
+    { icon: <Map className="w-5 h-5" />, title: 'แผนที่ภัยพิบัติ', desc: 'แสดงตำแหน่งแผ่นดินไหว เซ็นเซอร์ฝน และภัยต่างๆ แบบเรียลไทม์', color: 'bg-green-500' },
+    { icon: <Bot className="w-5 h-5" />, title: 'Dr.Mind AI', desc: 'ปรึกษาผู้เชี่ยวชาญด้านภัยธรรมชาติและแพทย์ฉุกเฉิน', color: 'bg-purple-500' },
+    { icon: <BookOpen className="w-5 h-5" />, title: 'คู่มือและบทความ', desc: 'แนวทางปฏิบัติและบทความเตือนภัยล่าสุด', color: 'bg-blue-500' },
+    { icon: <Phone className="w-5 h-5" />, title: 'หมายเลขฉุกเฉิน', desc: 'เข้าถึงหมายเลขโทรศัพท์ฉุกเฉินได้อย่างรวดเร็ว', color: 'bg-red-500' },
+    { icon: <Bell className="w-5 h-5" />, title: 'การแจ้งเตือนภัย', desc: 'รับการแจ้งเตือนภัยแบบเรียลไทม์พร้อมรายละเอียด', color: 'bg-orange-500' },
+    { icon: <MessageSquare className="w-5 h-5" />, title: 'รายงานผู้ประสบภัย', desc: 'รายงานสถานการณ์และขอความช่วยเหลือ', color: 'bg-pink-500' }
+  ];
+
+  const tips = [
+    { emoji: '💡', title: 'การใช้งานแผนที่', desc: 'ใช้นิ้วหุบและขยายเพื่อซูม แตะที่จุดต่างๆ เพื่อดูรายละเอียด', color: 'border-yellow-400 bg-yellow-50' },
+    { emoji: '✅', title: 'การสื่อสารกับ AI', desc: 'พิมพ์คำถามแบบชัดเจน เช่น "ควรทำอย่างไรเมื่อเกิดแผ่นดินไหว"', color: 'border-green-400 bg-green-50' },
+    { emoji: '📱', title: 'การแจ้งเตือน', desc: 'เปิดการแจ้งเตือนในเบราว์เซอร์เพื่อรับข่าวสารทันที', color: 'border-blue-400 bg-blue-50' },
+    { emoji: '🚨', title: 'ในกรณีฉุกเฉิน', desc: 'หากสถานการณ์รุนแรง โทร 191 หรือ 1669 ทันที', color: 'border-red-400 bg-red-50' }
+  ];
+
+  const faqs = [
+    { q: 'แอพใช้ข้อมูลจากแหล่งใด?', a: 'ใช้ข้อมูลจากกรมอุตุนิยมวิทยา และหน่วยงานราชการที่เกี่ยวข้อง' },
+    { q: 'ใช้งานแอพได้โดยไม่ต้องสมัครสมาชิกหรือไม่?', a: 'ได้ครับ สามารถใช้งานฟีเจอร์ทั้งหมดได้ทันที' },
+    { q: 'AI จะตอบคำถามได้ทุกเรื่องหรือไม่?', a: 'AI เชี่ยวชาญด้านภัยธรรมชาติและการแพทย์ฉุกเฉินเป็นหลัก' }
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 shadow-lg">
-        <div className="container max-w-md mx-auto flex items-center">
-          <Button 
-            variant="ghost" 
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 pb-24">
+      {/* Modern Header */}
+      <header className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white pt-6 pb-8 px-5 rounded-b-3xl shadow-xl">
+        <div className="flex items-center gap-3 mb-2">
+          <Button
+            variant="ghost"
             size="icon"
-            className="text-white mr-3 hover:bg-blue-400/30 rounded-full"
-            onClick={() => window.history.back()}
+            className="text-white/90 hover:bg-white/20 rounded-xl"
+            onClick={() => navigate('/')}
           >
-            <ArrowLeft className="h-6 w-6" />
+            <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="flex items-center">
-            <AppLogo size="md" className="mr-4" />
-            <h1 className="text-xl font-bold">คู่มือการใช้งานแอพ</h1>
+          <div className="flex items-center gap-3">
+            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+              <Info className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">คู่มือการใช้งาน</h1>
+              <p className="text-white/70 text-xs">D-MIND Application Guide</p>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="container max-w-md mx-auto p-4">
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid grid-cols-3 w-full mb-4 bg-white border border-blue-200">
-            <TabsTrigger 
-              value="overview" 
-              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white text-xs"
+      {/* Tab Pills */}
+      <div className="px-4 -mt-4">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-1.5 flex gap-1">
+          {[
+            { id: 'overview', label: 'ภาพรวม' },
+            { id: 'features', label: 'ฟีเจอร์' },
+            { id: 'tips', label: 'เคล็ดลับ' }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-medium transition-all ${activeTab === tab.id
+                  ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+                }`}
             >
-              ภาพรวม
-            </TabsTrigger>
-            <TabsTrigger 
-              value="features"
-              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white text-xs"
-            >
-              ฟีเจอร์
-            </TabsTrigger>
-            <TabsTrigger 
-              value="tips"
-              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white text-xs"
-            >
-              เคล็ดลับ
-            </TabsTrigger>
-          </TabsList>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
-          <TabsContent value="overview" className="space-y-4">
-            <Card className="border-blue-200 shadow-md">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100">
-                <CardTitle className="text-blue-700 flex items-center">
-                  <AppLogo size="sm" className="mr-2" />
-                  ยินดีต้อนรับสู่ D-MIND
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4">
-                <p className="text-gray-700 leading-relaxed mb-4">
-                  D-MIND เป็นระบบติดตามภัยพิบัติและแจ้งเตือนอัจฉริยะ ที่ช่วยให้คุณติดตามสถานการณ์ภัยธรรมชาติ 
-                  และได้รับความช่วยเหลือเมื่อเกิดเหตุฉุกเฉิน
-                </p>
-                <div className="bg-blue-50 p-3 rounded-lg">
-                  <h3 className="font-semibold text-blue-700 mb-2">จุดประสงค์หลัก:</h3>
-                  <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
-                    <li>ติดตามภัยพิบัติแบบเรียลไทม์</li>
-                    <li>แจ้งเตือนภัยล่วงหน้า</li>
-                    <li>ให้คำแนะนำจากผู้เชี่ยวชาญ AI</li>
-                    <li>เข้าถึงข้อมูลฉุกเฉินได้อย่างรวดเร็ว</li>
-                  </ul>
+      {/* Content */}
+      <div className="px-4 pt-5 space-y-4">
+        {activeTab === 'overview' && (
+          <>
+            {/* Welcome Card */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="bg-indigo-100 dark:bg-indigo-900/30 p-2 rounded-xl">
+                  <Info className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                 </div>
-              </CardContent>
-            </Card>
+                <h2 className="font-bold text-gray-900 dark:text-white">ยินดีต้อนรับสู่ D-MIND</h2>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                ระบบติดตามภัยพิบัติและแจ้งเตือนอัจฉริยะ ช่วยให้คุณติดตามสถานการณ์ภัยธรรมชาติและได้รับความช่วยเหลือเมื่อเกิดเหตุฉุกเฉิน
+              </p>
+              <div className="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-xl">
+                <h3 className="font-semibold text-sm text-indigo-700 dark:text-indigo-400 mb-2">จุดประสงค์หลัก:</h3>
+                <ul className="text-xs text-gray-700 dark:text-gray-300 space-y-1">
+                  <li>• ติดตามภัยพิบัติแบบเรียลไทม์</li>
+                  <li>• แจ้งเตือนภัยล่วงหน้า</li>
+                  <li>• ให้คำแนะนำจากผู้เชี่ยวชาญ AI</li>
+                  <li>• เข้าถึงข้อมูลฉุกเฉินได้รวดเร็ว</li>
+                </ul>
+              </div>
+            </div>
 
-            <Card className="border-blue-200 shadow-md">
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-800 mb-3">วิธีเริ่มต้นใช้งาน</h3>
-                <div className="space-y-3">
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">1</div>
-                    <p className="text-sm text-gray-700">เปิดแอพและดูการแจ้งเตือนภัยในหน้าหลัก</p>
+            {/* Getting Started */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-4">
+              <h3 className="font-bold text-gray-900 dark:text-white mb-3">วิธีเริ่มต้นใช้งาน</h3>
+              <div className="space-y-3">
+                {['เปิดแอพและดูการแจ้งเตือนภัย', 'ตรวจสอบแผนที่ภัยพิบัติ', 'ใช้ AI Assistant เพื่อขอคำปรึกษา', 'บันทึกหมายเลขฉุกเฉิน'].map((step, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="bg-indigo-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">{i + 1}</div>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">{step}</p>
                   </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">2</div>
-                    <p className="text-sm text-gray-700">ตรวจสอบแผนที่ภัยพิบัติเพื่อดูสถานการณ์รอบๆ</p>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">3</div>
-                    <p className="text-sm text-gray-700">ใช้ AI Assistant เพื่อขอคำปรึกษาเมื่อมีข้อสงสัย</p>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">4</div>
-                    <p className="text-sm text-gray-700">บันทึกหมายเลขฉุกเฉินไว้ในโทรศัพท์</p>
-                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeTab === 'features' && (
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-4 space-y-3">
+            {features.map((feature, i) => (
+              <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+                <div className={`${feature.color} p-2 rounded-xl text-white`}>
+                  {feature.icon}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="features" className="space-y-4">
-            <Card className="border-blue-200 shadow-md">
-              <CardContent className="p-4">
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
-                    <Map className="h-6 w-6 text-green-600 mt-1" />
-                    <div>
-                      <h3 className="font-semibold text-green-700">แผนที่ภัยพิบัติ</h3>
-                      <p className="text-sm text-gray-700 mt-1">
-                        แสดงตำแหน่งแผ่นดินไหว เซ็นเซอร์ฝน และภัยต่างๆ แบบเรียลไทม์
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3 p-3 bg-purple-50 rounded-lg">
-                    <Bot className="h-6 w-6 text-purple-600 mt-1" />
-                    <div>
-                      <h3 className="font-semibold text-purple-700">Dr.Mind ผู้เชี่ยวชาญ AI</h3>
-                      <p className="text-sm text-gray-700 mt-1">
-                        ปรึกษาผู้เชี่ยวชาญด้านภัยธรรมชาติและแพทย์ฉุกเฉิน
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
-                    <BookOpen className="h-6 w-6 text-blue-600 mt-1" />
-                    <div>
-                      <h3 className="font-semibold text-blue-700">คู่มือและบทความ</h3>
-                      <p className="text-sm text-gray-700 mt-1">
-                        แนวทางปฏิบัติและบทความเตือนภัยล่าสุด
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg">
-                    <Phone className="h-6 w-6 text-red-600 mt-1" />
-                    <div>
-                      <h3 className="font-semibold text-red-700">หมายเลขฉุกเฉิน</h3>
-                      <p className="text-sm text-gray-700 mt-1">
-                        เข้าถึงหมายเลขโทรศัพท์ฉุกเฉินได้อย่างรวดเร็ว
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3 p-3 bg-orange-50 rounded-lg">
-                    <Bell className="h-6 w-6 text-orange-600 mt-1" />
-                    <div>
-                      <h3 className="font-semibold text-orange-700">การแจ้งเตือนภัย</h3>
-                      <p className="text-sm text-gray-700 mt-1">
-                        รับการแจ้งเตือนภัยแบบเรียลไทม์พร้อมรายละเอียด
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg">
-                    <MessageSquare className="h-6 w-6 text-red-600 mt-1" />
-                    <div>
-                      <h3 className="font-semibold text-red-700">รายงานสถานะผู้ประสบภัย</h3>
-                      <p className="text-sm text-gray-700 mt-1">
-                        รายงานสถานการณ์และขอความช่วยเหลือ
-                      </p>
-                    </div>
-                  </div>
+                <div>
+                  <h3 className="font-semibold text-sm text-gray-900 dark:text-white">{feature.title}</h3>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{feature.desc}</p>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
+            ))}
+          </div>
+        )}
 
-          <TabsContent value="tips" className="space-y-4">
-            <Card className="border-blue-200 shadow-md">
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-800 mb-3">เคล็ดลับการใช้งาน</h3>
-                <div className="space-y-3">
-                  <div className="bg-yellow-50 p-3 rounded-lg border-l-4 border-yellow-400">
-                    <h4 className="font-medium text-yellow-800">💡 การใช้งานแผนที่</h4>
-                    <p className="text-sm text-yellow-700 mt-1">
-                      ใช้นิ้วหุบและขยายเพื่อซูมแผนที่ และแตะที่จุดต่างๆ เพื่อดูรายละเอียด
-                    </p>
-                  </div>
-
-                  <div className="bg-green-50 p-3 rounded-lg border-l-4 border-green-400">
-                    <h4 className="font-medium text-green-800">✅ การสื่อสารกับ AI</h4>
-                    <p className="text-sm text-green-700 mt-1">
-                      พิมพ์คำถามแบบชัดเจน เช่น "ควรทำอย่างไรเมื่อเกิดแผ่นดินไหว" จะได้คำตอบที่ตรงประเด็น
-                    </p>
-                  </div>
-
-                  <div className="bg-blue-50 p-3 rounded-lg border-l-4 border-blue-400">
-                    <h4 className="font-medium text-blue-800">📱 การแจ้งเตือน</h4>
-                    <p className="text-sm text-blue-700 mt-1">
-                      เปิดการแจ้งเตือนในเบราว์เซอร์เพื่อรับข่าวสารภัยพิบัติทันที
-                    </p>
-                  </div>
-
-                  <div className="bg-red-50 p-3 rounded-lg border-l-4 border-red-400">
-                    <h4 className="font-medium text-red-800">🚨 ในกรณีฉุกเฉิน</h4>
-                    <p className="text-sm text-red-700 mt-1">
-                      หากสถานการณ์รุนแรง ให้โทรหมายเลขฉุกเฉิน 191 หรือ 1669 ทันที
-                    </p>
-                  </div>
-
-                  <div className="bg-purple-50 p-3 rounded-lg border-l-4 border-purple-400">
-                    <h4 className="font-medium text-purple-800">⭐ ความคิดเห็น</h4>
-                    <p className="text-sm text-purple-700 mt-1">
-                      ช่วยประเมินแอพเพื่อให้เราพัฒนาและปรับปรุงฟีเจอร์ให้ดียิ่งขึ้น
-                    </p>
-                  </div>
+        {activeTab === 'tips' && (
+          <>
+            {/* Tips */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-4 space-y-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Lightbulb className="w-5 h-5 text-yellow-500" />
+                <h3 className="font-bold text-gray-900 dark:text-white">เคล็ดลับการใช้งาน</h3>
+              </div>
+              {tips.map((tip, i) => (
+                <div key={i} className={`p-3 rounded-xl border-l-4 ${tip.color} dark:bg-slate-700/50`}>
+                  <h4 className="font-medium text-sm text-gray-800 dark:text-white">{tip.emoji} {tip.title}</h4>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{tip.desc}</p>
                 </div>
-              </CardContent>
-            </Card>
+              ))}
+            </div>
 
-            <Card className="border-blue-200 shadow-md">
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-800 mb-3">คำถามที่พบบ่อย</h3>
-                <div className="space-y-3 text-sm">
-                  <div>
-                    <h4 className="font-medium text-gray-800">Q: แอพใช้ข้อมูลจากแหล่งใด?</h4>
-                    <p className="text-gray-600 mt-1">A: ใช้ข้อมูลจากกรมอุตุนิยมวิทยา และหน่วยงานราชการที่เกี่ยวข้อง</p>
+            {/* FAQ */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <HelpCircle className="w-5 h-5 text-indigo-500" />
+                <h3 className="font-bold text-gray-900 dark:text-white">คำถามที่พบบ่อย</h3>
+              </div>
+              <div className="space-y-3">
+                {faqs.map((faq, i) => (
+                  <div key={i}>
+                    <h4 className="font-medium text-sm text-gray-800 dark:text-white">Q: {faq.q}</h4>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">A: {faq.a}</p>
                   </div>
-                  <div>
-                    <h4 className="font-medium text-gray-800">Q: ใช้งานแอพได้โดยไม่ต้องสมัครสมาชิกหรือไม่?</h4>
-                    <p className="text-gray-600 mt-1">A: ได้ครับ สามารถใช้งานฟีเจอร์ทั้งหมดได้ทันทีโดยไม่ต้องสมัครสมาชิก</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-800">Q: AI จะตอบคำถามได้ทุกเรื่องหรือไม่?</h4>
-                    <p className="text-gray-600 mt-1">A: AI เชี่ยวชาญด้านภัยธรรมชาติและการแพทย์ฉุกเฉินเป็นหลัก</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
 };
 
 export default AppGuide;
+

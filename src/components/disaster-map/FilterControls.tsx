@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DisasterType } from './DisasterMap';
+import { DisasterType } from './types';
 import { EarthquakeFilters } from './filter-components/EarthquakeFilters';
 import { HeavyRainFilters } from './filter-components/HeavyRainFilters';
 import { WildfireFilters } from './filter-components/WildfireFilters';
@@ -63,7 +63,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
             onMagnitudeChange={onMagnitudeChange}
           />
         )}
-        
+
         {selectedType === 'heavyrain' && (
           <HeavyRainFilters
             humidityFilter={humidityFilter}

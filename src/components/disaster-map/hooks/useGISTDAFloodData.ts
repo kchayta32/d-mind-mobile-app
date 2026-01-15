@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const API_KEY = 'UIKDdatC5lgDcdrGxBJfyjHRlvRSvKQFGjY8A3mG00fj99MqcWCd2VxVTkcfkVX6';
+const API_KEY = import.meta.env.VITE_GISTDA_DISASTER_API_KEY || '';
 const BASE_URL = 'https://api-gateway.gistda.or.th/api/2.0/resources/features';
 
 export interface FloodFeature {
@@ -88,7 +88,7 @@ async function fetchRecurrentFloodData(limit: number = 1000): Promise<FloodRespo
 export const useGISTDAFloodData = (timeframe: '1day' | '3days' | '7days' | '30days' = '3days') => {
   // Map timeframe to API endpoints
   const apiTimeframe = timeframe === '7days' || timeframe === '30days' ? '3days' : timeframe;
-  
+
   return useQuery({
     queryKey: ['gistda-flood-data', apiTimeframe],
     queryFn: () => fetchFloodData(apiTimeframe),
@@ -111,9 +111,9 @@ export const getFloodCenter = (feature: FloodFeature): [number, number] => {
   const coords = feature.geometry.coordinates[0][0];
   const lats = coords.map(c => c[1]);
   const lngs = coords.map(c => c[0]);
-  
+
   const centerLat = (Math.min(...lats) + Math.max(...lats)) / 2;
   const centerLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
-  
+
   return [centerLat, centerLng];
 };

@@ -86,3 +86,6 @@ export interface OpenMeteoRainStats {
   avgTemperature: number;
   lastUpdated: string;
 }
+
+export type DisasterType = 'earthquake' | 'heavyrain' | 'wildfire' | 'airpollution' | 'drought' | 'flood' | 'storm' | 'sinkhole';
+

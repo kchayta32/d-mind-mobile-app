@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { DisasterType } from '../DisasterMap';
+import { DisasterType } from '../types';
 
 export const useDisasterMapState = () => {
   const [selectedType, setSelectedType] = useState<DisasterType>('wildfire');

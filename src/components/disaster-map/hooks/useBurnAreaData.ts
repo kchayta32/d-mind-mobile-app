@@ -1,7 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-const API_KEY = 'wFaHcoOyzK53pVqspkI9Mvobjm5vWzHVOwGOjzW4f2nAAvsVf8CETklHpX1peaDF';
+const API_KEY = import.meta.env.VITE_GISTDA_WMS_API_KEY || '';
 const API_BASE_URL = 'https://api-gateway.gistda.or.th/api/2.0/resources/features';
 
 export interface BurnFreqData {
@@ -37,14 +37,14 @@ export const useBurnFrequencyData = () => {
     queryKey: ['gistda-burn-frequency'],
     queryFn: async () => {
       console.log('Fetching burn frequency data...');
-      
+
       const response = await fetch(`${API_BASE_URL}/burn-freq?limit=100&offset=0`, {
         headers: {
           'accept': 'application/json',
           'API-Key': API_KEY
         }
       });
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch burn frequency data: ${response.status}`);
       }
@@ -62,14 +62,14 @@ export const useBurnScarData = () => {
     queryKey: ['gistda-burn-scar'],
     queryFn: async () => {
       console.log('Fetching burn scar data...');
-      
+
       const response = await fetch(`${API_BASE_URL}/burn-scar?limit=100&offset=0`, {
         headers: {
           'accept': 'application/json',
           'API-Key': API_KEY
         }
       });
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch burn scar data: ${response.status}`);
       }

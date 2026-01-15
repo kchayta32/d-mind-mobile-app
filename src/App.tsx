@@ -1,5 +1,5 @@
+
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Component, ErrorInfo, ReactNode } from "react";
@@ -15,10 +15,17 @@ import AppGuide from "./pages/AppGuide";
 import ArticleDetail from "./pages/ArticleDetail";
 import ResourceDetail from "./pages/ResourceDetail";
 import DisasterMap from "./pages/DisasterMap";
+import RiskZoneMap from "./pages/RiskZoneMap";
 import Analytics from "./pages/Analytics";
 import NotificationSettings from "./pages/NotificationSettings";
 import DamageAssessment from "./pages/DamageAssessment";
+import ShelterFinder from "./pages/ShelterFinder";
+import WeatherForecast from "./pages/WeatherForecast";
+import DailyWeatherForecast from "./pages/DailyWeatherForecast";
 import NotFound from "./pages/NotFound";
+import MobileLayout from "@/components/layout/MobileLayout";
+import InstallPrompt from "@/components/pwa/InstallPrompt";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 const queryClient = new QueryClient();
 
@@ -30,9 +37,9 @@ const BasicLoadingScreen = () => {
         <div className="relative">
           <div className="absolute -inset-4 bg-gradient-to-br from-blue-400 to-blue-600 rounded-3xl blur-lg opacity-30 animate-pulse"></div>
           <div className="relative bg-gradient-to-br from-blue-500 to-blue-700 p-6 rounded-3xl shadow-2xl">
-            <img 
-              src="/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png" 
-              alt="D-MIND Logo" 
+            <img
+              src="/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png"
+              alt="D-MIND Logo"
               className="h-20 w-20 drop-shadow-lg"
             />
           </div>
@@ -55,19 +62,20 @@ const BasicLoadingScreen = () => {
 // Error boundary class component
 class AppErrorBoundary extends Component<
   { children: ReactNode },
-  { hasError: boolean; isReady: boolean }
+  { hasError: boolean; isReady: boolean; error?: Error; errorInfo?: ErrorInfo }
 > {
   constructor(props: { children: ReactNode }) {
     super(props);
     this.state = { hasError: false, isReady: false };
   }
 
-  static getDerivedStateFromError(): { hasError: boolean } {
-    return { hasError: true };
+  static getDerivedStateFromError(error: Error): { hasError: boolean; error: Error } {
+    return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('App Error:', error, errorInfo);
+    this.setState({ errorInfo });
   }
 
   componentDidMount() {
@@ -80,12 +88,19 @@ class AppErrorBoundary extends Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-red-100 flex items-center justify-center">
-          <div className="text-center">
+        <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-red-100 flex items-center justify-center p-4">
+          <div className="text-center max-w-lg">
             <h1 className="text-2xl font-bold text-red-600 mb-4">เกิดข้อผิดพลาด</h1>
-            <p className="text-red-500">กรุณารีเฟรชหน้าเว็บ</p>
-            <button 
-              onClick={() => window.location.reload()} 
+            <p className="text-red-500 mb-4">กรุณารีเฟรชหน้าเว็บ</p>
+            {this.state.error && (
+              <div className="bg-red-100 border border-red-300 rounded-lg p-3 mb-4 text-left overflow-auto max-h-40">
+                <p className="text-xs text-red-700 font-mono break-words">
+                  {this.state.error.message}
+                </p>
+              </div>
+            )}
+            <button
+              onClick={() => window.location.reload()}
               className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
             >
               รีเฟรช
@@ -103,17 +118,23 @@ class AppErrorBoundary extends Component<
   }
 }
 
-// Main app routes component
-const AppRoutes = () => {
+import { useBackButton } from "@/hooks/useBackButton";
+
+// Inner component that uses the back button hook (must be inside BrowserRouter)
+const AppRoutesWithBackButton = () => {
+  // Handle Android hardware back button
+  useBackButton();
+
   return (
-    <BrowserRouter>
-      <Routes>
+    <Routes>
+      <Route path="/risk-zones" element={<RiskZoneMap />} />
+      <Route path="/disaster-map" element={<DisasterMap />} />
+      <Route element={<MobileLayout />}>
         <Route path="/" element={<Index />} />
         <Route path="/assistant" element={<AIAssistant />} />
         <Route path="/manual" element={<EmergencyManual />} />
         <Route path="/contacts" element={<EmergencyContacts />} />
         <Route path="/alerts" element={<Alerts />} />
-        <Route path="/disaster-map" element={<DisasterMap />} />
         <Route path="/victim-reports" element={<VictimReports />} />
         <Route path="/incident-reports" element={<IncidentReports />} />
         <Route path="/damage-assessment" element={<DamageAssessment />} />
@@ -121,23 +142,37 @@ const AppRoutes = () => {
         <Route path="/app-guide" element={<AppGuide />} />
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/notifications" element={<NotificationSettings />} />
+        <Route path="/shelters" element={<ShelterFinder />} />
+        <Route path="/weather-forecast" element={<WeatherForecast />} />
+        <Route path="/daily-weather-forecast" element={<DailyWeatherForecast />} />
         <Route path="/article/:id" element={<ArticleDetail />} />
         <Route path="/resource/:id" element={<ResourceDetail />} />
         <Route path="*" element={<NotFound />} />
-      </Routes>
+      </Route>
+    </Routes>
+  );
+};
+
+// Main app routes component
+const AppRoutes = () => {
+  return (
+    <BrowserRouter>
+      <AppRoutesWithBackButton />
     </BrowserRouter>
   );
 };
 
 const App = () => {
   return (
-    <AppErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <AppRoutes />
-        <Toaster />
-        <Sonner />
-      </QueryClientProvider>
-    </AppErrorBoundary>
+    <ThemeProvider>
+      <AppErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <AppRoutes />
+          <InstallPrompt />
+          <Toaster />
+        </QueryClientProvider>
+      </AppErrorBoundary>
+    </ThemeProvider>
   );
 };
 

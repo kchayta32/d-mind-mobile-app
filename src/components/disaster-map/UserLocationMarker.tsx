@@ -1,21 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
-
-// Create a custom user location icon with higher z-index
-const userLocationIcon = new L.Icon({
-  iconUrl: 'data:image/svg+xml;base64,' + btoa(`
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" width="32" height="32">
-      <circle cx="16" cy="16" r="12" fill="#3B82F6" stroke="white" stroke-width="4"/>
-      <circle cx="16" cy="16" r="6" fill="white"/>
-      <circle cx="16" cy="16" r="3" fill="#3B82F6"/>
-    </svg>
-  `),
-  iconSize: [32, 32],
-  iconAnchor: [16, 16],
-  popupAnchor: [0, -16],
-});
+import { Marker, Popup, useMap } from 'react-map-gl';
 
 interface UserLocationMarkerProps {
   showLocation: boolean;
@@ -24,7 +9,8 @@ interface UserLocationMarkerProps {
 export const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({ showLocation }) => {
   const [position, setPosition] = useState<[number, number] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const map = useMap();
+  const { current: map } = useMap();
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     if (!showLocation) {
@@ -41,12 +27,17 @@ export const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({ showLoca
     const watchId = navigator.geolocation.watchPosition(
       (location) => {
         const { latitude, longitude } = location.coords;
-        const newPosition: [number, number] = [latitude, longitude];
+        const newPosition: [number, number] = [longitude, latitude]; // MapLibre uses [lng, lat]
         setPosition(newPosition);
         setError(null);
-        
-        // Center map on user location
-        map.setView(newPosition, 10);
+
+        // Center map on user location if map instance exists
+        if (map) {
+          map.flyTo({
+            center: newPosition,
+            zoom: 10
+          });
+        }
       },
       (error) => {
         console.error('Geolocation error:', error);
@@ -87,23 +78,42 @@ export const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({ showLoca
   }
 
   return (
-    <Marker 
-      position={position} 
-      icon={userLocationIcon}
-      zIndexOffset={1000}
-    >
-      <Popup>
-        <div className="text-center">
-          <div className="font-semibold text-blue-600 mb-2">📍 ตำแหน่งของคุณ</div>
-          <div className="text-sm text-gray-600 space-y-1">
-            <div>ละติจูด: {position[0].toFixed(6)}</div>
-            <div>ลองจิจูด: {position[1].toFixed(6)}</div>
-            <div className="mt-2 text-xs text-blue-500">
-              อัปเดตแบบเรียลไทม์
+    <>
+      <Marker
+        longitude={position[0]}
+        latitude={position[1]}
+        anchor="center"
+        onClick={() => setShowPopup(!showPopup)}
+        style={{ zIndex: 1000 }}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+          <circle cx="16" cy="16" r="12" fill="#3B82F6" stroke="white" strokeWidth="4" />
+          <circle cx="16" cy="16" r="6" fill="white" />
+          <circle cx="16" cy="16" r="3" fill="#3B82F6" />
+        </svg>
+      </Marker>
+
+      {showPopup && (
+        <Popup
+          longitude={position[0]}
+          latitude={position[1]}
+          anchor="top"
+          onClose={() => setShowPopup(false)}
+          closeOnClick={false}
+          offset={16}
+        >
+          <div className="text-center p-2">
+            <div className="font-semibold text-blue-600 mb-2">📍 ตำแหน่งของคุณ</div>
+            <div className="text-sm text-gray-600 space-y-1">
+              <div>ละติจูด: {position[1].toFixed(6)}</div>
+              <div>ลองจิจูด: {position[0].toFixed(6)}</div>
+              <div className="mt-2 text-xs text-blue-500">
+                อัปเดตแบบเรียลไทม์
+              </div>
             </div>
           </div>
-        </div>
-      </Popup>
-    </Marker>
+        </Popup>
+      )}
+    </>
   );
 };

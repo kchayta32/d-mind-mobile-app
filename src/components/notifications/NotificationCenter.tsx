@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface NotificationSettings {
   enabled: boolean;
@@ -56,6 +57,16 @@ const NotificationCenter: React.FC = () => {
         title: "การแจ้งเตือนเปิดใช้งานแล้ว",
         description: "คุณจะได้รับการแจ้งเตือนเมื่อมีเหตุการณ์ภัยพิบัติ",
       });
+    } else {
+      // Handle the case where permission is denied
+      // Check if Notification API exists (it won't on native apps)
+      if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
+        toast({
+          title: "การแจ้งเตือนถูกปิดกั้น",
+          description: "กรุณาไปที่การตั้งค่าของเบราว์เซอร์/อุปกรณ์เพื่ออนุญาตการแจ้งเตือนสำหรับเว็บไซต์นี้",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -86,17 +97,17 @@ const NotificationCenter: React.FC = () => {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
-      
+
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
-      
+
       oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
       oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
       oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
-      
+
       gainNode.gain.setValueAtTime(settings.volume / 100, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-      
+
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.3);
     }
@@ -113,7 +124,7 @@ const NotificationCenter: React.FC = () => {
           รับแจ้งเตือนแบบเรียลไทม์เมื่อมีเหตุการณ์ภัยพิบัติ
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {/* Permission Status */}
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -141,7 +152,7 @@ const NotificationCenter: React.FC = () => {
             </Button>
           ) : (
             <div className="flex gap-2">
-              <Button 
+              <Button
                 variant={settings.enabled ? "destructive" : "default"}
                 onClick={settings.enabled ? handleDisableNotifications : handleEnableNotifications}
                 className="flex-1"
@@ -158,88 +169,109 @@ const NotificationCenter: React.FC = () => {
                   </>
                 )}
               </Button>
-              
+
               <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="icon">
                     <Settings className="h-4 w-4" />
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md bg-white dark:bg-gray-900 border shadow-lg max-h-[85vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>ตั้งค่าการแจ้งเตือน</DialogTitle>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Settings className="h-5 w-5 text-gray-500" />
+                      ตั้งค่าการแจ้งเตือน
+                    </DialogTitle>
                     <DialogDescription>
-                      ปรับแต่งการแจ้งเตือนตามความต้องการ
+                      ปรับแต่งการแจ้งเตือนตามความต้องการของท่าน
                     </DialogDescription>
                   </DialogHeader>
-                  
-                  <div className="space-y-4">
+
+                  <div className="space-y-6 pt-4">
                     {/* Sound Settings */}
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="sound-toggle" className="flex items-center gap-2">
-                          {settings.sound ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                        <Label htmlFor="sound-toggle" className="flex items-center gap-2 text-base font-medium">
+                          {settings.sound ? <Volume2 className="h-4 w-4 text-blue-500" /> : <VolumeX className="h-4 w-4 text-gray-400" />}
                           เสียงแจ้งเตือน
                         </Label>
                         <Switch
                           id="sound-toggle"
                           checked={settings.sound}
-                          onCheckedChange={(checked) => 
+                          onCheckedChange={(checked) =>
                             saveSettings({ ...settings, sound: checked })
                           }
                         />
                       </div>
-                      
+
                       {settings.sound && (
-                        <div className="space-y-2">
-                          <Label>ความดังเสียง: {settings.volume}%</Label>
+                        <div className="space-y-3 px-2">
+                          <div className="flex justify-between">
+                            <Label className="text-xs text-gray-500">ความดัง</Label>
+                            <span className="text-xs font-medium text-blue-600">{settings.volume}%</span>
+                          </div>
                           <Slider
                             value={[settings.volume]}
-                            onValueChange={([value]) => 
+                            onValueChange={([value]) =>
                               saveSettings({ ...settings, volume: value })
                             }
                             max={100}
                             step={10}
+                            className="cursor-pointer"
                           />
                         </div>
                       )}
                     </div>
 
+                    <div className="h-px bg-gray-100 dark:bg-gray-800" />
+
                     {/* Emergency Only */}
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="emergency-only">แจ้งเตือนเฉพาะภัยฉุกเฉิน</Label>
+                      <div className="space-y-0.5">
+                        <Label htmlFor="emergency-only" className="text-base font-medium">แจ้งเตือนเฉพาะภัยฉุกเฉิน</Label>
+                        <p className="text-xs text-gray-500">ข้ามการแจ้งเตือนทั่วไป รับเฉพาะเหตุวิกฤต</p>
+                      </div>
                       <Switch
                         id="emergency-only"
                         checked={settings.emergencyOnly}
-                        onCheckedChange={(checked) => 
+                        onCheckedChange={(checked) =>
                           saveSettings({ ...settings, emergencyOnly: checked })
                         }
                       />
                     </div>
 
+                    <div className="h-px bg-gray-100 dark:bg-gray-800" />
+
                     {/* Disaster Types */}
-                    <div className="space-y-2">
-                      <Label>ประเภทภัยที่ต้องการรับแจ้งเตือน</Label>
-                      <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-3">
+                      <Label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                        ประเภทภัยที่ต้องการรับแจ้งเตือน
+                      </Label>
+                      <div className="grid grid-cols-2 gap-3">
                         {[
-                          { value: 'earthquake', label: 'แผ่นดินไหว' },
-                          { value: 'flood', label: 'น้ำท่วม' },
-                          { value: 'wildfire', label: 'ไฟป่า' },
-                          { value: 'storm', label: 'พายุ' }
+                          { value: 'earthquake', label: 'แผ่นดินไหว', icon: '📉', color: 'bg-orange-50 text-orange-600 border-orange-100' },
+                          { value: 'flood', label: 'น้ำท่วม', icon: '🌊', color: 'bg-blue-50 text-blue-600 border-blue-100' },
+                          { value: 'wildfire', label: 'ไฟป่า', icon: '🔥', color: 'bg-red-50 text-red-600 border-red-100' },
+                          { value: 'storm', label: 'พายุ', icon: '🌪️', color: 'bg-gray-50 text-gray-600 border-gray-100' }
                         ].map((type) => (
-                          <div key={type.value} className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
+                          <div
+                            key={type.value}
+                            className={`flex items-start space-x-3 p-3 rounded-xl border transition-all ${settings.types.includes(type.value) ? type.color : 'bg-gray-50 border-transparent opacity-60'
+                              }`}
+                          >
+                            <Checkbox
                               id={type.value}
+                              className="mt-1"
                               checked={settings.types.includes(type.value)}
-                              onChange={(e) => {
-                                const newTypes = e.target.checked
+                              onCheckedChange={(checked) => {
+                                const newTypes = checked
                                   ? [...settings.types, type.value]
                                   : settings.types.filter(t => t !== type.value);
                                 saveSettings({ ...settings, types: newTypes });
                               }}
                             />
-                            <Label htmlFor={type.value} className="text-sm">
+                            <Label htmlFor={type.value} className="text-sm font-medium cursor-pointer flex-1">
+                              <div className="text-lg mb-1">{type.icon}</div>
                               {type.label}
                             </Label>
                           </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { DisasterType } from './DisasterMap';
+import { DisasterType } from './types';
 import { RainSensor, AirPollutionData } from './types';
 import { GISTDAHotspot } from './useGISTDAData';
 import { RainViewerData } from './useRainViewerData';
@@ -33,7 +33,7 @@ export const DebugInfo: React.FC<DebugInfoProps> = ({
 
   const renderHeavyRainDebug = () => {
     if (selectedType !== 'heavyrain') return null;
-    
+
     return (
       <div className="absolute bottom-4 left-4 bg-white p-2 rounded shadow text-xs z-[1000]">
         <div>เซ็นเซอร์ทั้งหมด: {rainSensors.length}</div>
@@ -51,7 +51,7 @@ export const DebugInfo: React.FC<DebugInfoProps> = ({
 
   const renderWildfireDebug = () => {
     if (selectedType !== 'wildfire') return null;
-    
+
     return (
       <div className="absolute bottom-4 left-4 bg-white p-2 rounded shadow text-xs z-[1000]">
         <div>จุดความร้อนทั้งหมด: {hotspots.length}</div>
@@ -67,7 +67,7 @@ export const DebugInfo: React.FC<DebugInfoProps> = ({
 
   const renderAirPollutionDebug = () => {
     if (selectedType !== 'airpollution') return null;
-    
+
     return (
       <div className="absolute bottom-4 left-4 bg-white p-2 rounded shadow text-xs z-[1000]">
         <div>สถานีทั้งหมด: {airStations.length}</div>

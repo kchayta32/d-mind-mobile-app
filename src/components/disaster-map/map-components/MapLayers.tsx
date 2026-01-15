@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { WildfireWMSLayers } from '../WildfireWMSLayers';
+import WildfireWMSLayers from '../WildfireWMSLayers';
 import DroughtWMSLayers from '../DroughtWMSLayers';
 import FloodWMSLayers from '../FloodWMSLayers';
 import RainOverlay from '../RainOverlay';
-import { DisasterType } from '../DisasterMap';
+import { DisasterType } from '../types';
 import { RainViewerData } from '../useRainViewerData';
 
 interface MapLayersProps {
@@ -58,10 +58,10 @@ export const MapLayers: React.FC<MapLayersProps> = ({
           opacity={0.7}
         />
       )}
-      
+
       {/* Rain overlay for heavy rain type */}
       {selectedType === 'heavyrain' && showRainOverlay && rainData && (
-        <RainOverlay 
+        <RainOverlay
           rainData={rainData}
           overlayType={rainOverlayType}
           timeType={rainTimeType}
