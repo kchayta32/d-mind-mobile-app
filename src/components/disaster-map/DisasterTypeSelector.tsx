@@ -46,7 +46,7 @@ const disasterTypes: Array<{
       label: 'ฝนตกหนัก',
       icon: <CloudRain className="w-4 h-4" />,
       color: 'bg-blue-500 hover:bg-blue-600',
-      available: true
+      available: false
     },
 
     {
@@ -135,7 +135,7 @@ const DisasterTypeSelector: React.FC<DisasterTypeSelectorProps> = ({
                     variant="secondary"
                     className="absolute -top-2 -right-2 text-xs bg-yellow-100 text-yellow-800 border-yellow-300"
                   >
-                    Coming Soon
+                    เร็วๆนี้
                   </Badge>
                 )}
               </div>
