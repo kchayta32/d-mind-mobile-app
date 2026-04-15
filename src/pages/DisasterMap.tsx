@@ -35,19 +35,19 @@ const DisasterMap: React.FC = () => {
 
   if (isMobile) {
     return (
-      <div className="flex flex-col h-[100dvh] w-full bg-gray-50 overflow-hidden relative">
+      <div className="flex flex-col h-[100dvh] w-full bg-gray-50 dark:bg-gray-900 overflow-hidden relative">
         {/* Floating Custom Header for Mobile */}
         <div className="absolute top-0 left-0 right-0 z-[50] p-4 pointer-events-none">
           <div className="flex items-center justify-between pointer-events-auto">
             {/* Back Button & Logo */}
-            <div className="bg-white/90 backdrop-blur-md rounded-full shadow-lg p-1.5 pr-4 flex items-center gap-2 border border-gray-100">
+            <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-full shadow-lg p-1.5 pr-4 flex items-center gap-2 border border-gray-100 dark:border-gray-700">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-full hover:bg-gray-100"
+                className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                 onClick={handleBack}
               >
-                <ArrowLeft className="h-5 w-5 text-gray-700" />
+                <ArrowLeft className="h-5 w-5 text-gray-700 dark:text-gray-300" />
               </Button>
               <div className="flex items-center gap-2">
                 <img
@@ -55,18 +55,18 @@ const DisasterMap: React.FC = () => {
                   alt="Logo"
                   className="h-6 w-6"
                 />
-                <span className="text-sm font-bold text-gray-800">แผนที่ภัยพิบัติ</span>
+                <span className="text-sm font-bold text-gray-800 dark:text-gray-200">แผนที่ภัยพิบัติ</span>
               </div>
             </div>
 
             {/* Burger Menu */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="secondary" size="icon" className="h-11 w-11 rounded-full shadow-lg bg-white/90 backdrop-blur-md border border-gray-100">
-                  <Menu className="h-6 w-6 text-gray-700" />
+                <Button variant="secondary" size="icon" className="h-11 w-11 rounded-full shadow-lg bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border border-gray-100 dark:border-gray-700">
+                  <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[540px]">
+              <SheetContent side="right" className="w-[300px] sm:w-[540px] dark:bg-gray-900 dark:border-gray-700">
                 <SheetHeader className="mb-6 text-left">
                   <div className="flex items-center gap-3">
                     <img
@@ -75,7 +75,7 @@ const DisasterMap: React.FC = () => {
                       className="h-10 w-10"
                     />
                     <div>
-                      <SheetTitle>เมนูหลัก</SheetTitle>
+                      <SheetTitle className="dark:text-gray-100">เมนูหลัก</SheetTitle>
                       <p className="text-xs text-muted-foreground">D-MIND Disaster Monitor</p>
                     </div>
                   </div>
@@ -85,7 +85,7 @@ const DisasterMap: React.FC = () => {
                     <Button
                       key={item.route}
                       variant="ghost"
-                      className="justify-start h-12 text-base font-normal"
+                      className="justify-start h-12 text-base font-normal dark:text-gray-300 dark:hover:bg-gray-800"
                       onClick={() => navigate(item.route)}
                     >
                       <span className="mr-3 text-muted-foreground">{item.icon}</span>
@@ -104,18 +104,13 @@ const DisasterMap: React.FC = () => {
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
                 <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                <p className="text-sm text-gray-500">กำลังโหลดแผนที่...</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">กำลังโหลดแผนที่...</p>
               </div>
             </div>
           }>
             <DisasterMapComponent />
           </React.Suspense>
         </div>
-
-        {/* Mobile Usage Tip Overlay - Optional if needed, but might clutter map */}
-        {/* <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none opacity-80">
-           <MobileUsageTip /> 
-        </div> */}
       </div>
     );
   }
@@ -123,12 +118,12 @@ const DisasterMap: React.FC = () => {
   // Desktop View (Unchanged most parts, just ensure layout)
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-50">
+      <div className="min-h-screen flex w-full bg-gray-50 dark:bg-gray-900">
         <DisasterMapSidebar />
 
         <div className="flex-1 flex flex-col h-screen">
           {/* Header */}
-          <div className="bg-white shadow-sm border-b p-4 flex-none z-10">
+          <div className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 p-4 flex-none z-10">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <Button
@@ -140,12 +135,12 @@ const DisasterMap: React.FC = () => {
                   <ArrowLeft className="h-4 w-4" />
                   <span>กลับหน้าหลัก</span>
                 </Button>
-                <div className="h-6 w-px bg-gray-200" />
+                <div className="h-6 w-px bg-gray-200 dark:bg-gray-600" />
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                     แผนที่ภัยพิบัติและสถิติ
                   </h1>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     ข้อมูลเวลาจริง (Real-time Data)
                   </p>
                 </div>

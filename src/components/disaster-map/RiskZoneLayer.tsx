@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Source, Layer, FillLayer, LineLayer, Popup } from 'react-map-gl';
+import { Source, Layer, Popup } from 'react-map-gl';
 import { useMap } from 'react-map-gl';
 import { RiskZone, RISK_LEVEL_COLORS, RISK_LEVEL_OPACITY, RISK_TYPE_LABELS } from '@/hooks/useRiskZoneData';
 import { Badge } from '@/components/ui/badge';

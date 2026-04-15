@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Source, Layer, FillLayer } from 'react-map-gl';
+import { Source, Layer } from 'react-map-gl';
 import { FloodFeature } from './hooks/useGISTDAFloodData';
 import { MapLibreMarker } from './maplibre/MapLibreMarker';
 
@@ -17,15 +17,6 @@ const FloodMarkerComponent: React.FC<FloodMarkerProps> = ({ feature, center }) =
   // Unique ID for source and layer
   const sourceId = `flood-source-${properties.id || Math.random()}`;
   const layerId = `flood-layer-${properties.id || Math.random()}`;
-
-  const floodFillLayer: FillLayer = {
-    id: layerId,
-    type: 'fill',
-    paint: {
-      'fill-color': '#3b82f6',
-      'fill-opacity': 0.3
-    }
-  };
 
   const PopupContent = (
     <div className="p-2 min-w-[300px]">
@@ -91,8 +82,15 @@ const FloodMarkerComponent: React.FC<FloodMarkerProps> = ({ feature, center }) =
   return (
     <>
       {/* Render polygon */}
-      <Source id={sourceId} type="geojson" data={feature}>
-        <Layer {...floodFillLayer} />
+      <Source id={sourceId} type="geojson" data={feature as any}>
+        <Layer 
+          id={layerId}
+          type="fill"
+          paint={{
+            'fill-color': '#3b82f6',
+            'fill-opacity': 0.3
+          }}
+        />
       </Source>
 
       {/* Render marker at center */}

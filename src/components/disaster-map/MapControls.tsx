@@ -27,11 +27,11 @@ export const MapControls: React.FC<MapControlsProps> = ({
   if (!rainData) return null;
 
   return (
-    <Card className="bg-white/95 backdrop-blur-sm shadow-lg w-full md:w-auto">
+    <Card className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-lg w-full md:w-auto dark:border-gray-700">
       <CardContent className="p-3">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">เรดาร์ฝน:</span>
+            <span className="text-sm font-medium dark:text-gray-200">เรดาร์ฝน:</span>
             <Button
               size="sm"
               variant={showRainOverlay ? "default" : "outline"}
@@ -43,7 +43,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
           
           {showRainOverlay && (
             <Tabs value={rainOverlayType} onValueChange={(value) => setRainOverlayType(value as 'radar' | 'satellite')}>
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-2 dark:bg-gray-700">
                 <TabsTrigger value="radar" className="text-xs">Radar</TabsTrigger>
                 <TabsTrigger value="satellite" className="text-xs">Satellite</TabsTrigger>
               </TabsList>

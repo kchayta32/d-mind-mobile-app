@@ -17,6 +17,7 @@ import { SinkholeData } from '../../hooks/useSinkholeData';
 import { UserLocationMarker } from './UserLocationMarker';
 import { LocationControls } from './LocationControls';
 import { getMapStyle } from './maplibre/mapStyles';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface MapViewProps {
   earthquakes: Earthquake[];
@@ -61,6 +62,7 @@ export const MapView: React.FC<MapViewProps> = ({
   isLoading,
   onLocationSelect
 }) => {
+  const { isDark } = useTheme();
   const [rainOverlayType, setRainOverlayType] = React.useState<'radar' | 'satellite'>('radar');
   const [rainTimeType, setRainTimeType] = React.useState<'past' | 'future'>('past');
   const [showRainOverlay, setShowRainOverlay] = React.useState(false);
@@ -99,7 +101,7 @@ export const MapView: React.FC<MapViewProps> = ({
         mapLib={maplibregl}
         initialViewState={initialViewState}
         style={{ height: '100%', width: '100%' }}
-        mapStyle={getMapStyle() as any}
+        mapStyle={getMapStyle(isDark) as any}
         minZoom={4}
         maxZoom={18}
         maxPitch={85}

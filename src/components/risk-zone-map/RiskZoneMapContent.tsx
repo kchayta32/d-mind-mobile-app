@@ -9,6 +9,7 @@ import { LocationControls } from '@/components/disaster-map/LocationControls';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { getMapStyle } from '@/components/disaster-map/maplibre/mapStyles';
+import { useTheme } from '@/contexts/ThemeContext';
 import { ChevronUp, ChevronDown, AlertTriangle, MapPin, Flame, Droplets, Mountain, Wind, Activity } from 'lucide-react';
 
 const RISK_TYPE_ICONS: Record<string, React.ReactNode> = {
@@ -24,6 +25,7 @@ interface RiskZoneMapContentProps {
 }
 
 export const RiskZoneMapContent: React.FC<RiskZoneMapContentProps> = () => {
+    const { isDark } = useTheme();
     const [showUserLocation, setShowUserLocation] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
@@ -91,7 +93,7 @@ export const RiskZoneMapContent: React.FC<RiskZoneMapContentProps> = () => {
                     mapLib={maplibregl}
                     initialViewState={initialViewState}
                     style={{ height: '100%', width: '100%' }}
-                    mapStyle={getMapStyle() as any}
+                    mapStyle={getMapStyle(isDark) as any}
                     minZoom={4}
                     maxZoom={18}
                     maxPitch={85}
@@ -110,8 +112,8 @@ export const RiskZoneMapContent: React.FC<RiskZoneMapContentProps> = () => {
                 </div>
 
                 {/* Compact Legend - Top Left */}
-                <div className="absolute top-4 left-4 z-[1000] bg-white/95 backdrop-blur-sm rounded-xl shadow-lg px-3 py-2">
-                    <div className="flex items-center gap-3 text-[10px]">
+                <div className="absolute top-4 left-4 z-[1000] bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-xl shadow-lg px-3 py-2">
+                    <div className="flex items-center gap-3 text-[10px] dark:text-gray-300">
                         <div className="flex items-center gap-1">
                             <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
                             <span>สูงมาก</span>
@@ -143,7 +145,7 @@ export const RiskZoneMapContent: React.FC<RiskZoneMapContentProps> = () => {
             >
                 {/* Drawer Handle */}
                 <div
-                    className="bg-white/95 backdrop-blur-md rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.15)] cursor-grab active:cursor-grabbing"
+                    className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.15)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.4)] cursor-grab active:cursor-grabbing"
                     onTouchStart={handleTouchStart}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
@@ -151,7 +153,7 @@ export const RiskZoneMapContent: React.FC<RiskZoneMapContentProps> = () => {
                 >
                     {/* Handle Bar */}
                     <div className="flex justify-center pt-3 pb-2">
-                        <div className="w-10 h-1 bg-gray-300 rounded-full" />
+                        <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
                     </div>
 
                     {/* Preview Stats - Always Visible */}
@@ -160,23 +162,23 @@ export const RiskZoneMapContent: React.FC<RiskZoneMapContentProps> = () => {
                             <div className="flex items-center gap-4">
                                 {/* Stats */}
                                 <div className="flex items-center gap-1.5">
-                                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                        <span className="text-sm font-bold text-blue-600">{filteredRiskZones.length}</span>
+                                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center">
+                                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{filteredRiskZones.length}</span>
                                     </div>
-                                    <span className="text-xs text-gray-600">พื้นที่เสี่ยง</span>
+                                    <span className="text-xs text-gray-600 dark:text-gray-400">พื้นที่เสี่ยง</span>
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                    <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                                        <span className="text-sm font-bold text-orange-600">
+                                    <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/50 rounded-lg flex items-center justify-center">
+                                        <span className="text-sm font-bold text-orange-600 dark:text-orange-400">
                                             {filteredRiskZones.filter(z => z.riskLevel >= 4).length}
                                         </span>
                                     </div>
-                                    <span className="text-xs text-gray-600">ความเสี่ยงสูง</span>
+                                    <span className="text-xs text-gray-600 dark:text-gray-400">ความเสี่ยงสูง</span>
                                 </div>
                             </div>
 
                             {/* Expand Button */}
-                            <button className="flex items-center gap-1 text-blue-600 text-xs font-medium">
+                            <button className="flex items-center gap-1 text-blue-600 dark:text-blue-400 text-xs font-medium">
                                 {isExpanded ? (
                                     <>
                                         <span>ซ่อน</span>
@@ -194,39 +196,39 @@ export const RiskZoneMapContent: React.FC<RiskZoneMapContentProps> = () => {
                 </div>
 
                 {/* Expandable Content */}
-                <div className={`bg-white overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[60vh] opacity-100' : 'max-h-0 opacity-0'
+                <div className={`bg-white dark:bg-gray-900 overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[60vh] opacity-100' : 'max-h-0 opacity-0'
                     }`}>
                     <div className="px-4 py-4 space-y-4 max-h-[60vh] overflow-y-auto pb-8">
                         {/* Full Statistics */}
                         <div className="grid grid-cols-3 gap-2 text-center">
-                            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3">
-                                <div className="text-xl font-bold text-blue-600">{filteredRiskZones.length}</div>
-                                <div className="text-[10px] text-gray-600">พื้นที่เสี่ยง</div>
+                            <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/40 dark:to-blue-800/40 rounded-xl p-3">
+                                <div className="text-xl font-bold text-blue-600 dark:text-blue-400">{filteredRiskZones.length}</div>
+                                <div className="text-[10px] text-gray-600 dark:text-gray-400">พื้นที่เสี่ยง</div>
                             </div>
-                            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3">
-                                <div className="text-xl font-bold text-orange-600">
+                            <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/40 dark:to-orange-800/40 rounded-xl p-3">
+                                <div className="text-xl font-bold text-orange-600 dark:text-orange-400">
                                     {filteredRiskZones.filter(z => z.riskLevel >= 4).length}
                                 </div>
-                                <div className="text-[10px] text-gray-600">ความเสี่ยงสูง</div>
+                                <div className="text-[10px] text-gray-600 dark:text-gray-400">ความเสี่ยงสูง</div>
                             </div>
-                            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-3">
-                                <div className="text-xl font-bold text-purple-600">
+                            <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/40 dark:to-purple-800/40 rounded-xl p-3">
+                                <div className="text-xl font-bold text-purple-600 dark:text-purple-400">
                                     {filteredRiskZones.reduce((acc, z) => acc + z.historicalIncidents, 0)}
                                 </div>
-                                <div className="text-[10px] text-gray-600">เหตุการณ์ในอดีต</div>
+                                <div className="text-[10px] text-gray-600 dark:text-gray-400">เหตุการณ์ในอดีต</div>
                             </div>
                         </div>
 
                         {/* Filter Section */}
-                        <div className="bg-gray-50 rounded-xl p-4 space-y-4">
-                            <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 space-y-4">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
                                 <AlertTriangle className="h-4 w-4 text-orange-500" />
                                 ตัวกรองข้อมูล
                             </div>
 
                             {/* Risk Type Pills */}
                             <div>
-                                <div className="text-xs text-gray-500 mb-2">ประเภทภัยพิบัติ</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">ประเภทภัยพิบัติ</div>
                                 <div className="flex flex-wrap gap-2">
                                     {riskTypes.map(type => (
                                         <button
@@ -234,7 +236,7 @@ export const RiskZoneMapContent: React.FC<RiskZoneMapContentProps> = () => {
                                             onClick={() => handleRiskTypeToggle(type)}
                                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs transition-all ${selectedRiskTypes.length === 0 || selectedRiskTypes.includes(type)
                                                 ? 'bg-blue-500 text-white shadow-sm'
-                                                : 'bg-white text-gray-500 border border-gray-200'
+                                                : 'bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-300 border border-gray-200 dark:border-gray-600'
                                                 }`}
                                         >
                                             {RISK_TYPE_ICONS[type]}
@@ -246,8 +248,8 @@ export const RiskZoneMapContent: React.FC<RiskZoneMapContentProps> = () => {
 
                             {/* Risk Level Slider */}
                             <div>
-                                <div className="text-xs text-gray-500 mb-2">
-                                    ระดับความเสี่ยงขั้นต่ำ: <span className="font-bold text-gray-700">{minRiskLevel}</span>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                                    ระดับความเสี่ยงขั้นต่ำ: <span className="font-bold text-gray-700 dark:text-gray-200">{minRiskLevel}</span>
                                 </div>
                                 <Slider
                                     value={[minRiskLevel]}
@@ -257,7 +259,7 @@ export const RiskZoneMapContent: React.FC<RiskZoneMapContentProps> = () => {
                                     step={1}
                                     className="w-full"
                                 />
-                                <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+                                <div className="flex justify-between text-[10px] text-gray-400 dark:text-gray-500 mt-1">
                                     <span>1 (ต่ำ)</span>
                                     <span>5 (สูง)</span>
                                 </div>
@@ -267,20 +269,20 @@ export const RiskZoneMapContent: React.FC<RiskZoneMapContentProps> = () => {
                         {/* Risk Zone List */}
                         {filteredRiskZones.length > 0 && (
                             <div className="space-y-2">
-                                <div className="text-xs text-gray-500 font-medium">พื้นที่เสี่ยงที่แสดง</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">พื้นที่เสี่ยงที่แสดง</div>
                                 <div className="space-y-2">
                                     {filteredRiskZones.map(zone => (
                                         <div
                                             key={zone.id}
-                                            className="flex items-center justify-between bg-white border border-gray-100 rounded-xl p-3 shadow-sm"
+                                            className="flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-3 shadow-sm"
                                         >
                                             <div className="flex items-center gap-2">
-                                                <MapPin className="h-4 w-4 text-gray-400" />
+                                                <MapPin className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                                                 <div>
-                                                    <div className="text-sm font-medium text-gray-800 truncate max-w-[180px]">
+                                                    <div className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate max-w-[180px]">
                                                         {zone.name}
                                                     </div>
-                                                    <div className="text-[10px] text-gray-400">{zone.province}</div>
+                                                    <div className="text-[10px] text-gray-400 dark:text-gray-500">{zone.province}</div>
                                                 </div>
                                             </div>
                                             <Badge

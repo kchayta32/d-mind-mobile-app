@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ArrowLeft, Menu, Home, Phone, BookOpen, Settings, Info, FileText, Map, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -37,17 +38,17 @@ const RiskZoneMap: React.FC = () => {
     // Tab Switcher Component
     const MapTabSwitcher = () => (
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'risk-zones' | 'realtime')} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 h-10 bg-gray-100/80 backdrop-blur-sm">
+            <TabsList className="grid w-full grid-cols-2 h-10 bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm">
                 <TabsTrigger
                     value="risk-zones"
-                    className="text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-1.5"
+                    className="text-xs sm:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm flex items-center gap-1.5"
                 >
                     <AlertTriangle className="h-3.5 w-3.5" />
                     <span>พื้นที่เสี่ยง</span>
                 </TabsTrigger>
                 <TabsTrigger
                     value="realtime"
-                    className="text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-1.5"
+                    className="text-xs sm:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm flex items-center gap-1.5"
                 >
                     <Map className="h-3.5 w-3.5" />
                     <span>ภัยต่างๆ</span>
@@ -58,19 +59,19 @@ const RiskZoneMap: React.FC = () => {
 
     if (isMobile) {
         return (
-            <div className="flex flex-col h-[100dvh] w-full bg-gray-50 overflow-hidden relative">
+            <div className="flex flex-col h-[100dvh] w-full bg-gray-50 dark:bg-gray-900 overflow-hidden relative">
                 {/* Floating Custom Header for Mobile */}
                 <div className="absolute top-0 left-0 right-0 z-[50] p-4 pointer-events-none">
                     <div className="flex items-center justify-between pointer-events-auto">
                         {/* Back Button & Logo */}
-                        <div className="bg-white/90 backdrop-blur-md rounded-full shadow-lg p-1.5 pr-4 flex items-center gap-2 border border-gray-100">
+                        <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-full shadow-lg p-1.5 pr-4 flex items-center gap-2 border border-gray-100 dark:border-gray-700">
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 rounded-full hover:bg-gray-100"
+                                className="h-8 w-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                                 onClick={handleBack}
                             >
-                                <ArrowLeft className="h-5 w-5 text-gray-700" />
+                                <ArrowLeft className="h-5 w-5 text-gray-700 dark:text-gray-300" />
                             </Button>
                             <div className="flex items-center gap-2">
                                 <img
@@ -78,18 +79,18 @@ const RiskZoneMap: React.FC = () => {
                                     alt="Logo"
                                     className="h-6 w-6"
                                 />
-                                <span className="text-sm font-bold text-gray-800">แผนที่</span>
+                                <span className="text-sm font-bold text-gray-800 dark:text-gray-200">แผนที่</span>
                             </div>
                         </div>
 
                         {/* Burger Menu */}
                         <Sheet>
                             <SheetTrigger asChild>
-                                <Button variant="secondary" size="icon" className="h-11 w-11 rounded-full shadow-lg bg-white/90 backdrop-blur-md border border-gray-100">
-                                    <Menu className="h-6 w-6 text-gray-700" />
+                                <Button variant="secondary" size="icon" className="h-11 w-11 rounded-full shadow-lg bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border border-gray-100 dark:border-gray-700">
+                                    <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent side="right" className="w-[300px] sm:w-[540px]">
+                            <SheetContent side="right" className="w-[300px] sm:w-[540px] dark:bg-gray-900 dark:border-gray-700">
                                 <SheetHeader className="mb-6 text-left">
                                     <div className="flex items-center gap-3">
                                         <img
@@ -98,7 +99,7 @@ const RiskZoneMap: React.FC = () => {
                                             className="h-10 w-10"
                                         />
                                         <div>
-                                            <SheetTitle>เมนูหลัก</SheetTitle>
+                                            <SheetTitle className="dark:text-gray-100">เมนูหลัก</SheetTitle>
                                             <p className="text-xs text-muted-foreground">D-MIND Disaster Monitor</p>
                                         </div>
                                     </div>
@@ -108,7 +109,7 @@ const RiskZoneMap: React.FC = () => {
                                         <Button
                                             key={item.route}
                                             variant="ghost"
-                                            className="justify-start h-12 text-base font-normal"
+                                            className="justify-start h-12 text-base font-normal dark:text-gray-300 dark:hover:bg-gray-800"
                                             onClick={() => navigate(item.route)}
                                         >
                                             <span className="mr-3 text-muted-foreground">{item.icon}</span>
@@ -123,7 +124,7 @@ const RiskZoneMap: React.FC = () => {
 
                 {/* Tab Switcher - Fixed below header */}
                 <div className="absolute top-[72px] left-0 right-0 z-[40] px-4 pointer-events-auto">
-                    <div className="bg-white/95 backdrop-blur-md rounded-xl shadow-lg p-1 border border-gray-100">
+                    <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-xl shadow-lg p-1 border border-gray-100 dark:border-gray-700">
                         <MapTabSwitcher />
                     </div>
                 </div>
@@ -137,7 +138,7 @@ const RiskZoneMap: React.FC = () => {
                             <div className="flex items-center justify-center h-full">
                                 <div className="text-center">
                                     <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                                    <p className="text-sm text-gray-500">กำลังโหลดแผนที่...</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">กำลังโหลดแผนที่...</p>
                                 </div>
                             </div>
                         }>
@@ -152,12 +153,12 @@ const RiskZoneMap: React.FC = () => {
     // Desktop View
     return (
         <SidebarProvider>
-            <div className="min-h-screen flex w-full bg-gray-50">
+            <div className="min-h-screen flex w-full bg-gray-50 dark:bg-gray-900">
                 <DisasterMapSidebar />
 
                 <div className="flex-1 flex flex-col h-screen">
                     {/* Header */}
-                    <div className="bg-white shadow-sm border-b p-4 flex-none z-10">
+                    <div className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 p-4 flex-none z-10">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">
                                 <Button
@@ -169,12 +170,12 @@ const RiskZoneMap: React.FC = () => {
                                     <ArrowLeft className="h-4 w-4" />
                                     <span>กลับหน้าหลัก</span>
                                 </Button>
-                                <div className="h-6 w-px bg-gray-200" />
+                                <div className="h-6 w-px bg-gray-200 dark:bg-gray-600" />
                                 <div>
-                                    <h1 className="text-xl font-bold text-gray-900">
+                                    <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                                         {activeTab === 'risk-zones' ? 'แผนที่พื้นที่เสี่ยงภัยพิบัติ' : 'แผนที่ภัยพิบัติและสถิติ'}
                                     </h1>
-                                    <p className="text-sm text-gray-600">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
                                         {activeTab === 'risk-zones' ? 'ข้อมูลพื้นที่เสี่ยงทั่วประเทศไทย' : 'ข้อมูลเวลาจริง (Real-time Data)'}
                                     </p>
                                 </div>
