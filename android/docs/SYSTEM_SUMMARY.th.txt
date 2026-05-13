@@ -1,0 +1,209 @@
+สรุประบบ D-MIND Android: UI/UX, ระบบแจ้งเตือน, API Key และ Endpoint
+วันที่: 2026-05-13
+
+หลักการสำคัญ
+- Android app เป็น native mobile app อยู่ใน android/app
+- Backend อยู่ใน android/backend และทำหน้าที่เป็นจุดรวมงานที่ต้องใช้ secret/API key
+- แอปมือถือไม่ฝัง secret จริงลง APK เก็บเฉพาะ BuildConfig.BACKEND_BASE_URL
+- API key/secret ของ production ต้องอยู่ใน environment variables หรือ secret manager ของ backend เท่านั้น
+- ระบบแจ้งเตือนมือถือใช้ Firebase Cloud Messaging (FCM) สำหรับ push จาก server และใช้ native notification channel สำหรับแสดงผลในเครื่อง
+
+UI/UX หลักของแอป
+ไฟล์หลัก: android/app/src/main/kotlin/com/dmind/app/ui/DMindApp.kt
+
+Home
+- จุดประสงค์: ตรวจความพร้อมของระบบ
+- UI/UX: banner, readiness chips, permission onboarding
+- Action หลัก: ขอ Location, Notifications, Battery, DND
+
+Map
+- จุดประสงค์: แผนที่ภัยพิบัติ
+- UI/UX: MapLibre native map เต็มจอ พร้อม label overlay
+- Action หลัก: แสดงแผนที่ศูนย์กลางประเทศไทย
+
+Alerts
+- จุดประสงค์: ระบบแจ้งเตือน
+- UI/UX: card สถานะ notification permission และ DND bypass
+- Action หลัก: Trigger native test alert
+
+SOS
+- จุดประสงค์: ขอความช่วยเหลือฉุกเฉิน
+- UI/UX: แสดง Pending SOS และปุ่มปฏิบัติการฉุกเฉิน
+- Action หลัก: Queue SOS, Start/Stop monitoring
+
+More
+- จุดประสงค์: ฟีเจอร์เสริมและ config
+- UI/UX: backend URL, feature list, FCM token card
+- Action หลัก: เปิด App Settings, Refresh FCM
+
+ระบบแจ้งเตือนมือถือ
+ไฟล์หลัก:
+- android/app/src/main/kotlin/com/dmind/app/DMindApplication.kt
+- android/app/src/main/java/com/dmind/app/util/NotificationHelper.java
+- android/app/src/main/java/com/dmind/app/util/EmergencyNotificationManager.java
+- android/app/src/main/java/com/dmind/app/activity/EmergencyAlertActivity.java
+- android/app/src/main/java/com/dmind/app/service/FCMFirebaseService.java
+- android/app/src/main/java/com/dmind/app/util/FCMTokenRegistrar.java
+
+Notification channels:
+- emergency_alerts: HIGH, ใช้แจ้งเตือนภัยพิบัติสำคัญ, vibration, DND bypass, full-screen intent
+- background_operations: LOW, ใช้ notification ค้างสำหรับ foreground service ติดตามตำแหน่ง
+- sos_messages: HIGH, ใช้แจ้งสถานะ SOS ที่รอส่งหรือส่งแล้ว
+
+Flow การรับแจ้งเตือน:
+1. แอปเริ่มต้นผ่าน DMindApplication
+2. สร้าง notification channels ล่วงหน้า
+3. ขอ/refresh FCM token จาก Firebase
+4. ส่ง token ไป backend ที่ BuildConfig.BACKEND_BASE_URL + "/fcm/register"
+5. Backend เก็บ token ใน registry
+6. Backend ส่ง push ผ่าน FCM HTTP v1 ที่ endpoint Google
+7. เครื่องผู้ใช้รับ FCM data message ที่ FCMFirebaseService
+8. อ่าน data keys alert_type, alert_title, alert_message
+9. ส่งต่อไป EmergencyNotificationManager.triggerEmergencyAlert(...)
+10. NotificationHelper แสดง native notification ผ่าน channel emergency_alerts
+11. ถ้าเป็น full-screen alert จะเปิด EmergencyAlertActivity
+
+หมายเหตุ:
+- Android 13+ ต้องขอ POST_NOTIFICATIONS
+- DND bypass ต้องให้ผู้ใช้เปิด permission ที่ system settings
+- Full-screen alert ใช้ permission USE_FULL_SCREEN_INTENT
+- ถ้าเครื่อง dev ยังไม่มี Firebase config แอปจะข้าม FCM registration โดยไม่ crash
+
+FCM Data Payload ที่แอปรองรับ
+ไฟล์: android/app/src/main/java/com/dmind/app/service/FCMFirebaseService.java
+- alert_type: จำเป็น, ประเภทภัย เช่น flood, earthquake, storm, fire
+- alert_title: ไม่บังคับ, หัวข้อแจ้งเตือน
+- alert_message: ไม่บังคับ, ข้อความแจ้งเตือน
+
+ถ้าไม่มี alert_type แอปจะไม่ trigger emergency alert เพื่อเลี่ยงการแจ้งเตือนผิดประเภท
+
+Backend
+ไฟล์หลัก:
+- android/backend/src/main/kotlin/com/dmind/backend/Application.kt
+- android/backend/build.gradle
+
+Run command:
+.\gradlew.bat :backend:run
+
+Endpoints ปัจจุบัน:
+- GET /health: ตรวจ backend health, ใช้งานได้
+- GET /alerts: ดึงรายการ alert ตัวอย่าง, placeholder
+- POST /sos: รับ SOS จากมือถือ, รับ payload แล้วตอบ accepted
+- POST /reports: รับ incident/victim reports, placeholder
+- GET /weather: weather proxy, เช็ก env TMD_API_TOKEN
+- POST /damage-assessment: damage assessment/AI proxy, เช็ก env OPENAI_API_KEY
+- POST /chat: AI chat proxy, เช็ก env OPENAI_API_KEY
+- POST /fcm/register: รับ FCM token จากมือถือ, ใช้งานได้
+- POST /notifications/send: ส่ง push notification ไปมือถือผ่าน FCM HTTP v1, ใช้งานได้เมื่อ backend มี Firebase credentials
+
+Backend Base URL ของแอป
+- Gradle property: DMIND_BACKEND_BASE_URL
+- build field: android/app/build.gradle
+- runtime config: android/app/src/main/kotlin/com/dmind/app/network/BackendConfig.kt
+- ค่า default emulator: http://10.0.2.2:8080
+
+ตัวอย่าง build พร้อมกำหนด backend:
+.\gradlew.bat :app:assembleDebug -PDMIND_BACKEND_BASE_URL=https://api.example.com
+
+ตำแหน่ง API Key และ Secret
+ห้ามใส่ค่าจริงของ API key ลงใน source code หรือเอกสารนี้
+
+- OPENAI_API_KEY
+  ควรเก็บที่: backend environment variable
+  ใช้โดย: /chat, /damage-assessment
+
+- TMD_API_TOKEN
+  ควรเก็บที่: backend environment variable
+  ใช้โดย: /weather
+
+- Firebase Android config
+  ควรเก็บที่: android/app/google-services.json
+  ใช้โดย: FCM Android client
+
+- FCM_PROJECT_ID หรือ FIREBASE_PROJECT_ID
+  ควรเก็บที่: backend environment variable
+  ใช้โดย: /notifications/send
+
+- GOOGLE_APPLICATION_CREDENTIALS
+  ควรเก็บที่: backend environment variable
+  ใช้โดย: /notifications/send
+  รายละเอียด: path ไป service-account JSON ที่มีสิทธิ์ Firebase Cloud Messaging API Admin
+
+- GISTDA API key
+  ควรเก็บที่: backend environment variable หรือ secret manager
+  ใช้โดย: future map/disaster proxy
+
+- Supabase URL/key
+  ควรเก็บที่: backend environment variable หรือ secret manager
+  ใช้โดย: future data integration
+
+- Release keystore password
+  ควรเก็บที่: KEYSTORE_PASSWORD, KEY_PASSWORD
+  ใช้โดย: release signing
+
+ตัวอย่างส่งแจ้งเตือนจาก backend
+ส่งแบบ broadcast ไปทุก token ที่ลงทะเบียนไว้ใน backend instance ปัจจุบัน:
+
+Invoke-RestMethod -Method Post `
+  -Uri http://localhost:8080/notifications/send `
+  -ContentType application/json `
+  -Body '{"title":"แจ้งเตือนทดสอบ","message":"มีเหตุการณ์สำคัญในพื้นที่ของคุณ","alertType":"flood","broadcast":true}'
+
+ส่งไปยัง token เดียว:
+{
+  "title": "แจ้งเตือนทดสอบ",
+  "message": "มีเหตุการณ์สำคัญในพื้นที่ของคุณ",
+  "alertType": "flood",
+  "token": "<FCM_DEVICE_TOKEN>"
+}
+
+ส่งตาม user id ที่ลงทะเบียนไว้:
+{
+  "title": "แจ้งเตือนเฉพาะผู้ใช้",
+  "message": "โปรดตรวจสอบพื้นที่ปลอดภัยใกล้คุณ",
+  "alertType": "storm",
+  "userId": "anonymous"
+}
+
+Background Monitoring และ Geofence
+ไฟล์หลัก:
+- android/app/src/main/java/com/dmind/app/service/BackgroundLocationService.java
+- android/app/src/main/java/com/dmind/app/service/GeofenceMonitorService.java
+- android/app/src/main/java/com/dmind/app/util/GeofenceUtils.java
+- android/app/src/main/java/com/dmind/app/database/AlertsCacheDAO.java
+
+Flow:
+1. ผู้ใช้กด Start monitoring จากหน้า SOS
+2. UI เรียก NativeStatusRepository.startMonitoring()
+3. เริ่ม BackgroundLocationService เป็น foreground service
+4. service ใช้ Google Play Services Fused Location
+5. บันทึก location ลง local database
+6. ตรวจตำแหน่งกับ danger zones ด้วย point-in-polygon
+7. ถ้าอยู่ในพื้นที่เสี่ยง จะ trigger emergency alert
+
+SOS Queue
+ไฟล์หลัก:
+- android/app/src/main/java/com/dmind/app/worker/SOSQueueWorker.java
+- android/app/src/main/java/com/dmind/app/database/AlertsCacheDAO.java
+- android/app/src/main/java/com/dmind/app/model/SOSMessage.java
+
+Flow:
+1. ผู้ใช้กด Queue SOS ในหน้า SOS
+2. NativeStatusRepository.queueDemoSOS() บันทึก SOS ลง local SQLite
+3. สั่ง SOSQueueWorker.enqueue(...)
+4. WorkManager รอ network
+5. เมื่อ network พร้อม ส่ง POST ไป endpoint /sos
+6. ถ้าส่งสำเร็จ mark เป็น sent
+7. ถ้าส่งไม่สำเร็จ retry ตาม WorkManager backoff
+
+Data Storage ภายในแอป
+- SQLite เดิม: android/app/src/main/java/com/dmind/app/database/AlertsCacheDAO.java
+- Room schema ใหม่: android/app/src/main/kotlin/com/dmind/app/data/local/DMindRoomDatabase.kt
+
+จุดที่ยังเป็น Placeholder
+- /alerts ยังคืน demo alert
+- /reports ยังรับ request แบบ placeholder
+- /weather ยังเช็ก env TMD_API_TOKEN แต่ยังไม่ยิง API จริง
+- /damage-assessment และ /chat ยังเช็ก env OPENAI_API_KEY แต่ยังไม่เรียก model จริง
+- FCM token registry ใน backend ตอนนี้เป็น in-memory registry ควรย้ายไป database เมื่อขึ้น production
+- หน้า UI ยังเป็น native shell และ readiness/actions หลัก ยังไม่ครบทุก feature จากเว็บเดิม

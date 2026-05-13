@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/alertRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="@android:color/black">
+
+    <ImageView
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:src="@drawable/ic_stat_notification"
+        android:contentDescription="@string/title_emergency_alert"
+        android:layout_marginBottom="24dp"
+        android:alpha="0.9" />
+
+    <TextView
+        android:id="@+id/alertTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/emergency_default_title"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"
+        android:gravity="center"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:id="@+id/alertMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/emergency_default_message"
+        android:textSize="18sp"
+        android:textColor="@android:color/white"
+        android:gravity="center"
+        android:layout_marginBottom="32dp"
+        android:lineSpacingExtra="8dp" />
+
+    <TextView
+        android:id="@+id/countdownTimer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/emergency_countdown"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/holo_red_light"
+        android:gravity="center"
+        android:layout_marginBottom="48dp"
+        android:animateLayoutChanges="true" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="24dp">
+
+        <Button
+            android:id="@+id/buttonAcknowledge"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/acknowledge_button"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:onClick="onAcknowledgmentClick"
+            android:backgroundTint="@android:color/white"
+            android:textColor="@android:color/black"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/buttonHelp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/help_button"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:onClick="onAcknowledgmentClick"
+            android:backgroundTint="@android:color/holo_red_light"
+            android:textColor="@android:color/white"
+            android:layout_marginStart="8dp" />
+
+    </LinearLayout>
+</LinearLayout>

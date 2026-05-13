@@ -26,6 +26,7 @@ import NotFound from "./pages/NotFound";
 import MobileLayout from "@/components/layout/MobileLayout";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { initializeNativeApp } from "@/utils/native";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +80,9 @@ class AppErrorBoundary extends Component<
   }
 
   componentDidMount() {
+    // Initialize native app features (StatusBar, SplashScreen, etc.)
+    initializeNativeApp();
+
     // Simple timeout to ensure React is ready
     setTimeout(() => {
       this.setState({ isReady: true });

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext only for localhost (development) -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+    </domain-config>
+
+    <!-- Trusted API domains -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">supabase.co</domain>
+        <domain includeSubdomains="true">tmd.go.th</domain>
+        <domain includeSubdomains="true">gistda.or.th</domain>
+        <domain includeSubdomains="true">openmeteo.com</domain>
+        <domain includeSubdomains="true">googleapis.com</domain>
+        <domain includeSubdomains="true">gstatic.com</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+
+    <!-- Base config: enforce HTTPS -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

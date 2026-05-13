@@ -9,6 +9,7 @@ import { Siren, AlertTriangle, Phone, MapPin, Clock, Users } from 'lucide-react'
 import { useNotifications } from '@/hooks/useNotifications';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { getNetworkStatus, queueNativeSOS, triggerNativeEmergencyAlert } from '@/utils/native';
 
 interface EmergencyAlert {
   id: string;
@@ -23,6 +24,17 @@ interface EmergencyAlert {
   is_active: boolean;
   affected_provinces: string[];
 }
+
+interface RealtimeEmergencyAlert {
+  id?: string;
+  title?: string;
+  message?: string;
+  alert_type?: string;
+}
+
+type WindowWithWebkitAudio = Window & typeof globalThis & {
+  webkitAudioContext?: typeof AudioContext;
+};
 
 const EmergencyAlertSystem: React.FC = () => {
   const { sendNotification } = useNotifications();
@@ -42,6 +54,11 @@ const EmergencyAlertSystem: React.FC = () => {
         },
         (error) => {
           console.error('Error getting location:', error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0,
         }
       );
     }
@@ -85,7 +102,7 @@ const EmergencyAlertSystem: React.FC = () => {
           filter: 'severity_level.gte.4'
         },
         (payload) => {
-          const newAlert = payload.new as any;
+          const newAlert = payload.new as RealtimeEmergencyAlert;
           
           // Send push notification without actions
           sendNotification(`🚨 ${newAlert.title}`, {
@@ -106,6 +123,11 @@ const EmergencyAlertSystem: React.FC = () => {
 
           // Play emergency sound
           playEmergencySound();
+          triggerNativeEmergencyAlert(
+            newAlert.title || 'Emergency Disaster Alert',
+            newAlert.message || 'Seek safety immediately.',
+            newAlert.alert_type || 'disaster'
+          );
           
           // Refetch data
           refetch();
@@ -120,7 +142,11 @@ const EmergencyAlertSystem: React.FC = () => {
 
   const playEmergencySound = () => {
     try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioContextClass = window.AudioContext || (window as WindowWithWebkitAudio).webkitAudioContext;
+      if (!AudioContextClass) {
+        return;
+      }
+      const audioContext = new AudioContextClass();
       
       // Create a more urgent emergency sound
       for (let i = 0; i < 3; i++) {
@@ -157,6 +183,16 @@ const EmergencyAlertSystem: React.FC = () => {
           };
 
           try {
+            const network = await getNetworkStatus();
+            const sosResult = await queueNativeSOS({
+              latitude: location.lat,
+              longitude: location.lng,
+              message: network.connected
+                ? 'SOS requested from D-MIND'
+                : 'SOS requested while offline; queued for retry',
+            });
+            console.log('SOS queue result:', sosResult);
+
             // Send SOS notification
             sendNotification("🆘 SOS ถูกเปิดใช้งาน", {
               body: `ตำแหน่ง: ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`,
@@ -193,6 +229,11 @@ const EmergencyAlertSystem: React.FC = () => {
             description: "ไม่สามารถระบุตำแหน่งได้",
             variant: "destructive",
           });
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0,
         }
       );
     }

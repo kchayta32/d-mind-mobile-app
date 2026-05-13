@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- D-MIND Brand Colors -->
+    <color name="colorPrimary">#3B82F6</color>
+    <color name="colorPrimaryDark">#1E40AF</color>
+    <color name="colorAccent">#F59E0B</color>
+
+    <!-- Status Bar & Navigation Bar -->
+    <color name="statusBarColor">#1E3A8A</color>
+    <color name="navigationBarColor">#FFFFFF</color>
+
+    <!-- Splash Screen -->
+    <color name="splashBackground">#1E3A8A</color>
+
+    <!-- Alert Colors -->
+    <color name="emergencyRed">#DC2626</color>
+    <color name="warningOrange">#F59E0B</color>
+    <color name="infoBlue">#3B82F6</color>
+    <color name="successGreen">#10B981</color>
+
+    <!-- Background -->
+    <color name="windowBackground">#F8FAFC</color>
+</resources>

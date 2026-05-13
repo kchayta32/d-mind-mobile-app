@@ -137,10 +137,90 @@
 @layer base {
   * {
     @apply border-border;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    min-height: 100%;
+    overscroll-behavior: none;
+    touch-action: manipulation;
+    background: hsl(var(--background));
   }
 
   body {
     @apply bg-background text-foreground;
+    min-height: 100%;
+    margin: 0;
+    overflow-x: hidden;
+    overscroll-behavior-y: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+  }
+
+  input,
+  textarea,
+  [contenteditable="true"],
+  .selectable-text {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  button,
+  a,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+
+  img,
+  video,
+  canvas,
+  svg {
+    -webkit-user-drag: none;
+  }
+
+  #root {
+    min-height: 100dvh;
+    background: hsl(var(--background));
+  }
+}
+
+.safe-area-x {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.native-page-enter {
+  animation: native-page-in 180ms ease-out both;
+}
+
+.native-bottom-sheet {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+@keyframes native-page-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 

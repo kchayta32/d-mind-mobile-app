@@ -1,0 +1,27 @@
+apply plugin: 'org.jetbrains.kotlin.jvm'
+apply plugin: 'org.jetbrains.kotlin.plugin.serialization'
+apply plugin: 'application'
+
+repositories {
+    mavenCentral()
+}
+
+kotlin {
+    jvmToolchain(21)
+}
+
+application {
+    mainClass = 'com.dmind.backend.ApplicationKt'
+}
+
+dependencies {
+    implementation "io.ktor:ktor-server-core-jvm:$ktorVersion"
+    implementation "io.ktor:ktor-server-netty-jvm:$ktorVersion"
+    implementation "io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion"
+    implementation "io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion"
+    implementation "com.google.auth:google-auth-library-oauth2-http:$googleAuthVersion"
+    implementation "ch.qos.logback:logback-classic:1.5.18"
+
+    testImplementation "io.ktor:ktor-server-test-host-jvm:$ktorVersion"
+    testImplementation "org.jetbrains.kotlin:kotlin-test-junit"
+}

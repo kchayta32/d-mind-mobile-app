@@ -1,0 +1,100 @@
+D-MIND Android Folder Map
+Date: 2026-05-13
+
+android/
+File types: .gradle, .bat, .properties, .md
+Purpose: Android workspace root, Gradle wrapper, shared build config, reports.
+
+android/app/
+File types: .gradle, .pro, README
+Purpose: Native Android app module.
+
+android/app/src/main/kotlin/com/dmind/app/
+File types: .kt
+Purpose: App entrypoint, Compose UI, data bridge, domain models, backend config.
+
+android/app/src/main/kotlin/com/dmind/app/ui/
+File types: .kt
+Purpose: Compose screens, bottom navigation, MapLibre host.
+
+android/app/src/main/kotlin/com/dmind/app/ui/theme/
+File types: .kt
+Purpose: Material 3 color scheme and app theme.
+
+android/app/src/main/kotlin/com/dmind/app/data/
+File types: .kt
+Purpose: Native repository bridging UI to services and local queue.
+
+android/app/src/main/kotlin/com/dmind/app/data/local/
+File types: .kt
+Purpose: Room schema for alerts, SOS queue, danger zones, and location history.
+
+android/app/src/main/kotlin/com/dmind/app/domain/
+File types: .kt
+Purpose: UI/domain state models.
+
+android/app/src/main/kotlin/com/dmind/app/network/
+File types: .kt
+Purpose: Backend URL configuration.
+
+android/app/src/main/kotlin/com/dmind/app/di/
+File types: .kt
+Purpose: Lightweight app container.
+
+android/app/src/main/java/com/dmind/app/activity/
+File types: .java
+Purpose: Native activities for battery settings and emergency full-screen alerts.
+
+android/app/src/main/java/com/dmind/app/service/
+File types: .java
+Purpose: Background location, geofence, and FCM services.
+
+android/app/src/main/java/com/dmind/app/receiver/
+File types: .java
+Purpose: Boot, network, power, and lifecycle receivers.
+
+android/app/src/main/java/com/dmind/app/worker/
+File types: .java
+Purpose: WorkManager worker for queued SOS delivery.
+
+android/app/src/main/java/com/dmind/app/database/
+File types: .java
+Purpose: Local SQLite cache and queue DAO.
+
+android/app/src/main/java/com/dmind/app/model/
+File types: .java
+Purpose: Alert, danger zone, location, SOS, and coordinate models.
+
+android/app/src/main/java/com/dmind/app/util/
+File types: .java
+Purpose: Notification, FCM token, geofence, and emergency helpers.
+
+android/app/src/main/res/
+File types: .xml, .png
+Purpose: Android resources, icons, layouts, strings, styles, config XML.
+
+android/app/src/test/
+File types: .java
+Purpose: JVM unit tests.
+
+android/backend/
+File types: .gradle, README
+Purpose: Ktor backend module.
+
+android/backend/src/main/kotlin/
+File types: .kt
+Purpose: Backend API routes and server entrypoint.
+
+android/backend/src/test/kotlin/
+File types: .kt
+Purpose: Backend route tests.
+
+android/docs/
+File types: .md, .txt
+Purpose: Implementation report and folder inventory.
+
+android/gradle/
+File types: .jar, .properties
+Purpose: Gradle wrapper files.
+
+Ignored/generated folders such as .gradle, .idea, build, and app/build contain tool caches and build outputs.

@@ -1,0 +1,73 @@
+แผนผังโฟลเดอร์ Android Workspace
+วันที่: 2026-05-13
+
+เอกสารนี้อธิบายว่าแต่ละโฟลเดอร์ใต้ android มีไฟล์ประเภทใดและใช้ทำอะไร
+
+ระดับบนของ android
+- app/: Android app module สำหรับแอปมือถือ native Android
+- backend/: Kotlin/JVM Ktor module สำหรับ backend API, secret/API key proxy และ notification sender
+- docs/: Markdown/Text สำหรับเอกสาร implementation, folder map, UI/UX, endpoint และระบบแจ้งเตือน
+- gradle/: Gradle wrapper files
+- build.gradle: Gradle script ระดับ Android workspace
+- settings.gradle: Gradle settings, include เฉพาะ :app และ :backend
+- variables.gradle: รวม version ของ dependencies
+- gradle.properties: Android/Gradle build settings
+- gradlew, gradlew.bat: Gradle wrapper scripts
+
+android/app
+- build.gradle: dependencies, Kotlin/Compose, Firebase, BuildConfig
+- README.md: สรุป app module
+- proguard-rules.pro: ProGuard/R8 rules
+- src/main/AndroidManifest.xml: permissions, activities, services, receivers, providers
+- src/main/kotlin/: Kotlin source สำหรับ Compose UI, app entrypoint, data/domain/network code
+- src/main/java/: Java source สำหรับ native services เดิม, notification, location, receivers, database helpers
+- src/main/res/: XML/drawable resources เช่น strings, themes, layouts, icons, network security config
+- src/test/: JVM unit tests ของ app
+- google-services.json: Firebase config ที่ต้องเพิ่มเองจาก Firebase Console เมื่อทดสอบ FCM จริง
+
+Kotlin source ใต้ android/app/src/main/kotlin/com/dmind/app
+- DMindApplication.kt: Kotlin Application class สำหรับสร้าง notification channels และ refresh FCM token
+- MainActivity.kt: Kotlin Activity สำหรับ native Compose host
+- ui/: Kotlin Compose screens และ navigation
+- ui/theme/: Material 3 theme, colors, typography
+- data/: repository/data bridge เชื่อม UI กับ services เดิมและ local data
+- data/local/: Room schema สำหรับ alerts, SOS, danger zones, location history
+- domain/: models/state ที่ UI ใช้
+- network/: backend base URL และ API boundary
+
+Java source ใต้ android/app/src/main/java/com/dmind/app
+- activity/: Java Activity เช่น emergency alert และ battery optimization settings
+- database/: Java SQLite DAO/helper สำหรับ alerts cache, SOS queue, danger zones, location history เดิม
+- model/: Java model สำหรับ alert/SOS/location
+- receiver/: Java BroadcastReceiver สำหรับ boot, power, network restore
+- service/: Java Service สำหรับ FCM receiver, background location, geofence monitoring
+- util/: Java utility สำหรับ notification helper, emergency manager, FCM token registrar, geofence utilities
+- worker/: Java WorkManager worker สำหรับ flush SOS queue เมื่อ network พร้อม
+
+Resources ใต้ android/app/src/main/res
+- drawable/, drawable-v24/: XML/vector drawable และ launcher foreground
+- layout/: XML layout ของ Java activities ที่ยังไม่ย้ายเป็น Compose
+- mipmap-*: launcher icons
+- values/, values-v27/: strings, colors, themes, styles
+- xml/: file provider paths, network security config
+
+android/backend
+- build.gradle: Ktor, Kotlin serialization, Google Auth dependencies
+- README.md: วิธีใช้ backend module
+- src/main/kotlin/com/dmind/backend/Application.kt: routes, DTOs, FCM HTTP v1 sender, env config
+- src/test/kotlin/com/dmind/backend/ApplicationTest.kt: unit tests สำหรับ health, FCM register และ notification send validation
+
+android/docs
+- IMPLEMENTATION_REPORT.md/.txt: English report
+- IMPLEMENTATION_REPORT.th.md/.txt: รายงาน implementation ภาษาไทย
+- FOLDER_MAP.md/.txt: English folder map
+- FOLDER_MAP.th.md/.txt: แผนผังโฟลเดอร์ภาษาไทย
+- SYSTEM_SUMMARY.th.md/.txt: สรุป UI/UX, notification, API key และ endpoint
+- NOTIFICATION_SYSTEM.th.md/.txt: สรุประบบแจ้งเตือนมือถือโดยเฉพาะ
+
+ขอบเขตที่ตั้งใจไม่ใช้แล้วใน Android build
+- React/Vite source นอก android
+- ../node_modules
+- Capacitor/Cordova Gradle modules
+- WebView primary UI
+- generated React assets ใต้ Android assets

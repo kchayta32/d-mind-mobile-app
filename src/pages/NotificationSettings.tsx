@@ -4,6 +4,7 @@ import NotificationCenter from '@/components/notifications/NotificationCenter';
 import NotificationHistory from '@/components/notifications/NotificationHistory';
 import LocationBasedAlerts from '@/components/notifications/LocationBasedAlerts';
 import { PermissionManager } from '@/components/permissions/PermissionManager';
+import NativeReliabilityPanel from '@/components/permissions/NativeReliabilityPanel';
 import OfflineMapManager from '@/components/disaster-map/OfflineMapManager';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Bell, MapPin, History, Shield, HardDrive } from 'lucide-react';
@@ -66,7 +67,12 @@ const NotificationSettings: React.FC = () => {
 
       {/* Content */}
       <div className="px-4 pt-5">
-        {activeTab === 'permissions' && <PermissionManager showOnlyIfNeeded={false} />}
+        {activeTab === 'permissions' && (
+          <>
+            <PermissionManager showOnlyIfNeeded={false} />
+            <NativeReliabilityPanel />
+          </>
+        )}
         {activeTab === 'settings' && <NotificationCenter />}
         {activeTab === 'location' && <LocationBasedAlerts />}
         {activeTab === 'history' && <NotificationHistory />}

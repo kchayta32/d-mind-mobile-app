@@ -1,7 +1,28 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">D-MIND</string>
     <string name="title_activity_main">D-MIND</string>
     <string name="package_name">com.dmind.app</string>
-    <string name="custom_url_scheme">com.dmind.app</string>
+    <string name="custom_url_scheme">dmind</string>
+
+    <!-- Battery Optimization -->
+    <string name="title_battery_optimization">Battery Optimization</string>
+    <string name="description_battery_optimization">To keep disaster alerts reliable, allow D-MIND to run in the background.</string>
+    <string name="checking_status">Checking status...</string>
+    <string name="battery_optimization_enabled">Background run access: allowed</string>
+    <string name="battery_optimization_disabled">Background run access: needs setup</string>
+    <string name="battery_optimization_not_supported">Not supported on this device</string>
+    <string name="button_enable">Allow Background Run</string>
+    <string name="button_disable">Open Settings</string>
+    <string name="text_alternative_action">Or manually enable in Settings > Battery > Battery optimization</string>
+    <string name="sos_endpoint_url"></string>
+    <string name="fcm_token_endpoint_url"></string>
+
+    <!-- Emergency Alert -->
+    <string name="title_emergency_alert">Emergency Alert</string>
+    <string name="emergency_default_title">Emergency Disaster!</string>
+    <string name="emergency_default_message">You are in a danger zone. Seek safety immediately.</string>
+    <string name="emergency_countdown">Evacuate now</string>
+    <string name="acknowledge_button">Acknowledge / รับทราบ</string>
+    <string name="help_button">Get Help / ขอความช่วยเหลือ</string>
 </resources>

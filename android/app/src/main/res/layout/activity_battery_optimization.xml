@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context=".activity.BatteryOptimizationSettingsActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp"
+        android:background="@android:color/white">
+
+        <!-- Icon -->
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/ic_launcher_foreground"
+            android:contentDescription="@string/app_name" />
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/title_battery_optimization"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:gravity="center"
+            android:layout_marginTop="24dp" />
+
+        <!-- Description -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/description_battery_optimization"
+            android:textSize="14sp"
+            android:textColor="@android:color/darker_gray"
+            android:gravity="center"
+            android:layout_marginTop="16dp"
+            android:lineSpacingExtra="4dp" />
+
+        <!-- Status Indicator -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="32dp"
+            android:padding="16dp"
+            android:background="@android:color/background_light"
+            android:layout_gravity="center">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_stat_notification"
+                android:contentDescription="Status" />
+
+            <TextView
+                android:id="@+id/textViewBatteryStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/checking_status"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp" />
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_dialog_info"
+                android:contentDescription="Info" />
+
+        </LinearLayout>
+
+        <!-- Action Button -->
+        <Button
+            android:id="@+id/buttonEnableBatteryOptimization"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/button_enable"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="32dp"
+            android:padding="16dp"
+            android:backgroundTint="@color/emergencyRed"
+            android:textColor="@android:color/white" />
+
+        <!-- Alternative Action (if needed) -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/text_alternative_action"
+            android:textSize="12sp"
+            android:textColor="@android:color/darker_gray"
+            android:gravity="center"
+            android:layout_marginTop="16dp"
+            android:clickable="true"
+            android:textColorHighlight="@android:color/transparent" />
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

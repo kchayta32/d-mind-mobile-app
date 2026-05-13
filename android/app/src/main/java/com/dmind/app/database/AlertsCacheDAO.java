@@ -1,0 +1,396 @@
+package com.dmind.app.database;
+
+import android.content.Context;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
+import com.dmind.app.model.Alert;
+import com.dmind.app.model.DangerZone;
+import com.dmind.app.model.LocationRecord;
+import com.dmind.app.model.SOSMessage;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * AlertsCacheDAO - Database access object for alerts and danger zones.
+ * 
+ * This DAO manages:
+ * 1. Danger zones (geofenced disaster areas)
+ * 2. SOS message queue (for offline sending)
+ * 3. Alert cache (received alerts from backend)
+ * 4. User location history
+ */
+public class AlertsCacheDAO extends SQLiteOpenHelper {
+    
+    private static final String DATABASE_NAME = "dmind_alerts.db";
+    private static final int DATABASE_VERSION = 1;
+    
+    // Table names
+    public static final String TABLE_DANGER_ZONES = "danger_zones";
+    public static final String TABLE_SOS_QUEUE = "sos_queue";
+    public static final String TABLE_ALERTS_CACHE = "alerts_cache";
+    public static final String TABLE_LOCATION_HISTORY = "location_history";
+    
+    // Danger Zones columns
+    public static final String COLUMN_ZONE_ID = "zone_id";
+    public static final String COLUMN_ZONE_NAME = "zone_name";
+    public static final String COLUMN_ZONE_TYPE = "zone_type";
+    public static final String COLUMN_ZONE_ALERT_TITLE = "alert_title";
+    public static final String COLUMN_ZONE_ALERT_MESSAGE = "alert_message";
+    public static final String COLUMN_ZONE_POLYGON = "polygon_vertices";
+    public static final String COLUMN_ZONE_CREATED = "created_at";
+    public static final String COLUMN_ZONE_EXPIRY = "expiry_time";
+    public static final String COLUMN_ZONE_ENABLED = "is_enabled";
+    
+    // SOS Queue columns
+    public static final String COLUMN_SOS_ID = "sos_id";
+    public static final String COLUMN_SOS_USER_ID = "user_id";
+    public static final String COLUMN_SOS_LATITUDE = "latitude";
+    public static final String COLUMN_SOS_LONGITUDE = "longitude";
+    public static final String COLUMN_SOS_BATTERY = "battery_level";
+    public static final String COLUMN_SOS_MESSAGE = "message";
+    public static final String COLUMN_SOS_STATUS = "status";
+    public static final String COLUMN_SOS_CREATED = "created_at";
+    public static final String COLUMN_SOS_SENT = "sent_at";
+    
+    // Alerts Cache columns
+    public static final String COLUMN_ALERT_ID = "alert_id";
+    public static final String COLUMN_ALERT_TYPE = "alert_type";
+    public static final String COLUMN_ALERT_LEVEL = "alert_level";
+    public static final String COLUMN_ALERT_MESSAGE = "alert_message";
+    public static final String COLUMN_ALERT_TITLE = "alert_title";
+    public static final String COLUMN_ALERT_READ = "is_read";
+    public static final String COLUMN_ALERT_TIMESTAMP = "timestamp";
+    
+    // Location History columns
+    public static final String COLUMN_LOC_ID = "loc_id";
+    public static final String COLUMN_LOC_LATITUDE = "latitude";
+    public static final String COLUMN_LOC_LONGITUDE = "longitude";
+    public static final String COLUMN_LOC_TIMESTAMP = "timestamp";
+    public static final String COLUMN_LOC_ACCURACY = "accuracy";
+    public static final String COLUMN_LOC_ZONE_ID = "zone_id";
+    
+    private static final String TAG = "AlertsCacheDAO";
+    
+    public AlertsCacheDAO(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
+    
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        // Create danger zones table
+        String CREATE_DANGER_ZONES_TABLE = "CREATE TABLE " + TABLE_DANGER_ZONES + " (" +
+                COLUMN_ZONE_ID + " INTEGER PRIMARY KEY," +
+                COLUMN_ZONE_NAME + " TEXT," +
+                COLUMN_ZONE_TYPE + " TEXT," +
+                COLUMN_ZONE_ALERT_TITLE + " TEXT," +
+                COLUMN_ZONE_ALERT_MESSAGE + " TEXT," +
+                COLUMN_ZONE_POLYGON + " TEXT," +
+                COLUMN_ZONE_CREATED + " INTEGER," +
+                COLUMN_ZONE_EXPIRY + " INTEGER," +
+                COLUMN_ZONE_ENABLED + " INTEGER DEFAULT 1" +
+                ")";
+        db.execSQL(CREATE_DANGER_ZONES_TABLE);
+        
+        // Create SOS queue table
+        String CREATE_SOS_QUEUE_TABLE = "CREATE TABLE " + TABLE_SOS_QUEUE + " (" +
+                COLUMN_SOS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                COLUMN_SOS_USER_ID + " TEXT," +
+                COLUMN_SOS_LATITUDE + " REAL," +
+                COLUMN_SOS_LONGITUDE + " REAL," +
+                COLUMN_SOS_BATTERY + " INTEGER," +
+                COLUMN_SOS_MESSAGE + " TEXT," +
+                COLUMN_SOS_STATUS + " TEXT DEFAULT 'pending'," +
+                COLUMN_SOS_CREATED + " INTEGER," +
+                COLUMN_SOS_SENT + " INTEGER" +
+                ")";
+        db.execSQL(CREATE_SOS_QUEUE_TABLE);
+        
+        // Create alerts cache table
+        String CREATE_ALERTS_CACHE_TABLE = "CREATE TABLE " + TABLE_ALERTS_CACHE + " (" +
+                COLUMN_ALERT_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                COLUMN_ALERT_TYPE + " TEXT," +
+                COLUMN_ALERT_LEVEL + " TEXT," +
+                COLUMN_ALERT_MESSAGE + " TEXT," +
+                COLUMN_ALERT_TITLE + " TEXT," +
+                COLUMN_ALERT_READ + " INTEGER DEFAULT 0," +
+                COLUMN_ALERT_TIMESTAMP + " INTEGER" +
+                ")";
+        db.execSQL(CREATE_ALERTS_CACHE_TABLE);
+        
+        // Create location history table
+        String CREATE_LOCATION_HISTORY_TABLE = "CREATE TABLE " + TABLE_LOCATION_HISTORY + " (" +
+                COLUMN_LOC_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                COLUMN_LOC_LATITUDE + " REAL," +
+                COLUMN_LOC_LONGITUDE + " REAL," +
+                COLUMN_LOC_TIMESTAMP + " INTEGER," +
+                COLUMN_LOC_ACCURACY + " REAL," +
+                COLUMN_LOC_ZONE_ID + " INTEGER" +
+                ")";
+        db.execSQL(CREATE_LOCATION_HISTORY_TABLE);
+        
+        Log.d(TAG, "Database tables created");
+    }
+    
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        // Drop old tables
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_DANGER_ZONES);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_SOS_QUEUE);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_ALERTS_CACHE);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_LOCATION_HISTORY);
+        
+        // Create new tables
+        onCreate(db);
+        
+        Log.d(TAG, "Database upgraded from version " + oldVersion + " to " + newVersion);
+    }
+    
+    // ============================================================
+    // Danger Zone Operations
+    // ============================================================
+    
+    /**
+     * Add danger zone to database
+     */
+    public long addDangerZone(DangerZone zone) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_ZONE_ID, zone.getId());
+        values.put(COLUMN_ZONE_NAME, zone.getName());
+        values.put(COLUMN_ZONE_TYPE, zone.getType());
+        values.put(COLUMN_ZONE_ALERT_TITLE, zone.getAlertTitle());
+        values.put(COLUMN_ZONE_ALERT_MESSAGE, zone.getAlertMessage());
+        values.put(COLUMN_ZONE_POLYGON, zone.getPolygon());
+        values.put(COLUMN_ZONE_CREATED, zone.getCreatedAt());
+        values.put(COLUMN_ZONE_EXPIRY, zone.getExpiryTime());
+        values.put(COLUMN_ZONE_ENABLED, zone.isEnabled() ? 1 : 0);
+        
+        long id = db.insert(TABLE_DANGER_ZONES, null, values);
+        db.close();
+        
+        Log.d(TAG, "Danger zone added with ID: " + id);
+        return id;
+    }
+    
+    /**
+     * Get all danger zones
+     */
+    public List<DangerZone> getAllDangerZones() {
+        List<DangerZone> zones = new ArrayList<>();
+        String query = "SELECT * FROM " + TABLE_DANGER_ZONES + 
+                      " WHERE " + COLUMN_ZONE_ENABLED + " = 1" +
+                      " ORDER BY " + COLUMN_ZONE_EXPIRY + " ASC";
+        
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+        
+        if (cursor.moveToFirst()) {
+            do {
+                DangerZone zone = new DangerZone();
+                zone.setId(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ZONE_ID)));
+                zone.setName(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ZONE_NAME)));
+                zone.setType(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ZONE_TYPE)));
+                zone.setAlertTitle(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ZONE_ALERT_TITLE)));
+                zone.setAlertMessage(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ZONE_ALERT_MESSAGE)));
+                zone.setPolygon(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ZONE_POLYGON)));
+                zone.setCreatedAt(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ZONE_CREATED)));
+                zone.setExpiryTime(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ZONE_EXPIRY)));
+                zone.setEnabled(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ZONE_ENABLED)) == 1);
+                
+                zones.add(zone);
+            } while (cursor.moveToNext());
+        }
+        
+        cursor.close();
+        db.close();
+        
+        Log.d(TAG, "Loaded " + zones.size() + " danger zones");
+        return zones;
+    }
+    
+    // ============================================================
+    // SOS Queue Operations
+    // ============================================================
+    
+    /**
+     * Enqueue SOS message
+     */
+    public long enqueueSOS(String userId, double latitude, double longitude, 
+                          int batteryLevel, String message) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_SOS_USER_ID, userId);
+        values.put(COLUMN_SOS_LATITUDE, latitude);
+        values.put(COLUMN_SOS_LONGITUDE, longitude);
+        values.put(COLUMN_SOS_BATTERY, batteryLevel);
+        values.put(COLUMN_SOS_MESSAGE, message);
+        values.put(COLUMN_SOS_STATUS, "pending");
+        values.put(COLUMN_SOS_CREATED, System.currentTimeMillis());
+        
+        long id = db.insert(TABLE_SOS_QUEUE, null, values);
+        db.close();
+        
+        Log.d(TAG, "SOS message enqueued with ID: " + id);
+        return id;
+    }
+    
+    /**
+     * Get pending SOS messages
+     */
+    public List<SOSMessage> getPendingSOSMessages() {
+        List<SOSMessage> messages = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(
+            TABLE_SOS_QUEUE,
+            null,
+            COLUMN_SOS_STATUS + " = ?",
+            new String[]{"pending"},
+            null, null,
+            COLUMN_SOS_CREATED + " ASC"
+        );
+        
+        if (cursor.moveToFirst()) {
+            do {
+                SOSMessage msg = new SOSMessage();
+                msg.setId(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SOS_ID)));
+                msg.setUserId(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SOS_USER_ID)));
+                msg.setLatitude(cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_SOS_LATITUDE)));
+                msg.setLongitude(cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_SOS_LONGITUDE)));
+                msg.setBatteryLevel(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SOS_BATTERY)));
+                msg.setMessage(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SOS_MESSAGE)));
+                msg.setCreatedAt(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_SOS_CREATED)));
+                
+                messages.add(msg);
+            } while (cursor.moveToNext());
+        }
+        
+        cursor.close();
+        db.close();
+        return messages;
+    }
+
+    /**
+     * Mark a queued SOS message as sent.
+     */
+    public int markSOSAsSent(int sosId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_SOS_STATUS, "sent");
+        values.put(COLUMN_SOS_SENT, System.currentTimeMillis());
+
+        int rows = db.update(
+            TABLE_SOS_QUEUE,
+            values,
+            COLUMN_SOS_ID + " = ?",
+            new String[]{String.valueOf(sosId)}
+        );
+        db.close();
+        return rows;
+    }
+
+    /**
+     * Mark a queued SOS message as failed but keep it retriable.
+     */
+    public int markSOSAsPending(int sosId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_SOS_STATUS, "pending");
+
+        int rows = db.update(
+            TABLE_SOS_QUEUE,
+            values,
+            COLUMN_SOS_ID + " = ?",
+            new String[]{String.valueOf(sosId)}
+        );
+        db.close();
+        return rows;
+    }
+    
+    // ============================================================
+    // Alerts Cache Operations
+    // ============================================================
+    
+    /**
+     * Add alert to cache
+     */
+    public long addAlert(String alertType, String alertLevel, String message, String title) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_ALERT_TYPE, alertType);
+        values.put(COLUMN_ALERT_LEVEL, alertLevel);
+        values.put(COLUMN_ALERT_MESSAGE, message);
+        values.put(COLUMN_ALERT_TITLE, title);
+        values.put(COLUMN_ALERT_READ, 0);
+        values.put(COLUMN_ALERT_TIMESTAMP, System.currentTimeMillis());
+        
+        long id = db.insert(TABLE_ALERTS_CACHE, null, values);
+        db.close();
+        
+        return id;
+    }
+    
+    /**
+     * Get unread alerts
+     */
+    public List<Alert> getUnreadAlerts() {
+        List<Alert> alerts = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(
+            TABLE_ALERTS_CACHE,
+            null,
+            COLUMN_ALERT_READ + " = 0",
+            null, null, null,
+            COLUMN_ALERT_TIMESTAMP + " DESC"
+        );
+        
+        if (cursor.moveToFirst()) {
+            do {
+                Alert alert = new Alert();
+                alert.setId(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ALERT_ID)));
+                alert.setType(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALERT_TYPE)));
+                alert.setLevel(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALERT_LEVEL)));
+                alert.setMessage(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALERT_MESSAGE)));
+                alert.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALERT_TITLE)));
+                alert.setTimestamp(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ALERT_TIMESTAMP)));
+                
+                alerts.add(alert);
+            } while (cursor.moveToNext());
+        }
+        
+        cursor.close();
+        db.close();
+        return alerts;
+    }
+    
+    // ============================================================
+    // Location History Operations
+    // ============================================================
+    
+    /**
+     * Add location to history
+     */
+    public long addLocation(double latitude, double longitude, float accuracy) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_LOC_LATITUDE, latitude);
+        values.put(COLUMN_LOC_LONGITUDE, longitude);
+        values.put(COLUMN_LOC_TIMESTAMP, System.currentTimeMillis());
+        values.put(COLUMN_LOC_ACCURACY, accuracy);
+        
+        long id = db.insert(TABLE_LOCATION_HISTORY, null, values);
+        db.close();
+        
+        return id;
+    }
+}

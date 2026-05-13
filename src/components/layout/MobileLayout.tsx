@@ -5,6 +5,7 @@ import { Button } from '../ui/button';
 import { Moon, Sun, Globe } from 'lucide-react';
 import NotificationManager from '../notifications/NotificationManager';
 import { useTheme } from '@/contexts/ThemeContext';
+import { isNativePlatform } from '@/utils/native';
 
 const MobileLayout: React.FC = () => {
     const { isDark, toggleTheme } = useTheme();
@@ -12,10 +13,14 @@ const MobileLayout: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const isHomePage = location.pathname === '/';
+    const isNative = isNativePlatform();
 
 
     return (
-        <div className="min-h-screen bg-background pb-24">
+        <div className="min-h-screen bg-background pb-24" style={isNative ? {
+            paddingTop: 'env(safe-area-inset-top, 0px)',
+            paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)',
+        } : undefined}>
             <NotificationManager />
 
             {/* Global Mobile Header - Only show on Home Page */}
