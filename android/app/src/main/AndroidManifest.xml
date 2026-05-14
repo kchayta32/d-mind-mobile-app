@@ -25,9 +25,6 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     
-    <!-- Alarm Management -->
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    
     <!-- Vibration (Emergency alerts) -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
@@ -114,7 +111,7 @@
         <!-- Emergency Alert Activity (full-screen, lock-screen wake) -->
         <activity
             android:name=".activity.EmergencyAlertActivity"
-            android:exported="true"
+            android:exported="false"
             android:theme="@style/AppTheme.EmergencyAlert"
             android:taskAffinity=""
             android:excludeFromRecents="true"
@@ -125,19 +122,12 @@
             android:allowEmbedded="true"
             android:documentLaunchMode="never">
 
-            <!-- Emergency notification intent -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="content" android:mimeType="application/dmind-alert" />
-            </intent-filter>
-
         </activity>
 
         <!-- Battery Optimization Settings Activity -->
         <activity
             android:name=".activity.BatteryOptimizationSettingsActivity"
-            android:exported="true"
+            android:exported="false"
             android:label="@string/title_battery_optimization"
             android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="portrait" />
@@ -191,16 +181,6 @@
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
                 <action android:name="android.intent.action.POWER_DISCONNECTED" />
-            </intent-filter>
-        </receiver>
-
-        <!-- Network receiver for flushing queued SOS messages when connectivity returns -->
-        <receiver
-            android:name=".receiver.NetworkStateReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
             </intent-filter>
         </receiver>
 

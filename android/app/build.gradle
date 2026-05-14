@@ -3,6 +3,48 @@ apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply plugin: 'kotlin-kapt'
 
+def readDmindConfig = { String key ->
+    def aliases = [key, "DMIND_${key}"]
+    if (key.startsWith('VITE_')) {
+        aliases += "DMIND_${key.substring(5)}"
+    }
+
+    for (candidate in aliases) {
+        def fromProject = project.findProperty(candidate)
+        if (fromProject != null) {
+            return fromProject.toString()
+        }
+    }
+
+    for (candidate in aliases) {
+        def fromEnv = System.getenv(candidate)
+        if (fromEnv != null) {
+            return fromEnv
+        }
+    }
+
+    def envFile = rootProject.file('../.env')
+    if (envFile.exists()) {
+        def match = envFile.readLines('UTF-8').find { line ->
+            def trimmed = line.trim()
+            trimmed && !trimmed.startsWith('#') && aliases.any { candidate -> trimmed.startsWith("${candidate}=") }
+        }
+        if (match != null) {
+            def value = match.substring(match.indexOf('=') + 1).trim()
+            if (value.length() >= 2 && ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'")))) {
+                value = value.substring(1, value.length() - 1)
+            }
+            return value
+        }
+    }
+
+    return ''
+}
+
+def javaStringLiteral = { String value ->
+    return value.replace('\\', '\\\\').replace('"', '\\"')
+}
+
 android {
     namespace "com.dmind.app"
     compileSdk rootProject.ext.compileSdkVersion
@@ -14,9 +56,29 @@ android {
         versionName "2.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "BACKEND_BASE_URL", "\"${project.findProperty('DMIND_BACKEND_BASE_URL') ?: 'http://10.0.2.2:8080'}\""
+        buildConfigField "String", "SUPABASE_URL", "\"${javaStringLiteral(readDmindConfig('VITE_SUPABASE_URL'))}\""
+        buildConfigField "String", "SUPABASE_ANON_KEY", "\"${javaStringLiteral(readDmindConfig('VITE_SUPABASE_PUBLISHABLE_KEY'))}\""
+        buildConfigField "String", "SUPABASE_PROJECT_ID", "\"${javaStringLiteral(readDmindConfig('VITE_SUPABASE_PROJECT_ID'))}\""
+        buildConfigField "String", "TMD_API_TOKEN", "\"${javaStringLiteral(readDmindConfig('VITE_TMD_API_TOKEN'))}\""
+        buildConfigField "String", "GISTDA_API_KEY", "\"${javaStringLiteral(readDmindConfig('VITE_GISTDA_API_KEY'))}\""
+        buildConfigField "String", "GISTDA_DISASTER_API_KEY", "\"${javaStringLiteral(readDmindConfig('VITE_GISTDA_DISASTER_API_KEY'))}\""
+        buildConfigField "String", "GISTDA_WMS_API_KEY", "\"${javaStringLiteral(readDmindConfig('VITE_GISTDA_WMS_API_KEY'))}\""
+        buildConfigField "String", "GISTDA_FIRE_API_KEY", "\"${javaStringLiteral(readDmindConfig('VITE_GISTDA_FIRE_API_KEY'))}\""
 
         // Enable multidex for large apps
         multiDexEnabled true
+    }
+
+    signingConfigs {
+        release {
+            def releaseStoreFile = readDmindConfig('DMIND_RELEASE_STORE_FILE')
+            if (releaseStoreFile) {
+                storeFile file(releaseStoreFile)
+            }
+            storePassword readDmindConfig('KEYSTORE_PASSWORD')
+            keyAlias readDmindConfig('DMIND_RELEASE_KEY_ALIAS') ?: 'dmind'
+            keyPassword readDmindConfig('KEY_PASSWORD')
+        }
     }
 
     buildTypes {
@@ -29,13 +91,16 @@ android {
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
-            // Uncomment and configure for signed release builds:
-            // signingConfig signingConfigs.release
+            def releaseStoreFile = readDmindConfig('DMIND_RELEASE_STORE_FILE')
+            if (releaseStoreFile) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 
     // Java compatibility
     compileOptions {
+        coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
     }
@@ -55,16 +120,6 @@ android {
             excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/NOTICE']
         }
     }
-
-    // Uncomment and configure for release signing:
-    // signingConfigs {
-    //     release {
-    //         storeFile file('keystore/dmind-release.jks')
-    //         storePassword System.getenv("KEYSTORE_PASSWORD") ?: ""
-    //         keyAlias 'dmind'
-    //         keyPassword System.getenv("KEY_PASSWORD") ?: ""
-    //     }
-    // }
 }
 
 dependencies {
@@ -92,6 +147,7 @@ dependencies {
     implementation 'androidx.compose.material:material-icons-extended'
     debugImplementation 'androidx.compose.ui:ui-tooling'
     implementation "org.maplibre.gl:android-sdk:$mapLibreVersion"
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"

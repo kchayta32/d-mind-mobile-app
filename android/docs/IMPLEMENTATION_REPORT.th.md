@@ -70,3 +70,16 @@
 - ขยาย Compose screens จาก native shell ให้ครบ feature parity
 - เพิ่ม instrumented UI tests บนอุปกรณ์ Android จริง
 - เพิ่ม release signing และ production backend URL flavors
+
+## อัปเดตเพิ่มเติม 2026-05-14
+
+- ปรับหน้าแผนที่ native ให้ใกล้เคียง mockup ล่าสุด: header ลอย, segmented control, search, control stack ด้านซ้าย และ bottom sheet พร้อม statistic cards/กราฟ
+- แยก `/risk-zones` เป็นหน้าสถานีตรวจวัด D-MIND โดยใช้ข้อมูล mock ชั่วคราวระหว่างรอ endpoint จริง
+- ปรับ `/disaster-map` เป็นแผนที่ภัยพิบัติแยกประเภท และตัดฝนตกหนัก/พายุออกจากรายการภัยตาม requirement ล่าสุด
+- เพิ่มระบบข้อมูลแผนที่ใน `data/map` สำหรับ TMD, USGS, GISTDA และ OSM พร้อม refresh รอบละ 5 นาที
+- เพิ่ม GISTDA endpoints สำหรับ VIIRS, flood 1day, flood-freq, water_hyacinth และ WMS layers: flood, flood-freq, DRIPlus, NDWI, SMAP
+- เพิ่ม Supabase REST client และ repository สำหรับ incident reports, realtime alerts, notifications, notification settings, victim reports, satisfaction surveys, damage assessments, Edge Functions และ Storage
+- อัปเดต `android/app/build.gradle` ให้อ่านค่า Supabase, TMD และ GISTDA จาก environment/project property/`.env`
+- Build ล่าสุดผ่าน `.\gradlew.bat :app:compileDebugKotlin` และ `.\gradlew.bat :app:assembleDebug`
+
+ดูรายละเอียดสถานะล่าสุดได้ที่ `android/docs/CURRENT_ANDROID_STATUS.th.md`

@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.dmind.app.BuildConfig;
 import com.dmind.app.R;
+import com.dmind.app.network.InstallationIdProvider;
 
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -52,7 +53,10 @@ public final class FCMTokenRegistrar {
             connection.setRequestProperty("Content-Type", "application/json");
             connection.setDoOutput(true);
 
-            String body = "{\"token\":\"" + escape(token) + "\",\"platform\":\"android\",\"userId\":\"anonymous\"}";
+            String installationId = InstallationIdProvider.get(context);
+            String body = "{\"token\":\"" + escape(token) +
+                "\",\"platform\":\"android\",\"userId\":\"" + escape(installationId) +
+                "\",\"installationId\":\"" + escape(installationId) + "\"}";
             try (OutputStream outputStream = connection.getOutputStream()) {
                 outputStream.write(body.getBytes(StandardCharsets.UTF_8));
             }

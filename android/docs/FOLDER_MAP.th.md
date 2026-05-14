@@ -41,9 +41,11 @@
 | `ui/` | Kotlin Compose | หน้าจอ Home, Map, Alerts, SOS, More และ navigation |
 | `ui/theme/` | Kotlin Compose theme | Material 3 theme, colors, typography |
 | `data/` | Kotlin repository/data bridge | เชื่อม UI กับ services เดิมและ local data |
+| `data/map/` | Kotlin repository/models | ดึงข้อมูล TMD, USGS, GISTDA, OSM และแปลงเป็น state สำหรับแผนที่ |
+| `data/supabase/` | Kotlin repository/models | models และ repository สำหรับ Supabase tables, Edge Functions และ Storage |
 | `data/local/` | Kotlin Room schema | entity/DAO/database สำหรับ alerts, SOS, danger zones, location history |
 | `domain/` | Kotlin models | state/model ที่ UI ใช้ |
-| `network/` | Kotlin config/client placeholder | backend base URL และ API boundary |
+| `network/` | Kotlin config/client | backend base URL, Supabase config และ Supabase REST client |
 
 ## Java source ใต้ `android/app/src/main/java/com/dmind/app`
 
@@ -86,6 +88,7 @@
 | `FOLDER_MAP.th.md/.txt` | Thai folder map | แผนผังโฟลเดอร์ภาษาไทย |
 | `SYSTEM_SUMMARY.th.md/.txt` | Thai system summary | สรุป UI/UX, notification, API key และ endpoint |
 | `NOTIFICATION_SYSTEM.th.md/.txt` | Thai notification summary | สรุประบบแจ้งเตือนมือถือโดยเฉพาะ |
+| `CURRENT_ANDROID_STATUS.th.md/.txt` | Thai current status | สถานะล่าสุดของ Android native app, แผนที่, GISTDA/TMD/USGS/OSM และ Supabase |
 
 ## ขอบเขตที่ตั้งใจไม่ใช้แล้วใน Android build
 

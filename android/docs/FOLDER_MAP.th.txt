@@ -31,9 +31,11 @@ Kotlin source ใต้ android/app/src/main/kotlin/com/dmind/app
 - ui/: Kotlin Compose screens และ navigation
 - ui/theme/: Material 3 theme, colors, typography
 - data/: repository/data bridge เชื่อม UI กับ services เดิมและ local data
+- data/map/: repository/models สำหรับดึงข้อมูล TMD, USGS, GISTDA, OSM และแปลงเป็น state สำหรับแผนที่
+- data/supabase/: models และ repository สำหรับ Supabase tables, Edge Functions และ Storage
 - data/local/: Room schema สำหรับ alerts, SOS, danger zones, location history
 - domain/: models/state ที่ UI ใช้
-- network/: backend base URL และ API boundary
+- network/: backend base URL, Supabase config และ Supabase REST client
 
 Java source ใต้ android/app/src/main/java/com/dmind/app
 - activity/: Java Activity เช่น emergency alert และ battery optimization settings
@@ -64,6 +66,7 @@ android/docs
 - FOLDER_MAP.th.md/.txt: แผนผังโฟลเดอร์ภาษาไทย
 - SYSTEM_SUMMARY.th.md/.txt: สรุป UI/UX, notification, API key และ endpoint
 - NOTIFICATION_SYSTEM.th.md/.txt: สรุประบบแจ้งเตือนมือถือโดยเฉพาะ
+- CURRENT_ANDROID_STATUS.th.md/.txt: สถานะล่าสุดของ Android native app, แผนที่, GISTDA/TMD/USGS/OSM และ Supabase
 
 ขอบเขตที่ตั้งใจไม่ใช้แล้วใน Android build
 - React/Vite source นอก android

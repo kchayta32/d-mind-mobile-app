@@ -1,6 +1,11 @@
 # Documentation
 
-This folder contains implementation reports and folder inventory files in both Markdown and plain text.
+This folder contains implementation reports, current Android status, and folder inventory files in both Markdown and plain text.
+
+## Latest
+
+- `CURRENT_ANDROID_STATUS.th.md`
+- `CURRENT_ANDROID_STATUS.th.txt`
 
 ## English
 
@@ -17,3 +22,7 @@ This folder contains implementation reports and folder inventory files in both M
 - `FOLDER_MAP.th.txt`
 - `SYSTEM_SUMMARY.th.md`
 - `SYSTEM_SUMMARY.th.txt`
+- `NOTIFICATION_SYSTEM.th.md`
+- `NOTIFICATION_SYSTEM.th.txt`
+- `CURRENT_ANDROID_STATUS.th.md`
+- `CURRENT_ANDROID_STATUS.th.txt`

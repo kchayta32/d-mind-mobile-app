@@ -4,9 +4,17 @@
 หลักการสำคัญ
 - Android app เป็น native mobile app อยู่ใน android/app
 - Backend อยู่ใน android/backend และทำหน้าที่เป็นจุดรวมงานที่ต้องใช้ secret/API key
-- แอปมือถือไม่ฝัง secret จริงลง APK เก็บเฉพาะ BuildConfig.BACKEND_BASE_URL
+- แอปมือถืออ่านค่า config ที่จำเป็นผ่าน BuildConfig จาก environment/project property/.env
 - API key/secret ของ production ต้องอยู่ใน environment variables หรือ secret manager ของ backend เท่านั้น
 - ระบบแจ้งเตือนมือถือใช้ Firebase Cloud Messaging (FCM) สำหรับ push จาก server และใช้ native notification channel สำหรับแสดงผลในเครื่อง
+
+อัปเดตสถานะล่าสุด 2026-05-14
+- UI แผนที่ถูกปรับเป็น native dashboard ตาม mockup ล่าสุด มี header, tabs, search, controls และ bottom sheet พร้อมกราฟสถิติ
+- /risk-zones เปลี่ยนบทบาทเป็นหน้าสถานีตรวจวัด D-MIND โดยรอ API/endpoint จริง
+- /disaster-map เป็นหน้าแผนที่ภัยพิบัติแยกประเภท และตัด ฝนตกหนัก/พายุ ออกจาก disaster selector แล้ว
+- Android มี DisasterMapRepository สำหรับ TMD, USGS, GISTDA และ OSM พร้อมรอบ refresh 5 นาที
+- Android มี SupabaseRestClient และ SupabaseRepository สำหรับเชื่อม Supabase tables, Edge Functions และ Storage จากเว็บแอพเดิม
+- รายละเอียดล่าสุดอยู่ที่ android/docs/CURRENT_ANDROID_STATUS.th.md
 
 UI/UX หลักของแอป
 ไฟล์หลัก: android/app/src/main/kotlin/com/dmind/app/ui/DMindApp.kt
@@ -130,12 +138,14 @@ Backend Base URL ของแอป
   รายละเอียด: path ไป service-account JSON ที่มีสิทธิ์ Firebase Cloud Messaging API Admin
 
 - GISTDA API key
-  ควรเก็บที่: backend environment variable หรือ secret manager
-  ใช้โดย: future map/disaster proxy
+  ควรเก็บที่: environment variable, project property หรือ secret manager
+  ใช้โดย: Android map/disaster data และ future backend proxy
+  รายละเอียด: อย่า commit key จริงลง repo
 
 - Supabase URL/key
-  ควรเก็บที่: backend environment variable หรือ secret manager
-  ใช้โดย: future data integration
+  ควรเก็บที่: environment variable, project property หรือ secret manager
+  ใช้โดย: Android Supabase REST client และ future backend flows
+  รายละเอียด: Android ใช้ publishable/anon key เท่านั้น
 
 - Release keystore password
   ควรเก็บที่: KEYSTORE_PASSWORD, KEY_PASSWORD

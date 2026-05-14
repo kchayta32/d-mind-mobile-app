@@ -6,9 +6,18 @@
 
 - Android app เป็น native mobile app อยู่ใน `android/app`
 - Backend อยู่ใน `android/backend` และทำหน้าที่เป็นจุดรวมงานที่ต้องใช้ secret/API key
-- แอปมือถือไม่ฝัง secret จริงลง APK เก็บเฉพาะ `BuildConfig.BACKEND_BASE_URL`
+- แอปมือถืออ่านค่า config ที่จำเป็นผ่าน `BuildConfig` จาก environment/project property/`.env`
 - API key/secret ของ production ต้องอยู่ใน environment variables หรือ secret manager ของ backend เท่านั้น
 - ระบบแจ้งเตือนมือถือใช้ Firebase Cloud Messaging (FCM) สำหรับ push จาก server และใช้ native notification channel สำหรับแสดงผลในเครื่อง
+
+## อัปเดตสถานะล่าสุด 2026-05-14
+
+- UI แผนที่ถูกปรับเป็น native dashboard ตาม mockup ล่าสุด มี header, tabs, search, controls และ bottom sheet พร้อมกราฟสถิติ
+- `/risk-zones` เปลี่ยนบทบาทเป็นหน้าสถานีตรวจวัด D-MIND โดยรอ API/endpoint จริง
+- `/disaster-map` เป็นหน้าแผนที่ภัยพิบัติแยกประเภท และตัด `ฝนตกหนัก`/`พายุ` ออกจาก disaster selector แล้ว
+- Android มี `DisasterMapRepository` สำหรับ TMD, USGS, GISTDA และ OSM พร้อมรอบ refresh 5 นาที
+- Android มี `SupabaseRestClient` และ `SupabaseRepository` สำหรับเชื่อม Supabase tables, Edge Functions และ Storage จากเว็บแอพเดิม
+- รายละเอียดล่าสุดอยู่ที่ `android/docs/CURRENT_ANDROID_STATUS.th.md`
 
 ## UI/UX หลักของแอป
 
@@ -170,8 +179,8 @@ Endpoints ปัจจุบัน:
 | Firebase Android config | `android/app/google-services.json` | FCM Android client | ได้จาก Firebase Console |
 | `FCM_PROJECT_ID` หรือ `FIREBASE_PROJECT_ID` | backend environment variable | `/notifications/send` | project id ของ Firebase/Google Cloud |
 | `GOOGLE_APPLICATION_CREDENTIALS` | backend environment variable | `/notifications/send` | path ไป service-account JSON ที่มีสิทธิ์ Firebase Cloud Messaging API Admin |
-| GISTDA API key | backend environment variable หรือ secret manager | future map/disaster proxy | ยังเป็น future integration |
-| Supabase URL/key | backend environment variable หรือ secret manager | future data integration | Android native build ไม่พึ่ง root Supabase client |
+| GISTDA API key | environment variable, project property หรือ secret manager | Android map/disaster data และ future backend proxy | อย่า commit key จริงลง repo |
+| Supabase URL/key | environment variable, project property หรือ secret manager | Android Supabase REST client และ future backend flows | Android ใช้ publishable/anon key เท่านั้น |
 | Release keystore password | `KEYSTORE_PASSWORD`, `KEY_PASSWORD` | release signing | ใช้เฉพาะตอน build release |
 
 ตำแหน่งไฟล์ที่เกี่ยวข้อง:

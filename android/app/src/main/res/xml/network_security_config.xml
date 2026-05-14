@@ -11,6 +11,9 @@
         <domain includeSubdomains="true">supabase.co</domain>
         <domain includeSubdomains="true">tmd.go.th</domain>
         <domain includeSubdomains="true">gistda.or.th</domain>
+        <domain includeSubdomains="true">usgs.gov</domain>
+        <domain includeSubdomains="true">openstreetmap.org</domain>
+        <domain includeSubdomains="true">openstreetmap.com</domain>
         <domain includeSubdomains="true">openmeteo.com</domain>
         <domain includeSubdomains="true">googleapis.com</domain>
         <domain includeSubdomains="true">gstatic.com</domain>

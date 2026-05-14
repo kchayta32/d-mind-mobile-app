@@ -1,0 +1,67 @@
+[00000] บรรณานุกรม
+[00002 TABLE]  | Digital Economy Promotion Agency, "Big data and climate change," [Online]. Available: https://www.depa.or.th/en/article-view/big-data-climate-change (accessed Dec. 13, 2025).
+ | X. Ge, Y. Yang, J. Chen, W. Li, Z. Huang, W. Zhang, and L. Peng, "Disaster prediction knowledge graph based on multi-source spatio-temporal information," Remote Sens., vol. 14, no. 5, Art. no. 1214, 2022. [Online]. Available: https://www.mdpi.com/2072-4292/14/5/1214 (accessed May 3, 2026).
+ | InfoQuest, "แผนป้องกันและบรรเทาสาธารณภัยแห่งชาติ 2564–2570," [Online]. Available: https://www.infoquest.co.th/2022/214022 (accessed Dec. 14, 2025).
+ | มหาวิทยาลัยมหาจุฬาลงกรณราชวิทยาลัย, "การบริหารจัดการแผนป้องกันและบรรเทาสาธารณภัยขององค์กรปกครองส่วนท้องถิ่น," 2022. [Online]. Available: https://so05.tci-thaijo.org/index.php/MCUL/article/view/259780 (accessed Dec. 14, 2025).
+ | Digital Economy Promotion Agency, "Big data and climate change," [Online]. Available: https://www.depa.or.th/en/article-view/big-data-climate-change (accessed Dec. 13, 2025).
+ | Bedrock Analytics, "การบูรณาการ GIS และ IoT ก้าวแรกของการปรับปรุงและติดตามคุณภาพอากาศระดับท้องถิ่นแบบเรียลไทม์," Mar. 5, 2025. [Online]. Available: https://bedrockanalytics.ai/th/blog/technology/integration-of-gis-and-iot-the-first-step-in-reality-based-air-quality-local-time (accessed Dec. 14, 2025).
+ | Y. Chonbadeechalermrung and S. Chuenchuklin, "ระบบเตือนภัยน้ำท่วมฉับพลันในบริเวณพื้นที่เสี่ยงภัย," วารสารวิชาการวิศวกรรมศาสตร์ มหาวิทยาลัยนเรศวร, [Online]. Available: https://ph01.tci-thaijo.org/index.php/nuej/article/view/26265 (accessed Dec. 14, 2025).
+ | RIS Tech, "5 essential disaster alert apps to stay safe in Thailand," [Online]. Available: https://www.ris.tech/en/newsroom/87/5-essential-disaster-alert-apps-to-stay-safe-in-thailand (accessed Dec. 14, 2025).
+ | N. Pandey, P. Rani, and S. Kundu, "An intelligent disaster management system: Integrating technology for effective response and recovery," [Online]. Available: https://ln.run/pkdDZ (accessed Dec. 14, 2025).
+[00003] บรรณานุกรม
+[00005 TABLE]  | L. F. Al-Qora'n and A. Al-Said Ahmad, "Modular monolith architecture in cloud environments: A systematic literature review," Future Internet, vol. 17, no. 11, Art. no. 496, 2025. [Online]. Available: https://www.mdpi.com/1999-5903/17/11/496 (accessed Dec. 14, 2025).
+ | Aware Group, "IoT คืออะไร," aware.co.th. [Online]. Available: https://www.aware.co.th/th/iot-คืออะไร/ (accessed Dec. 14, 2025).
+ | Atlantis Press, "Proceedings of ICAST-ES 2025," atlantis-press.com. [Online]. Available: https://www.atlantis-press.com/proceedings/icast-es-25/126020530 (accessed Dec. 14, 2025).
+ | MindStudio AI, "What is Supabase?" mindstudio.ai. [Online]. Available: https://www.mindstudio.ai/blog/what-is-supabase (accessed Dec. 14, 2025).
+ | Supabase, "Supabase: The Postgres development platform," supabase.com. [Online]. Available: https://supabase.com/ (accessed Dec. 14, 2025).
+ | D-MIND, "D-MIND application," lovable.app. [Online]. Available: https://d-mind.lovable.app/ (accessed Dec. 14, 2025).
+ | Mindphp, "Sign up for API TMD," mindphp.com. [Online]. Available: https://www.mindphp.com/บทความ/82-dotproject/9255-sign-up-for-api-tmd.html (accessed Dec. 14, 2025).
+ | Google, "Android Studio introduction," developer.android.com. [Online]. Available: https://developer.android.com/studio/intro?hl=th (accessed Dec. 14, 2025).
+ | พรสว่างดี และ อิสระพงศ์ เอกสินชล, "Self-RAG คืออะไร มาช่วยให้ LLMs ทำงานดีขึ้นได้อย่างไร," Big Data Institute. [Online]. Available: https://bdi.or.th/big-data-101/self-rag-llms/ (accessed Dec. 14, 2025).
+ | Anusoft, "RAG: Retrieval-augmented generation คืออะไร?" medium.com, May 17, 2024. [Online]. Available: https://medium.com/@anusoft/rag-retrieval-augmented-generation-คืออะไร-d379079d44e4 (accessed Dec. 14, 2025).
+ | Microsoft, "TypeScript: The Superset of JavaScript," typescriptlang.org, 2024. [Online]. Available: https://www.typescriptlang.org/ (accessed Dec. 16, 2025).
+[00007] บรรณานุกรม
+[00009 TABLE]  | P. Karsh, "Static typing in TypeScript: TypeScript basics," medium.com, Sep. 20, 2023. [Online]. Available: https://patrickkarsh.medium.com/static-typing-in-typescript-typescript-basics-9dbf527f1ef9 (accessed Dec. 16, 2025).
+ | S. Jain, "What is transpilation?" dev.to, Jan. 30, 2024. [Online]. Available: https://dev.to/samyak112/what-is-transpilation-4hl0 (accessed Dec. 16, 2025).
+ | H. Mendoza, "Object-oriented TypeScript & advanced typing patterns," bitskingdom.com, Aug. 11, 2025. [Online]. Available: https://bitskingdom.com/ blog/object-oriented-typescript-advanced-patterns/ (accessed Dec. 16, 2025).
+ | P. Nimprasert, “ทำความรู้จักกับ React และการใช้งานเบื้องต้น,” borntodev.com, May 13, 2024. https://www.borntodev.com/2024/05/13/ทำความรู้จักกับ-react/ (accessed Dec. 16, 2025).
+ | DriteStudio, “What is React JS,” dritestudio.co.th, Aug. 18, 2023. https://dritestudio.co.th/article/what-is-react-js (accessed Dec. 16, 2025).
+ | S. Koseeyaumporn, "มารู้จัก single-page application (SPA) กัน," borntodev.com, Dec. 2, 2023. [Online]. Available: https://www.borntodev.com/2023/12/02/มารู้จัก-single-page-application-spa-กัน/ (accessed Dec. 16, 2025).
+ | ServBay Support Center, "Pgvector PostgreSQL extension," support.servbay.com, Oct. 7, 2025. [Online]. Available: https://support.servbay.com/th/database-management/postgresql-extensions/pgvector (accessed Dec. 16, 2025).
+ | DeepWiki, "Postgres change data capture (Supabase Realtime)," deepwiki.com. [Online]. Available: https://deepwiki.com/supabase/realtime/2.3-postgres-change-data-capture (accessed Dec. 16, 2025).
+ | M. Sathishkumar and S. Karthikeyan, "A real-time AI-powered chatbot application using Flask, Socket.IO, and OpenRouter," Int. J. Sci. Adv. Technol., vol. 16, no. 2, 2025. doi: 10.71097/IJSAT.v16.i2.6306.
+ | Amazon Web Services, "RESTful API คืออะไร," aws.amazon.com. [Online]. Available: https://aws.amazon.com/th/what-is/restful-api/ (accessed Dec. 16, 2025).
+[00011] บรรณานุกรม
+[00013 TABLE]  | BorntoDev, "ใช้ Vite สร้าง project React แบบเร็วทะลุโลก," borntodev.com, May 26, 2023. [Online]. Available: https://www.borntodev.com/2023/05/26/ใช้-vite-สร้าง-project-react-แบบเร็วทะลุ (accessed Dec. 17, 2025).
+ | Google, "Google Antigravity documentation," google.com. [Online]. Available: https://antigravity.google/docs/home (accessed Dec. 17, 2025).
+ | Leaflet, "Leaflet: An open-source JavaScript library for mobile-friendly interactive maps," leafletjs.com. [Online]. Available: https://leafletjs.com/index.html (accessed Dec. 17, 2025).
+ | National Disaster Warning Center (NDWC), "Early warning system operations," ndwc.disaster.go.th, 2023. [Online]. Available: https://ndwc.disaster.go.th/ (accessed Dec. 17, 2025).
+ | Arduitronics, "Raspberry Pi UPS 18650 HAT with RTC 5V output for Raspberry Pi 4B/3B/3B+," arduitronics.com. [Online]. Available: https://www.arduitronics.com/product/2490/raspberry-pi-ups-18650-hat-with-rtc-5v-output-for-raspberry-pi-4b-3b-3b (accessed May 4, 2026).
+ | Solectroshop, "MPU-6050 gyroscope accelerometer module," solectroshop.com. [Online]. Available: https://solectroshop.com/en/sensores-mems-giroscopio/841-mpu-6050-modulo-acelerometro-giroscopio-3-5905323230194.html (accessed May 4, 2026).
+ | ALSelectro, "BMP/BME280 pressure sensor module," alselectro.in. [Online]. Available: https://www.alselectro.in/product-page/bmp-bme-280-pressure-sensor (accessed May 4, 2026).
+ | Distrelec, "PMS5003 air quality sensor kit 5V," distrelec.ch. [Online]. Available: https://www.distrelec.ch/en/pms5003-air-quality-sensor-kit-5v-adafruit-3686/p/30139173 (accessed May 4, 2026).
+ | Global Byte Shop, "Project ESP32-CAM," globalbyteshop.com. [Online]. Available: https://globalbyteshop.com/blogs/projects/project-esp32cam (accessed May 4, 2026).
+[00014] บรรณานุกรม
+[00016 TABLE]  | Framework Community, "The power adapter," community.frame.work, 2021. [Online]. Available: https://community.frame.work/t/the-power-adapter/927/234 (accessed May 4, 2026).
+ | Arduitronics, “Raspberry Pi UPS 18650 HAT with RTC 5V output for Raspberry Pi 4B/3B/3B+,” arduitronics.com. https://www.arduitronics.com/product/2490/ raspberry-pi-ups-18650-hat-with-rtc-5v-output-for-raspberry-pi-4b-3b-3b (accessed May 4, 2026).
+ | Adafruit Industries, "Adafruit product 4292," adafruit.com. [Online]. Available: https://www.adafruit.com/product/4292 (accessed May 4, 2026).
+ | A. P. Nair, V. P. Indrathreedh, A. Balamurali, and N. Subhash, "Environmental AI-based multi-sensor disaster early warning system: A physics-integrated research report," Int. J. Res. Appl. Sci. Eng. Technol., vol. 13, no. 12, 2025. [Online]. Available: https://www.ijraset.com/best-journal/environmental-aibased-multisensor-disaster-early-warning-system (accessed May 4, 2026).
+ | S. A. Shinde, A. S. Bhavare, S. J. Ambi, S. P. Ambi, and S. A. Admuthe, “LoRa & IoT based automatic disaster monitoring & alert system,” International Journal for Research in Applied Science & Engineering Technology (IJRASET), vol. 13, no. 11, 2025. https://www.ijraset.com/best-journal/lora-iot-based-automatic-disaster-monitoring-alert-system- (accessed May 4, 2026).
+ | H. Zhang, R. Zhang, and J. Sun, "Developing real-time IoT-based public safety alert and emergency response systems," Sci. Rep., vol. 15, Art. no. 29056, 2025. [Online]. Available: https://www.nature.com/articles/s41598-025-13465-7 (accessed May 4, 2026).
+ | T.-H. Ou, T.-H. Yang, and P.-Z. Chang, "Combination of large language models and portable flood sensors for community flood response: A preliminary study," Water, vol. 17, no. 7, Art. no. 1055, 2025. [Online]. Available: https://www.mdpi.com/2073-4441/17/7/1055 (accessed May 4, 2026).
+[00019] บรรณานุกรม
+[00021 TABLE]  | R. Mustafa, J. Han, N. I. Sarkar, and K. Petrova, "Secure cross-layer mobile sensing framework for real-time disaster reporting and visualisation using a mobile application," Sensors, vol. 25, no. 21, Art. no. 6766, 2025. [Online]. Available: https://www.mdpi.com/1424-8220/25/21/6766 (accessed May 4, 2026).
+ | R. Barron, V. Grantcharov, S. Wanna, M. E. Eren, M. Bhattarai, N. Solovyev, G. Tompkins, C. Nicholas, K. O. Rasmussen, C. Matuszek, and B. S. Alexandrov, "Domain-specific retrieval-augmented generation using vector stores, knowledge graphs, and tensor factorization," in Proc. Int. Conf. Mach. Learn. Appl. (ICMLA), 2024, pp. 1669–1676. doi: 10.1109/ICMLA61862.2024.00258.
+ | Raspberry Pi Foundation, "Raspberry Pi 4 Model B," raspberrypi.com. [Online]. Available: https://www.raspberrypi.com/ (accessed May 9, 2026).
+ | DevA DIY, "ESP32 คืออะไร? ทำความรู้จักกับไมโครคอนโทรลเลอร์ยอดนิยม," devadiy.com. [Online]. Available: https://devadiy.com/esp32-คืออะไร/ (accessed May 9, 2026).
+ | Cybertice, "สอนใช้งาน GY-521 IMU 3-axis Accelerometer Gyro Module MPU6050 กับ Arduino," cybertice.com. [Online]. Available: https://cybertice.com/article/42/สอนใช้งาน-gy-521-imu-3-axis-accelerometer-gyro-module-mpu6050-กับ-arduino (accessed May 9, 2026).
+ | Adafruit, "Pinouts - Adafruit BME280 humidity + barometric pressure + temperature sensor breakout," learn.adafruit.com. [Online]. Available: https://learn.adafruit.com/adafruit-bme280-humidity-barometric-pressure-temperature-sensor-breakout/pinouts (accessed May 9, 2026).
+ | Digital Concepts, "Ultrasonic distance sensor - Waterproof AJ-SR04M," digitalconcepts.net.au. [Online]. Available: https://www.digitalconcepts.net.au/ arduino/?op=Ultrasonic (accessed May 9, 2026).
+ | How2Electronics, "Interfacing PMS5003 air quality sensor with Arduino/ESP32," how2electronics.com. [Online]. Available: https://how2electronics.com/ interfacing-pms5003-air-quality-sensor-arduino/ (accessed May 9, 2026).
+[00024] บรรณานุกรม
+[00026 TABLE]  | ศุทกฤต เตชเอกสิทธิ์, "การอนุรักษ์พลังงานสำหรับการเฝ้าติดตามค่าฝุ่น PM 2.5 ภายในอาคาร," M.S. thesis, Dept. Comput. Sci., Fac. Sci. Technol., Thammasat Univ., Pathum Thani, Thailand, 2024. [Online]. Available: https://ethesisarchive.library.tu.ac.th/ thesis/2024/TU_2024_6409035679_20462_30494.pdf (accessed May 9, 2026).
+ | MQTT.org, "MQTT – The standard for IoT messaging," mqtt.org. [Online]. Available: https://mqtt.org/ (accessed May 12, 2026).
+ | I. Adidev, "Exploring HTTP and HTTPS protocols in network security," DEV Community, Jun. 15, 2024. [Online]. Available: https://dev.to/iaadidev/exploring-http-and-https-protocols-in-network-security-530j (accessed May 12, 2026).
+ | W. Buddeewong, "FastAPI สู่ความสนุกและความเร็วในการสร้าง API," Medium, Feb. 19, 2024. [Online]. Available: https://medium.com/@watchakorn-18k/fastapi-สู่ความสนุกและความเร็วในการสร้าง-api-559a50dfa667 (accessed May 12, 2026).
+ | M. Reichstein et al., "Early warning of complex climate risk with integrated artificial intelligence," Nature Communications, vol. 16, Art. no. 2564, 2025. [Online]. Available: https://www.nature.com/articles/s41467-025-57640-w. (accessed May 12, 2026).
+ | P. Mainkandan, S. ChaithanyaPuttaparthi, S. D. Golla, S. A. Narahari, S. Phanindra, and P. Kumar, "Early Flood Warning System using Machine Learning," in 2024 5th International Conference on Smart Electronics and Communication (ICOSEC), Sep. 2024, pp. 1088–1092. doi: 10.1109/ICOSEC61587.2024.10722378. (accessed May 12, 2026).
