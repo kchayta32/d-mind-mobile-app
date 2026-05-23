@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">D-MIND</string>
+    <string name="title_activity_main">D-MIND</string>
+    <string name="package_name">com.dmind.app</string>
+    <string name="custom_url_scheme">dmind</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_map">Map</string>
+    <string name="nav_emergency">Emergency</string>
+    <string name="nav_manual">Manual</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_alerts">Alerts</string>
+    <string name="nav_report">Report</string>
+    <string name="nav_stations">Stations</string>
+    <string name="nav_chatbot">Dr.Mind</string>
+    <string name="nav_weather_hourly">Hourly</string>
+    <string name="nav_weather_weekly">7 days</string>
+    <string name="nav_damage">Damage Assessment</string>
+
+    <!-- Dashboard -->
+    <string name="app_subtitle">Disaster Monitoring System</string>
+    <string name="greeting_morning">Good morning</string>
+    <string name="greeting_afternoon">Good afternoon</string>
+    <string name="greeting_evening">Good evening</string>
+    <string name="greeting_subtitle">Ready for any situation</string>
+    <string name="status_normal">All normal</string>
+    <string name="ai_assistant_title">Dr.Mind AI</string>
+    <string name="ai_assistant_subtitle">Smart assistant, available 24/7</string>
+    <string name="ai_badge_new">New</string>
+    <string name="disaster_map_title">Disaster Map</string>
+    <string name="disaster_map_subtitle">Real-time situation tracking</string>
+    <string name="stat_24h_title">Last 24 hours stats</string>
+    <string name="stat_24h_label">Last 24h</string>
+    <string name="stat_earthquake">Earthquake</string>
+    <string name="stat_flood">Flood</string>
+    <string name="stat_wildfire">Wildfire</string>
+    <string name="stat_storm">Storm</string>
+    <string name="weather_hourly_title">Hourly Weather Forecast</string>
+    <string name="weather_hourly_subtitle">Data from Thai Meteorological Department (TMD)</string>
+    <string name="weather_7day_title">7-Day Weather Forecast</string>
+    <string name="weather_7day_subtitle">Daily high-low temperatures</string>
+
+    <!-- Map -->
+    <string name="map_cd_my_location">My location</string>
+    <string name="map_cd_zoom_in">Zoom in</string>
+    <string name="map_cd_zoom_out">Zoom out</string>
+    <string name="map_cd_drag_legend">Drag legend card</string>
+    <string name="map_items">Items</string>
+    <string name="map_critical">Critical</string>
+    <string name="map_stations">Stations</string>
+    <string name="map_layers">Layers</string>
+    <string name="map_filters">Filters</string>
+    <string name="map_legend">Legend</string>
+    <string name="map_hide_legend">Hide legend</string>
+    <string name="map_show_legend">Show legend</string>
+    <string name="map_recent_items">Latest updates</string>
+    <string name="map_no_layer_data">No data in this layer yet</string>
+    <string name="map_sources">Data sources</string>
+    <string name="map_records_format">%1$d records</string>
+    <string name="map_updated_format">Updated %1$s</string>
+    <string name="map_status_backup">Backup</string>
+    <string name="map_pending_connection">Waiting for connection</string>
+    <string name="map_drought_dataset_title">Latest 7-day drought datasets</string>
+    <string name="map_layer_summary_viirs">Tap a hotspot to view GISTDA VIIRS details and open the location in Google Maps</string>
+    <string name="map_layer_summary_flood">Choose a time range to view flood areas and WMTS map layers</string>
+    <string name="map_layer_summary_stations">View monitoring stations and latest status</string>
+    <string name="map_layer_summary_default">Tap a marker to view details, sources, and recommendations</string>
+    <string name="map_open_all_stations">View all stations</string>
+    <string name="map_source_format">Source: %1$s</string>
+    <string name="map_updated_label">Updated:</string>
+    <string name="map_event_updated_format">Updated: %1$s</string>
+    <string name="map_country_label">Country:</string>
+    <string name="map_province_label">Province:</string>
+    <string name="map_district_label">District:</string>
+    <string name="map_subdistrict_label">Subdistrict:</string>
+    <string name="map_date_label">Date:</string>
+    <string name="map_map_link_label">Map link:</string>
+    <string name="map_view_google_maps">View on Google Maps</string>
+    <string name="map_responsible_area_label">Responsible area:</string>
+    <string name="map_flood_recurrent_title_format">Recurrent flood in %1$s</string>
+    <string name="map_flood_area_title_format">Flood area in %1$s</string>
+    <string name="map_flood_short_title_format">Flood in %1$s</string>
+    <string name="map_cluster_count_format">%1$d %2$s</string>
+    <string name="map_cluster_nearby_format">%1$d %2$s nearby</string>
+    <string name="map_cluster_viirs_format">%1$d VIIRS hotspots</string>
+    <string name="map_cluster_flood_area_format">%1$d flood areas</string>
+    <string name="map_marker_times_place_format">%1$d times - %2$s %3$s</string>
+    <string name="map_data_range_label">Data range:</string>
+    <string name="map_occurrence_count_label">Occurrences:</string>
+    <string name="map_times_format">%1$d times</string>
+    <string name="map_symbol_range_label">Symbol range:</string>
+    <string name="map_area_size_label">Area size:</string>
+    <string name="map_square_meters_format">%1$s sq.m.</string>
+    <string name="map_viirs_legend_title">Time Based VIIRS</string>
+    <string name="map_viirs_hours_since_detected">Hours since detection</string>
+    <string name="map_flood_impact_level">Flood impact level</string>
+    <string name="map_flood_frequency_legend">Recurrent flood count (times)</string>
+    <string name="map_less_than_once">Less than 1 time</string>
+    <string name="map_more_than_12_times">More than 12 times</string>
+    <string name="map_filter_title">Map Filters</string>
+    <string name="map_filter_hazard_type">Hazard type</string>
+    <string name="map_filter_min_severity">Minimum severity</string>
+    <string name="map_show_stations">Show monitoring stations</string>
+    <string name="map_show_stations_subtitle">Rain, PM2.5, heat, and station status</string>
+    <string name="map_apply_filter">Apply filters</string>
+    <string name="map_layers_title">Disaster Layers</string>
+    <string name="map_style_title">Map style</string>
+    <string name="hazard_earthquake">Earthquake</string>
+    <string name="hazard_flood">Flood</string>
+    <string name="hazard_storm">Storm</string>
+    <string name="hazard_fire">Wildfire</string>
+    <string name="hazard_air_quality">PM2.5</string>
+    <string name="hazard_heat">Heat</string>
+    <string name="hazard_drought">Drought</string>
+    <string name="hazard_sinkhole">Sinkhole</string>
+    <string name="hazard_weather">Weather</string>
+    <string name="hazard_other">Other</string>
+    <string name="severity_normal">Normal</string>
+    <string name="severity_watch">Watch</string>
+    <string name="severity_affected">Affected</string>
+    <string name="severity_critical">Critical</string>
+    <string name="map_layer_earthquake">Earthquake</string>
+    <string name="map_layer_flood">Flood</string>
+    <string name="map_layer_wildfire_viirs">Wildfire VIIRS</string>
+    <string name="map_layer_drought_smap">Drought SMAP</string>
+    <string name="map_layer_storm">Storm</string>
+    <string name="map_layer_air_quality">PM2.5</string>
+    <string name="map_layer_stations">Monitoring Stations</string>
+    <string name="map_layer_earthquake_desc">Latest earthquake data</string>
+    <string name="map_layer_flood_desc">Flood areas from GISTDA</string>
+    <string name="map_layer_wildfire_viirs_desc">Time Based VIIRS hotspots</string>
+    <string name="map_layer_drought_smap_desc">Soil moisture from SMAP</string>
+    <string name="map_layer_storm_desc">Rain and strong wind signals</string>
+    <string name="map_layer_air_quality_desc">Dust and air-quality readings</string>
+    <string name="map_layer_stations_desc">Field stations and sensors</string>
+    <string name="map_range_one_day">1 day</string>
+    <string name="map_range_three_days">3 days</string>
+    <string name="map_range_seven_days">7 days</string>
+    <string name="map_range_thirty_days">30 days</string>
+    <string name="map_range_flood_frequency">Recurrent flood</string>
+    <string name="map_drought_smap_label">SMAP</string>
+    <string name="map_drought_ndwi_label">NDWI</string>
+    <string name="map_drought_driplus_label">DRIPlus</string>
+    <string name="map_drought_smap_desc">Latest 7-day soil moisture</string>
+    <string name="map_drought_ndwi_desc">Latest 7-day vegetation moisture</string>
+    <string name="map_drought_driplus_desc">Latest 7-day drought risk areas</string>
+    <string name="map_drought_smap_legend">Soil moisture (SMAP) (%)</string>
+    <string name="map_drought_ndwi_legend">Vegetation moisture (NDWI)</string>
+    <string name="map_drought_driplus_legend">Drought risk areas (DRIPlus)</string>
+    <string name="map_tile_terrain">Terrain</string>
+    <string name="map_tile_standard">Standard</string>
+    <string name="map_tile_satellite">Satellite</string>
+    <string name="map_tile_terrain_desc">Terrain map with clearer topography</string>
+    <string name="map_tile_standard_desc">Road map from OpenStreetMap</string>
+    <string name="map_tile_satellite_desc">Satellite imagery for inspecting field conditions</string>
+    <string name="map_flood_freq_less_than_one_desc">Less than 1 time</string>
+    <string name="map_flood_freq_one_to_three_desc">1 to 3 times</string>
+    <string name="map_flood_freq_three_to_six_desc">3 to 6 times</string>
+    <string name="map_flood_freq_six_to_nine_desc">6 to 9 times</string>
+    <string name="map_flood_freq_nine_to_twelve_desc">9 to 12 times</string>
+    <string name="map_flood_freq_more_than_twelve_desc">More than 12 times</string>
+    <string name="map_band_0_to_8">0 to 8</string>
+    <string name="map_band_9_to_22">9 to 22</string>
+    <string name="map_band_23_to_37">23 to 37</string>
+    <string name="map_band_38_to_51">38 to 51</string>
+    <string name="map_band_52_to_100">52 to 100</string>
+    <string name="map_band_very_low">Very low</string>
+    <string name="map_band_low">Low</string>
+    <string name="map_band_medium">Medium</string>
+    <string name="map_band_high">High</string>
+    <string name="map_band_very_high">Very high</string>
+    <string name="map_band_minimum">Minimum class</string>
+    <string name="map_band_low_class">Low class</string>
+    <string name="map_band_medium_class">Medium class</string>
+    <string name="map_band_high_class">High class</string>
+    <string name="map_band_maximum">Maximum class</string>
+    <string name="map_band_dry">Dry</string>
+    <string name="map_band_slightly_moist">Slightly moist</string>
+    <string name="map_band_moderate">Moderate</string>
+    <string name="map_band_very_moist">Very moist</string>
+    <string name="map_band_most_moist">Most moist</string>
+    <string name="map_band_watch">Watch</string>
+    <string name="map_band_low_risk">Low risk</string>
+    <string name="map_band_medium_risk">Medium risk</string>
+    <string name="map_band_high_risk">High risk</string>
+    <string name="map_band_severe_risk">Severe risk</string>
+    <string name="map_time_soon">Soon</string>
+    <string name="map_time_just_now">Just now</string>
+    <string name="map_minutes_ago_format">%1$d min ago</string>
+    <string name="map_hours_ago_format">%1$d hr ago</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_subtitle">Permissions, reliability, and system configuration</string>
+    <string name="settings_theme">Theme</string>
+    <string name="dark_mode">Dark mode</string>
+    <string name="light_mode">Light mode</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_subtitle">Select your preferred language</string>
+    <string name="language_thai">ภาษาไทย</string>
+    <string name="language_english">English</string>
+    <string name="reliability_checklist">Reliability checklist</string>
+    <string name="permission_location">Location</string>
+    <string name="permission_notification">Notifications</string>
+    <string name="permission_battery">Battery bypass</string>
+    <string name="permission_dnd">DND bypass</string>
+    <string name="permission_fcm">FCM token</string>
+    <string name="status_ready">Ready</string>
+    <string name="status_setup">Setup</string>
+    <string name="btn_open">Open</string>
+    <string name="btn_fix">Fix</string>
+    <string name="settings_configuration">Configuration</string>
+    <string name="config_backend">Backend gateway</string>
+    <string name="config_supabase_project">Supabase project</string>
+    <string name="config_supabase_url">Supabase URL</string>
+    <string name="config_drmind_model">Dr.Mind model</string>
+    <string name="config_thai_llm">ThaiLLM</string>
+    <string name="config_not_configured">Not configured</string>
+    <string name="config_configured">Configured</string>
+    <string name="config_note">Keep API tokens in environment variables, Gradle properties, or android/local.properties. The Android source should not contain service-role keys or private API tokens.</string>
+
+    <!-- Alerts -->
+    <string name="alerts_title">Alerts</string>
+    <string name="alerts_subtitle">Realtime alerts and notification history</string>
+    <string name="loading_alerts">Loading alerts</string>
+    <string name="alert_data_unavailable">Some alert data is unavailable</string>
+    <string name="active_alerts">Active alerts</string>
+    <string name="no_active_alerts">No active alerts</string>
+    <string name="no_active_alerts_message">New alerts from Supabase realtime_alerts will appear here.</string>
+    <string name="notification_history">Notification history</string>
+    <string name="no_notifications">No notifications yet</string>
+    <string name="no_notifications_message">Delivered push/email notifications will be listed after backend setup.</string>
+    <string name="alert_radius_format">Radius %1$d km - %2$s</string>
+    <string name="status_new">New</string>
+    <string name="status_read">Read</string>
+
+    <!-- Report -->
+    <string name="report_title">Report Incident</string>
+    <string name="report_subtitle">Submit field observations to the incident_reports pipeline</string>
+    <string name="incident_details">Incident details</string>
+    <string name="report_type_flood">Flood</string>
+    <string name="report_type_storm">Storm</string>
+    <string name="report_type_fire">Fire</string>
+    <string name="report_type_other">Other</string>
+    <string name="report_field_title">Title</string>
+    <string name="report_field_description">What happened?</string>
+    <string name="report_field_location">Location</string>
+    <string name="report_severity">Severity</string>
+    <string name="btn_submit_report">Submit report</string>
+    <string name="recent_reports">Recent reports</string>
+    <string name="no_reports">No reports yet</string>
+    <string name="no_reports_message">Submitted incidents from Supabase will appear after configuration.</string>
+    <string name="report_location_not_provided">Location not provided</string>
+    <string name="report_validation_error">Add a title and description before submitting.</string>
+    <string name="report_submitted">Report submitted.</string>
+    <string name="report_submit_error">Unable to submit report.</string>
+
+    <!-- Emergency Contacts -->
+    <string name="emergency_contacts_title">Emergency Contacts</string>
+    <string name="emergency_contacts_subtitle">One-tap calls for critical response</string>
+    <string name="contact_police">Emergency Police</string>
+    <string name="contact_police_desc">Immediate danger and crime</string>
+    <string name="contact_medical">Medical Emergency</string>
+    <string name="contact_medical_desc">Injuries, rescue, ambulance</string>
+    <string name="contact_disaster">Disaster Warning</string>
+    <string name="contact_disaster_desc">Department of Disaster Prevention and Mitigation</string>
+    <string name="contact_fire">Fire Department</string>
+    <string name="contact_fire_desc">Fire and urgent rescue</string>
+
+    <!-- Emergency Manual -->
+    <string name="manual_title">Emergency Manual</string>
+    <string name="manual_subtitle">Short, practical actions for common hazards</string>
+    <string name="manual_earthquake">Earthquake</string>
+    <string name="manual_earthquake_guide">Drop, cover, and hold. Move away from glass and wait until shaking stops.</string>
+    <string name="manual_flood">Flood</string>
+    <string name="manual_flood_guide">Avoid floodwater, switch off electricity if safe, and move to higher ground.</string>
+    <string name="manual_storm">Storm</string>
+    <string name="manual_storm_guide">Stay indoors, secure loose objects, and avoid trees, poles, and windows.</string>
+    <string name="manual_fire">Fire</string>
+    <string name="manual_fire_guide">Leave smoke-filled areas low to the ground and keep exits clear.</string>
+
+    <!-- Chatbot -->
+    <string name="chatbot_title">Dr.Mind AI</string>
+    <string name="chatbot_subtitle">Answers only from D-MIND Supabase data</string>
+    <string name="chatbot_placeholder">Ask about the situation or get advice from D-MIND data…</string>
+    <string name="chatbot_loading">Dr.Mind is checking the data</string>
+    <string name="chatbot_send">Send</string>
+    <string name="chatbot_welcome">Hello! I\'m Dr.Mind, D-MIND\'s disaster assistant. I answer only from data in the app\'s Supabase database.</string>
+    <string name="chatbot_error">Cannot connect to Dr.Mind AI right now. If someone is injured or in immediate danger, call 191, 1669, 1784 or 199 immediately.</string>
+
+    <!-- Station -->
+    <string name="stations_title">Monitoring Stations</string>
+    <string name="stations_subtitle">D-MIND sensor and monitoring station selector</string>
+    <string name="no_stations">No stations configured</string>
+    <string name="no_stations_message">Station endpoints can be connected from api-from-sensor when available.</string>
+    <string name="station_updated">Updated %1$s</string>
+
+    <!-- Weather -->
+    <string name="weather_title">Weather Overview</string>
+    <string name="weather_subtitle">TMD weather and storm/heat signals</string>
+    <string name="weather_not_configured">Weather feed is not configured</string>
+    <string name="weather_config_hint">Set DMIND_TMD_API_TOKEN or TMD_API_TOKEN in android/local.properties or environment variables.</string>
+    <string name="weather_weekly_title">7-Day Weather Forecast</string>
+    <string name="weather_weekly_subtitle">Daily high-low temperatures</string>
+    <string name="weather_tmd_source">Data from Thai Meteorological Department (TMD)</string>
+    <string name="weather_token_missing">DMIND_TMD_API_TOKEN is not configured</string>
+    <string name="weather_weekly_placeholder">This screen is prepared for native 7-day forecast, connecting from the same TMD endpoint used for hourly data.</string>
+
+    <!-- Damage Assessment -->
+    <string name="damage_title">Damage Assessment</string>
+    <string name="damage_subtitle">Analyze local damage with images and AI</string>
+    <string name="damage_workflow_title">Capture Image to Analyze</string>
+    <string name="damage_workflow_message">Upload a photograph of structures or buildings to evaluate and calculate preliminary damage estimates.</string>
+    <string name="damage_assessment_history">Damage Assessment History</string>
+    <string name="damage_general">General Damage</string>
+    <string name="no_assessments">No Assessment History</string>
+    <string name="no_assessments_message">No damage assessment images have been uploaded yet.</string>
+    <string name="btn_analyze_damage">Analyze Damage</string>
+    <string name="status_processing">Processing…</string>
+
+    <!-- Battery Optimization -->
+    <string name="title_battery_optimization">Battery Optimization</string>
+    <string name="description_battery_optimization">To keep disaster alerts reliable, allow D-MIND to run in the background.</string>
+    <string name="checking_status">Checking status…</string>
+    <string name="battery_optimization_enabled">Background run access: allowed</string>
+    <string name="battery_optimization_disabled">Background run access: needs setup</string>
+    <string name="battery_optimization_not_supported">Not supported on this device</string>
+    <string name="button_enable">Allow Background Run</string>
+    <string name="button_disable">Open Settings</string>
+    <string name="text_alternative_action">Or manually enable in Settings > Battery > Battery optimization</string>
+
+    <!-- Emergency Alert -->
+    <string name="title_emergency_alert">Emergency Alert</string>
+    <string name="emergency_default_title">Emergency Disaster!</string>
+    <string name="emergency_default_message">You are in a danger zone. Seek safety immediately.</string>
+    <string name="emergency_countdown">Evacuate now</string>
+    <string name="acknowledge_button">Acknowledge</string>
+    <string name="help_button">Get Help</string>
+
+    <!-- Common -->
+    <string name="btn_refresh">Refresh</string>
+    <string name="btn_submit">Submit</string>
+    <string name="btn_back">Back</string>
+    <string name="btn_close">Close</string>
+    <string name="btn_search">Search</string>
+    <string name="search_placeholder">Search locations in Thailand</string>
+    <string name="theme_toggle">Toggle theme</string>
+    <string name="language_toggle">Change language</string>
+    <string name="label_latest">Latest</string>
+    <string name="sos_endpoint_url"></string>
+    <string name="fcm_token_endpoint_url"></string>
+
+    <!-- Victim Reports Screen -->
+    <string name="nav_victim_reports">Victim Reports</string>
+    <string name="victim_reports_subtitle">Submit observation details to report and assist victims</string>
+    <string name="victim_form_title">Enter Victim Information</string>
+    <string name="victim_name">Full Name</string>
+    <string name="victim_age">Age (years)</string>
+    <string name="victim_phone">Contact Phone</string>
+    <string name="victim_gender">Gender</string>
+    <string name="gender_male">Male</string>
+    <string name="gender_female">Female</string>
+    <string name="gender_other">Other</string>
+    <string name="victim_details">Additional Assistance Details</string>
+    <string name="victim_assistance_status">Assistance Status</string>
+    <string name="status_pending_help">Pending Assistance</string>
+    <string name="status_assisting">Assisting</string>
+    <string name="status_completed">Completed</string>
+    <string name="btn_detect_location">Detect Current Location</string>
+    <string name="location_not_set">Location not set</string>
+    <string name="btn_submit_victim_report">Submit Victim Report</string>
+    <string name="victim_reports_history">Assistance History</string>
+    <string name="no_victim_reports">No Victim Reports</string>
+    <string name="no_victim_reports_message">No victims registered for assistance in this area yet.</string>
+    <string name="age_prefix">Age: </string>
+    <string name="btn_ok">OK</string>
+
+    <!-- Satisfaction Survey Screen -->
+    <string name="nav_satisfaction_survey">Satisfaction Survey</string>
+    <string name="survey_screen_subtitle">Your feedback helps us make the D-MIND app better</string>
+    <string name="survey_thank_you_title">Feedback Submitted!</string>
+    <string name="survey_thank_you_message">Thank you very much for your feedback and comments.</string>
+    <string name="btn_back_to_settings">Back to Settings</string>
+    <string name="survey_rating_prompt">Overall application satisfaction</string>
+    <string name="rating_very_poor">Very Poor (1 Star)</string>
+    <string name="rating_poor">Poor (2 Stars)</string>
+    <string name="rating_fair">Fair (3 Stars)</string>
+    <string name="rating_good">Good (4 Stars)</string>
+    <string name="rating_excellent">Excellent (5 Stars)</string>
+    <string name="survey_user_type_prompt">Your main role in usage</string>
+    <string name="role_general">General Public</string>
+    <string name="role_victim">Disaster Victim</string>
+    <string name="role_helper">Staff or Volunteer</string>
+    <string name="survey_comments_label">Additional suggestions or feedback</string>
+    <string name="survey_comments_placeholder">Write your comments here…</string>
+    <string name="btn_submit_survey">Submit Feedback</string>
+
+    <!-- Image Picker -->
+    <string name="report_add_photo">Attach incident / scene photo</string>
+    <string name="btn_gallery">Gallery</string>
+    <string name="btn_camera">Camera</string>
+
+    <!-- Shortcuts -->
+    <string name="shortcut_victim_reports">Report Victim</string>
+    <string name="shortcut_damage_assessment">Damage Assessment</string>
+
+    <!-- Analytics Dashboard -->
+    <string name="nav_analytics">Analytics</string>
+    <string name="analytics_title">Disaster Analytics</string>
+    <string name="analytics_subtitle">Statistics and trends from nationwide data sources</string>
+    <string name="analytics_refresh">Refresh data</string>
+    <string name="analytics_overview">Overview</string>
+    <string name="analytics_total_events">Total events</string>
+    <string name="analytics_affected_area">Affected area</string>
+    <string name="analytics_critical_events">Critical events</string>
+    <string name="analytics_high_severity">High severity</string>
+    <string name="analytics_by_type">Breakdown by hazard type</string>
+    <string name="analytics_storm_label">Storm</string>
+    <string name="analytics_drought_label">Drought</string>
+    <string name="analytics_trend_title">Event trends</string>
+    <string name="analytics_period_7d">7 days</string>
+    <string name="analytics_period_30d">30 days</string>
+    <string name="analytics_period_1y">1 year</string>
+    <string name="analytics_environmental">Environmental data</string>
+    <string name="analytics_air_quality">Air quality</string>
+    <string name="analytics_temperature">Temperature</string>
+    <string name="analytics_humidity">Humidity</string>
+    <string name="analytics_water_level">Water level</string>
+    <string name="analytics_rainfall">Rainfall</string>
+    <string name="analytics_dashboard_card_title">Disaster Statistics</string>
+    <string name="analytics_dashboard_card_subtitle">Charts, trends, and environmental data</string>
+</resources>

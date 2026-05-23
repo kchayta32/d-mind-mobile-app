@@ -80,3 +80,30 @@ data class DamageAssessmentDraft(
     val originalFilename: String? = null,
     val incidentId: String? = null,
 )
+
+data class DamageAssessmentRecord(
+    val id: String,
+    val incidentId: String?,
+    val imageUrl: String,
+    val originalFilename: String?,
+    val assessmentResult: String?,
+    val damageLevel: String?,
+    val confidenceScore: Double?,
+    val detectedCategories: List<String>,
+    val estimatedCost: Double?,
+    val processingStatus: String,
+    val errorMessage: String?,
+    val processedAt: String?,
+    val createdAt: String,
+)
+
+data class VictimReportRecord(
+    val id: String,
+    val name: String,
+    val contact: String?,
+    val description: String?,
+    val latitude: Double,
+    val longitude: Double,
+    val status: String,
+    val createdAt: String,
+)

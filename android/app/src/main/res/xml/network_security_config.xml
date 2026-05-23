@@ -6,6 +6,11 @@
         <domain includeSubdomains="true">10.0.2.2</domain>
     </domain-config>
 
+    <!-- ThaiLLM currently documents an HTTP endpoint. Prefer HTTPS via DMIND_THAI_LLM_BASE_URL if the service enables it. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">thaillm.or.th</domain>
+    </domain-config>
+
     <!-- Trusted API domains -->
     <domain-config cleartextTrafficPermitted="false">
         <domain includeSubdomains="true">supabase.co</domain>

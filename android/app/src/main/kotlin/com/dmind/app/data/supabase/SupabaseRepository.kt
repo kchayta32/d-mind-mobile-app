@@ -1,7 +1,10 @@
 package com.dmind.app.data.supabase
 
-import com.dmind.app.network.SupabaseRestClient
 import com.dmind.app.network.BackendRestClient
+import com.dmind.app.network.SupabaseConfig
+import com.dmind.app.network.SupabaseRestClient
+import com.dmind.app.network.ThaiLlmChatClient
+import com.dmind.app.network.ThaiLlmConfig
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.Instant
@@ -9,6 +12,7 @@ import java.time.Instant
 class SupabaseRepository(
     private val client: SupabaseRestClient = SupabaseRestClient(),
     private val backendClient: BackendRestClient = BackendRestClient(),
+    private val thaiLlmClient: ThaiLlmChatClient = ThaiLlmChatClient(),
 ) {
     suspend fun fetchIncidentReports(limit: Int = 25): Result<List<IncidentReportRecord>> = runCatching {
         client.select(
@@ -109,24 +113,70 @@ class SupabaseRepository(
         message: String,
         chatHistory: List<Pair<String, String>>,
     ): Result<String> = runCatching {
-        val history = JSONArray().apply {
-            chatHistory.forEach { (role, content) ->
-                put(JSONObject().put("role", role).put("content", content))
+        check(SupabaseConfig.isConfigured) { "ยังไม่ได้ตั้งค่า DMIND_SUPABASE_URL และ DMIND_SUPABASE_PUBLISHABLE_KEY" }
+        val supabaseContext = fetchDrMindSupabaseContext()
+        if (ThaiLlmConfig.isConfigured) {
+            try {
+                thaiLlmClient.complete(
+                    messages = DrMindPrompt.buildMessages(
+                        userMessage = message,
+                        chatHistory = chatHistory,
+                        supabaseContext = supabaseContext,
+                    ),
+                    maxTokens = 2048,
+                    temperature = 0.3,
+                )
+            } catch (e: Exception) {
+                invokeAiChatEdgeFunction(message, chatHistory, supabaseContext)
             }
+        } else {
+            invokeAiChatEdgeFunction(message, chatHistory, supabaseContext)
         }
-        val response = client.invokeFunction(
-            name = "ai-chat",
-            payload = JSONObject()
-                .put("message", message)
-                .put("chatHistory", history)
-                .put(
-                    "systemPrompt",
-                    "คุณคือ Dr.Mind ผู้ช่วยด้านภัยพิบัติและเหตุฉุกเฉิน ให้คำแนะนำสั้น กระชับ ปฏิบัติได้จริง และปลอดภัย",
-                ),
-        )
-        response.optString("response").ifBlank {
-            response.optString("message").ifBlank { "ยังไม่ได้รับคำตอบจาก Dr.Mind" }
+    }
+
+    private suspend fun invokeAiChatEdgeFunction(
+        message: String,
+        chatHistory: List<Pair<String, String>>,
+        supabaseContext: String,
+    ): String {
+        val payload = JSONObject()
+            .put("message", message)
+            .put("chatHistory", JSONArray().apply {
+                chatHistory.takeLast(8).forEach { (role, content) ->
+                    val mappedRole = when (role.lowercase()) {
+                        "user" -> "user"
+                        "assistant" -> "assistant"
+                        else -> null
+                    }
+                    if (mappedRole != null) {
+                        put(
+                            JSONObject()
+                                .put("role", mappedRole)
+                                .put("content", content.take(1200))
+                        )
+                    }
+                }
+            })
+            .put(
+                "systemPrompt",
+                """
+                ${DrMindPrompt.SYSTEM_INSTRUCTION.trim()}
+                
+                SUPABASE_CONTEXT:
+                $supabaseContext
+                """.trimIndent()
+            )
+
+        val responseJson = client.invokeFunction("ai-chat", payload)
+        val aiResponse = responseJson.optString("response").orEmpty().trim()
+        if (aiResponse.isBlank()) {
+            val error = responseJson.optString("error").orEmpty()
+            throw IllegalStateException(
+                if (error.isNotBlank()) "Edge function error: $error" 
+                else "Edge function ai-chat returned an empty response."
+            )
         }
+        return aiResponse
     }
 
     suspend fun invokeDamageAssessment(draft: DamageAssessmentDraft): Result<JSONObject> = runCatching {
@@ -149,6 +199,28 @@ class SupabaseRepository(
                 .put("originalFilename", draft.originalFilename)
                 .put("incidentId", draft.incidentId),
         )
+    }
+
+    suspend fun fetchDamageAssessments(): Result<List<DamageAssessmentRecord>> = runCatching {
+        client.select(
+            table = "damage_assessments",
+            query = "select=*&order=created_at.desc",
+        ).mapObjects { it.toDamageAssessmentRecord() }
+    }
+
+    suspend fun deleteDamageAssessment(id: String): Result<Unit> = runCatching {
+        client.delete(
+            table = "damage_assessments",
+            filterQuery = "id=eq.$id"
+        )
+        Unit
+    }
+
+    suspend fun fetchVictimReports(): Result<List<VictimReportRecord>> = runCatching {
+        client.select(
+            table = "victim_reports",
+            query = "select=*&order=created_at.desc",
+        ).mapObjects { it.toVictimReportRecord() }
     }
 
     suspend fun uploadIncidentImage(
@@ -185,6 +257,62 @@ class SupabaseRepository(
         if (lat == null || lng == null) return null
         return JSONObject().put("lat", lat).put("lng", lng)
     }
+
+    private suspend fun fetchDrMindSupabaseContext(): String {
+        val sections = listOf(
+            "realtime_alerts" to runCatching {
+                client.select(
+                    table = "realtime_alerts",
+                    query = "select=*&is_active=eq.true&order=created_at.desc&limit=12",
+                )
+            },
+            "incident_reports_public" to runCatching {
+                client.select(
+                    table = "incident_reports_public",
+                    query = "select=*&order=created_at.desc&limit=12",
+                )
+            },
+            "notifications" to runCatching {
+                client.select(
+                    table = "notifications",
+                    query = "select=*&order=created_at.desc&limit=10",
+                )
+            },
+            "documents" to runCatching {
+                client.select(
+                    table = "documents",
+                    query = "select=*&limit=5",
+                )
+            },
+            "from_rain_sensor" to runCatching {
+                client.select(
+                    table = "from_rain_sensor",
+                    query = "select=*&order=created_at.desc&limit=10",
+                )
+            },
+        )
+
+        return buildString {
+            appendLine("ข้อมูลนี้ดึงจาก Supabase REST ของ D-MIND ในขณะถามเท่านั้น")
+            sections.forEach { (table, result) ->
+                appendLine()
+                appendLine("[$table]")
+                result
+                    .onSuccess { rows ->
+                        if (rows.length() == 0) {
+                            appendLine("- ไม่มีข้อมูล")
+                        } else {
+                            rows.takeObjects(12).forEachIndexed { index, row ->
+                                appendLine("${index + 1}. ${row.toDrMindContextLine(table)}")
+                            }
+                        }
+                    }
+                    .onFailure { error ->
+                        appendLine("- อ่านข้อมูลไม่ได้: ${error.message?.take(120) ?: "unknown error"}")
+                    }
+            }
+        }.take(10_000)
+    }
 }
 
 private fun <T> JSONArray.mapObjects(transform: (JSONObject) -> T): List<T> {
@@ -196,6 +324,68 @@ private fun <T> JSONArray.mapObjects(transform: (JSONObject) -> T): List<T> {
 }
 
 private fun JSONArray.firstObjectOrNull(): JSONObject? = if (length() > 0) optJSONObject(0) else null
+
+private fun JSONArray.takeObjects(limit: Int): List<JSONObject> {
+    val items = mutableListOf<JSONObject>()
+    for (index in 0 until length().coerceAtMost(limit)) {
+        optJSONObject(index)?.let { items += it }
+    }
+    return items
+}
+
+private fun JSONObject.toDrMindContextLine(table: String): String {
+    val fields = when (table) {
+        "realtime_alerts" -> listOf(
+            "title",
+            "message",
+            "alert_type",
+            "severity_level",
+            "radius_km",
+            "created_at",
+            "location",
+        )
+        "incident_reports_public" -> listOf(
+            "title",
+            "description",
+            "type",
+            "location",
+            "severity_level",
+            "status",
+            "is_verified",
+            "created_at",
+        )
+        "notifications" -> listOf(
+            "title",
+            "message",
+            "type",
+            "severity_level",
+            "created_at",
+            "read_at",
+        )
+        "documents" -> listOf(
+            "id",
+            "content",
+            "metadata",
+        )
+        "from_rain_sensor" -> listOf(
+            "id",
+            "humidity",
+            "is_raining",
+            "latitude",
+            "longitude",
+            "created_at",
+        )
+        else -> keys().asSequence().take(8).toList()
+    }
+    return fields
+        .mapNotNull { key ->
+            if (!has(key) || isNull(key)) return@mapNotNull null
+            val value = opt(key)?.toString()?.trim()?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+            "$key=$value"
+        }
+        .joinToString("; ")
+        .ifBlank { toString().take(500) }
+}
 
 private fun JSONObject.toIncidentReportRecord(): IncidentReportRecord = IncidentReportRecord(
     id = optString("id"),
@@ -233,4 +423,45 @@ private fun JSONObject.toNotificationRecord(): NotificationRecord = Notification
 private fun JSONObject.optNullableString(name: String): String? {
     if (!has(name) || isNull(name)) return null
     return optString(name).takeIf { it.isNotBlank() }
+}
+
+private fun JSONObject.toDamageAssessmentRecord(): DamageAssessmentRecord {
+    val detectedCategoriesJson = optJSONArray("detected_categories")
+    val categories = mutableListOf<String>()
+    if (detectedCategoriesJson != null) {
+        for (i in 0 until detectedCategoriesJson.length()) {
+            categories.add(detectedCategoriesJson.optString(i))
+        }
+    }
+    return DamageAssessmentRecord(
+        id = optString("id"),
+        incidentId = optNullableString("incident_id"),
+        imageUrl = optString("image_url"),
+        originalFilename = optNullableString("original_filename"),
+        assessmentResult = optNullableString("assessment_result") ?: optJSONObject("assessment_result")?.toString(),
+        damageLevel = optNullableString("damage_level"),
+        confidenceScore = if (has("confidence_score") && !isNull("confidence_score")) optDouble("confidence_score") else null,
+        detectedCategories = categories,
+        estimatedCost = if (has("estimated_cost") && !isNull("estimated_cost")) optDouble("estimated_cost") else null,
+        processingStatus = optString("processing_status", "pending"),
+        errorMessage = optNullableString("error_message"),
+        processedAt = optNullableString("processed_at"),
+        createdAt = optString("created_at"),
+    )
+}
+
+private fun JSONObject.toVictimReportRecord(): VictimReportRecord {
+    val coords = optJSONObject("coordinates")
+    val lat = coords?.optDouble("lat") ?: 0.0
+    val lng = coords?.optDouble("lng") ?: 0.0
+    return VictimReportRecord(
+        id = optString("id"),
+        name = optString("name"),
+        contact = optNullableString("contact"),
+        description = optNullableString("description"),
+        latitude = lat,
+        longitude = lng,
+        status = optString("status", "pending"),
+        createdAt = optString("created_at"),
+    )
 }

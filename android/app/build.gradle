@@ -23,18 +23,20 @@ def readDmindConfig = { String key ->
         }
     }
 
-    def envFile = rootProject.file('../.env')
-    if (envFile.exists()) {
-        def match = envFile.readLines('UTF-8').find { line ->
-            def trimmed = line.trim()
-            trimmed && !trimmed.startsWith('#') && aliases.any { candidate -> trimmed.startsWith("${candidate}=") }
-        }
-        if (match != null) {
-            def value = match.substring(match.indexOf('=') + 1).trim()
-            if (value.length() >= 2 && ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'")))) {
-                value = value.substring(1, value.length() - 1)
+    def localPropertyFiles = [
+        rootProject.file('local.properties'),
+        rootProject.file('../local.properties')
+    ]
+    for (propertiesFile in localPropertyFiles) {
+        if (propertiesFile.exists()) {
+            def localProperties = new Properties()
+            propertiesFile.withInputStream { localProperties.load(it) }
+            for (candidate in aliases) {
+                def value = localProperties.getProperty(candidate)
+                if (value != null) {
+                    return value
+                }
             }
-            return value
         }
     }
 
@@ -55,15 +57,44 @@ android {
         versionCode 2
         versionName "2.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField "String", "BACKEND_BASE_URL", "\"${project.findProperty('DMIND_BACKEND_BASE_URL') ?: 'http://10.0.2.2:8080'}\""
+        def backendBaseUrl = readDmindConfig('BACKEND_BASE_URL').trim()
+        buildConfigField "String", "BACKEND_BASE_URL", "\"${javaStringLiteral(backendBaseUrl ?: 'http://10.0.2.2:8080')}\""
         buildConfigField "String", "SUPABASE_URL", "\"${javaStringLiteral(readDmindConfig('VITE_SUPABASE_URL'))}\""
         buildConfigField "String", "SUPABASE_ANON_KEY", "\"${javaStringLiteral(readDmindConfig('VITE_SUPABASE_PUBLISHABLE_KEY'))}\""
         buildConfigField "String", "SUPABASE_PROJECT_ID", "\"${javaStringLiteral(readDmindConfig('VITE_SUPABASE_PROJECT_ID'))}\""
         buildConfigField "String", "TMD_API_TOKEN", "\"${javaStringLiteral(readDmindConfig('VITE_TMD_API_TOKEN'))}\""
-        buildConfigField "String", "GISTDA_API_KEY", "\"${javaStringLiteral(readDmindConfig('VITE_GISTDA_API_KEY'))}\""
-        buildConfigField "String", "GISTDA_DISASTER_API_KEY", "\"${javaStringLiteral(readDmindConfig('VITE_GISTDA_DISASTER_API_KEY'))}\""
-        buildConfigField "String", "GISTDA_WMS_API_KEY", "\"${javaStringLiteral(readDmindConfig('VITE_GISTDA_WMS_API_KEY'))}\""
-        buildConfigField "String", "GISTDA_FIRE_API_KEY", "\"${javaStringLiteral(readDmindConfig('VITE_GISTDA_FIRE_API_KEY'))}\""
+        def gistdaApiKey = readDmindConfig('DMIND_GISTDA_API_KEY').trim()
+        if (!gistdaApiKey) {
+            gistdaApiKey = readDmindConfig('VITE_GISTDA_API_KEY').trim()
+        }
+        if (!gistdaApiKey) {
+            gistdaApiKey = readDmindConfig('VITE_GISTDA_DISASTER_API_KEY').trim()
+        }
+        if (!gistdaApiKey) {
+            gistdaApiKey = readDmindConfig('VITE_GISTDA_WMS_API_KEY').trim()
+        }
+        if (!gistdaApiKey) {
+            gistdaApiKey = readDmindConfig('VITE_GISTDA_FIRE_API_KEY').trim()
+        }
+        def gistdaBaseUrl = readDmindConfig('DMIND_GISTDA_BASE_URL').trim()
+        if (!gistdaBaseUrl) {
+            gistdaBaseUrl = readDmindConfig('VITE_GISTDA_BASE_URL').trim()
+        }
+        buildConfigField "String", "DMIND_GISTDA_API_KEY", "\"${javaStringLiteral(gistdaApiKey)}\""
+        buildConfigField "String", "DMIND_GISTDA_BASE_URL", "\"${javaStringLiteral(gistdaBaseUrl ?: 'https://api-gateway.gistda.or.th/api/2.0/')}\""
+        buildConfigField "String", "GISTDA_API_KEY", "\"${javaStringLiteral(gistdaApiKey)}\""
+        buildConfigField "String", "GISTDA_DISASTER_API_KEY", "\"${javaStringLiteral(readDmindConfig('VITE_GISTDA_DISASTER_API_KEY').trim() ?: gistdaApiKey)}\""
+        buildConfigField "String", "GISTDA_WMS_API_KEY", "\"${javaStringLiteral(readDmindConfig('VITE_GISTDA_WMS_API_KEY').trim() ?: gistdaApiKey)}\""
+        buildConfigField "String", "GISTDA_FIRE_API_KEY", "\"${javaStringLiteral(readDmindConfig('VITE_GISTDA_FIRE_API_KEY').trim() ?: gistdaApiKey)}\""
+        def thaiLlmApiKey = readDmindConfig('THAI_LLM_API_KEY').trim()
+        if (!thaiLlmApiKey) {
+            thaiLlmApiKey = readDmindConfig('TYPHOON_API_KEY').trim()
+        }
+        def thaiLlmBaseUrl = readDmindConfig('THAI_LLM_BASE_URL').trim()
+        def thaiLlmModel = readDmindConfig('THAI_LLM_MODEL').trim()
+        buildConfigField "String", "DMIND_THAI_LLM_API_KEY", "\"${javaStringLiteral(thaiLlmApiKey)}\""
+        buildConfigField "String", "DMIND_THAI_LLM_BASE_URL", "\"${javaStringLiteral(thaiLlmBaseUrl ?: 'http://thaillm.or.th/api/v1/')}\""
+        buildConfigField "String", "DMIND_THAI_LLM_MODEL", "\"${javaStringLiteral(thaiLlmModel ?: 'typhoon-s-thaillm-8b-instruct')}\""
 
         // Enable multidex for large apps
         multiDexEnabled true
@@ -149,10 +180,12 @@ dependencies {
     implementation "org.maplibre.gl:android-sdk:$mapLibreVersion"
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
     testImplementation "junit:junit:$junitVersion"
+    testImplementation 'org.json:json:20240303'
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation "com.google.firebase:firebase-messaging:$firebaseMessagingVersion"
     implementation "com.google.android.gms:play-services-location:$playServicesLocationVersion"
+    implementation "com.patrykandpatrick.vico:compose-m3:2.1.0"
 }
 
 try {

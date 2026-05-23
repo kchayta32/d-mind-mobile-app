@@ -60,6 +60,19 @@ class SupabaseRestClient(
         if (body.isBlank()) JSONArray() else JSONArray(body)
     }
 
+    suspend fun delete(
+        table: String,
+        filterQuery: String,
+    ): Unit = withContext(Dispatchers.IO) {
+        ensureConfigured()
+        val separator = if (filterQuery.startsWith("?")) "" else "?"
+        request(
+            method = "DELETE",
+            url = "${config.url}/rest/v1/$table$separator$filterQuery",
+        )
+        Unit
+    }
+
     suspend fun invokeFunction(
         name: String,
         payload: JSONObject,
@@ -113,7 +126,7 @@ class SupabaseRestClient(
     }
 
     private fun ensureConfigured() {
-        check(config.isConfigured) { "Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY." }
+        check(config.isConfigured) { "Supabase is not configured. Set DMIND_SUPABASE_URL and DMIND_SUPABASE_PUBLISHABLE_KEY." }
     }
 
     private fun request(

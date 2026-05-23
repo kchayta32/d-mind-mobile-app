@@ -46,6 +46,7 @@ import java.time.ZoneId
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
+import com.dmind.backend.routes.analyticsRoutes
 
 fun main() {
     val port = setting("PORT")?.toIntOrNull() ?: 8080
@@ -56,12 +57,15 @@ fun Application.dmindModule() {
     val config = GatewayConfig.fromEnvironment()
     val supabase = SupabaseGateway(config)
     val deviceRegistry = DeviceTokenRegistry(config.tokenStorePath, supabase)
+    val cacheService = com.dmind.backend.service.CacheService()
+    val dataAggregator = com.dmind.backend.service.DataAggregatorService()
 
     install(ContentNegotiation) {
         json(responseJson)
     }
 
     routing {
+        analyticsRoutes(cacheService, dataAggregator)
         get("/health") {
             call.respond(
                 HealthResponse(
@@ -295,7 +299,7 @@ fun Application.dmindModule() {
     }
 }
 
-private suspend fun ApplicationCall.requireAdmin(config: GatewayConfig): Boolean {
+internal suspend fun ApplicationCall.requireAdmin(config: GatewayConfig): Boolean {
     if (config.adminToken.isBlank()) {
         respondError(
             HttpStatusCode.ServiceUnavailable,
@@ -313,14 +317,14 @@ private suspend fun ApplicationCall.requireAdmin(config: GatewayConfig): Boolean
     return true
 }
 
-private suspend fun ApplicationCall.respondError(status: HttpStatusCode, code: String, message: String) {
+internal suspend fun ApplicationCall.respondError(status: HttpStatusCode, code: String, message: String) {
     respond(status, ErrorResponse(code = code, message = message, requestId = requestId()))
 }
 
 private fun ApplicationCall.requestId(): String =
     request.headers["X-Request-ID"]?.takeIf { it.isNotBlank() } ?: UUID.randomUUID().toString()
 
-private suspend fun ApplicationCall.handleSafely(
+internal suspend fun ApplicationCall.handleSafely(
     rateLimited: Boolean = false,
     config: GatewayConfig = GatewayConfig.fromEnvironment(),
     block: suspend () -> Unit,
@@ -350,12 +354,12 @@ private fun ApplicationCall.rateLimitKey(): String =
         ?: request.headers["X-Real-IP"]?.takeIf { it.isNotBlank() }
         ?: "local"
 
-private fun validate(condition: Boolean, message: String) {
+internal fun validate(condition: Boolean, message: String) {
     if (!condition) throw ValidationException(message)
 }
 
-private class ValidationException(message: String) : IllegalArgumentException(message)
-private class UpstreamException(val statusCode: Int, body: String) :
+internal class ValidationException(message: String) : IllegalArgumentException(message)
+internal class UpstreamException(val statusCode: Int, body: String) :
     IllegalStateException("HTTP $statusCode: ${body.take(240)}")
 
 private object RateLimiter {
@@ -464,7 +468,7 @@ data class NotificationSendRequest(
 )
 
 @Serializable
-private data class RegisteredDevice(
+internal data class RegisteredDevice(
     val token: String,
     val platform: String,
     val userId: String?,
@@ -472,7 +476,7 @@ private data class RegisteredDevice(
     val updatedAt: String,
 )
 
-private class DeviceTokenRegistry(
+internal class DeviceTokenRegistry(
     private val storePath: Path,
     private val supabase: SupabaseGateway,
 ) {
@@ -535,7 +539,7 @@ private class DeviceTokenRegistry(
     }
 }
 
-private data class GatewayConfig(
+internal data class GatewayConfig(
     val adminToken: String,
     val supabaseUrl: String,
     val supabaseServiceRoleKey: String,
@@ -570,7 +574,7 @@ private data class GatewayConfig(
     }
 }
 
-private class SupabaseGateway(private val config: GatewayConfig) {
+internal class SupabaseGateway(private val config: GatewayConfig) {
     val isConfigured: Boolean =
         config.supabaseUrl.startsWith("https://") && config.supabaseServiceRoleKey.isNotBlank()
 
@@ -685,9 +689,9 @@ private class SupabaseGateway(private val config: GatewayConfig) {
     }
 }
 
-private data class UploadedObject(val storagePath: String, val publicUrl: String)
+internal data class UploadedObject(val storagePath: String, val publicUrl: String)
 
-private class FcmHttpV1Sender private constructor(
+internal class FcmHttpV1Sender private constructor(
     private val projectId: String,
     private val credentials: GoogleCredentials?,
     val configurationMessage: String,
@@ -743,7 +747,7 @@ private class FcmHttpV1Sender private constructor(
     }
 }
 
-private data class SendResult(val success: Boolean, val message: String)
+internal data class SendResult(val success: Boolean, val message: String)
 
 private fun NotificationSendRequest.toFcmMessage(token: String): FcmV1Message =
     FcmV1Message(
@@ -772,7 +776,7 @@ private data class FcmV1Message(
 @Serializable
 private data class FcmAndroidConfig(val priority: String)
 
-private fun httpRequest(
+internal fun httpRequest(
     method: String,
     url: String,
     headers: Map<String, String> = emptyMap(),
@@ -807,9 +811,9 @@ private fun httpRequest(
     }
 }
 
-private fun String.json(): JsonElement = responseJson.parseToJsonElement(ifBlank { "{}" })
+internal fun String.json(): JsonElement = responseJson.parseToJsonElement(ifBlank { "{}" })
 
-private fun String.sanitizeFileName(): String =
+internal fun String.sanitizeFileName(): String =
     replace(Regex("[^A-Za-z0-9._-]"), "_").trim('_').take(120)
 
 private fun setting(name: String): String? {

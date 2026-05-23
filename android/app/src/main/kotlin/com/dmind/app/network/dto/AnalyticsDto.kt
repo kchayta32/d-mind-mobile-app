@@ -1,0 +1,126 @@
+package com.dmind.app.network.dto
+
+import org.json.JSONArray
+import org.json.JSONObject
+
+/**
+ * DTO parsing functions for analytics API responses.
+ * These parse raw JSON from the backend into domain models.
+ */
+object AnalyticsDto {
+
+    fun parseSummary(json: JSONObject): SummaryDto {
+        val recentEvents = mutableListOf<RecentEventDto>()
+        val arr = json.optJSONArray("recentEvents") ?: JSONArray()
+        for (i in 0 until arr.length()) {
+            val obj = arr.getJSONObject(i)
+            recentEvents.add(
+                RecentEventDto(
+                    title = obj.optString("title", ""),
+                    type = obj.optString("type", ""),
+                    severity = obj.optString("severity", ""),
+                    location = obj.optString("location", ""),
+                    timestamp = obj.optString("timestamp", ""),
+                )
+            )
+        }
+        val bySeverity = mutableMapOf<String, Int>()
+        val sevObj = json.optJSONObject("bySeverity")
+        if (sevObj != null) {
+            for (key in sevObj.keys()) {
+                bySeverity[key] = sevObj.optInt(key, 0)
+            }
+        }
+        return SummaryDto(
+            totalEvents = json.optInt("totalEvents", 0),
+            earthquake = json.optInt("earthquake", 0),
+            flood = json.optInt("flood", 0),
+            wildfire = json.optInt("wildfire", 0),
+            storm = json.optInt("storm", 0),
+            drought = json.optInt("drought", 0),
+            bySeverity = bySeverity,
+            affectedAreaKm2 = json.optDouble("affectedAreaKm2", 0.0),
+            recentEvents = recentEvents,
+        )
+    }
+
+    fun parseTrends(json: JSONObject): TrendDto {
+        val points = mutableListOf<TrendPointDto>()
+        val arr = json.optJSONArray("data") ?: JSONArray()
+        for (i in 0 until arr.length()) {
+            val obj = arr.getJSONObject(i)
+            points.add(
+                TrendPointDto(
+                    date = obj.optString("date", ""),
+                    total = obj.optInt("total", 0),
+                    earthquake = obj.optInt("earthquake", 0),
+                    flood = obj.optInt("flood", 0),
+                    wildfire = obj.optInt("wildfire", 0),
+                    storm = obj.optInt("storm", 0),
+                    drought = obj.optInt("drought", 0),
+                )
+            )
+        }
+        return TrendDto(
+            period = json.optString("period", "7d"),
+            data = points,
+        )
+    }
+
+    fun parseEnvironmental(json: JSONObject): EnvironmentalDto {
+        return EnvironmentalDto(
+            pm25 = json.optDouble("pm25", 0.0),
+            aqi = json.optInt("aqi", 0),
+            aqiLevel = json.optString("aqiLevel", ""),
+            temperature = json.optDouble("temperature", 0.0),
+            humidity = json.optInt("humidity", 0),
+            waterLevel = if (json.isNull("waterLevel")) null else json.optDouble("waterLevel"),
+            rainfall = if (json.isNull("rainfall")) null else json.optDouble("rainfall"),
+        )
+    }
+}
+
+data class SummaryDto(
+    val totalEvents: Int,
+    val earthquake: Int,
+    val flood: Int,
+    val wildfire: Int,
+    val storm: Int,
+    val drought: Int,
+    val bySeverity: Map<String, Int>,
+    val affectedAreaKm2: Double,
+    val recentEvents: List<RecentEventDto>,
+)
+
+data class RecentEventDto(
+    val title: String,
+    val type: String,
+    val severity: String,
+    val location: String,
+    val timestamp: String,
+)
+
+data class TrendDto(
+    val period: String,
+    val data: List<TrendPointDto>,
+)
+
+data class TrendPointDto(
+    val date: String,
+    val total: Int,
+    val earthquake: Int,
+    val flood: Int,
+    val wildfire: Int,
+    val storm: Int,
+    val drought: Int,
+)
+
+data class EnvironmentalDto(
+    val pm25: Double,
+    val aqi: Int,
+    val aqiLevel: String,
+    val temperature: Double,
+    val humidity: Int,
+    val waterLevel: Double?,
+    val rainfall: Double?,
+)

@@ -2,12 +2,27 @@ package com.dmind.app.di
 
 import android.content.Context
 import com.dmind.app.data.NativeStatusRepository
+import com.dmind.app.data.map.DisasterMapRepository
+import com.dmind.app.data.remote.AirQualityRemoteDataSource
+import com.dmind.app.data.remote.GistdaRemoteDataSource
+import com.dmind.app.data.repository.DefaultDisasterRepository
+import com.dmind.app.data.repository.GistdaDisasterRepositoryImpl
 import com.dmind.app.data.supabase.SupabaseRepository
+import com.dmind.app.domain.repository.DisasterRepository
+import com.dmind.app.domain.repository.GistdaDisasterRepository
+import com.dmind.app.network.api.GistdaApi
 import com.dmind.app.network.BackendRestClient
 import com.dmind.app.network.InstallationIdProvider
 
 class AppContainer(context: Context) {
     val nativeStatusRepository = NativeStatusRepository(context)
+    val disasterRepository: DisasterRepository = DefaultDisasterRepository(
+        mapDataSource = DisasterMapRepository(),
+        airQualityDataSource = AirQualityRemoteDataSource(),
+    )
+    val gistdaDisasterRepository: GistdaDisasterRepository = GistdaDisasterRepositoryImpl(
+        remoteDataSource = GistdaRemoteDataSource(GistdaApi()),
+    )
     val supabaseRepository = SupabaseRepository(
         backendClient = BackendRestClient(installationId = InstallationIdProvider.get(context)),
     )
