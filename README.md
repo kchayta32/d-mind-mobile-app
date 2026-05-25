@@ -1,220 +1,172 @@
 # D-MIND: Disaster Management & Information System
 
-D-MIND เป็นระบบจัดการข้อมูลภัยพิบัติและการแจ้งเตือนฉุกเฉิน โดยสถานะปัจจุบันของโปรเจกต์นี้ย้ายแกนหลักไปที่แอป Android แบบ native แล้ว โฟลเดอร์ที่ใช้พัฒนาต่อเป็นหลักคือ `android/`
+D-MIND เป็นระบบเฝ้าระวังภัยพิบัติและแจ้งเตือนฉุกเฉินสำหรับประเทศไทย โปรเจกต์นี้ยังเก็บโค้ดเว็บ React/Vite เดิมไว้เป็น reference แต่แกนหลักสำหรับการพัฒนาปัจจุบันอยู่ที่ `android/` ซึ่งเป็น native Android app พร้อม Kotlin/Ktor backend gateway ใน workspace เดียวกัน
 
-## สถานะปัจจุบัน
+อัปเดตล่าสุด: 25 พฤษภาคม 2026
 
-- `android/` คือ workspace หลักสำหรับ mobile app และ backend ใหม่
-- Android app เป็น native Android ใช้ Kotlin, Jetpack Compose และ Java native services เดิมบางส่วน
-- Backend ใหม่อยู่ใต้ `android/backend` เป็น Kotlin/Ktor server module
-- ระบบแจ้งเตือนมือถือใช้ Firebase Cloud Messaging (FCM) และ native Android notification channels
-- React/Vite/Capacitor ที่ root เป็น legacy/reference code ไม่ได้เป็นทางหลักของ Android build แล้ว
-- Android build ไม่ควรต้องพึ่ง `node_modules`, Vite, React, Capacitor หรือไฟล์นอก `android`
+## สถานะโปรเจกต์
 
-## เริ่มจากตรงไหน
+- `android/` คือ workspace หลักสำหรับ mobile app, backend, Gradle build และเอกสาร Android
+- Android app เป็น native app ใช้ Kotlin, Jetpack Compose, Material 3 และ Java native services เดิมบางส่วน
+- Backend ใหม่อยู่ที่ `android/backend` ใช้ Kotlin/JVM + Ktor สำหรับ gateway, notification, media upload, weather และ analytics
+- ระบบแจ้งเตือนมือถือใช้ Firebase Cloud Messaging (FCM), native notification channels และ full-screen emergency alert
+- Root React/Vite/Capacitor ยังใช้เป็น legacy/reference code สำหรับดู logic, UI เดิม และ migration parity
+- Android build ไม่ควรต้องพึ่ง `npm`, `node_modules`, Vite, React หรือไฟล์ web นอก `android/`
 
-ถ้าจะพัฒนาแอปมือถือ ให้เข้าโฟลเดอร์นี้ก่อน:
+## เริ่มต้นเร็ว
 
-```powershell
-cd E:\2-2568\d-mind\d-mind-ai\android
-```
-
-อ่านคู่มือหลักของ Android workspace:
-
-```text
-android/README.md
-```
-
-เอกสารที่ควรอ่านต่อ:
-
-| ไฟล์ | รายละเอียด |
-| --- | --- |
-| `android/README.md` | คู่มือ build, test, backend, FCM และข้อจำกัดปัจจุบัน |
-| `android/docs/IMPLEMENTATION_REPORT.th.md` | รายงานการพัฒนา Android native และ backend |
-| `android/docs/FOLDER_MAP.th.md` | แผนผังโฟลเดอร์และประเภทไฟล์ |
-| `android/docs/SYSTEM_SUMMARY.th.md` | สรุป UI/UX, notification, API key และ endpoint |
-| `android/docs/NOTIFICATION_SYSTEM.th.md` | สรุประบบแจ้งเตือนมือถือ |
-| `android/REAL_DEVICE_TEST_CHECKLIST.md` | checklist สำหรับทดสอบบนเครื่อง Android จริง |
-
-## โครงสร้าง Repository
-
-| Path | สถานะ | รายละเอียด |
-| --- | --- | --- |
-| `android/` | Active | Android-only workspace หลัก มี app, backend, docs และ Gradle wrapper |
-| `android/app/` | Active | Native Android app module |
-| `android/backend/` | Active | Kotlin/Ktor backend module |
-| `android/docs/` | Active | เอกสาร `.md` และ `.txt` สำหรับ migration, UI/UX, endpoint และ notification |
-| `src/` | Legacy | React/Vite web source เดิม ใช้เป็น reference ได้ แต่ไม่ใช่ Android app หลัก |
-| `public/` | Legacy | web static assets เดิม |
-| `supabase/` | Legacy/Reference | Supabase functions และ migrations เดิม |
-| `dist/` | Generated/Legacy | web build output เดิม |
-| `node_modules/` | Local dependency cache | ใช้กับ web legacy เท่านั้น ไม่ควรเกี่ยวกับ Android build |
-| `api-from-sensor/` | Reference | พื้นที่สำหรับโค้ด/ข้อมูล integration จาก sensor หากมีการใช้งานต่อ |
-
-## Build และ Test Android
-
-รันจาก `android/`
+พัฒนาและ build Android:
 
 ```powershell
 cd E:\2-2568\d-mind\d-mind-ai\android
 $env:JAVA_HOME="C:\Program Files\Android\Android Studio\jbr"
 $env:Path="$env:JAVA_HOME\bin;$env:Path"
-```
-
-Build debug APK:
-
-```powershell
 .\gradlew.bat :app:assembleDebug
 ```
 
-Run app unit tests:
+รัน backend dev:
 
 ```powershell
-.\gradlew.bat :app:testDebugUnitTest
-```
-
-Run backend tests:
-
-```powershell
-.\gradlew.bat :backend:test
-```
-
-Run ทั้งหมด:
-
-```powershell
-.\gradlew.bat :app:assembleDebug :app:testDebugUnitTest :backend:test
-```
-
-APK output:
-
-```text
-android/app/build/outputs/apk/debug/app-debug.apk
-```
-
-## Run Backend
-
-รันจาก `android/`
-
-```powershell
+cd E:\2-2568\d-mind\d-mind-ai\android
 .\gradlew.bat :backend:run
-```
-
-Backend default port คือ `8080`
-
-Health check:
-
-```powershell
 Invoke-RestMethod http://localhost:8080/health
 ```
 
-## ตั้งค่า Backend URL ให้ Android App
-
-ค่า default สำหรับ Android emulator:
-
-```text
-http://10.0.2.2:8080
-```
-
-ถ้าต้องการ build ให้ชี้ backend จริง:
-
-```powershell
-.\gradlew.bat :app:assembleDebug -PDMIND_BACKEND_BASE_URL=https://api.example.com
-```
-
-ค่า `DMIND_BACKEND_BASE_URL` จะถูกใส่เข้า `BuildConfig.BACKEND_BASE_URL`
-
-## ระบบแจ้งเตือนมือถือ
-
-Flow หลัก:
-
-1. แอปเปิดผ่าน `DMindApplication`
-2. แอปสร้าง notification channels
-3. แอปขอ FCM token จาก Firebase
-4. แอปส่ง token ไป backend ที่ `POST /fcm/register`
-5. Backend ส่ง push ผ่าน `POST /notifications/send`
-6. มือถือรับ data message ที่ `FCMFirebaseService`
-7. แอปแสดง native emergency notification หรือ full-screen alert
-
-Backend notification endpoints:
-
-| Method | Path | รายละเอียด |
-| --- | --- | --- |
-| POST | `/fcm/register` | รับ FCM token จากมือถือ |
-| POST | `/notifications/send` | ส่ง push notification ผ่าน FCM HTTP v1 |
-
-ตัวอย่างส่งแจ้งเตือนจาก backend dev:
-
-```powershell
-Invoke-RestMethod -Method Post `
-  -Uri http://localhost:8080/notifications/send `
-  -ContentType application/json `
-  -Body '{"title":"แจ้งเตือนทดสอบ","message":"มีเหตุการณ์สำคัญในพื้นที่ของคุณ","alertType":"flood","broadcast":true}'
-```
-
-## API Key และ Secret
-
-ห้าม commit secret จริงลง repository
-
-Android app ควรเก็บเฉพาะ config ที่ไม่ใช่ secret เช่น `BACKEND_BASE_URL` ส่วน API key/secret จริงต้องอยู่ฝั่ง backend หรือ secret manager
-
-ค่าที่เกี่ยวข้อง:
-
-| Key/File | อยู่ที่ไหน | ใช้ทำอะไร |
-| --- | --- | --- |
-| `android/app/google-services.json` | app module | Firebase Android config สำหรับรับ FCM token/message |
-| `DMIND_BACKEND_BASE_URL` | Gradle property | กำหนด backend URL ตอน build Android app |
-| `FCM_PROJECT_ID` หรือ `FIREBASE_PROJECT_ID` | backend env | ระบุ Firebase/Google Cloud project |
-| `GOOGLE_APPLICATION_CREDENTIALS` | backend env | path ไป service-account JSON สำหรับ FCM HTTP v1 |
-| `OPENAI_API_KEY` | backend env | future `/chat` และ `/damage-assessment` |
-| `TMD_API_TOKEN` | backend env | future `/weather` |
-
-ตัวอย่างตั้งค่า FCM ฝั่ง backend:
-
-```powershell
-$env:FCM_PROJECT_ID="your-firebase-project-id"
-$env:GOOGLE_APPLICATION_CREDENTIALS="C:\secure\dmind-firebase-service-account.json"
-.\gradlew.bat :backend:run
-```
-
-## Legacy Web
-
-โค้ด React/Vite ที่ root ยังอยู่เพื่อใช้ดู logic, UI เดิม หรือเทียบ feature parity ระหว่าง migration แต่ไม่ใช่ทางหลักของ mobile app แล้ว
-
-ถ้าจำเป็นต้องรันเว็บเดิม:
+รันเว็บ legacy ที่ root เมื่อจำเป็น:
 
 ```powershell
 npm install
 npm run dev
 ```
 
-คำสั่งนี้เกี่ยวกับ legacy web เท่านั้น ไม่จำเป็นสำหรับ Android build
+## โครงสร้าง Repository
 
-## Acceptance ของ Android Workspace
+| Path | สถานะ | รายละเอียด |
+| --- | --- | --- |
+| `android/` | Active | Android-only workspace หลัก มี app, backend, docs และ Gradle wrapper |
+| `android/app/` | Active | Native Android app module, Compose UI, Android services, resources และ unit tests |
+| `android/backend/` | Active | Kotlin/Ktor backend gateway module |
+| `android/docs/` | Active | เอกสาร migration, folder map, system summary, endpoint และ notification |
+| `api-from-sensor/` | Reference | โค้ด/ข้อมูลสำหรับเชื่อมต่อ sensor หรือสถานีตรวจวัด |
+| `src/` | Legacy | React/Vite web source เดิม ใช้เป็น reference ได้ |
+| `public/` | Legacy | web static assets และ PWA assets เดิม |
+| `supabase/` | Legacy/Reference | Supabase functions และ migrations เดิม |
+| `dist/` | Generated/Legacy | web build output เดิม |
+| `node_modules/` | Local dependency cache | ใช้กับ legacy web เท่านั้น |
 
-- Android build สำเร็จจาก `android/` โดยไม่ต้องใช้ `npm`
-- Gradle settings include เฉพาะ `:app` และ `:backend`
-- Primary UI เป็น native Compose ไม่ใช่ WebView
-- Backend อยู่ใต้ `android/backend`
-- เอกสารรายงานอยู่ใต้ `android/docs`
-- Secret จริงไม่ถูกฝังลง APK หรือ commit ลง repository
+## Android Build และ Test
 
-## สถานะตรวจสอบล่าสุด
+คำสั่งทั้งหมดให้รันจาก `android/`
 
-คำสั่งที่ผ่านแล้ว:
+| งาน | คำสั่ง |
+| --- | --- |
+| Build debug APK | `.\gradlew.bat :app:assembleDebug` |
+| ติดตั้งบน device/emulator | `.\gradlew.bat :app:installDebug` |
+| App unit tests | `.\gradlew.bat :app:testDebugUnitTest` |
+| Backend tests | `.\gradlew.bat :backend:test` |
+| ตรวจหลักทั้งหมด | `.\gradlew.bat :app:assembleDebug :app:testDebugUnitTest :backend:test` |
 
-```powershell
-.\gradlew.bat :app:assembleDebug
-.\gradlew.bat :app:testDebugUnitTest
-.\gradlew.bat :backend:test
+APK หลัง build:
+
+```text
+android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-ใช้ `JAVA_HOME=C:\Program Files\Android\Android Studio\jbr`
+## Backend Gateway
+
+Backend default port คือ `8080` และเปลี่ยนได้ด้วย `PORT`
+
+```powershell
+$env:PORT="8081"
+.\gradlew.bat :backend:run
+```
+
+Endpoint หลัก:
+
+| Method | Path | รายละเอียด |
+| --- | --- | --- |
+| GET | `/health` | ตรวจสถานะ backend |
+| GET | `/alerts` | อ่าน active alerts จาก Supabase เมื่อ config พร้อม |
+| POST | `/sos` | รับ SOS payload จากมือถือ |
+| POST | `/reports` | รับ incident/victim reports และบันทึกลง Supabase |
+| GET | `/weather` | Proxy ข้อมูล TMD hourly forecast เมื่อมี `TMD_API_TOKEN` |
+| POST | `/media/incident-images` | Upload รูป incident เข้า Supabase Storage |
+| POST | `/fcm/register` | รับ FCM token จากแอป Android |
+| POST | `/notifications/send` | ส่ง push ผ่าน FCM HTTP v1 ต้องมี admin bearer token |
+| GET | `/api/analytics/summary` | สรุปเหตุการณ์จาก USGS, GISTDA, TMD และ Air4Thai |
+| GET | `/api/analytics/trends?period=7d` | Trend analytics รองรับ `7d`, `30d`, `1y` |
+| GET | `/api/analytics/environmental` | PM2.5/AQI, อุณหภูมิ, ความชื้น และฝน |
+
+`/chat` และ `/damage-assessment` มี route แล้ว แต่ฝั่ง backend ยังคืน `not_configured` จนกว่าจะต่อ production AI gateway/model endpoint จริง
+
+## Config และ Secret
+
+ห้าม commit secret จริงลง repository และอย่าใส่ service-role key หรือ private token ลง Android source โดยตรง
+
+Android app อ่านค่าจาก Gradle property, environment variable, `android/local.properties` หรือ `local.properties` ที่ root โดยมี alias แบบ `DMIND_*` สำหรับค่า `VITE_*` เดิม เช่น `VITE_SUPABASE_URL` ใช้ `DMIND_SUPABASE_URL` ได้
+
+ค่าที่ใช้บ่อย:
+
+| Key/File | ใช้ที่ | รายละเอียด |
+| --- | --- | --- |
+| `BACKEND_BASE_URL` หรือ `DMIND_BACKEND_BASE_URL` | Android | Backend URL ตอน build ค่า default คือ `http://10.0.2.2:8080` |
+| `DMIND_SUPABASE_URL` | Android | Supabase project URL สำหรับ client anon access |
+| `DMIND_SUPABASE_PUBLISHABLE_KEY` | Android | Supabase anon/publishable key |
+| `DMIND_SUPABASE_PROJECT_ID` | Android | Supabase project id |
+| `DMIND_TMD_API_TOKEN` | Android/Backend | TMD token; Android value จะถูกฝังใน APK จึงไม่ควรใช้ secret ระดับสูง |
+| `DMIND_GISTDA_API_KEY` | Android/Backend analytics | GISTDA API key สำหรับ disaster layers |
+| `DMIND_THAI_LLM_API_KEY` | Android | ThaiLLM/Dr.Mind client key; ควรย้ายผ่าน backend ถ้าต้องปกปิดจริง |
+| `android/app/google-services.json` | Android | Firebase Android config สำหรับรับ FCM token/message |
+| `DMIND_ADMIN_TOKEN` | Backend | Bearer token สำหรับ `/notifications/send` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Backend | ใช้ backend gateway เขียนข้อมูล/Storage/FCM token registry |
+| `FCM_PROJECT_ID` หรือ `FIREBASE_PROJECT_ID` | Backend | Firebase/Google Cloud project id สำหรับ FCM HTTP v1 |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Backend | Path ไป service-account JSON สำหรับ FCM HTTP v1 |
+| `DMIND_TOKEN_STORE_PATH` | Backend | Local persistent FCM token registry fallback |
+
+ตัวอย่างรัน backend สำหรับ push notification จริง:
+
+```powershell
+$env:DMIND_ADMIN_TOKEN="use-a-long-random-admin-token"
+$env:FCM_PROJECT_ID="your-firebase-project-id"
+$env:GOOGLE_APPLICATION_CREDENTIALS="C:\secure\dmind-firebase-service-account.json"
+$env:SUPABASE_URL="https://your-project.supabase.co"
+$env:SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
+.\gradlew.bat :backend:run
+```
+
+## เอกสารที่ควรอ่านต่อ
+
+| ไฟล์ | รายละเอียด |
+| --- | --- |
+| `android/README.md` | คู่มือหลักของ Android workspace |
+| `android/IMPLEMENTATION_SUMMARY.md` | สรุป implementation ระดับ workspace |
+| `android/REAL_DEVICE_TEST_CHECKLIST.md` | Checklist สำหรับทดสอบบนเครื่อง Android จริง |
+| `android/docs/IMPLEMENTATION_REPORT.th.md` | รายงานการพัฒนา Android native และ backend |
+| `android/docs/FOLDER_MAP.th.md` | แผนผังโฟลเดอร์และประเภทไฟล์ |
+| `android/docs/SYSTEM_SUMMARY.th.md` | สรุป UI/UX, notification, API key และ endpoint |
+| `android/docs/NOTIFICATION_SYSTEM.th.md` | รายละเอียดระบบแจ้งเตือนมือถือ |
+| `BUILD_APK_GUIDE.md` | คู่มือ build APK เดิม |
+| `PLAY_STORE_GUIDE.md` | แนวทางเตรียมเผยแพร่ Play Store |
+
+## Legacy Web
+
+Root web app ยังมี script ตาม `package.json`
+
+| Script | คำสั่ง | รายละเอียด |
+| --- | --- | --- |
+| `dev` | `npm run dev` | เปิด Vite dev server |
+| `build` | `npm run build` | Build web production |
+| `build:dev` | `npm run build:dev` | Build web development mode |
+| `lint` | `npm run lint` | ESLint |
+| `preview` | `npm run preview` | Preview web build |
+
+ส่วนนี้เป็น legacy/reference path ไม่ใช่ทางหลักของ Android native build
 
 ## งานที่ควรทำต่อ
 
-- ย้าย FCM token registry จาก in-memory ไป database
-- เพิ่ม authentication/authorization ให้ `/notifications/send`
-- ต่อ backend placeholder routes เข้ากับ production integrations จริง
-- ขยาย Compose UI ให้ครบ feature parity จาก web เดิม
-- เพิ่ม instrumented tests บนอุปกรณ์ Android จริง
-- เตรียม release signing และ production backend URL flavors
+- ต่อ `/chat` และ `/damage-assessment` backend routes เข้ากับ production AI gateway/model endpoint
+- ตัดสินใจนโยบาย key ที่ฝังใน APK โดยเฉพาะ TMD, GISTDA และ ThaiLLM
+- ทดสอบ FCM บนเครื่อง Android จริงพร้อม Firebase project และ credentials
+- ขยาย native Compose UI ให้ครบ feature parity จาก web เดิม
+- เพิ่ม instrumented tests สำหรับ notification, geofence, background location และ report upload
+- เตรียม release signing, production backend URL และ Play Store release checklist

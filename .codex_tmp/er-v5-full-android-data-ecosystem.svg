@@ -1,0 +1,278 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1220" viewBox="0 0 1900 1220">
+  <defs>
+    <style>
+      .bg { fill: #f7f9fc; }
+      .page-title { font: 700 38px Arial, Helvetica, sans-serif; fill: #111827; }
+      .page-subtitle { font: 18px Arial, Helvetica, sans-serif; fill: #536171; }
+      .group rect { fill: #eef2f7; stroke: #cbd5e1; stroke-width: 1.4; }
+      .group-label { font: 700 18px Arial, Helvetica, sans-serif; fill: #334155; }
+      .entity-bg { fill: #ffffff; stroke-width: 2.4; }
+      .entity-head { stroke-width: 0; }
+      .head-cut { stroke: rgba(17,24,39,.18); stroke-width: 1.2; }
+      .entity-title { font: 700 19px Arial, Helvetica, sans-serif; fill: #111827; }
+      .entity-subtitle { font: 13px Arial, Helvetica, sans-serif; fill: #4b5563; }
+      .field { font: 15px Consolas, "Courier New", monospace; fill: #1f2937; }
+      .core .entity-bg { stroke: #2563eb; }
+      .core .entity-head { fill: #dbeafe; }
+      .active .entity-bg { stroke: #059669; }
+      .active .entity-head { fill: #d1fae5; }
+      .remote .entity-bg { stroke: #7c3aed; }
+      .remote .entity-head { fill: #ede9fe; }
+      .event .entity-bg { stroke: #ea580c; }
+      .event .entity-head { fill: #ffedd5; }
+      .support .entity-bg { stroke: #0f766e; }
+      .support .entity-head { fill: #ccfbf1; }
+      .external .entity-bg { stroke: #64748b; }
+      .external .entity-head { fill: #e2e8f0; }
+      .relation { fill: none; stroke: #334155; stroke-width: 2.2; marker-end: url(#arrow); }
+      .relation.solid { stroke: #334155; }
+      .relation.logic { stroke: #0f766e; marker-end: url(#arrow-teal); }
+      .relation.remote { stroke: #7c3aed; marker-end: url(#arrow-purple); }
+      .relation.event { stroke: #ea580c; marker-end: url(#arrow-orange); }
+      .relation.dashed { stroke-dasharray: 8 8; }
+      .rel-label { font: 700 14px Arial, Helvetica, sans-serif; fill: #111827; paint-order: stroke; stroke: #f7f9fc; stroke-width: 5px; stroke-linejoin: round; }
+      .note rect { fill: #fff7ed; stroke: #fdba74; stroke-width: 1.8; }
+      .note-title { font: 700 17px Arial, Helvetica, sans-serif; fill: #9a3412; }
+      .note-line { font: 14px Arial, Helvetica, sans-serif; fill: #7c2d12; }
+    </style>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#334155"/>
+    </marker>
+    <marker id="arrow-teal" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#0f766e"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#ea580c"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1900" height="1220"/>
+  <text class="page-title" x="950" y="54" text-anchor="middle">V5 - Full Android Data Ecosystem ERD</text>
+  <text class="page-subtitle" x="950" y="84" text-anchor="middle">End-to-end view: local Android persistence, backend gateway, Supabase, push notifications, AI context, and external feeds.</text>
+  
+  <g class="group">
+    <rect x="54" y="118" width="470" height="914" rx="14"/>
+    <text class="group-label" x="72" y="148">Android device</text>
+  </g>
+
+  <g class="group">
+    <rect x="588" y="118" width="500" height="914" rx="14"/>
+    <text class="group-label" x="606" y="148">Backend / app services</text>
+  </g>
+
+  <g class="group">
+    <rect x="1150" y="118" width="680" height="914" rx="14"/>
+    <text class="group-label" x="1168" y="148">Supabase and external data</text>
+  </g>
+  
+  <g>
+    <path class="relation event " d="M476 294 L636 290"/>
+    <text class="rel-label" x="556" y="272" text-anchor="middle">SOS flush</text>
+  </g>
+
+  <g>
+    <path class="relation logic " d="M476 850 L636 610"/>
+    <text class="rel-label" x="578" y="728" text-anchor="middle">fcm token + installation_id</text>
+  </g>
+
+  <g>
+    <path class="relation remote " d="M836 426 L1336 176"/>
+    <text class="rel-label" x="1060" y="260" text-anchor="middle">/reports + media</text>
+  </g>
+
+  <g>
+    <path class="relation remote " d="M1036 610 L1510 304"/>
+    <text class="rel-label" x="1320" y="456" text-anchor="middle">sync tokens</text>
+  </g>
+
+  <g>
+    <path class="relation event " d="M836 726 L836 800"/>
+    <text class="rel-label" x="884" y="770" text-anchor="middle">send push</text>
+  </g>
+
+  <g>
+    <path class="relation event dashed" d="M636 875 L476 850"/>
+    <text class="rel-label" x="560" y="890" text-anchor="middle">FCM data message</text>
+  </g>
+
+  <g>
+    <path class="relation event dashed" d="M1476 310 L1510 310"/>
+    <text class="rel-label" x="1494" y="292" text-anchor="middle">alerts drive notices</text>
+  </g>
+
+  <g>
+    <path class="relation logic " d="M1510 650 L1476 650"/>
+    <text class="rel-label" x="1492" y="632" text-anchor="middle">map points</text>
+  </g>
+
+  <g>
+    <path class="relation logic dashed" d="M1336 426 L1336 512"/>
+    <text class="rel-label" x="1395" y="475" text-anchor="middle">AI chat reads</text>
+  </g>
+
+  <g>
+    <path class="relation solid dashed" d="M1510 706 L1510 830"/>
+    <text class="rel-label" x="1565" y="795" text-anchor="middle">DTO -&gt; domain</text>
+  </g>
+
+  <g>
+    <path class="relation solid dashed" d="M1336 742 L1336 830"/>
+    <text class="rel-label" x="1392" y="795" text-anchor="middle">context -&gt; UI</text>
+  </g>
+
+  <g>
+    <path class="relation solid dashed" d="M476 566 L636 300"/>
+    <text class="rel-label" x="556" y="468" text-anchor="middle">future/local Room</text>
+  </g>
+  
+  <g class="entity active" transform="translate(96,176)">
+    <rect class="entity-bg" width="380" height="230" rx="8"/>
+    <rect class="entity-head" width="380" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H380"/>
+    <text class="entity-title" x="190" y="26" text-anchor="middle">dmind_alerts.db</text>
+    <text class="entity-subtitle" x="190" y="48" text-anchor="middle">AlertsCacheDAO SQLite</text>
+    <text class="field" x="18" y="88">danger_zones</text>
+<text class="field" x="18" y="112">sos_queue</text>
+<text class="field" x="18" y="136">alerts_cache</text>
+<text class="field" x="18" y="160">location_history</text>
+<text class="field" x="18" y="184">used by services/workers</text>
+  </g>
+
+  <g class="entity core" transform="translate(96,468)">
+    <rect class="entity-bg" width="380" height="210" rx="8"/>
+    <rect class="entity-head" width="380" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H380"/>
+    <text class="entity-title" x="190" y="26" text-anchor="middle">DMindRoomDatabase</text>
+    <text class="entity-subtitle" x="190" y="48" text-anchor="middle">declared Room schema</text>
+    <text class="field" x="18" y="88">alerts</text>
+<text class="field" x="18" y="112">sos_queue</text>
+<text class="field" x="18" y="136">danger_zones</text>
+<text class="field" x="18" y="160">location_history</text>
+<text class="field" x="18" y="184">not wired in AppContainer</text>
+  </g>
+
+  <g class="entity support" transform="translate(96,748)">
+    <rect class="entity-bg" width="380" height="200" rx="8"/>
+    <rect class="entity-head" width="380" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H380"/>
+    <text class="entity-title" x="190" y="26" text-anchor="middle">SharedPreferences dmind_native</text>
+    <text class="entity-subtitle" x="190" y="48" text-anchor="middle">small local state</text>
+    <text class="field" x="18" y="88">installation_id</text>
+<text class="field" x="18" y="112">fcm_token</text>
+<text class="field" x="18" y="136">created/read by providers</text>
+<text class="field" x="18" y="160">not relational</text>
+  </g>
+
+  <g class="entity event" transform="translate(636,176)">
+    <rect class="entity-bg" width="400" height="250" rx="8"/>
+    <rect class="entity-head" width="400" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H400"/>
+    <text class="entity-title" x="200" y="26" text-anchor="middle">Android backend gateway</text>
+    <text class="entity-subtitle" x="200" y="48" text-anchor="middle">Ktor endpoints</text>
+    <text class="field" x="18" y="88">POST /reports</text>
+<text class="field" x="18" y="112">POST /media/incident-images</text>
+<text class="field" x="18" y="136">POST /sos</text>
+<text class="field" x="18" y="160">POST /fcm/register</text>
+<text class="field" x="18" y="184">POST /notifications/send</text>
+<text class="field" x="18" y="208">GET /api/analytics/*</text>
+  </g>
+
+  <g class="entity support" transform="translate(636,496)">
+    <rect class="entity-bg" width="400" height="230" rx="8"/>
+    <rect class="entity-head" width="400" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H400"/>
+    <text class="entity-title" x="200" y="26" text-anchor="middle">DeviceTokenRegistry</text>
+    <text class="entity-subtitle" x="200" y="48" text-anchor="middle">backend token store</text>
+    <text class="field" x="18" y="88">token</text>
+<text class="field" x="18" y="112">platform</text>
+<text class="field" x="18" y="136">userId / installationId</text>
+<text class="field" x="18" y="160">local JSON fallback</text>
+<text class="field" x="18" y="184">syncs to device_push_tokens</text>
+  </g>
+
+  <g class="entity external" transform="translate(636,800)">
+    <rect class="entity-bg" width="400" height="190" rx="8"/>
+    <rect class="entity-head" width="400" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H400"/>
+    <text class="entity-title" x="200" y="26" text-anchor="middle">FCM HTTP v1</text>
+    <text class="entity-subtitle" x="200" y="48" text-anchor="middle">push transport</text>
+    <text class="field" x="18" y="88">target device token</text>
+<text class="field" x="18" y="112">notification payload</text>
+<text class="field" x="18" y="136">data payload</text>
+<text class="field" x="18" y="160">delivery result</text>
+  </g>
+
+  <g class="entity remote" transform="translate(1196,176)">
+    <rect class="entity-bg" width="280" height="250" rx="8"/>
+    <rect class="entity-head" width="280" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H280"/>
+    <text class="entity-title" x="140" y="26" text-anchor="middle">reports schema</text>
+    <text class="entity-subtitle" x="140" y="48" text-anchor="middle">Supabase</text>
+    <text class="field" x="18" y="88">incident_reports</text>
+<text class="field" x="18" y="112">incident_reports_public</text>
+<text class="field" x="18" y="136">damage_assessments</text>
+<text class="field" x="18" y="160">victim_reports</text>
+<text class="field" x="18" y="184">satisfaction_surveys</text>
+<text class="field" x="18" y="208">storage buckets</text>
+  </g>
+
+  <g class="entity event" transform="translate(1510,176)">
+    <rect class="entity-bg" width="280" height="250" rx="8"/>
+    <rect class="entity-head" width="280" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H280"/>
+    <text class="entity-title" x="140" y="26" text-anchor="middle">alerts schema</text>
+    <text class="entity-subtitle" x="140" y="48" text-anchor="middle">Supabase</text>
+    <text class="field" x="18" y="88">realtime_alerts</text>
+<text class="field" x="18" y="112">notifications</text>
+<text class="field" x="18" y="136">user_notification_settings</text>
+<text class="field" x="18" y="160">device_push_tokens</text>
+<text class="field" x="18" y="184">user_locations</text>
+<text class="field" x="18" y="208">analytics_data</text>
+  </g>
+
+  <g class="entity support" transform="translate(1196,512)">
+    <rect class="entity-bg" width="280" height="230" rx="8"/>
+    <rect class="entity-head" width="280" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H280"/>
+    <text class="entity-title" x="140" y="26" text-anchor="middle">AI context tables</text>
+    <text class="entity-subtitle" x="140" y="48" text-anchor="middle">Supabase reads</text>
+    <text class="field" x="18" y="88">documents</text>
+<text class="field" x="18" y="112">from_rain_sensor</text>
+<text class="field" x="18" y="136">realtime_alerts</text>
+<text class="field" x="18" y="160">incident_reports_public</text>
+<text class="field" x="18" y="184">notifications</text>
+  </g>
+
+  <g class="entity external" transform="translate(1510,512)">
+    <rect class="entity-bg" width="280" height="260" rx="8"/>
+    <rect class="entity-head" width="280" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H280"/>
+    <text class="entity-title" x="140" y="26" text-anchor="middle">external hazard feeds</text>
+    <text class="entity-subtitle" x="140" y="48" text-anchor="middle">remote APIs</text>
+    <text class="field" x="18" y="88">GISTDA VIIRS/flood</text>
+<text class="field" x="18" y="112">TMD weather</text>
+<text class="field" x="18" y="136">USGS earthquakes</text>
+<text class="field" x="18" y="160">Air GISTDA PM2.5</text>
+<text class="field" x="18" y="184">OpenStreetMap search</text>
+<text class="field" x="18" y="208">mapped to domain models</text>
+  </g>
+
+  <g class="entity support" transform="translate(1196,830)">
+    <rect class="entity-bg" width="594" height="150" rx="8"/>
+    <rect class="entity-head" width="594" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H594"/>
+    <text class="entity-title" x="297" y="26" text-anchor="middle">Android domain/UI models</text>
+    <text class="entity-subtitle" x="297" y="48" text-anchor="middle">not persisted as relational tables</text>
+    <text class="field" x="18" y="88">DisasterEvent, MonitoringStation, WeatherSnapshot, DisasterPoint, FloodArea, ViirsHotspot</text>
+<text class="field" x="18" y="116">DTOs parse network JSON; repositories map them to UI state and analytics cards.</text>
+  </g>
+  
+  <g class="note">
+    <rect x="96" y="1080" width="1610" height="82" rx="8"/>
+    <text class="note-title" x="114" y="1104">How to read this version</text>
+    <text class="note-line" x="114" y="1124">This is an architectural ER-style map. The detailed physical schemas are split into V1, V2, and V3.</text>
+<text class="note-line" x="114" y="1146">The active Android local persistence path is AlertsCacheDAO SQLite; Room appears to be declared for a cleaner schema but is not currently injected.</text>
+  </g>
+</svg>

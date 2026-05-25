@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <style>
+      .bg { fill: #f8fafc; }
+      .title { font-family: "TH Sarabun New", "Tahoma", sans-serif; font-size: 48px; font-weight: 700; fill: #0f172a; }
+      .subtitle { font-family: "TH Sarabun New", "Tahoma", sans-serif; font-size: 28px; fill: #475569; }
+      .box { fill: #ffffff; stroke: #2563eb; stroke-width: 3; rx: 18; }
+      .box-green { fill: #f0fdf4; stroke: #16a34a; stroke-width: 3; rx: 18; }
+      .box-orange { fill: #fff7ed; stroke: #ea580c; stroke-width: 3; rx: 18; }
+      .box-purple { fill: #faf5ff; stroke: #9333ea; stroke-width: 3; rx: 18; }
+      .head { font-family: "TH Sarabun New", "Tahoma", sans-serif; font-size: 32px; font-weight: 700; fill: #0f172a; }
+      .body { font-family: "TH Sarabun New", "Tahoma", sans-serif; font-size: 25px; fill: #334155; }
+      .small { font-family: "TH Sarabun New", "Tahoma", sans-serif; font-size: 22px; fill: #475569; }
+      .rel { stroke: #334155; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .rel-blue { stroke: #2563eb; stroke-width: 3; fill: none; marker-end: url(#arrow-blue); }
+      .label { font-family: "TH Sarabun New", "Tahoma", sans-serif; font-size: 22px; font-weight: 700; fill: #1e293b; }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#334155"/>
+    </marker>
+    <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#2563eb"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1600" height="900"/>
+
+  <text class="title" x="800" y="70" text-anchor="middle">ER Diagram ระบบฐานข้อมูล D-MIND (ฉบับย่อ)</text>
+  <text class="subtitle" x="800" y="112" text-anchor="middle">แสดงเฉพาะตารางหลักและความสัมพันธ์สำคัญ เพื่อให้อ่านชัดในเอกสารแนวนอน 16:9</text>
+
+  <!-- Row 1 -->
+  <rect class="box" x="90" y="170" width="300" height="150"/>
+  <text class="head" x="240" y="215" text-anchor="middle">ผู้ใช้</text>
+  <text class="body" x="240" y="255" text-anchor="middle">auth.users</text>
+  <text class="small" x="240" y="292" text-anchor="middle">ข้อมูลบัญชีผู้ใช้งาน</text>
+
+  <rect class="box" x="480" y="170" width="300" height="150"/>
+  <text class="head" x="630" y="215" text-anchor="middle">บทบาทผู้ใช้</text>
+  <text class="body" x="630" y="255" text-anchor="middle">user_roles</text>
+  <text class="small" x="630" y="292" text-anchor="middle">admin / responder / user</text>
+
+  <rect class="box-green" x="870" y="170" width="300" height="150"/>
+  <text class="head" x="1020" y="215" text-anchor="middle">การตั้งค่าแจ้งเตือน</text>
+  <text class="body" x="1020" y="255" text-anchor="middle">notification settings</text>
+  <text class="small" x="1020" y="292" text-anchor="middle">พื้นที่, รัศมี, ช่องทาง</text>
+
+  <rect class="box-green" x="1260" y="170" width="300" height="150"/>
+  <text class="head" x="1410" y="215" text-anchor="middle">โทเคนอุปกรณ์</text>
+  <text class="body" x="1410" y="255" text-anchor="middle">device_push_tokens</text>
+  <text class="small" x="1410" y="292" text-anchor="middle">FCM token สำหรับ push</text>
+
+  <!-- Row 2 -->
+  <rect class="box-orange" x="110" y="430" width="330" height="165"/>
+  <text class="head" x="275" y="478" text-anchor="middle">ข้อมูลตำแหน่งผู้ใช้</text>
+  <text class="body" x="275" y="518" text-anchor="middle">user_locations</text>
+  <text class="small" x="275" y="555" text-anchor="middle">พิกัดสำหรับแจ้งเตือนตามพื้นที่</text>
+
+  <rect class="box-orange" x="525" y="430" width="330" height="165"/>
+  <text class="head" x="690" y="478" text-anchor="middle">เหตุแจ้งเตือนภัย</text>
+  <text class="body" x="690" y="518" text-anchor="middle">realtime_alerts</text>
+  <text class="small" x="690" y="555" text-anchor="middle">ประเภทภัย, ระดับ, พิกัด, รัศมี</text>
+
+  <rect class="box-orange" x="940" y="430" width="330" height="165"/>
+  <text class="head" x="1105" y="478" text-anchor="middle">ประวัติการส่งแจ้งเตือน</text>
+  <text class="body" x="1105" y="518" text-anchor="middle">notifications / deliveries</text>
+  <text class="small" x="1105" y="555" text-anchor="middle">ส่งแล้ว, อ่านแล้ว, วิธีส่ง</text>
+
+  <rect class="box-purple" x="1355" y="430" width="170" height="165"/>
+  <text class="head" x="1440" y="478" text-anchor="middle">สถิติ</text>
+  <text class="body" x="1440" y="518" text-anchor="middle">analytics</text>
+  <text class="small" x="1440" y="555" text-anchor="middle">dashboard</text>
+
+  <!-- Row 3 -->
+  <rect class="box-purple" x="210" y="690" width="330" height="145"/>
+  <text class="head" x="375" y="735" text-anchor="middle">รายงานเหตุการณ์</text>
+  <text class="body" x="375" y="775" text-anchor="middle">incident_reports</text>
+  <text class="small" x="375" y="810" text-anchor="middle">ข้อมูลเหตุจากผู้ใช้</text>
+
+  <rect class="box-purple" x="635" y="690" width="330" height="145"/>
+  <text class="head" x="800" y="735" text-anchor="middle">ประเมินความเสียหาย</text>
+  <text class="body" x="800" y="775" text-anchor="middle">damage_assessments</text>
+  <text class="small" x="800" y="810" text-anchor="middle">ผลวิเคราะห์ภาพและระดับความเสียหาย</text>
+
+  <rect class="box-purple" x="1060" y="690" width="330" height="145"/>
+  <text class="head" x="1225" y="735" text-anchor="middle">คลังความรู้และแบบประเมิน</text>
+  <text class="body" x="1225" y="775" text-anchor="middle">articles / documents / surveys</text>
+  <text class="small" x="1225" y="810" text-anchor="middle">คู่มือ, บทความ, AI context, feedback</text>
+
+  <!-- Relationships -->
+  <path class="rel" d="M390 245 H480"/>
+  <text class="label" x="435" y="232" text-anchor="middle">1:N</text>
+
+  <path class="rel" d="M240 320 V430"/>
+  <text class="label" x="265" y="380">1:N</text>
+
+  <path class="rel" d="M390 285 C540 350, 850 350, 970 320"/>
+  <text class="label" x="720" y="345" text-anchor="middle">ตั้งค่า</text>
+
+  <path class="rel" d="M1170 245 H1260"/>
+  <text class="label" x="1215" y="232" text-anchor="middle">ใช้ส่ง push</text>
+
+  <path class="rel-blue" d="M440 512 H525"/>
+  <text class="label" x="482" y="498" text-anchor="middle">ตำแหน่ง</text>
+
+  <path class="rel-blue" d="M855 512 H940"/>
+  <text class="label" x="897" y="498" text-anchor="middle">แจ้งเตือน</text>
+
+  <path class="rel" d="M1270 512 H1355"/>
+  <text class="label" x="1312" y="498" text-anchor="middle">สรุป</text>
+
+  <path class="rel" d="M540 762 H635"/>
+  <text class="label" x="588" y="748" text-anchor="middle">1:N</text>
+
+  <path class="rel" d="M690 595 C690 645, 575 650, 430 690"/>
+  <text class="label" x="575" y="660" text-anchor="middle">เกี่ยวข้องกับเหตุ</text>
+
+  <path class="rel" d="M1105 595 C1105 650, 1190 655, 1225 690"/>
+  <text class="label" x="1190" y="650" text-anchor="middle">ข้อมูลรายงาน</text>
+</svg>

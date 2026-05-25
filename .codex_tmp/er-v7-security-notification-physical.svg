@@ -1,0 +1,255 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1160" viewBox="0 0 1800 1160">
+  <defs>
+    <style>
+      .bg { fill: #f7f9fc; }
+      .page-title { font: 700 38px Arial, Helvetica, sans-serif; fill: #111827; }
+      .page-subtitle { font: 18px Arial, Helvetica, sans-serif; fill: #536171; }
+      .group rect { fill: #eef2f7; stroke: #cbd5e1; stroke-width: 1.4; }
+      .group-label { font: 700 18px Arial, Helvetica, sans-serif; fill: #334155; }
+      .entity-bg { fill: #ffffff; stroke-width: 2.4; }
+      .entity-head { stroke-width: 0; }
+      .head-cut { stroke: rgba(17,24,39,.18); stroke-width: 1.2; }
+      .entity-title { font: 700 19px Arial, Helvetica, sans-serif; fill: #111827; }
+      .entity-subtitle { font: 13px Arial, Helvetica, sans-serif; fill: #4b5563; }
+      .field { font: 15px Consolas, "Courier New", monospace; fill: #1f2937; }
+      .core .entity-bg { stroke: #2563eb; }
+      .core .entity-head { fill: #dbeafe; }
+      .active .entity-bg { stroke: #059669; }
+      .active .entity-head { fill: #d1fae5; }
+      .remote .entity-bg { stroke: #7c3aed; }
+      .remote .entity-head { fill: #ede9fe; }
+      .event .entity-bg { stroke: #ea580c; }
+      .event .entity-head { fill: #ffedd5; }
+      .support .entity-bg { stroke: #0f766e; }
+      .support .entity-head { fill: #ccfbf1; }
+      .external .entity-bg { stroke: #64748b; }
+      .external .entity-head { fill: #e2e8f0; }
+      .relation { fill: none; stroke: #334155; stroke-width: 2.2; marker-end: url(#arrow); }
+      .relation.solid { stroke: #334155; }
+      .relation.logic { stroke: #0f766e; marker-end: url(#arrow-teal); }
+      .relation.remote { stroke: #7c3aed; marker-end: url(#arrow-purple); }
+      .relation.event { stroke: #ea580c; marker-end: url(#arrow-orange); }
+      .relation.dashed { stroke-dasharray: 8 8; }
+      .rel-label { font: 700 14px Arial, Helvetica, sans-serif; fill: #111827; paint-order: stroke; stroke: #f7f9fc; stroke-width: 5px; stroke-linejoin: round; }
+      .note rect { fill: #fff7ed; stroke: #fdba74; stroke-width: 1.8; }
+      .note-title { font: 700 17px Arial, Helvetica, sans-serif; fill: #9a3412; }
+      .note-line { font: 14px Arial, Helvetica, sans-serif; fill: #7c2d12; }
+    </style>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#334155"/>
+    </marker>
+    <marker id="arrow-teal" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#0f766e"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#ea580c"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1800" height="1160"/>
+  <text class="page-title" x="900" y="54" text-anchor="middle">V7 - Security and Notification Physical ERD</text>
+  <text class="page-subtitle" x="900" y="84" text-anchor="middle">Focused database view for roles, notification preferences, device tokens, alert delivery, and analytics.</text>
+  
+  <g class="group">
+    <rect x="52" y="120" width="520" height="820" rx="14"/>
+    <text class="group-label" x="70" y="150">Access control and user targets</text>
+  </g>
+
+  <g class="group">
+    <rect x="620" y="120" width="520" height="820" rx="14"/>
+    <text class="group-label" x="638" y="150">Alert generation and delivery</text>
+  </g>
+
+  <g class="group">
+    <rect x="1190" y="120" width="520" height="820" rx="14"/>
+    <text class="group-label" x="1208" y="150">Functions, policies, and derived data</text>
+  </g>
+  
+  <g>
+    <path class="relation solid dashed" d="M290 385 L290 455"/>
+    <text class="rel-label" x="340" y="428" text-anchor="middle">1:N roles</text>
+  </g>
+
+  <g>
+    <path class="relation remote " d="M290 690 L290 760"/>
+    <text class="rel-label" x="340" y="730" text-anchor="middle">1:N settings</text>
+  </g>
+
+  <g>
+    <path class="relation logic dashed" d="M480 275 L1238 270"/>
+    <text class="rel-label" x="860" y="252" text-anchor="middle">1:N device tokens</text>
+  </g>
+
+  <g>
+    <path class="relation logic dashed" d="M480 310 L1238 590"/>
+    <text class="rel-label" x="1000" y="465" text-anchor="middle">1:N active locations</text>
+  </g>
+
+  <g>
+    <path class="relation logic dashed" d="M1048 330 L1238 600"/>
+    <text class="rel-label" x="1145" y="470" text-anchor="middle">get_nearby_users()</text>
+  </g>
+
+  <g>
+    <path class="relation logic dashed" d="M1048 610 L1238 300"/>
+    <text class="rel-label" x="1120" y="430" text-anchor="middle">target tokens</text>
+  </g>
+
+  <g>
+    <path class="relation event dashed" d="M858 480 L858 552"/>
+    <text class="rel-label" x="910" y="520" text-anchor="middle">creates history</text>
+  </g>
+
+  <g>
+    <path class="relation event " d="M858 480 L858 865"/>
+    <text class="rel-label" x="910" y="812" text-anchor="middle">1:N explicit FK</text>
+  </g>
+
+  <g>
+    <path class="relation logic dashed" d="M1048 335 L1238 885"/>
+    <text class="rel-label" x="1150" y="720" text-anchor="middle">update_analytics_stats()</text>
+  </g>
+
+  <g>
+    <path class="relation solid dashed" d="M480 560 L668 640"/>
+    <text class="rel-label" x="575" y="585" text-anchor="middle">authorization gates</text>
+  </g>
+  
+  <g class="entity external" transform="translate(100,175)">
+    <rect class="entity-bg" width="380" height="210" rx="8"/>
+    <rect class="entity-head" width="380" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H380"/>
+    <text class="entity-title" x="190" y="26" text-anchor="middle">auth.users</text>
+    <text class="entity-subtitle" x="190" y="48" text-anchor="middle">Supabase Auth</text>
+    <text class="field" x="18" y="88">[PK] id: UUID</text>
+<text class="field" x="18" y="112">authenticated principal</text>
+<text class="field" x="18" y="136">referenced by several tables</text>
+<text class="field" x="18" y="160">nullable for anonymous/mobile flows</text>
+  </g>
+
+  <g class="entity support" transform="translate(100,455)">
+    <rect class="entity-bg" width="380" height="235" rx="8"/>
+    <rect class="entity-head" width="380" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H380"/>
+    <text class="entity-title" x="190" y="26" text-anchor="middle">user_roles</text>
+    <text class="entity-subtitle" x="190" y="48" text-anchor="middle">RBAC</text>
+    <text class="field" x="18" y="88">[PK] id: UUID</text>
+<text class="field" x="18" y="112">user_id: UUID</text>
+<text class="field" x="18" y="136">role: app_role enum</text>
+<text class="field" x="18" y="160">assigned_by: UUID?</text>
+<text class="field" x="18" y="184">assigned_at</text>
+<text class="field" x="18" y="208">is_active</text>
+<text class="field" x="18" y="232">UNIQUE(user_id, role)</text>
+  </g>
+
+  <g class="entity support" transform="translate(100,760)">
+    <rect class="entity-bg" width="380" height="210" rx="8"/>
+    <rect class="entity-head" width="380" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H380"/>
+    <text class="entity-title" x="190" y="26" text-anchor="middle">user_notification_settings</text>
+    <text class="entity-subtitle" x="190" y="48" text-anchor="middle">server preferences</text>
+    <text class="field" x="18" y="88">[PK] id: UUID</text>
+<text class="field" x="18" y="112">[FK] user_id: UUID?</text>
+<text class="field" x="18" y="136">email UNIQUE</text>
+<text class="field" x="18" y="160">enabled</text>
+<text class="field" x="18" y="184">latitude, longitude</text>
+<text class="field" x="18" y="208">radius_km</text>
+  </g>
+
+  <g class="entity event" transform="translate(668,170)">
+    <rect class="entity-bg" width="380" height="310" rx="8"/>
+    <rect class="entity-head" width="380" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H380"/>
+    <text class="entity-title" x="190" y="26" text-anchor="middle">realtime_alerts</text>
+    <text class="entity-subtitle" x="190" y="48" text-anchor="middle">alert source</text>
+    <text class="field" x="18" y="88">[PK] id: UUID</text>
+<text class="field" x="18" y="112">alert_type</text>
+<text class="field" x="18" y="136">coordinates: JSON</text>
+<text class="field" x="18" y="160">radius_km</text>
+<text class="field" x="18" y="184">severity_level</text>
+<text class="field" x="18" y="208">is_active</text>
+<text class="field" x="18" y="232">created_by / verified_by</text>
+<text class="field" x="18" y="256">expires_at</text>
+  </g>
+
+  <g class="entity event" transform="translate(668,552)">
+    <rect class="entity-bg" width="380" height="260" rx="8"/>
+    <rect class="entity-head" width="380" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H380"/>
+    <text class="entity-title" x="190" y="26" text-anchor="middle">notifications</text>
+    <text class="entity-subtitle" x="190" y="48" text-anchor="middle">history table</text>
+    <text class="field" x="18" y="88">[PK] id: UUID</text>
+<text class="field" x="18" y="112">[FK] user_id: UUID?</text>
+<text class="field" x="18" y="136">title, message, type</text>
+<text class="field" x="18" y="160">severity_level</text>
+<text class="field" x="18" y="184">delivery_methods: JSONB</text>
+<text class="field" x="18" y="208">location_data: JSONB</text>
+<text class="field" x="18" y="232">read_at / delivered_at</text>
+  </g>
+
+  <g class="entity event" transform="translate(668,865)">
+    <rect class="entity-bg" width="380" height="210" rx="8"/>
+    <rect class="entity-head" width="380" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H380"/>
+    <text class="entity-title" x="190" y="26" text-anchor="middle">alert_deliveries</text>
+    <text class="entity-subtitle" x="190" y="48" text-anchor="middle">typed relation exists</text>
+    <text class="field" x="18" y="88">[PK] id: UUID</text>
+<text class="field" x="18" y="112">[FK] alert_id -&gt; realtime_alerts.id</text>
+<text class="field" x="18" y="136">user_id</text>
+<text class="field" x="18" y="160">delivery_method</text>
+<text class="field" x="18" y="184">delivery_status</text>
+<text class="field" x="18" y="208">read_at / delivered_at</text>
+  </g>
+
+  <g class="entity support" transform="translate(1238,170)">
+    <rect class="entity-bg" width="380" height="250" rx="8"/>
+    <rect class="entity-head" width="380" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H380"/>
+    <text class="entity-title" x="190" y="26" text-anchor="middle">device_push_tokens</text>
+    <text class="entity-subtitle" x="190" y="48" text-anchor="middle">FCM targets</text>
+    <text class="field" x="18" y="88">[PK] id: UUID</text>
+<text class="field" x="18" y="112">token UNIQUE</text>
+<text class="field" x="18" y="136">[FK] user_id: UUID?</text>
+<text class="field" x="18" y="160">user_id_text</text>
+<text class="field" x="18" y="184">installation_id</text>
+<text class="field" x="18" y="208">platform</text>
+<text class="field" x="18" y="232">is_active</text>
+  </g>
+
+  <g class="entity support" transform="translate(1238,486)">
+    <rect class="entity-bg" width="380" height="230" rx="8"/>
+    <rect class="entity-head" width="380" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H380"/>
+    <text class="entity-title" x="190" y="26" text-anchor="middle">user_locations</text>
+    <text class="entity-subtitle" x="190" y="48" text-anchor="middle">nearby-user search</text>
+    <text class="field" x="18" y="88">[PK] id: UUID</text>
+<text class="field" x="18" y="112">[FK] user_id: UUID?</text>
+<text class="field" x="18" y="136">coordinates: JSONB</text>
+<text class="field" x="18" y="160">location_name</text>
+<text class="field" x="18" y="184">is_active</text>
+<text class="field" x="18" y="208">created_at, updated_at</text>
+  </g>
+
+  <g class="entity support" transform="translate(1238,785)">
+    <rect class="entity-bg" width="380" height="230" rx="8"/>
+    <rect class="entity-head" width="380" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H380"/>
+    <text class="entity-title" x="190" y="26" text-anchor="middle">analytics_data</text>
+    <text class="entity-subtitle" x="190" y="48" text-anchor="middle">derived statistics</text>
+    <text class="field" x="18" y="88">[PK] id: UUID</text>
+<text class="field" x="18" y="112">metric_name</text>
+<text class="field" x="18" y="136">metric_value</text>
+<text class="field" x="18" y="160">metric_type</text>
+<text class="field" x="18" y="184">date_recorded</text>
+<text class="field" x="18" y="208">location_data, metadata</text>
+  </g>
+  
+  <g class="note">
+    <rect x="110" y="1010" width="1530" height="76" rx="8"/>
+    <text class="note-title" x="128" y="1034">Security reading</text>
+    <text class="note-line" x="128" y="1054">RBAC is enforced by user_has_role() and user_is_emergency_authorized(); notification tables are gated by RLS policies and backend service-role writes.</text>
+<text class="note-line" x="128" y="1076">alert_deliveries appears in generated Supabase types with a physical FK to realtime_alerts even though Android mostly reads notifications directly.</text>
+  </g>
+</svg>

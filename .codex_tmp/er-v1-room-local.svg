@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1100" viewBox="0 0 1600 1100">
+  <defs>
+    <style>
+      .bg { fill: #f7f9fc; }
+      .page-title { font: 700 38px Arial, Helvetica, sans-serif; fill: #111827; }
+      .page-subtitle { font: 18px Arial, Helvetica, sans-serif; fill: #536171; }
+      .group rect { fill: #eef2f7; stroke: #cbd5e1; stroke-width: 1.4; }
+      .group-label { font: 700 18px Arial, Helvetica, sans-serif; fill: #334155; }
+      .entity-bg { fill: #ffffff; stroke-width: 2.4; }
+      .entity-head { stroke-width: 0; }
+      .head-cut { stroke: rgba(17,24,39,.18); stroke-width: 1.2; }
+      .entity-title { font: 700 19px Arial, Helvetica, sans-serif; fill: #111827; }
+      .entity-subtitle { font: 13px Arial, Helvetica, sans-serif; fill: #4b5563; }
+      .field { font: 15px Consolas, "Courier New", monospace; fill: #1f2937; }
+      .core .entity-bg { stroke: #2563eb; }
+      .core .entity-head { fill: #dbeafe; }
+      .active .entity-bg { stroke: #059669; }
+      .active .entity-head { fill: #d1fae5; }
+      .remote .entity-bg { stroke: #7c3aed; }
+      .remote .entity-head { fill: #ede9fe; }
+      .event .entity-bg { stroke: #ea580c; }
+      .event .entity-head { fill: #ffedd5; }
+      .support .entity-bg { stroke: #0f766e; }
+      .support .entity-head { fill: #ccfbf1; }
+      .external .entity-bg { stroke: #64748b; }
+      .external .entity-head { fill: #e2e8f0; }
+      .relation { fill: none; stroke: #334155; stroke-width: 2.2; marker-end: url(#arrow); }
+      .relation.solid { stroke: #334155; }
+      .relation.logic { stroke: #0f766e; marker-end: url(#arrow-teal); }
+      .relation.remote { stroke: #7c3aed; marker-end: url(#arrow-purple); }
+      .relation.event { stroke: #ea580c; marker-end: url(#arrow-orange); }
+      .relation.dashed { stroke-dasharray: 8 8; }
+      .rel-label { font: 700 14px Arial, Helvetica, sans-serif; fill: #111827; paint-order: stroke; stroke: #f7f9fc; stroke-width: 5px; stroke-linejoin: round; }
+      .note rect { fill: #fff7ed; stroke: #fdba74; stroke-width: 1.8; }
+      .note-title { font: 700 17px Arial, Helvetica, sans-serif; fill: #9a3412; }
+      .note-line { font: 14px Arial, Helvetica, sans-serif; fill: #7c2d12; }
+    </style>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#334155"/>
+    </marker>
+    <marker id="arrow-teal" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#0f766e"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#ea580c"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1600" height="1100"/>
+  <text class="page-title" x="800" y="54" text-anchor="middle">V1 - Android Room ERD (Declared Local Schema)</text>
+  <text class="page-subtitle" x="800" y="84" text-anchor="middle">Source: DMindRoomDatabase.kt, @Database version 1. No explicit Room foreign keys are declared.</text>
+  
+  <g class="group">
+    <rect x="54" y="120" width="1492" height="790" rx="14"/>
+    <text class="group-label" x="72" y="150">Room database: DMindRoomDatabase</text>
+  </g>
+  
+  <g>
+    <path class="relation logic dashed" d="M815 650 L1300 520"/>
+    <text class="rel-label" x="1120" y="610" text-anchor="middle">geospatial match only</text>
+  </g>
+
+  <g>
+    <path class="relation solid dashed" d="M635 350 L440 350"/>
+    <text class="rel-label" x="538" y="335" text-anchor="middle">independent local records</text>
+  </g>
+  
+  <g class="entity core" transform="translate(110,190)">
+    <rect class="entity-bg" width="330" height="300" rx="8"/>
+    <rect class="entity-head" width="330" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H330"/>
+    <text class="entity-title" x="165" y="26" text-anchor="middle">alerts</text>
+    <text class="entity-subtitle" x="165" y="48" text-anchor="middle">AlertEntity</text>
+    <text class="field" x="18" y="88">[PK] id: Long AUTOINCREMENT</text>
+<text class="field" x="18" y="112">type: String</text>
+<text class="field" x="18" y="136">level: String</text>
+<text class="field" x="18" y="160">title: String</text>
+<text class="field" x="18" y="184">message: String</text>
+<text class="field" x="18" y="208">timestamp: Long</text>
+<text class="field" x="18" y="232">isRead: Boolean = false</text>
+<text class="field" x="18" y="256">DAO: latestAlerts()</text>
+  </g>
+
+  <g class="entity core" transform="translate(635,190)">
+    <rect class="entity-bg" width="360" height="330" rx="8"/>
+    <rect class="entity-head" width="360" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H360"/>
+    <text class="entity-title" x="180" y="26" text-anchor="middle">sos_queue</text>
+    <text class="entity-subtitle" x="180" y="48" text-anchor="middle">SosQueueEntity</text>
+    <text class="field" x="18" y="88">[PK] id: Long AUTOINCREMENT</text>
+<text class="field" x="18" y="112">userId: String</text>
+<text class="field" x="18" y="136">latitude: Double</text>
+<text class="field" x="18" y="160">longitude: Double</text>
+<text class="field" x="18" y="184">batteryLevel: Int</text>
+<text class="field" x="18" y="208">message: String</text>
+<text class="field" x="18" y="232">status: String = pending</text>
+<text class="field" x="18" y="256">createdAt: Long</text>
+<text class="field" x="18" y="280">sentAt: Long?</text>
+<text class="field" x="18" y="304">DAO: pendingMessages()</text>
+  </g>
+
+  <g class="entity core" transform="translate(1120,190)">
+    <rect class="entity-bg" width="360" height="330" rx="8"/>
+    <rect class="entity-head" width="360" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H360"/>
+    <text class="entity-title" x="180" y="26" text-anchor="middle">danger_zones</text>
+    <text class="entity-subtitle" x="180" y="48" text-anchor="middle">DangerZoneEntity</text>
+    <text class="field" x="18" y="88">[PK] id: Long</text>
+<text class="field" x="18" y="112">name: String</text>
+<text class="field" x="18" y="136">type: String</text>
+<text class="field" x="18" y="160">alertTitle: String</text>
+<text class="field" x="18" y="184">alertMessage: String</text>
+<text class="field" x="18" y="208">polygonJson: String</text>
+<text class="field" x="18" y="232">createdAt: Long</text>
+<text class="field" x="18" y="256">expiresAt: Long</text>
+<text class="field" x="18" y="280">isEnabled: Boolean = true</text>
+<text class="field" x="18" y="304">DAO: activeZones()</text>
+  </g>
+
+  <g class="entity core" transform="translate(635,650)">
+    <rect class="entity-bg" width="360" height="240" rx="8"/>
+    <rect class="entity-head" width="360" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H360"/>
+    <text class="entity-title" x="180" y="26" text-anchor="middle">location_history</text>
+    <text class="entity-subtitle" x="180" y="48" text-anchor="middle">LocationHistoryEntity</text>
+    <text class="field" x="18" y="88">[PK] id: Long AUTOINCREMENT</text>
+<text class="field" x="18" y="112">latitude: Double</text>
+<text class="field" x="18" y="136">longitude: Double</text>
+<text class="field" x="18" y="160">accuracy: Float</text>
+<text class="field" x="18" y="184">timestamp: Long</text>
+<text class="field" x="18" y="208">DAO: latest(limit)</text>
+  </g>
+  
+  <g class="note">
+    <rect x="92" y="952" width="1410" height="84" rx="8"/>
+    <text class="note-title" x="110" y="976">Read from code</text>
+    <text class="note-line" x="110" y="996">The Room schema is present but AppContainer does not instantiate it in the inspected code path.</text>
+<text class="note-line" x="110" y="1018">Relationships are intentionally shown as dashed because the entities define no @ForeignKey constraints.</text>
+  </g>
+</svg>

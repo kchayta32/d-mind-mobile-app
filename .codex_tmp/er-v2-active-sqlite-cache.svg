@@ -1,0 +1,161 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1100" viewBox="0 0 1600 1100">
+  <defs>
+    <style>
+      .bg { fill: #f7f9fc; }
+      .page-title { font: 700 38px Arial, Helvetica, sans-serif; fill: #111827; }
+      .page-subtitle { font: 18px Arial, Helvetica, sans-serif; fill: #536171; }
+      .group rect { fill: #eef2f7; stroke: #cbd5e1; stroke-width: 1.4; }
+      .group-label { font: 700 18px Arial, Helvetica, sans-serif; fill: #334155; }
+      .entity-bg { fill: #ffffff; stroke-width: 2.4; }
+      .entity-head { stroke-width: 0; }
+      .head-cut { stroke: rgba(17,24,39,.18); stroke-width: 1.2; }
+      .entity-title { font: 700 19px Arial, Helvetica, sans-serif; fill: #111827; }
+      .entity-subtitle { font: 13px Arial, Helvetica, sans-serif; fill: #4b5563; }
+      .field { font: 15px Consolas, "Courier New", monospace; fill: #1f2937; }
+      .core .entity-bg { stroke: #2563eb; }
+      .core .entity-head { fill: #dbeafe; }
+      .active .entity-bg { stroke: #059669; }
+      .active .entity-head { fill: #d1fae5; }
+      .remote .entity-bg { stroke: #7c3aed; }
+      .remote .entity-head { fill: #ede9fe; }
+      .event .entity-bg { stroke: #ea580c; }
+      .event .entity-head { fill: #ffedd5; }
+      .support .entity-bg { stroke: #0f766e; }
+      .support .entity-head { fill: #ccfbf1; }
+      .external .entity-bg { stroke: #64748b; }
+      .external .entity-head { fill: #e2e8f0; }
+      .relation { fill: none; stroke: #334155; stroke-width: 2.2; marker-end: url(#arrow); }
+      .relation.solid { stroke: #334155; }
+      .relation.logic { stroke: #0f766e; marker-end: url(#arrow-teal); }
+      .relation.remote { stroke: #7c3aed; marker-end: url(#arrow-purple); }
+      .relation.event { stroke: #ea580c; marker-end: url(#arrow-orange); }
+      .relation.dashed { stroke-dasharray: 8 8; }
+      .rel-label { font: 700 14px Arial, Helvetica, sans-serif; fill: #111827; paint-order: stroke; stroke: #f7f9fc; stroke-width: 5px; stroke-linejoin: round; }
+      .note rect { fill: #fff7ed; stroke: #fdba74; stroke-width: 1.8; }
+      .note-title { font: 700 17px Arial, Helvetica, sans-serif; fill: #9a3412; }
+      .note-line { font: 14px Arial, Helvetica, sans-serif; fill: #7c2d12; }
+    </style>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#334155"/>
+    </marker>
+    <marker id="arrow-teal" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#0f766e"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#ea580c"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1600" height="1100"/>
+  <text class="page-title" x="800" y="54" text-anchor="middle">V2 - Active Android SQLite Cache ERD</text>
+  <text class="page-subtitle" x="800" y="84" text-anchor="middle">Source: AlertsCacheDAO.java. This SQLiteOpenHelper is used by services/workers at runtime.</text>
+  
+  <g class="group">
+    <rect x="54" y="118" width="1492" height="804" rx="14"/>
+    <text class="group-label" x="72" y="148">SQLite database: dmind_alerts.db</text>
+  </g>
+  
+  <g>
+    <path class="relation logic dashed" d="M520 645 L270 515"/>
+    <text class="rel-label" x="360" y="590" text-anchor="middle">zone_id -&gt; zone_id (inferred)</text>
+  </g>
+
+  <g>
+    <path class="relation event " d="M795 515 L1045 645"/>
+    <text class="rel-label" x="944" y="590" text-anchor="middle">0..N queued posts</text>
+  </g>
+
+  <g>
+    <path class="relation solid dashed" d="M468 350 L610 350"/>
+    <text class="rel-label" x="538" y="335" text-anchor="middle">same coordinates</text>
+  </g>
+
+  <g>
+    <path class="relation solid dashed" d="M980 350 L1118 350"/>
+    <text class="rel-label" x="1049" y="335" text-anchor="middle">emergency context</text>
+  </g>
+  
+  <g class="entity active" transform="translate(98,185)">
+    <rect class="entity-bg" width="370" height="330" rx="8"/>
+    <rect class="entity-head" width="370" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H370"/>
+    <text class="entity-title" x="185" y="26" text-anchor="middle">danger_zones</text>
+    <text class="entity-subtitle" x="185" y="48" text-anchor="middle">geofenced disaster areas</text>
+    <text class="field" x="18" y="88">[PK] zone_id: INTEGER</text>
+<text class="field" x="18" y="112">zone_name: TEXT</text>
+<text class="field" x="18" y="136">zone_type: TEXT</text>
+<text class="field" x="18" y="160">alert_title: TEXT</text>
+<text class="field" x="18" y="184">alert_message: TEXT</text>
+<text class="field" x="18" y="208">polygon_vertices: TEXT</text>
+<text class="field" x="18" y="232">created_at: INTEGER</text>
+<text class="field" x="18" y="256">expiry_time: INTEGER</text>
+<text class="field" x="18" y="280">is_enabled: INTEGER DEFAULT 1</text>
+  </g>
+
+  <g class="entity active" transform="translate(610,185)">
+    <rect class="entity-bg" width="370" height="330" rx="8"/>
+    <rect class="entity-head" width="370" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H370"/>
+    <text class="entity-title" x="185" y="26" text-anchor="middle">sos_queue</text>
+    <text class="entity-subtitle" x="185" y="48" text-anchor="middle">offline emergency queue</text>
+    <text class="field" x="18" y="88">[PK] sos_id: INTEGER AUTOINCREMENT</text>
+<text class="field" x="18" y="112">user_id: TEXT</text>
+<text class="field" x="18" y="136">latitude: REAL</text>
+<text class="field" x="18" y="160">longitude: REAL</text>
+<text class="field" x="18" y="184">battery_level: INTEGER</text>
+<text class="field" x="18" y="208">message: TEXT</text>
+<text class="field" x="18" y="232">status: TEXT DEFAULT pending</text>
+<text class="field" x="18" y="256">created_at: INTEGER</text>
+<text class="field" x="18" y="280">sent_at: INTEGER</text>
+  </g>
+
+  <g class="entity active" transform="translate(1118,185)">
+    <rect class="entity-bg" width="370" height="305" rx="8"/>
+    <rect class="entity-head" width="370" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H370"/>
+    <text class="entity-title" x="185" y="26" text-anchor="middle">alerts_cache</text>
+    <text class="entity-subtitle" x="185" y="48" text-anchor="middle">received alert history</text>
+    <text class="field" x="18" y="88">[PK] alert_id: INTEGER AUTOINCREMENT</text>
+<text class="field" x="18" y="112">alert_type: TEXT</text>
+<text class="field" x="18" y="136">alert_level: TEXT</text>
+<text class="field" x="18" y="160">alert_message: TEXT</text>
+<text class="field" x="18" y="184">alert_title: TEXT</text>
+<text class="field" x="18" y="208">is_read: INTEGER DEFAULT 0</text>
+<text class="field" x="18" y="232">timestamp: INTEGER</text>
+  </g>
+
+  <g class="entity active" transform="translate(354,645)">
+    <rect class="entity-bg" width="370" height="260" rx="8"/>
+    <rect class="entity-head" width="370" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H370"/>
+    <text class="entity-title" x="185" y="26" text-anchor="middle">location_history</text>
+    <text class="entity-subtitle" x="185" y="48" text-anchor="middle">device path</text>
+    <text class="field" x="18" y="88">[PK] loc_id: INTEGER AUTOINCREMENT</text>
+<text class="field" x="18" y="112">latitude: REAL</text>
+<text class="field" x="18" y="136">longitude: REAL</text>
+<text class="field" x="18" y="160">timestamp: INTEGER</text>
+<text class="field" x="18" y="184">accuracy: REAL</text>
+<text class="field" x="18" y="208">[FK?] zone_id: INTEGER</text>
+  </g>
+
+  <g class="entity event" transform="translate(880,645)">
+    <rect class="entity-bg" width="370" height="220" rx="8"/>
+    <rect class="entity-head" width="370" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H370"/>
+    <text class="entity-title" x="185" y="26" text-anchor="middle">backend /sos</text>
+    <text class="entity-subtitle" x="185" y="48" text-anchor="middle">network endpoint</text>
+    <text class="field" x="18" y="88">payload from SOSMessage.toJson()</text>
+<text class="field" x="18" y="112">sent by SOSQueueWorker</text>
+<text class="field" x="18" y="136">success -&gt; status = sent</text>
+<text class="field" x="18" y="160">failure -&gt; status = pending</text>
+  </g>
+  
+  <g class="note">
+    <rect x="96" y="962" width="1410" height="84" rx="8"/>
+    <text class="note-title" x="114" y="986">Important distinction</text>
+    <text class="note-line" x="114" y="1006">The column location_history.zone_id exists, but the CREATE TABLE statement does not add an actual FOREIGN KEY constraint.</text>
+<text class="note-line" x="114" y="1028">Room has similar table names, but this DAO is the one referenced by BackgroundLocationService, GeofenceMonitorService, SOSQueueWorker, and NativeStatusRepository.</text>
+  </g>
+</svg>

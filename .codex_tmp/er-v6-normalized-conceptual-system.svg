@@ -1,0 +1,284 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1200" viewBox="0 0 1800 1200">
+  <defs>
+    <style>
+      .bg { fill: #f7f9fc; }
+      .page-title { font: 700 38px Arial, Helvetica, sans-serif; fill: #111827; }
+      .page-subtitle { font: 18px Arial, Helvetica, sans-serif; fill: #536171; }
+      .group rect { fill: #eef2f7; stroke: #cbd5e1; stroke-width: 1.4; }
+      .group-label { font: 700 18px Arial, Helvetica, sans-serif; fill: #334155; }
+      .entity-bg { fill: #ffffff; stroke-width: 2.4; }
+      .entity-head { stroke-width: 0; }
+      .head-cut { stroke: rgba(17,24,39,.18); stroke-width: 1.2; }
+      .entity-title { font: 700 19px Arial, Helvetica, sans-serif; fill: #111827; }
+      .entity-subtitle { font: 13px Arial, Helvetica, sans-serif; fill: #4b5563; }
+      .field { font: 15px Consolas, "Courier New", monospace; fill: #1f2937; }
+      .core .entity-bg { stroke: #2563eb; }
+      .core .entity-head { fill: #dbeafe; }
+      .active .entity-bg { stroke: #059669; }
+      .active .entity-head { fill: #d1fae5; }
+      .remote .entity-bg { stroke: #7c3aed; }
+      .remote .entity-head { fill: #ede9fe; }
+      .event .entity-bg { stroke: #ea580c; }
+      .event .entity-head { fill: #ffedd5; }
+      .support .entity-bg { stroke: #0f766e; }
+      .support .entity-head { fill: #ccfbf1; }
+      .external .entity-bg { stroke: #64748b; }
+      .external .entity-head { fill: #e2e8f0; }
+      .relation { fill: none; stroke: #334155; stroke-width: 2.2; marker-end: url(#arrow); }
+      .relation.solid { stroke: #334155; }
+      .relation.logic { stroke: #0f766e; marker-end: url(#arrow-teal); }
+      .relation.remote { stroke: #7c3aed; marker-end: url(#arrow-purple); }
+      .relation.event { stroke: #ea580c; marker-end: url(#arrow-orange); }
+      .relation.dashed { stroke-dasharray: 8 8; }
+      .rel-label { font: 700 14px Arial, Helvetica, sans-serif; fill: #111827; paint-order: stroke; stroke: #f7f9fc; stroke-width: 5px; stroke-linejoin: round; }
+      .note rect { fill: #fff7ed; stroke: #fdba74; stroke-width: 1.8; }
+      .note-title { font: 700 17px Arial, Helvetica, sans-serif; fill: #9a3412; }
+      .note-line { font: 14px Arial, Helvetica, sans-serif; fill: #7c2d12; }
+    </style>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#334155"/>
+    </marker>
+    <marker id="arrow-teal" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#0f766e"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M1,1 L10,5.5 L1,10 Z" fill="#ea580c"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1800" height="1200"/>
+  <text class="page-title" x="900" y="54" text-anchor="middle">V6 - Normalized Conceptual ERD</text>
+  <text class="page-subtitle" x="900" y="84" text-anchor="middle">A cleaned conceptual model of the database system derived from Android, backend, and Supabase schema usage.</text>
+  
+  <g class="group">
+    <rect x="48" y="120" width="410" height="900" rx="14"/>
+    <text class="group-label" x="66" y="150">Identity and preferences</text>
+  </g>
+
+  <g class="group">
+    <rect x="500" y="120" width="500" height="900" rx="14"/>
+    <text class="group-label" x="518" y="150">Disaster events and reports</text>
+  </g>
+
+  <g class="group">
+    <rect x="1040" y="120" width="700" height="900" rx="14"/>
+    <text class="group-label" x="1058" y="150">Notification, knowledge, analytics</text>
+  </g>
+  
+  <g>
+    <path class="relation logic dashed" d="M253 400 L253 460"/>
+    <text class="rel-label" x="300" y="435" text-anchor="middle">1:N roles</text>
+  </g>
+
+  <g>
+    <path class="relation logic dashed" d="M253 400 L253 740"/>
+    <text class="rel-label" x="310" y="612" text-anchor="middle">1:N profiles</text>
+  </g>
+
+  <g>
+    <path class="relation logic dashed" d="M418 280 L548 680"/>
+    <text class="rel-label" x="490" y="498" text-anchor="middle">1:N reports</text>
+  </g>
+
+  <g>
+    <path class="relation logic dashed" d="M418 845 L548 330"/>
+    <text class="rel-label" x="492" y="590" text-anchor="middle">nearby match</text>
+  </g>
+
+  <g>
+    <path class="relation event dashed" d="M928 330 L1088 300"/>
+    <text class="rel-label" x="1010" y="298" text-anchor="middle">1:N notices</text>
+  </g>
+
+  <g>
+    <path class="relation logic dashed" d="M1388 300 L1440 300"/>
+    <text class="rel-label" x="1414" y="282" text-anchor="middle">sent to</text>
+  </g>
+
+  <g>
+    <path class="relation remote " d="M928 710 L1088 645"/>
+    <text class="rel-label" x="1010" y="660" text-anchor="middle">1:N FK</text>
+  </g>
+
+  <g>
+    <path class="relation logic dashed" d="M928 635 L1440 620"/>
+    <text class="rel-label" x="1185" y="602" text-anchor="middle">image_urls</text>
+  </g>
+
+  <g>
+    <path class="relation logic dashed" d="M1388 645 L1440 640"/>
+    <text class="rel-label" x="1416" y="625" text-anchor="middle">image_url</text>
+  </g>
+
+  <g>
+    <path class="relation logic dashed" d="M738 890 L1440 940"/>
+    <text class="rel-label" x="1110" y="930" text-anchor="middle">aggregated into metrics</text>
+  </g>
+
+  <g>
+    <path class="relation logic dashed" d="M1238 835 L1238 780"/>
+    <text class="rel-label" x="1300" y="812" text-anchor="middle">AI context</text>
+  </g>
+  
+  <g class="entity external" transform="translate(88,180)">
+    <rect class="entity-bg" width="330" height="220" rx="8"/>
+    <rect class="entity-head" width="330" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H330"/>
+    <text class="entity-title" x="165" y="26" text-anchor="middle">user_identity</text>
+    <text class="entity-subtitle" x="165" y="48" text-anchor="middle">auth.users or installation_id</text>
+    <text class="field" x="18" y="88">[PK] user_id / installation_id</text>
+<text class="field" x="18" y="112">email or anonymous local id</text>
+<text class="field" x="18" y="136">created by auth or app install</text>
+<text class="field" x="18" y="160">logical parent for mobile data</text>
+  </g>
+
+  <g class="entity support" transform="translate(88,460)">
+    <rect class="entity-bg" width="330" height="210" rx="8"/>
+    <rect class="entity-head" width="330" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H330"/>
+    <text class="entity-title" x="165" y="26" text-anchor="middle">user_role</text>
+    <text class="entity-subtitle" x="165" y="48" text-anchor="middle">user_roles</text>
+    <text class="field" x="18" y="88">[PK] id</text>
+<text class="field" x="18" y="112">[FK*] user_id</text>
+<text class="field" x="18" y="136">role: admin | responder | user</text>
+<text class="field" x="18" y="160">assigned_at, assigned_by</text>
+<text class="field" x="18" y="184">is_active</text>
+  </g>
+
+  <g class="entity support" transform="translate(88,740)">
+    <rect class="entity-bg" width="330" height="230" rx="8"/>
+    <rect class="entity-head" width="330" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H330"/>
+    <text class="entity-title" x="165" y="26" text-anchor="middle">user_notification_profile</text>
+    <text class="entity-subtitle" x="165" y="48" text-anchor="middle">settings + location</text>
+    <text class="field" x="18" y="88">[PK] profile_id</text>
+<text class="field" x="18" y="112">[FK*] user_id</text>
+<text class="field" x="18" y="136">email / enabled</text>
+<text class="field" x="18" y="160">coordinates or preferred area</text>
+<text class="field" x="18" y="184">radius_km</text>
+<text class="field" x="18" y="208">severity threshold</text>
+  </g>
+
+  <g class="entity event" transform="translate(548,170)">
+    <rect class="entity-bg" width="380" height="320" rx="8"/>
+    <rect class="entity-head" width="380" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H380"/>
+    <text class="entity-title" x="190" y="26" text-anchor="middle">disaster_alert</text>
+    <text class="entity-subtitle" x="190" y="48" text-anchor="middle">realtime_alerts</text>
+    <text class="field" x="18" y="88">[PK] alert_id</text>
+<text class="field" x="18" y="112">alert_type</text>
+<text class="field" x="18" y="136">title, message</text>
+<text class="field" x="18" y="160">coordinates</text>
+<text class="field" x="18" y="184">radius_km</text>
+<text class="field" x="18" y="208">severity_level</text>
+<text class="field" x="18" y="232">active window</text>
+<text class="field" x="18" y="256">verified_by / verified_at</text>
+  </g>
+
+  <g class="entity remote" transform="translate(548,560)">
+    <rect class="entity-bg" width="380" height="330" rx="8"/>
+    <rect class="entity-head" width="380" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H380"/>
+    <text class="entity-title" x="190" y="26" text-anchor="middle">incident_report</text>
+    <text class="entity-subtitle" x="190" y="48" text-anchor="middle">incident_reports</text>
+    <text class="field" x="18" y="88">[PK] incident_id</text>
+<text class="field" x="18" y="112">[FK*] reporter_id</text>
+<text class="field" x="18" y="136">type, title, description</text>
+<text class="field" x="18" y="160">location / coordinates</text>
+<text class="field" x="18" y="184">severity_level</text>
+<text class="field" x="18" y="208">contact_info</text>
+<text class="field" x="18" y="232">status, is_verified</text>
+<text class="field" x="18" y="256">created_at, updated_at</text>
+  </g>
+
+  <g class="entity event" transform="translate(1088,170)">
+    <rect class="entity-bg" width="300" height="270" rx="8"/>
+    <rect class="entity-head" width="300" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H300"/>
+    <text class="entity-title" x="150" y="26" text-anchor="middle">notification</text>
+    <text class="entity-subtitle" x="150" y="48" text-anchor="middle">notifications</text>
+    <text class="field" x="18" y="88">[PK] notification_id</text>
+<text class="field" x="18" y="112">[FK*] user_id</text>
+<text class="field" x="18" y="136">[FK*] alert_id</text>
+<text class="field" x="18" y="160">title, message, type</text>
+<text class="field" x="18" y="184">severity_level</text>
+<text class="field" x="18" y="208">read_at, delivered_at</text>
+  </g>
+
+  <g class="entity support" transform="translate(1440,170)">
+    <rect class="entity-bg" width="260" height="270" rx="8"/>
+    <rect class="entity-head" width="260" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H260"/>
+    <text class="entity-title" x="130" y="26" text-anchor="middle">device_endpoint</text>
+    <text class="entity-subtitle" x="130" y="48" text-anchor="middle">device_push_tokens</text>
+    <text class="field" x="18" y="88">[PK] token_id</text>
+<text class="field" x="18" y="112">[FK*] user_id</text>
+<text class="field" x="18" y="136">token UNIQUE</text>
+<text class="field" x="18" y="160">platform</text>
+<text class="field" x="18" y="184">installation_id</text>
+<text class="field" x="18" y="208">is_active</text>
+  </g>
+
+  <g class="entity remote" transform="translate(1088,510)">
+    <rect class="entity-bg" width="300" height="270" rx="8"/>
+    <rect class="entity-head" width="300" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H300"/>
+    <text class="entity-title" x="150" y="26" text-anchor="middle">damage_assessment</text>
+    <text class="entity-subtitle" x="150" y="48" text-anchor="middle">damage_assessments</text>
+    <text class="field" x="18" y="88">[PK] assessment_id</text>
+<text class="field" x="18" y="112">[FK] incident_id</text>
+<text class="field" x="18" y="136">image_url</text>
+<text class="field" x="18" y="160">damage_level</text>
+<text class="field" x="18" y="184">confidence_score</text>
+<text class="field" x="18" y="208">processing_status</text>
+<text class="field" x="18" y="232">assessment_result</text>
+  </g>
+
+  <g class="entity support" transform="translate(1440,510)">
+    <rect class="entity-bg" width="260" height="240" rx="8"/>
+    <rect class="entity-head" width="260" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H260"/>
+    <text class="entity-title" x="130" y="26" text-anchor="middle">media_object</text>
+    <text class="entity-subtitle" x="130" y="48" text-anchor="middle">storage.objects</text>
+    <text class="field" x="18" y="88">[PK] object_id/path</text>
+<text class="field" x="18" y="112">bucket_id</text>
+<text class="field" x="18" y="136">public_url</text>
+<text class="field" x="18" y="160">content_type</text>
+<text class="field" x="18" y="184">linked by URL</text>
+  </g>
+
+  <g class="entity support" transform="translate(1088,835)">
+    <rect class="entity-bg" width="300" height="210" rx="8"/>
+    <rect class="entity-head" width="300" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H300"/>
+    <text class="entity-title" x="150" y="26" text-anchor="middle">knowledge_item</text>
+    <text class="entity-subtitle" x="150" y="48" text-anchor="middle">documents / articles</text>
+    <text class="field" x="18" y="88">[PK] id</text>
+<text class="field" x="18" y="112">title or content</text>
+<text class="field" x="18" y="136">metadata</text>
+<text class="field" x="18" y="160">embedding</text>
+<text class="field" x="18" y="184">used by AI chat</text>
+  </g>
+
+  <g class="entity support" transform="translate(1440,835)">
+    <rect class="entity-bg" width="260" height="210" rx="8"/>
+    <rect class="entity-head" width="260" height="58" rx="8"/>
+    <path class="head-cut" d="M0 58 H260"/>
+    <text class="entity-title" x="130" y="26" text-anchor="middle">metric_or_survey</text>
+    <text class="entity-subtitle" x="130" y="48" text-anchor="middle">analytics + surveys</text>
+    <text class="field" x="18" y="88">[PK] id</text>
+<text class="field" x="18" y="112">metric_name/value</text>
+<text class="field" x="18" y="136">ratings</text>
+<text class="field" x="18" y="160">suggestions</text>
+<text class="field" x="18" y="184">date_recorded</text>
+  </g>
+  
+  <g class="note">
+    <rect x="92" y="1070" width="1580" height="76" rx="8"/>
+    <text class="note-title" x="110" y="1094">Legend</text>
+    <text class="note-line" x="110" y="1114">Solid relation = explicit physical FK found in migrations/types. Dashed relation = logical relation inferred from Android/backend code.</text>
+<text class="note-line" x="110" y="1136">[FK*] marks a recommended conceptual FK even when the inspected physical table currently stores only an optional id or JSON field.</text>
+  </g>
+</svg>
