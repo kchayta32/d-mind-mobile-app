@@ -80,6 +80,30 @@ class BackendRestClient(
         }
     }
 
+    suspend fun fetchWeatherByPlace(
+        province: String,
+        amphoe: String?,
+        tambon: String?,
+        duration: Int,
+    ): String = withContext(Dispatchers.IO) {
+        ensureConfigured()
+        val params = mutableListOf<String>()
+        params.add("province=${URLEncoder.encode(province, "UTF-8")}")
+        if (!amphoe.isNullOrBlank()) {
+            params.add("amphoe=${URLEncoder.encode(amphoe, "UTF-8")}")
+        }
+        if (!tambon.isNullOrBlank()) {
+            params.add("tambon=${URLEncoder.encode(tambon, "UTF-8")}")
+        }
+        params.add("duration=$duration")
+        val queryString = params.joinToString("&")
+        request(
+            method = "GET",
+            path = "/weather?$queryString",
+            contentType = "application/json",
+        )
+    }
+
     private fun ensureConfigured() {
         check(isConfigured) { "Backend gateway is not configured." }
     }

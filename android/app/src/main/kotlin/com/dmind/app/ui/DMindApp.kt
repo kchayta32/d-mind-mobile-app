@@ -40,6 +40,7 @@ import com.dmind.app.domain.usecase.GetFloodFeaturesUseCase
 import com.dmind.app.domain.usecase.GetGistdaWmtsLayerUseCase
 import com.dmind.app.domain.usecase.GetViirsHotspotsUseCase
 import com.dmind.app.domain.usecase.SearchPlacesUseCase
+import com.dmind.app.domain.usecase.FetchWeatherForCoordsUseCase
 import com.dmind.app.ui.navigation.AppRoute
 import com.dmind.app.ui.screens.alert.AlertsScreen
 import com.dmind.app.ui.screens.chatbot.ChatbotScreen
@@ -84,6 +85,7 @@ fun DMindApp() {
             DisasterMapViewModel(
                 getSnapshot = GetDisasterSnapshotUseCase(container.disasterRepository),
                 searchPlaces = SearchPlacesUseCase(container.disasterRepository),
+                fetchWeatherForCoordsUseCase = FetchWeatherForCoordsUseCase(container.disasterRepository),
                 getViirsHotspots = GetViirsHotspotsUseCase(container.gistdaDisasterRepository),
                 getFloodFeatures = GetFloodFeaturesUseCase(container.gistdaDisasterRepository),
                 getGistdaWmtsLayer = GetGistdaWmtsLayerUseCase(container.gistdaDisasterRepository),

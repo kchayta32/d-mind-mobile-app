@@ -15,3 +15,9 @@ class SearchPlacesUseCase(
 ) {
     suspend operator fun invoke(query: String): List<PlaceSearchResult> = repository.searchPlaces(query)
 }
+
+class FetchWeatherForCoordsUseCase(
+    private val repository: DisasterRepository,
+) {
+    suspend operator fun invoke(lat: Double, lon: Double) = repository.fetchWeatherForCoords(lat, lon)
+}

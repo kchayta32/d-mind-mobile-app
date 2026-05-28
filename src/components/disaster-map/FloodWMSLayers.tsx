@@ -1,5 +1,5 @@
 import React from 'react';
-import { Source, Layer } from 'react-map-gl';
+import { Source, Layer } from 'react-map-gl/maplibre';
 
 interface FloodWMSLayersProps {
   timeFilter: '1day' | '3days' | '7days' | '30days';

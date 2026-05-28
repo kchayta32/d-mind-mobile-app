@@ -431,4 +431,5 @@
     <string name="analytics_rainfall">ปริมาณฝน</string>
     <string name="analytics_dashboard_card_title">วิเคราะห์สถิติภัยพิบัติ</string>
     <string name="analytics_dashboard_card_subtitle">กราฟสถิติ แนวโน้ม และข้อมูลสิ่งแวดล้อม</string>
+    <string name="coming_soon">เร็วๆ นี้</string>
 </resources>

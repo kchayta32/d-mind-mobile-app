@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +16,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -168,6 +180,12 @@ internal fun MapBottomSheetContent(
 
         item {
             when {
+                state.isWeatherLoading -> {
+                    WeatherDetailCard(weatherInfo = null, isLoading = true, onClearSelection = onClearSelection)
+                }
+                state.selectedWeatherInfo != null -> {
+                    WeatherDetailCard(weatherInfo = state.selectedWeatherInfo, isLoading = false, onClearSelection = onClearSelection)
+                }
                 state.selectedViirsHotspot != null -> ViirsDetailCard(state.selectedViirsHotspot, onClearSelection)
                 state.selectedFloodArea != null -> FloodDetailCard(state.selectedFloodArea, onClearSelection)
                 state.selectedEvent != null -> EventDetailCard(state.selectedEvent, onClearSelection)
@@ -536,6 +554,391 @@ private fun FloodUpdateRow(floodArea: FloodArea) {
             if (floodArea.timeRange == GistdaTimeRange.FloodFrequency) floodArea.frequencyBucket.label else floodArea.severity.localizedLabel(),
             color,
         )
+    }
+}
+
+@Composable
+private fun WeatherDetailCard(
+    weatherInfo: com.dmind.app.domain.model.SelectedWeatherInfo?,
+    isLoading: Boolean,
+    onClearSelection: () -> Unit,
+) {
+    DmindCard(contentPadding = PaddingValues(16.dp)) {
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                androidx.compose.material3.CircularProgressIndicator(color = DmindBlue)
+            }
+            return@DmindCard
+        }
+        
+        if (weatherInfo == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "ไม่พบข้อมูลสภาพอากาศ",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            return@DmindCard
+        }
+
+        val current = weatherInfo.current
+        
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = current.locationName,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = current.conditionLabel,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 14.sp
+                )
+            }
+            
+            Text(
+                text = when (current.conditionLabel) {
+                    "ท้องฟ้าแจ่มใส", "ท้องฟ้าโปร่ง" -> "☀️"
+                    "มีเมฆบางส่วน" -> "⛅"
+                    "ท้องฟ้าหลัว/มีเมฆมาก", "มีเมฆมาก" -> "☁️"
+                    "มีหมอก" -> "🌫️"
+                    "ฝนละออง", "ฝนตกเล็กน้อย", "ฝนซู่ตกเล็กน้อย" -> "🌧️"
+                    "ฝนตกปานกลาง" -> "🌧️"
+                    "ฝนตกหนัก", "ฝนซู่ตกหนัก" -> "🌧️"
+                    "ฝนฟ้าคะนอง" -> "⛈️"
+                    "ฝนฟ้าคะนองกับลูกเห็บ" -> "⛈️❄️"
+                    else -> "☁️"
+                },
+                fontSize = 42.sp
+            )
+            
+            Spacer(Modifier.width(8.dp))
+            
+            IconButton(onClick = onClearSelection) {
+                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.btn_close))
+            }
+        }
+        
+        Spacer(Modifier.height(12.dp))
+        
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "${current.temperatureCelsius.toInt()}°C",
+                fontSize = 48.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = "รู้สึกเหมือน ${current.apparentTemperatureCelsius.toInt()}°C",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "ข้อมูล ณ ${current.forecastTime.substringAfter("T").take(5)} น.",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        
+        Spacer(Modifier.height(16.dp))
+        
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .padding(10.dp)
+            ) {
+                Column {
+                    Text("ความชื้น", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("${current.humidityPercent.toInt()}%", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .padding(10.dp)
+            ) {
+                Column {
+                    Text("ความเร็วลม", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("${current.windSpeedMps.toInt()} m/s", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .padding(10.dp)
+            ) {
+                Column {
+                    Text("ความกดอากาศ", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("${current.pressureHpa.toInt()} hPa", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .padding(10.dp)
+            ) {
+                Column {
+                    Text("ปริมาณฝน", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("${current.rainMillimeters.formatOne()} มม.", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+        
+        Spacer(Modifier.height(20.dp))
+        
+        Text(
+            text = "แนวโน้มอุณหภูมิรายชั่วโมง",
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(130.dp)
+        ) {
+            val scrollState = rememberScrollState()
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .horizontalScroll(scrollState)
+            ) {
+                HourlyTemperatureTrendLine(
+                    hourly = weatherInfo.hourly,
+                    modifier = Modifier
+                        .width(720.dp)
+                        .fillMaxHeight()
+                )
+            }
+        }
+        
+        Spacer(Modifier.height(20.dp))
+        
+        Text(
+            text = "พยากรณ์อากาศ 7 วันล่วงหน้า",
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            weatherInfo.daily.forEach { forecast ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = forecast.date,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.sp,
+                        modifier = Modifier.width(90.dp)
+                    )
+                    
+                    Text(
+                        text = when (forecast.conditionLabel) {
+                            "ท้องฟ้าแจ่มใส", "ท้องฟ้าโปร่ง" -> "☀️"
+                            "มีเมฆบางส่วน" -> "⛅"
+                            "ท้องฟ้าหลัว/มีเมฆมาก", "มีเมฆมาก" -> "☁️"
+                            "มีหมอก" -> "🌫️"
+                            "ฝนละออง", "ฝนตกเล็กน้อย", "ฝนซู่ตกเล็กน้อย" -> "🌧️"
+                            "ฝนตกปานกลาง" -> "🌧️"
+                            "ฝนตกหนัก", "ฝนซู่ตกหนัก" -> "🌧️"
+                            "ฝนฟ้าคะนอง" -> "⛈️"
+                            "ฝนฟ้าคะนองกับลูกเห็บ" -> "⛈️❄️"
+                            else -> "☁️"
+                        },
+                        fontSize = 20.sp,
+                        modifier = Modifier.width(32.dp),
+                        textAlign = TextAlign.Center
+                    )
+                    
+                    Text(
+                        text = forecast.conditionLabel,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    
+                    Row(
+                        horizontalArrangement = Arrangement.End,
+                        modifier = Modifier.width(80.dp)
+                    ) {
+                        Text(
+                            text = "${forecast.maxTempCelsius.toInt()}°",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = "${forecast.minTempCelsius.toInt()}°",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun HourlyTemperatureTrendLine(
+    hourly: List<com.dmind.app.domain.model.MapHourlyForecast>,
+    modifier: Modifier = Modifier
+) {
+    if (hourly.isEmpty()) return
+    
+    val temps = hourly.map { it.temperatureCelsius }
+    val maxTemp = temps.maxOrNull() ?: 40.0
+    val minTemp = temps.minOrNull() ?: 10.0
+    val tempRange = (maxTemp - minTemp).coerceAtLeast(1.0)
+    
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val onSurface = MaterialTheme.colorScheme.onSurface
+    
+    androidx.compose.foundation.Canvas(modifier = modifier) {
+        val width = size.width
+        val height = size.height
+        
+        val paddingLeft = 40f
+        val paddingRight = 40f
+        val paddingTop = 40f
+        val paddingBottom = 40f
+        
+        val drawWidth = width - paddingLeft - paddingRight
+        val drawHeight = height - paddingTop - paddingBottom
+        
+        val pointsCount = hourly.size
+        val xStep = drawWidth / (pointsCount - 1).coerceAtLeast(1)
+        
+        val path = Path()
+        val fillPath = Path()
+        
+        val points = hourly.mapIndexed { index, forecast ->
+            val x = paddingLeft + index * xStep
+            val normalizedTemp = (forecast.temperatureCelsius - minTemp) / tempRange
+            val y = paddingTop + drawHeight - (normalizedTemp * drawHeight).toFloat()
+            x to y
+        }
+        
+        points.forEachIndexed { index, (x, y) ->
+            if (index == 0) {
+                path.moveTo(x, y)
+                fillPath.moveTo(x, y)
+            } else {
+                path.lineTo(x, y)
+                fillPath.lineTo(x, y)
+            }
+        }
+        
+        if (points.isNotEmpty()) {
+            fillPath.lineTo(points.last().first, paddingTop + drawHeight)
+            fillPath.lineTo(points.first().first, paddingTop + drawHeight)
+            fillPath.close()
+        }
+        
+        drawPath(
+            path = fillPath,
+            brush = Brush.verticalGradient(
+                colors = listOf(primaryColor.copy(alpha = 0.3f), Color.Transparent),
+                startY = points.minOf { it.second },
+                endY = paddingTop + drawHeight
+            )
+        )
+        
+        drawPath(
+            path = path,
+            color = primaryColor,
+            style = Stroke(
+                width = 6f,
+                cap = androidx.compose.ui.graphics.StrokeCap.Round,
+                join = androidx.compose.ui.graphics.StrokeJoin.Round
+            )
+        )
+        
+        val step = if (pointsCount > 8) pointsCount / 6 else 1
+        for (i in 0 until pointsCount step step) {
+            val (x, y) = points[i]
+            val forecast = hourly[i]
+            
+            drawContext.canvas.nativeCanvas.drawText(
+                "${forecast.temperatureCelsius.toInt()}°",
+                x,
+                y - 12f,
+                android.graphics.Paint().apply {
+                    color = onSurface.toArgb()
+                    textSize = 28f
+                    textAlign = android.graphics.Paint.Align.CENTER
+                    typeface = android.graphics.Typeface.DEFAULT_BOLD
+                }
+            )
+            
+            drawContext.canvas.nativeCanvas.drawText(
+                forecast.time,
+                x,
+                paddingTop + drawHeight + 30f,
+                android.graphics.Paint().apply {
+                    color = onSurface.copy(alpha = 0.6f).toArgb()
+                    textSize = 24f
+                    textAlign = android.graphics.Paint.Align.CENTER
+                }
+            )
+            
+            drawCircle(
+                color = primaryColor,
+                radius = 8f,
+                center = androidx.compose.ui.geometry.Offset(x, y)
+            )
+        }
     }
 }
 

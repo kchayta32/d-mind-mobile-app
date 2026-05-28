@@ -16,6 +16,7 @@ interface MapLayersProps {
   rainData: RainViewerData | null;
   rainOverlayType: 'radar' | 'satellite';
   rainTimeType: 'past' | 'future';
+  currentFrameIndex: number;
   wildfireTimeFilter: string;
   showBurnFreq: boolean;
 }
@@ -29,6 +30,7 @@ export const MapLayers: React.FC<MapLayersProps> = ({
   rainData,
   rainOverlayType,
   rainTimeType,
+  currentFrameIndex,
   wildfireTimeFilter,
   showBurnFreq
 }) => {
@@ -65,6 +67,7 @@ export const MapLayers: React.FC<MapLayersProps> = ({
           rainData={rainData}
           overlayType={rainOverlayType}
           timeType={rainTimeType}
+          currentFrameIndex={currentFrameIndex}
         />
       )}
     </>

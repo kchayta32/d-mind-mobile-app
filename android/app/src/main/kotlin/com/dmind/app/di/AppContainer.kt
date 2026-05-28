@@ -17,7 +17,7 @@ import com.dmind.app.network.InstallationIdProvider
 class AppContainer(context: Context) {
     val nativeStatusRepository = NativeStatusRepository(context)
     val disasterRepository: DisasterRepository = DefaultDisasterRepository(
-        mapDataSource = DisasterMapRepository(),
+        mapDataSource = DisasterMapRepository(context),
         airQualityDataSource = AirQualityRemoteDataSource(),
     )
     val gistdaDisasterRepository: GistdaDisasterRepository = GistdaDisasterRepositoryImpl(

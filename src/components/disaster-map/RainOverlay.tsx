@@ -1,29 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import { Source, Layer } from 'react-map-gl';
+import React from 'react';
+import { Source, Layer } from 'react-map-gl/maplibre';
 import { RainViewerData } from './useRainViewerData';
 
 interface RainOverlayProps {
   rainData: RainViewerData | null;
   overlayType: 'radar' | 'satellite';
   timeType: 'past' | 'future';
+  currentFrameIndex: number;
 }
 
-const RainOverlay: React.FC<RainOverlayProps> = ({ rainData, overlayType, timeType }) => {
-  const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
-
-  useEffect(() => {
-    if (!rainData || overlayType !== 'radar' || timeType !== 'past') return;
-
-    const frames = rainData.radar?.past || [];
-    if (frames.length <= 1) return;
-
-    const interval = setInterval(() => {
-      setCurrentFrameIndex(prev => (prev + 1) % frames.length);
-    }, 500); // Change frame every 500ms
-
-    return () => clearInterval(interval);
-  }, [rainData, overlayType, timeType]);
-
+const RainOverlay: React.FC<RainOverlayProps> = ({
+  rainData,
+  overlayType,
+  timeType,
+  currentFrameIndex
+}) => {
   if (!rainData) return null;
 
   let frames: any[] = [];

@@ -25,11 +25,13 @@ import com.dmind.app.domain.model.GistdaTimeRange
 import com.dmind.app.domain.model.HazardType
 import com.dmind.app.domain.model.Severity
 import com.dmind.app.domain.model.ViirsHotspot
+import com.dmind.app.domain.model.SelectedWeatherInfo
 import com.dmind.app.domain.usecase.GetDisasterSnapshotUseCase
 import com.dmind.app.domain.usecase.GetFloodFeaturesUseCase
 import com.dmind.app.domain.usecase.GetGistdaWmtsLayerUseCase
 import com.dmind.app.domain.usecase.GetViirsHotspotsUseCase
 import com.dmind.app.domain.usecase.SearchPlacesUseCase
+import com.dmind.app.domain.usecase.FetchWeatherForCoordsUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +39,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.isActive
+import java.net.URL
+import org.json.JSONObject
+import org.json.JSONArray
+
+data class RainViewerFrame(val time: Long, val path: String)
 
 data class DisasterMapUiState(
     val snapshot: DisasterSnapshot = DisasterSnapshot(),
@@ -59,6 +68,16 @@ data class DisasterMapUiState(
     val isSearching: Boolean = false,
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
+    val radarFrames: List<RainViewerFrame> = emptyList(),
+    val radarHost: String = "",
+    val currentRadarFrameIndex: Int = -1,
+    val isRadarPlaying: Boolean = false,
+    val radarPlaybackSpeed: Int = 1, // 1x, 2x, 4x
+    val radarOverlayType: String = "radar", // "radar" or "satellite"
+    val radarTimeType: String = "past", // "past" or "future"
+    val showRadarOverlay: Boolean = false,
+    val selectedWeatherInfo: SelectedWeatherInfo? = null,
+    val isWeatherLoading: Boolean = false,
 ) {
     val visibleEvents: List<DisasterEvent>
         get() = snapshot.events.filter { event -> filter.accepts(event) }
@@ -70,6 +89,7 @@ data class DisasterMapUiState(
 class DisasterMapViewModel(
     private val getSnapshot: GetDisasterSnapshotUseCase,
     private val searchPlaces: SearchPlacesUseCase,
+    private val fetchWeatherForCoordsUseCase: FetchWeatherForCoordsUseCase,
     private val getViirsHotspots: GetViirsHotspotsUseCase,
     private val getFloodFeatures: GetFloodFeaturesUseCase,
     private val getGistdaWmtsLayer: GetGistdaWmtsLayerUseCase,
@@ -77,10 +97,13 @@ class DisasterMapViewModel(
     private val _state = MutableStateFlow(DisasterMapUiState())
     val state: StateFlow<DisasterMapUiState> = _state.asStateFlow()
     private var searchJob: Job? = null
+    private var cachedRainViewerJson: JSONObject? = null
+    private var playbackJob: Job? = null
 
     init {
         refresh()
         refreshActiveLayer()
+        loadRainViewerData()
     }
 
     fun refreshMap() {
@@ -112,6 +135,20 @@ class DisasterMapViewModel(
         }
     }
 
+    fun fetchWeatherForCoords(lat: Double, lon: Double) {
+        viewModelScope.launch {
+            _state.update { it.copy(isWeatherLoading = true, selectedWeatherInfo = null) }
+            runCatching {
+                fetchWeatherForCoordsUseCase(lat, lon)
+            }.onSuccess { weatherInfo ->
+                _state.update { it.copy(isWeatherLoading = false, selectedWeatherInfo = weatherInfo) }
+            }.onFailure { error ->
+                error.printStackTrace()
+                _state.update { it.copy(isWeatherLoading = false, selectedWeatherInfo = null) }
+            }
+        }
+    }
+
     fun toggleHazardType(type: HazardType) {
         _state.update { current ->
             val nextTypes = if (type in current.filter.selectedTypes) {
@@ -137,6 +174,7 @@ class DisasterMapViewModel(
                 selectedEvent = event,
                 selectedViirsHotspot = null,
                 selectedFloodArea = null,
+                selectedWeatherInfo = null,
             )
         }
     }
@@ -151,6 +189,7 @@ class DisasterMapViewModel(
                 selectedEvent = event,
                 selectedViirsHotspot = viirsHotspot,
                 selectedFloodArea = floodArea,
+                selectedWeatherInfo = null,
             )
         }
     }
@@ -164,6 +203,7 @@ class DisasterMapViewModel(
                 selectedEvent = null,
                 selectedViirsHotspot = null,
                 selectedFloodArea = null,
+                selectedWeatherInfo = null,
                 layerError = null,
             )
         }
@@ -179,6 +219,7 @@ class DisasterMapViewModel(
                 selectedEvent = null,
                 selectedViirsHotspot = null,
                 selectedFloodArea = null,
+                selectedWeatherInfo = null,
                 layerError = null,
             )
         }
@@ -335,6 +376,139 @@ class DisasterMapViewModel(
 
     fun clearSearchResults() {
         _state.update { it.copy(searchResults = emptyList()) }
+    }
+
+    private fun updateRadarFramesFromCache() {
+        val json = cachedRainViewerJson ?: return
+        val overlayType = _state.value.radarOverlayType
+        
+        val host = json.optString("host", "")
+        val overlayObj = json.optJSONObject(overlayType)
+        
+        val pastArray = overlayObj?.optJSONArray("past")
+        val nowcastArray = overlayObj?.optJSONArray("nowcast")
+        
+        val frames = mutableListOf<RainViewerFrame>()
+        var pastSize = 0
+        if (pastArray != null) {
+            for (i in 0 until pastArray.length()) {
+                val frameObj = pastArray.optJSONObject(i)
+                if (frameObj != null) {
+                    val time = frameObj.optLong("time", 0L)
+                    val path = frameObj.optString("path", "")
+                    frames.add(RainViewerFrame(time, path))
+                }
+            }
+            pastSize = frames.size
+        }
+        
+        if (nowcastArray != null) {
+            for (i in 0 until nowcastArray.length()) {
+                val frameObj = nowcastArray.optJSONObject(i)
+                if (frameObj != null) {
+                    val time = frameObj.optLong("time", 0L)
+                    val path = frameObj.optString("path", "")
+                    frames.add(RainViewerFrame(time, path))
+                }
+            }
+        }
+        
+        val lastPastIndex = if (pastSize > 0) pastSize - 1 else if (frames.isNotEmpty()) 0 else -1
+        
+        _state.update { current ->
+            current.copy(
+                radarFrames = frames,
+                radarHost = host,
+                currentRadarFrameIndex = lastPastIndex
+            )
+        }
+    }
+
+    fun loadRainViewerData() {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val jsonText = URL("https://api.rainviewer.com/public/weather-maps.json").readText()
+                JSONObject(jsonText)
+            }.onSuccess { jsonObject ->
+                cachedRainViewerJson = jsonObject
+                updateRadarFramesFromCache()
+            }.onFailure { error ->
+                error.printStackTrace()
+            }
+        }
+    }
+
+    fun toggleRadarOverlay(show: Boolean) {
+        _state.update { it.copy(showRadarOverlay = show) }
+    }
+
+    fun setRadarOverlayType(type: String) {
+        _state.update { it.copy(radarOverlayType = type) }
+        updateRadarFramesFromCache()
+    }
+
+    fun setRadarTimeType(type: String) {
+        _state.update { it.copy(radarTimeType = type) }
+        updateRadarFramesFromCache()
+    }
+
+    fun toggleRadarPlayback() {
+        val nextPlaying = !_state.value.isRadarPlaying
+        _state.update { it.copy(isRadarPlaying = nextPlaying) }
+        if (nextPlaying) {
+            startPlayback()
+        } else {
+            stopPlayback()
+        }
+    }
+
+    private fun startPlayback() {
+        playbackJob?.cancel()
+        playbackJob = viewModelScope.launch {
+            while (isActive) {
+                val speed = _state.value.radarPlaybackSpeed
+                delay(1500L / speed)
+                stepRadarFrame(1)
+            }
+        }
+    }
+
+    private fun stopPlayback() {
+        playbackJob?.cancel()
+        playbackJob = null
+    }
+
+    fun setRadarPlaybackSpeed(speed: Int) {
+        _state.update { it.copy(radarPlaybackSpeed = speed) }
+        if (_state.value.isRadarPlaying) {
+            startPlayback()
+        }
+    }
+
+    fun seekRadarFrame(index: Int) {
+        val frames = _state.value.radarFrames
+        if (frames.isEmpty()) {
+            _state.update { it.copy(currentRadarFrameIndex = -1) }
+            return
+        }
+        val safeIndex = index.coerceIn(0, frames.size - 1)
+        _state.update { it.copy(currentRadarFrameIndex = safeIndex) }
+    }
+
+    fun stepRadarFrame(direction: Int) {
+        val frames = _state.value.radarFrames
+        if (frames.isEmpty()) {
+            _state.update { it.copy(currentRadarFrameIndex = -1) }
+            return
+        }
+        val currentIndex = _state.value.currentRadarFrameIndex
+        val nextIndex = if (currentIndex == -1) {
+            0
+        } else {
+            val calculated = (currentIndex + direction) % frames.size
+            if (calculated < 0) calculated + frames.size else calculated
+        }
+        _state.update { it.copy(currentRadarFrameIndex = nextIndex) }
     }
 }
 

@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Marker, Popup, useMap } from 'react-map-gl';
+import { Marker, Popup, useMap } from 'react-map-gl/maplibre';
 
 interface UserLocationMarkerProps {
   showLocation: boolean;

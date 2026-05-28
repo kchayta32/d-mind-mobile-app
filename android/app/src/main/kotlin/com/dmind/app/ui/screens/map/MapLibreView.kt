@@ -52,12 +52,17 @@ internal fun MapLibreTerrainView(
     focusedPlace: PlaceSearchResult?,
     cameraAction: MapCameraAction?,
     onMarkerClick: (MapMarkerItem) -> Unit,
+    onMapClick: (Double, Double) -> Unit,
+    showRadarOverlay: Boolean,
+    radarHost: String,
+    activeRadarPath: String?,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val markerLookup = remember { mutableMapOf<Long, MapMarkerItem>() }
     val currentMarkerClick by rememberUpdatedState(onMarkerClick)
+    val currentMapClick by rememberUpdatedState(onMapClick)
     var mapLibreMap by remember { mutableStateOf<MapLibreMap?>(null) }
     val overlayTileUrl = wmtsLayer?.tileUrl
     val overlayTileScheme = wmtsLayer?.tileScheme
@@ -70,19 +75,35 @@ internal fun MapLibreTerrainView(
                 map.uiSettings.isAttributionEnabled = false
                 map.uiSettings.isLogoEnabled = false
                 map.uiSettings.isCompassEnabled = false
-                map.setStyle(Style.Builder().fromJson(mapStyleJson(mapStyle, wmtsLayer)))
+                map.setStyle(Style.Builder().fromJson(mapStyleJson(
+                    style = mapStyle,
+                    wmtsLayer = wmtsLayer,
+                    showRadarOverlay = showRadarOverlay,
+                    radarHost = radarHost,
+                    activeRadarPath = activeRadarPath
+                )))
                 map.cameraPosition = thailandCamera()
                 map.setOnMarkerClickListener { marker ->
                     markerLookup[marker.id]?.let { currentMarkerClick(it) }
+                    true
+                }
+                map.addOnMapClickListener { latLng ->
+                    currentMapClick(latLng.latitude, latLng.longitude)
                     true
                 }
             }
         }
     }
 
-    LaunchedEffect(mapLibreMap, mapStyle, overlayTileUrl, overlayTileScheme) {
+    LaunchedEffect(mapLibreMap, mapStyle, overlayTileUrl, overlayTileScheme, showRadarOverlay, activeRadarPath) {
         val map = mapLibreMap ?: return@LaunchedEffect
-        map.setStyle(Style.Builder().fromJson(mapStyleJson(mapStyle, wmtsLayer)))
+        map.setStyle(Style.Builder().fromJson(mapStyleJson(
+            style = mapStyle,
+            wmtsLayer = wmtsLayer,
+            showRadarOverlay = showRadarOverlay,
+            radarHost = radarHost,
+            activeRadarPath = activeRadarPath
+        )))
     }
 
     LaunchedEffect(mapLibreMap, markers, mapStyle, overlayTileUrl, overlayTileScheme) {
@@ -380,6 +401,9 @@ private fun thailandCamera(): CameraPosition = CameraPosition.Builder()
 private fun mapStyleJson(
     style: MapTileStyle,
     wmtsLayer: GistdaLayer?,
+    showRadarOverlay: Boolean,
+    radarHost: String,
+    activeRadarPath: String?,
 ): String {
     val overlayTile = wmtsLayer?.tileUrl?.replace("\\", "\\\\")?.replace("\"", "\\\"")
     val overlayScheme = wmtsLayer?.tileScheme ?: "xyz"
@@ -412,6 +436,37 @@ private fun mapStyleJson(
     } else {
         ""
     }
+
+    val radarUrl = if (activeRadarPath != null) {
+        "${radarHost}${activeRadarPath}/256/{z}/{x}/{y}/2/1_1.png"
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+    } else null
+
+    val radarSource = if (showRadarOverlay && radarUrl != null) {
+        """,
+    "radar-overlay": {
+      "type": "raster",
+      "tiles": ["$radarUrl"],
+      "tileSize": 256,
+      "attribution": "RainViewer"
+    }"""
+    } else {
+        ""
+    }
+
+    val radarLayer = if (showRadarOverlay && radarUrl != null) {
+        """,
+    {
+      "id": "radar-overlay",
+      "type": "raster",
+      "source": "radar-overlay",
+      "paint": { "raster-opacity": 0.75 }
+    }"""
+    } else {
+        ""
+    }
+
     return """
 {
   "version": 8,
@@ -421,14 +476,14 @@ private fun mapStyleJson(
       "tiles": ["${style.tileUrl}"],
       "tileSize": 256,
       "attribution": "${style.attribution}"
-    }$overlaySource
+    }$overlaySource$radarSource
   },
   "layers": [
     {
       "id": "base",
       "type": "raster",
       "source": "base"
-    }$overlayLayer
+    }$overlayLayer$radarLayer
   ]
 }
     """.trimIndent()

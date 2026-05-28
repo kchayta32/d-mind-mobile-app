@@ -431,4 +431,5 @@
     <string name="analytics_rainfall">Rainfall</string>
     <string name="analytics_dashboard_card_title">Disaster Statistics</string>
     <string name="analytics_dashboard_card_subtitle">Charts, trends, and environmental data</string>
+    <string name="coming_soon">Coming Soon</string>
 </resources>

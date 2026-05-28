@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Marker, Popup, useMap } from 'react-map-gl';
+import { Marker, Popup, useMap } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 export interface MapLibreMarkerProps {

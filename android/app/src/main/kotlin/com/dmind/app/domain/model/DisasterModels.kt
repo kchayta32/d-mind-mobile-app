@@ -64,6 +64,32 @@ data class WeatherSnapshot(
     val windSpeedMps: Double,
     val conditionLabel: String,
     val forecastTime: String,
+    val latitude: Double = 13.7563,
+    val longitude: Double = 100.5018,
+    val apparentTemperatureCelsius: Double = 0.0,
+    val pressureHpa: Double = 0.0,
+)
+
+data class MapHourlyForecast(
+    val time: String,
+    val temperatureCelsius: Double,
+    val conditionLabel: String,
+    val conditionCode: Int,
+    val rainMillimeters: Double,
+)
+
+data class MapDailyForecast(
+    val date: String,
+    val maxTempCelsius: Double,
+    val minTempCelsius: Double,
+    val conditionLabel: String,
+    val conditionCode: Int,
+)
+
+data class SelectedWeatherInfo(
+    val current: WeatherSnapshot,
+    val hourly: List<MapHourlyForecast>,
+    val daily: List<MapDailyForecast>,
 )
 
 data class ExternalSourceStatus(

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Source, Layer, Popup, useMap } from 'react-map-gl';
+import { Source, Layer, Popup, useMap } from 'react-map-gl/maplibre';
 import { Earthquake } from './types';
 
 interface ClusteredEarthquakeMarkersProps {

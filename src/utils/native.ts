@@ -336,7 +336,7 @@ export const hapticImpactLight = async () => {
   const h = await getHaptics();
   if (h) {
     try {
-      await h.impact({ style: 'LIGHT' });
+      await h.impact({ style: 'LIGHT' as import('@capacitor/haptics').ImpactStyle });
     } catch { /* silent */ }
   }
 };
@@ -346,7 +346,7 @@ export const hapticImpactMedium = async () => {
   const h = await getHaptics();
   if (h) {
     try {
-      await h.impact({ style: 'MEDIUM' });
+      await h.impact({ style: 'MEDIUM' as import('@capacitor/haptics').ImpactStyle });
     } catch { /* silent */ }
   }
 };
@@ -356,7 +356,7 @@ export const hapticImpactHeavy = async () => {
   const h = await getHaptics();
   if (h) {
     try {
-      await h.impact({ style: 'HEAVY' });
+      await h.impact({ style: 'HEAVY' as import('@capacitor/haptics').ImpactStyle });
     } catch { /* silent */ }
   }
 };

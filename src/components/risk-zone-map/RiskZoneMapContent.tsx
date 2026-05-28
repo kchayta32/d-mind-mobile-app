@@ -1,5 +1,5 @@
 import React, { useState, useRef, Suspense } from 'react';
-import Map, { NavigationControl, MapRef } from 'react-map-gl';
+import Map, { NavigationControl, MapRef } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { RiskZoneLayer } from '@/components/disaster-map/RiskZoneLayer';

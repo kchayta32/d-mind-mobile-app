@@ -40,6 +40,8 @@ data class WeatherSummary(
     val conditionCode: Int,
     val conditionLabel: String,
     val forecastTime: String,
+    val latitude: Double = 13.7563,
+    val longitude: Double = 100.5018,
 )
 
 data class MapExternalSourceStatus(
@@ -125,3 +127,9 @@ data class MapDataSnapshot(
 }
 
 fun Double.formatOne(): String = "%,.1f".format(this)
+
+data class PlaceInfo(
+    val province: String,
+    val amphoe: String?,
+    val tambon: String?,
+)

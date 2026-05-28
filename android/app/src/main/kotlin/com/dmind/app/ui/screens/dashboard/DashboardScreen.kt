@@ -44,6 +44,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -145,6 +146,7 @@ fun DashboardScreen(
                 gradient = listOf(Color(0xFFEF4444), Color(0xFFDC2626)),
                 onClick = { onNavigate(AppRoute.VictimReports) },
                 modifier = Modifier.padding(horizontal = 16.dp),
+                enabled = false,
             )
         }
         item {
@@ -155,6 +157,7 @@ fun DashboardScreen(
                 gradient = listOf(Color(0xFF8B5CF6), Color(0xFF6366F1)),
                 onClick = { onNavigate(AppRoute.Analytics) },
                 modifier = Modifier.padding(horizontal = 16.dp),
+                enabled = false,
             )
         }
         item {
@@ -165,6 +168,7 @@ fun DashboardScreen(
                 gradient = listOf(Color(0xFF10B981), Color(0xFF059669)),
                 onClick = { onNavigate(AppRoute.Damage) },
                 modifier = Modifier.padding(horizontal = 16.dp),
+                enabled = false,
             )
         }
     }
@@ -361,14 +365,26 @@ fun WeatherShortcutCard(
     gradient: List<Color>,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
+    val alpha = if (enabled) 1f else 0.65f
+    val resolvedGradient = if (enabled) {
+        gradient
+    } else {
+        listOf(Color(0xFF64748B), Color(0xFF475569))
+    }
+    
     FeatureCard(
         modifier = modifier,
-        gradient = gradient,
+        gradient = resolvedGradient,
         onClick = onClick,
+        enabled = enabled,
         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 13.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.alpha(alpha)
+        ) {
             Surface(shape = RoundedCornerShape(12.dp), color = Color.White.copy(alpha = 0.18f)) {
                 Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.padding(8.dp).size(18.dp))
             }
@@ -377,7 +393,23 @@ fun WeatherShortcutCard(
                 Text(title, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, maxLines = 1)
                 Text(subtitle, color = Color.White.copy(alpha = 0.86f), fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
-            Text("›", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Light)
+            if (enabled) {
+                Text("›", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Light)
+            } else {
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = Color.Black.copy(alpha = 0.35f),
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.coming_soon),
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+            }
         }
     }
 }
@@ -387,13 +419,14 @@ fun FeatureCard(
     gradient: List<Color>,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     contentPadding: PaddingValues = PaddingValues(16.dp),
     content: @Composable () -> Unit,
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .clickable(enabled = enabled, onClick = onClick),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),

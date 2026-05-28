@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Source, Layer } from 'react-map-gl';
+import { Source, Layer } from 'react-map-gl/maplibre';
 import { FloodFeature } from './hooks/useGISTDAFloodData';
 import { MapLibreMarker } from './maplibre/MapLibreMarker';
 

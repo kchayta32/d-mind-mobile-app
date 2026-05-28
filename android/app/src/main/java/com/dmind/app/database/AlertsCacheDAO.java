@@ -393,4 +393,29 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
         
         return id;
     }
+
+    /**
+     * Get the latest location record from the location_history table.
+     */
+    public LocationRecord getLatestLocation() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        LocationRecord record = null;
+        String query = "SELECT * FROM " + TABLE_LOCATION_HISTORY +
+                       " ORDER BY " + COLUMN_LOC_TIMESTAMP + " DESC LIMIT 1";
+        Cursor cursor = db.rawQuery(query, null);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                record = new LocationRecord();
+                record.setId(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_LOC_ID)));
+                record.setLatitude(cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_LOC_LATITUDE)));
+                record.setLongitude(cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_LOC_LONGITUDE)));
+                record.setTimestamp(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_LOC_TIMESTAMP)));
+                record.setAccuracy(cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_LOC_ACCURACY)));
+                record.setZoneId(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_LOC_ZONE_ID)));
+            }
+            cursor.close();
+        }
+        db.close();
+        return record;
+    }
 }

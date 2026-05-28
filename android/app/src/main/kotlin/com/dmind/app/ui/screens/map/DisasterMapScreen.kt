@@ -39,6 +39,7 @@ import com.dmind.app.ui.components.StatusPill
 import com.dmind.app.ui.components.WatchYellow
 import com.dmind.app.ui.viewmodel.DisasterMapUiState
 import com.dmind.app.ui.viewmodel.DisasterMapViewModel
+import com.dmind.app.ui.viewmodel.RainViewerFrame
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,6 +73,11 @@ fun DisasterMapScreen(
         markerText,
     ) {
         buildMapMarkerItems(state, markerText)
+    }
+
+    LaunchedEffect(state.activeLayer) {
+        val isWeather = state.activeLayer == DisasterLayerType.Storm || state.activeLayer.name == "Weather"
+        viewModel.toggleRadarOverlay(isWeather)
     }
 
     fun sendCameraAction(kind: MapCameraActionKind) {
@@ -110,6 +116,7 @@ fun DisasterMapScreen(
                 .fillMaxSize()
                 .padding(bottom = padding.calculateBottomPadding()),
         ) {
+            val activeRadarFramePath = state.radarFrames.getOrNull(state.currentRadarFrameIndex)?.path
             MapLibreTerrainView(
                 modifier = Modifier.fillMaxSize(),
                 markers = markers,
@@ -126,6 +133,13 @@ fun DisasterMapScreen(
                     )
                     scope.launch { scaffoldState.bottomSheetState.expand() }
                 },
+                onMapClick = { lat, lon ->
+                    viewModel.fetchWeatherForCoords(lat, lon)
+                    scope.launch { scaffoldState.bottomSheetState.expand() }
+                },
+                showRadarOverlay = state.showRadarOverlay,
+                radarHost = state.radarHost,
+                activeRadarPath = activeRadarFramePath,
             )
 
             Box(
@@ -153,6 +167,8 @@ fun DisasterMapScreen(
                     focusedPlace = result
                     viewModel.updateSearchQuery(result.name.substringBefore(','))
                     viewModel.clearSearchResults()
+                    viewModel.fetchWeatherForCoords(result.latitude, result.longitude)
+                    scope.launch { scaffoldState.bottomSheetState.expand() }
                 },
                 modifier = Modifier
                     .align(Alignment.TopCenter)
@@ -197,6 +213,23 @@ fun DisasterMapScreen(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(end = 14.dp, bottom = 128.dp),
+                )
+            }
+
+            if (state.showRadarOverlay && (state.activeLayer == DisasterLayerType.Storm || state.activeLayer.name == "Weather")) {
+                RadarTimelinePlayer(
+                    radarFrames = state.radarFrames,
+                    currentRadarFrameIndex = state.currentRadarFrameIndex,
+                    isRadarPlaying = state.isRadarPlaying,
+                    radarPlaybackSpeed = state.radarPlaybackSpeed,
+                    onPlayPauseClick = { viewModel.toggleRadarPlayback() },
+                    onStepBackwardClick = { viewModel.stepRadarFrame(-1) },
+                    onStepForwardClick = { viewModel.stepRadarFrame(1) },
+                    onSpeedChange = { viewModel.setRadarPlaybackSpeed(it) },
+                    onSeekFrame = { viewModel.seekRadarFrame(it) },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(start = 14.dp, end = 14.dp, bottom = 128.dp),
                 )
             }
 

@@ -47,6 +47,10 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 import com.dmind.backend.routes.analyticsRoutes
+import com.dmind.backend.routes.disasterDataRoutes
+import com.dmind.backend.routes.alertRoutes
+import com.dmind.backend.routes.notificationRoutes
+import com.dmind.backend.routes.mediaRoutes
 
 fun main() {
     val port = setting("PORT")?.toIntOrNull() ?: 8080
@@ -66,6 +70,10 @@ fun Application.dmindModule() {
 
     routing {
         analyticsRoutes(cacheService, dataAggregator)
+        disasterDataRoutes(config)
+        alertRoutes(config, supabase)
+        notificationRoutes(config, deviceRegistry)
+        mediaRoutes(config, supabase)
         get("/health") {
             call.respond(
                 HealthResponse(
@@ -75,228 +83,8 @@ fun Application.dmindModule() {
                 ),
             )
         }
-
-        get("/alerts") {
-            call.handleSafely {
-                if (!supabase.isConfigured) {
-                    call.respondError(
-                        HttpStatusCode.ServiceUnavailable,
-                        "supabase_not_configured",
-                        "Supabase service role configuration is required for live alerts.",
-                    )
-                    return@handleSafely
-                }
-                call.respond(JsonDataResponse(status = "ok", detail = "live alerts", data = supabase.fetchActiveAlerts()))
-            }
-        }
-
-        post("/sos") {
-            call.handleSafely(rateLimited = true, config = config) {
-                val request = call.receive<SosRequest>()
-                validate(request.latitude in -90.0..90.0, "latitude must be between -90 and 90")
-                validate(request.longitude in -180.0..180.0, "longitude must be between -180 and 180")
-                validate(request.message.isNotBlank(), "message is required")
-                call.respond(
-                    GatewayResponse(
-                        id = request.id ?: UUID.randomUUID().toString(),
-                        status = "accepted",
-                        detail = "SOS queued for downstream dispatch.",
-                    ),
-                )
-            }
-        }
-
-        post("/reports") {
-            call.handleSafely(rateLimited = true, config = config) {
-                val request = call.receive<IncidentReportRequest>()
-                validate(request.type.isNotBlank(), "type is required")
-                validate(request.title.trim().length in 3..160, "title must be 3-160 characters")
-                validate(request.description.trim().length in 5..4000, "description must be 5-4000 characters")
-                validate(request.severityLevel in 1..5, "severityLevel must be between 1 and 5")
-
-                if (!supabase.isConfigured) {
-                    call.respondError(
-                        HttpStatusCode.ServiceUnavailable,
-                        "supabase_not_configured",
-                        "Supabase service role configuration is required to store reports.",
-                    )
-                    return@handleSafely
-                }
-
-                val inserted = supabase.insertIncidentReport(request)
-                val id = inserted.jsonArray.firstOrNull()
-                    ?.jsonObject
-                    ?.get("id")
-                    ?.jsonPrimitive
-                    ?.contentOrNull
-                    ?: UUID.randomUUID().toString()
-                call.respond(
-                    ReportResponse(
-                        id = id,
-                        status = "accepted",
-                        detail = "Incident report stored.",
-                        report = inserted,
-                    ),
-                )
-            }
-        }
-
-        get("/weather") {
-            call.handleSafely {
-                val token = config.tmdApiToken
-                if (token.isBlank()) {
-                    call.respondError(
-                        HttpStatusCode.ServiceUnavailable,
-                        "tmd_not_configured",
-                        "TMD_API_TOKEN is required for live weather data.",
-                    )
-                    return@handleSafely
-                }
-
-                val lat = call.request.queryParameters["lat"]?.toDoubleOrNull() ?: 13.7563
-                val lon = call.request.queryParameters["lon"]?.toDoubleOrNull() ?: 100.5018
-                validate(lat in -90.0..90.0, "lat must be between -90 and 90")
-                validate(lon in -180.0..180.0, "lon must be between -180 and 180")
-                val duration = call.request.queryParameters["duration"]?.toIntOrNull()?.coerceIn(1, 48) ?: 24
-                val date = call.request.queryParameters["date"]
-                    ?: LocalDate.now(ZoneId.of("Asia/Bangkok")).toString()
-                val fields = "tc,rh,slp,rain,ws10m,wd10m,cloudlow,cloudmed,cloudhigh,cond"
-                val url = "https://data.tmd.go.th/nwpapi/v1/forecast/location/hourly/at" +
-                    "?lat=$lat&lon=$lon&date=$date&fields=$fields&duration=$duration"
-                val data = httpRequest(
-                    method = "GET",
-                    url = url,
-                    headers = mapOf(
-                        "accept" to "application/json",
-                        "authorization" to "Bearer $token",
-                    ),
-                ).json()
-                call.respond(JsonDataResponse(status = "ok", detail = "live TMD weather", data = data))
-            }
-        }
-
-        post("/damage-assessment") {
-            call.handleSafely(rateLimited = true, config = config) {
-                call.respondError(
-                    HttpStatusCode.ServiceUnavailable,
-                    "damage_assessment_not_configured",
-                    "Production damage assessment model endpoint is not configured. Mock analysis is disabled.",
-                )
-            }
-        }
-
-        post("/chat") {
-            call.handleSafely(rateLimited = true, config = config) {
-                call.respondError(
-                    HttpStatusCode.ServiceUnavailable,
-                    "chat_not_configured",
-                    "Production chat gateway is not configured yet. Use the existing Supabase Edge Function until this backend route is wired.",
-                )
-            }
-        }
-
-        post("/media/incident-images") {
-            call.handleSafely(rateLimited = true, config = config) {
-                if (!supabase.isConfigured) {
-                    call.respondError(
-                        HttpStatusCode.ServiceUnavailable,
-                        "supabase_not_configured",
-                        "Supabase service role configuration is required to upload media.",
-                    )
-                    return@handleSafely
-                }
-                val fileName = call.request.queryParameters["fileName"]
-                    ?.sanitizeFileName()
-                    ?.takeIf { it.isNotBlank() }
-                    ?: "incident-${UUID.randomUUID()}.jpg"
-                val contentType = call.request.headers["Content-Type"]
-                    ?.takeIf { it.startsWith("image/") }
-                    ?: "application/octet-stream"
-                validate(contentType.startsWith("image/"), "only image uploads are accepted")
-                val bytes = call.receiveStream().readBytes()
-                validate(bytes.isNotEmpty(), "image body is required")
-                validate(bytes.size <= config.uploadMaxBytes, "image exceeds max upload size")
-
-                val path = "android/${Instant.now().epochSecond}-${UUID.randomUUID()}-$fileName"
-                val upload = supabase.uploadObject(
-                    bucket = "incident-images",
-                    path = path,
-                    contentType = contentType,
-                    bytes = bytes,
-                )
-                call.respond(
-                    MediaUploadResponse(
-                        id = UUID.randomUUID().toString(),
-                        status = "uploaded",
-                        detail = "Incident image uploaded.",
-                        storagePath = upload.storagePath,
-                        publicUrl = upload.publicUrl,
-                    ),
-                )
-            }
-        }
-
-        post("/fcm/register") {
-            call.handleSafely(rateLimited = true, config = config) {
-                val request = call.receive<FcmRegistrationRequest>()
-                validate(request.token.isNotBlank(), "token is required")
-                validate(request.platform.isNotBlank(), "platform is required")
-                val detail = deviceRegistry.register(request)
-                call.respond(
-                    GatewayResponse(
-                        id = request.installationId ?: request.userId ?: "fcm-token",
-                        status = "registered",
-                        detail = detail,
-                    ),
-                )
-            }
-        }
-
-        post("/notifications/send") {
-            call.handleSafely(rateLimited = true, config = config) {
-                if (!call.requireAdmin(config)) return@handleSafely
-                val request = call.receive<NotificationSendRequest>()
-                validate(request.title.trim().length in 1..160, "title is required and must be under 160 characters")
-                validate(request.message.trim().length in 1..2000, "message is required and must be under 2000 characters")
-
-                val targets = deviceRegistry.resolveTargets(request)
-                if (targets.isEmpty()) {
-                    call.respondError(HttpStatusCode.BadRequest, "no_targets", "No target device tokens found.")
-                    return@handleSafely
-                }
-
-                val sender = FcmHttpV1Sender.fromConfig(config)
-                if (!sender.isConfigured) {
-                    call.respond(
-                        HttpStatusCode.ServiceUnavailable,
-                        NotificationSendResponse(
-                            status = "not_configured",
-                            detail = sender.configurationMessage,
-                            requested = targets.size,
-                            sent = 0,
-                            failed = targets.size,
-                            configured = false,
-                            errors = listOf(sender.configurationMessage),
-                        ),
-                    )
-                    return@handleSafely
-                }
-
-                val results = targets.map { token -> sender.send(token, request) }
-                call.respond(
-                    NotificationSendResponse(
-                        status = if (results.any { it.success }) "sent" else "failed",
-                        detail = "FCM HTTP v1 dispatch complete.",
-                        requested = targets.size,
-                        sent = results.count { it.success },
-                        failed = results.count { !it.success },
-                        configured = true,
-                        errors = results.filterNot { it.success }.map { it.message },
-                    ),
-                )
-            }
-        }
     }
+
 }
 
 internal suspend fun ApplicationCall.requireAdmin(config: GatewayConfig): Boolean {
@@ -548,6 +336,10 @@ internal data class GatewayConfig(
     val tokenStorePath: Path,
     val rateLimitPerMinute: Int,
     val uploadMaxBytes: Int,
+    val openAiApiKey: String,
+    val thaiLlmApiKey: String,
+    val thaiLlmBaseUrl: String,
+    val thaiLlmModel: String,
 ) {
     companion object {
         fun fromEnvironment(): GatewayConfig {
@@ -569,6 +361,10 @@ internal data class GatewayConfig(
                 tokenStorePath = Paths.get(tokenStore),
                 rateLimitPerMinute = setting("DMIND_RATE_LIMIT_PER_MINUTE")?.toIntOrNull()?.let { max(it, 1) } ?: 60,
                 uploadMaxBytes = setting("DMIND_UPLOAD_MAX_BYTES")?.toIntOrNull()?.let { max(it, 1) } ?: 8 * 1024 * 1024,
+                openAiApiKey = setting("OPENAI_API_KEY").orEmpty(),
+                thaiLlmApiKey = setting("THAI_LLM_API_KEY").orEmpty(),
+                thaiLlmBaseUrl = setting("THAI_LLM_BASE_URL")?.removeSuffix("/") ?: "https://api.opentyphoon.ai/v1",
+                thaiLlmModel = setting("THAI_LLM_MODEL") ?: "typhoon-v1.5-instruct",
             )
         }
     }
@@ -818,9 +614,32 @@ internal fun String.sanitizeFileName(): String =
 
 private fun setting(name: String): String? {
     val propertyName = "dmind." + name.lowercase().replace('_', '.')
-    return System.getProperty(name)
+    val raw = System.getProperty(name)
         ?: System.getProperty(propertyName)
         ?: System.getenv(name)
+        ?: loadFromLocalProperties(name)
+        ?: loadFromLocalProperties(propertyName)
+    return raw?.trim()?.removeSurrounding("\"")?.removeSurrounding("'")?.trim()
+}
+
+private fun loadFromLocalProperties(name: String): String? {
+    val paths = listOf(
+        Paths.get("local.properties"),
+        Paths.get("../local.properties")
+    )
+    for (path in paths) {
+        if (Files.exists(path)) {
+            try {
+                val properties = java.util.Properties()
+                Files.newInputStream(path).use { properties.load(it) }
+                val value = properties.getProperty(name) ?: properties.getProperty("DMIND_$name")
+                if (value != null) return value
+            } catch (e: Exception) {
+                // Ignore configuration loading errors
+            }
+        }
+    }
+    return null
 }
 
 private val responseJson = Json {

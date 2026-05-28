@@ -1,5 +1,5 @@
 import React, { Suspense, useRef, useMemo } from 'react';
-import Map, { NavigationControl, MapRef } from 'react-map-gl';
+import Map, { NavigationControl, MapRef } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Earthquake, RainSensor, AirPollutionData } from './types';
@@ -10,6 +10,7 @@ import { MapMarkers } from './map-components/MapMarkers';
 import { MapControls } from './MapControls';
 import { MapOverlays } from './MapOverlays';
 import { DebugInfo } from './DebugInfo';
+import { RadarTimelinePlayer } from './RadarTimelinePlayer';
 import { DisasterType } from './types';
 import { FloodDataPoint } from './hooks/useOpenMeteoFloodData';
 import { FloodFeature } from './hooks/useGISTDAFloodData';
@@ -69,6 +70,50 @@ export const MapView: React.FC<MapViewProps> = ({
   const [showUserLocation, setShowUserLocation] = React.useState(false);
   const mapRef = useRef<MapRef>(null);
 
+  const [currentFrameIndex, setCurrentFrameIndex] = React.useState(0);
+  const [isPlaying, setIsPlaying] = React.useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = React.useState(1);
+
+  // Get active frames count for rain overlay timer
+  const rainFramesCount = React.useMemo(() => {
+    if (!rainData) return 0;
+    let frames: any[] = [];
+    if (rainOverlayType === 'radar') {
+      frames = rainTimeType === 'past' ? rainData.radar?.past || [] : rainData.radar?.nowcast || [];
+    } else {
+      frames = rainData.satellite?.infrared || [];
+    }
+    return frames.length;
+  }, [rainData, rainOverlayType, rainTimeType]);
+
+  React.useEffect(() => {
+    if (!showRainOverlay || !isPlaying || rainFramesCount <= 1) {
+      return;
+    }
+
+    // delay of 1500ms for 1x, 800ms for 2x, 400ms for 4x
+    const delay = playbackSpeed === 4 ? 400 : playbackSpeed === 2 ? 800 : 1500;
+
+    const interval = setInterval(() => {
+      setCurrentFrameIndex(prev => (prev + 1) % rainFramesCount);
+    }, delay);
+
+    return () => clearInterval(interval);
+  }, [showRainOverlay, isPlaying, rainFramesCount, playbackSpeed]);
+
+  // Reset index when changing layer or time types
+  React.useEffect(() => {
+    setCurrentFrameIndex(0);
+  }, [rainOverlayType, rainTimeType]);
+
+  // Stop playing and reset frame index when the overlay is toggled off
+  React.useEffect(() => {
+    if (!showRainOverlay) {
+      setIsPlaying(false);
+      setCurrentFrameIndex(0);
+    }
+  }, [showRainOverlay]);
+
   // Filter data based on current filters
   const filteredEarthquakes = useMemo(() =>
     earthquakes.filter(eq => eq.magnitude >= magnitudeFilter),
@@ -122,6 +167,7 @@ export const MapView: React.FC<MapViewProps> = ({
           rainData={rainData}
           rainOverlayType={rainOverlayType}
           rainTimeType={rainTimeType}
+          currentFrameIndex={currentFrameIndex}
           wildfireTimeFilter={wildfireTimeFilter}
           showBurnFreq={showBurnFreq}
         />
@@ -166,6 +212,21 @@ export const MapView: React.FC<MapViewProps> = ({
 
       {/* Overlays for loading */}
       <MapOverlays selectedType={selectedType} isLoading={isLoading} />
+
+      {/* Radar Timeline Player */}
+      {selectedType === 'heavyrain' && showRainOverlay && (
+        <RadarTimelinePlayer
+          rainData={rainData}
+          currentFrameIndex={currentFrameIndex}
+          setCurrentFrameIndex={setCurrentFrameIndex}
+          rainOverlayType={rainOverlayType}
+          rainTimeType={rainTimeType}
+          isPlaying={isPlaying}
+          setIsPlaying={setIsPlaying}
+          playbackSpeed={playbackSpeed}
+          setPlaybackSpeed={setPlaybackSpeed}
+        />
+      )}
 
       {/* Debug information - Hidden on mobile */}
       <div className="hidden lg:block">

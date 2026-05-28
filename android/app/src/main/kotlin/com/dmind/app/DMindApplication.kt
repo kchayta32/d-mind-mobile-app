@@ -9,7 +9,13 @@ import com.google.firebase.messaging.FirebaseMessaging
 class DMindApplication : Application() {
     private val tag = "DMindApplication"
 
+    companion object {
+        lateinit var instance: DMindApplication
+            private set
+    }
+
     override fun onCreate() {
+        instance = this
         super.onCreate()
         createNotificationChannels()
         refreshFcmToken()

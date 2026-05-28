@@ -68,6 +68,10 @@ class DefaultDisasterRepository(
         return mapDataSource.searchPlaces(query)
     }
 
+    override suspend fun fetchWeatherForCoords(lat: Double, lon: Double): com.dmind.app.domain.model.SelectedWeatherInfo {
+        return mapDataSource.fetchWeatherForCoords(lat, lon)
+    }
+
     private fun heatEventFromWeather(weather: com.dmind.app.domain.model.WeatherSnapshot): DisasterEvent? {
         if (weather.temperatureCelsius < 35.0) return null
         val severity = when {

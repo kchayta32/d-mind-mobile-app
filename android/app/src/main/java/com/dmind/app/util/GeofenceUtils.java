@@ -215,8 +215,41 @@ public class GeofenceUtils {
      * Normalize polygon points (ensure proper order for Ray Casting)
      */
     public static void normalizePolygon(List<GeoPoint> polygon) {
-        // This is a placeholder for future normalization logic
-        // Could include: sorting points, ensuring counter-clockwise order, etc.
+        if (polygon == null || polygon.size() < 3) {
+            return;
+        }
+        
+        // 1. Ensure the polygon is closed. If not, close it by appending the first point.
+        if (!isPolygonClosed(polygon)) {
+            GeoPoint first = polygon.get(0);
+            polygon.add(new GeoPoint(first.getLatitude(), first.getLongitude()));
+        }
+        
+        // 2. Verify winding order. We want it to be counter-clockwise (CCW) for standard Ray Casting / GIS consistency.
+        // If winding order is clockwise (CW), reverse the list.
+        double signedArea = calculateSignedArea(polygon);
+        if (signedArea < 0) {
+            java.util.Collections.reverse(polygon);
+        }
+    }
+
+    /**
+     * Calculate the signed area of a polygon.
+     * Positive value indicates counter-clockwise (CCW) order,
+     * negative indicates clockwise (CW) order.
+     */
+    private static double calculateSignedArea(List<GeoPoint> polygon) {
+        int n = polygon.size();
+        double area = 0.0;
+        for (int i = 0; i < n; i++) {
+            int j = (i + 1) % n;
+            double xi = polygon.get(i).getLongitude();
+            double yi = polygon.get(i).getLatitude();
+            double xj = polygon.get(j).getLongitude();
+            double yj = polygon.get(j).getLatitude();
+            area += xi * yj - xj * yi;
+        }
+        return area / 2.0;
     }
     
     /**

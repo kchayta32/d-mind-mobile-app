@@ -1,8 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Cloud, MapPin, RefreshCw, Loader2, Thermometer, Droplets, Wind, ChevronDown } from 'lucide-react';
+import { 
+    ArrowLeft, 
+    Cloud, 
+    MapPin, 
+    RefreshCw, 
+    Loader2, 
+    Thermometer, 
+    Droplets, 
+    Wind, 
+    Compass, 
+    Gauge,
+    ChevronDown 
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
     Select,
     SelectContent,
@@ -21,6 +33,43 @@ import {
     THAI_REGIONS
 } from '@/hooks/useTMDWeatherData';
 import { useIsMobile } from '@/hooks/use-mobile';
+import {
+    ResponsiveContainer,
+    ComposedChart,
+    Area,
+    Bar,
+    XAxis,
+    YAxis,
+    Tooltip,
+    CartesianGrid
+} from 'recharts';
+
+// Helper to determine day labels like "วันนี้", "วันพรุ่งนี้"
+const getDayLabel = (timeIsoString: string) => {
+    const today = new Date();
+    const targetDate = new Date(timeIsoString);
+    
+    const todayZero = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const targetZero = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    
+    const diffTime = targetZero.getTime() - todayZero.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'วันนี้';
+    if (diffDays === 1) return 'วันพรุ่งนี้';
+    if (diffDays === 2) return 'วันมะรืนนี้';
+    
+    return formatDate(timeIsoString);
+};
+
+// Helper to find the representative forecast closest to midday
+const getRepresentativeForecast = (forecasts: HourlyForecast[]) => {
+    const noonForecast = forecasts.find(f => {
+        const hour = new Date(f.time).getHours();
+        return hour >= 11 && hour <= 13;
+    });
+    return noonForecast || forecasts[0];
+};
 
 const WeatherForecast: React.FC = () => {
     const navigate = useNavigate();
@@ -36,7 +85,7 @@ const WeatherForecast: React.FC = () => {
     const activeQuery = isRegionSelected ? regionQuery : coordinateQuery;
     const { data, isLoading, error, refetch, isRefetching } = activeQuery;
 
-    // Group forecasts by date
+    // Group forecasts by date (as in the original code structure)
     const groupedForecasts = React.useMemo(() => {
         if (!data?.forecasts) return {};
 
@@ -54,19 +103,140 @@ const WeatherForecast: React.FC = () => {
         return weatherConditions[condCode] || weatherConditions[1];
     };
 
-    // Region selector component for reuse
+    // Transform forecasts into Recharts-friendly data (next 24 hours)
+    const chartData = React.useMemo(() => {
+        if (!data?.forecasts) return [];
+        return data.forecasts.slice(0, 24).map((forecast) => ({
+            time: formatTime(forecast.time),
+            temp: forecast.data.tc,
+            rain: forecast.data.rain,
+        }));
+    }, [data]);
+
+    // Grouped daily forecast summaries for the horizontal list
+    const dailyForecastsSummary = React.useMemo(() => {
+        return (Object.entries(groupedForecasts) as [string, HourlyForecast[]][]).map(([dayLabel, forecasts]) => {
+            const temps = forecasts.map(f => f.data.tc);
+            const minTemp = Math.min(...temps);
+            const maxTemp = Math.max(...temps);
+
+            const repForecast = getRepresentativeForecast(forecasts);
+            const condition = getConditionInfo(repForecast.data.cond);
+
+            let dayDisplay = dayLabel;
+            if (forecasts.length > 0) {
+                dayDisplay = getDayLabel(forecasts[0].time);
+            }
+
+            return {
+                dayLabel: dayDisplay,
+                minTemp,
+                maxTemp,
+                condition,
+            };
+        });
+    }, [groupedForecasts]);
+
+    const currentForecast = data?.forecasts?.[0];
+    const condition = currentForecast ? getConditionInfo(currentForecast.data.cond) : weatherConditions[1];
+
+    // Compute today's min and max temperatures
+    const todayForecasts = data?.forecasts.filter(f => getDayLabel(f.time) === 'วันนี้') || [];
+    const todayMin = todayForecasts.length ? Math.min(...todayForecasts.map(f => f.data.tc)) : (currentForecast?.data.tc ?? 0);
+    const todayMax = todayForecasts.length ? Math.max(...todayForecasts.map(f => f.data.tc)) : (currentForecast?.data.tc ?? 0);
+
+    // Weather Statistics Configuration
+    const stats = [
+        {
+            label: 'อุณหภูมิ',
+            value: currentForecast ? `${currentForecast.data.tc.toFixed(1)} °C` : 'N/A',
+            icon: Thermometer,
+            iconColor: 'text-rose-400',
+            glowColor: 'shadow-[0_0_15px_rgba(244,63,94,0.15)] border-rose-500/20 bg-rose-950/20',
+            textColor: 'text-rose-100',
+            desc: 'อุณหภูมิอากาศจริง'
+        },
+        {
+            label: 'ความชื้นสัมพัทธ์',
+            value: currentForecast ? `${currentForecast.data.rh.toFixed(0)} %` : 'N/A',
+            icon: Droplets,
+            iconColor: 'text-cyan-400',
+            glowColor: 'shadow-[0_0_15px_rgba(6,182,212,0.15)] border-cyan-500/20 bg-cyan-950/20',
+            textColor: 'text-cyan-100',
+            desc: 'ความชื้นสัมพัทธ์ในอากาศ'
+        },
+        {
+            label: 'ความเร็วลม',
+            value: currentForecast ? `${currentForecast.data.ws10m.toFixed(1)} m/s` : 'N/A',
+            icon: Wind,
+            iconColor: 'text-teal-400',
+            glowColor: 'shadow-[0_0_15px_rgba(20,184,166,0.15)] border-teal-500/20 bg-teal-950/20',
+            textColor: 'text-teal-100',
+            desc: 'ความเร็วลมที่ระดับ 10 เมตร'
+        },
+        {
+            label: 'ทิศทางลม',
+            value: currentForecast ? getWindDirection(currentForecast.data.wd10m) : 'N/A',
+            icon: Compass,
+            iconColor: 'text-amber-400',
+            glowColor: 'shadow-[0_0_15px_rgba(245,158,11,0.15)] border-amber-500/20 bg-amber-950/20',
+            textColor: 'text-amber-100',
+            desc: currentForecast ? `ทิศลมทางวิทยาศาสตร์ (${currentForecast.data.wd10m}°)` : 'ทิศทางลมตามมุมองศา'
+        },
+        {
+            label: 'ปริมาณเมฆต่ำ',
+            value: currentForecast ? `${currentForecast.data.cloudlow} %` : 'N/A',
+            icon: Cloud,
+            iconColor: 'text-sky-400',
+            glowColor: 'shadow-[0_0_15px_rgba(56,189,248,0.15)] border-sky-500/20 bg-sky-950/20',
+            textColor: 'text-sky-100',
+            desc: 'สัดส่วนของเมฆชั้นต่ำ'
+        },
+        {
+            label: 'ความกดอากาศ',
+            value: currentForecast ? `${currentForecast.data.slp.toFixed(0)} hPa` : 'N/A',
+            icon: Gauge,
+            iconColor: 'text-fuchsia-400',
+            glowColor: 'shadow-[0_0_15px_rgba(217,70,239,0.15)] border-fuchsia-500/20 bg-fuchsia-950/20',
+            textColor: 'text-fuchsia-100',
+            desc: 'ความกดอากาศระดับน้ำทะเล'
+        }
+    ];
+
+    // Custom tooltips for Recharts
+    const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string; nameAlt?: string }>; label?: string }) => {
+        if (active && payload && payload.length) {
+            return (
+                <div className="bg-slate-900/95 backdrop-blur-md border border-slate-800 p-3 rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.6)] text-xs space-y-1.5">
+                    <p className="text-slate-400 font-semibold mb-1">เวลา {label}</p>
+                    {payload.map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                            <span className="text-slate-300">{item.name}:</span>
+                            <span className="font-bold text-slate-100">
+                                {item.value.toFixed(1)}{item.name === 'อุณหภูมิ' ? ' °C' : ' มม.'}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+        return null;
+    };
+
+    // Region Selector Component
     const RegionSelector = ({ className = "" }: { className?: string }) => (
         <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-            <SelectTrigger className={`bg-white/90 dark:bg-slate-800/90 border-0 rounded-xl shadow-lg ${className}`}>
-                <MapPin className="w-4 h-4 mr-2 text-blue-500" />
+            <SelectTrigger className={`bg-slate-900/50 border border-slate-800/80 rounded-xl shadow-lg focus:ring-1 focus:ring-cyan-500 text-slate-200 backdrop-blur-md transition-all ${className}`}>
+                <MapPin className="w-4 h-4 mr-2 text-cyan-400" />
                 <SelectValue placeholder="เลือกภูมิภาค" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl">
+            <SelectContent className="bg-slate-950/95 border border-slate-800 text-slate-200 rounded-xl backdrop-blur-md">
                 {THAI_REGIONS.map((region) => (
-                    <SelectItem key={region.value} value={region.value} className="py-3">
+                    <SelectItem key={region.value} value={region.value} className="py-2.5 hover:bg-slate-900 focus:bg-slate-900 text-slate-200 cursor-pointer">
                         <div>
-                            <div className="font-medium">{region.label}</div>
-                            <div className="text-xs text-gray-500">{region.description}</div>
+                            <div className="font-medium text-slate-200">{region.label}</div>
+                            <div className="text-[10px] text-slate-400">{region.description}</div>
                         </div>
                     </SelectItem>
                 ))}
@@ -74,273 +244,346 @@ const WeatherForecast: React.FC = () => {
         </Select>
     );
 
-    if (isMobile) {
+    if (isLoading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 pb-24">
-                {/* Header */}
-                <header className="bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 text-white pt-6 pb-8 px-5 rounded-b-3xl shadow-xl">
-                    <div className="flex items-center gap-3 mb-2">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-white/90 hover:bg-white/20 rounded-xl"
-                            onClick={() => navigate('/')}
-                        >
-                            <ArrowLeft className="h-5 w-5" />
-                        </Button>
-                        <div className="flex items-center gap-3">
-                            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
-                                <Cloud className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl font-bold">พยากรณ์อากาศ</h1>
-                                <p className="text-white/70 text-xs">รายชั่วโมง จากกรมอุตุฯ</p>
-                            </div>
-                        </div>
+            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center relative overflow-hidden text-slate-100 font-sans">
+                {/* Background Glow */}
+                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 blur-[100px] rounded-full pointer-events-none animate-pulse" />
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 blur-[100px] rounded-full pointer-events-none animate-pulse" />
+                
+                <div className="z-10 flex flex-col items-center gap-4 bg-slate-900/40 backdrop-blur-md border border-slate-900/80 p-8 rounded-3xl shadow-[0_0_30px_rgba(6,182,212,0.15)] text-center max-w-sm mx-4">
+                    <div className="relative">
+                        <div className="absolute inset-0 bg-cyan-400/25 rounded-full blur-md animate-ping" />
+                        <Loader2 className="h-10 w-10 animate-spin text-cyan-400 relative z-10" />
                     </div>
-
-                    {data?.location && (
-                        <div className="flex items-center gap-2 mt-4 text-white/90">
-                            <MapPin className="h-4 w-4" />
-                            <span className="text-sm">
-                                {data.location.tambon && `${data.location.tambon}, `}
-                                {data.location.amphoe && `${data.location.amphoe}, `}
-                                {data.location.province}
-                            </span>
-                        </div>
-                    )}
-                </header>
-
-                {/* Refresh Button */}
-                <div className="px-4 -mt-4">
-                    <Button
-                        onClick={() => refetch()}
-                        disabled={isRefetching}
-                        className="w-full bg-white dark:bg-slate-800 text-blue-600 hover:bg-blue-50 shadow-lg rounded-2xl py-3"
-                    >
-                        {isRefetching ? (
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        ) : (
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                        )}
-                        อัปเดตข้อมูล
-                    </Button>
+                    <h3 className="text-lg font-semibold text-slate-200 mt-2">กำลังเชื่อมต่อข้อมูลสถานีตรวจวัด</h3>
+                    <p className="text-sm text-slate-400">ดึงข้อมูลพยากรณ์อากาศล่าสุดจากกรมอุตุนิยมวิทยา (TMD)...</p>
                 </div>
-
-                {/* Region Selector */}
-                <div className="px-4 mt-3">
-                    <RegionSelector className="w-full" />
-                </div>
-
-                {/* Content */}
-                <main className="px-4 pt-5 space-y-4">
-                    {isLoading ? (
-                        <div className="flex flex-col items-center justify-center py-12">
-                            <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-4" />
-                            <p className="text-gray-500">กำลังโหลดข้อมูลพยากรณ์อากาศ...</p>
-                        </div>
-                    ) : error ? (
-                        <Card className="border-red-200 bg-red-50">
-                            <CardContent className="py-6 text-center">
-                                <p className="text-red-600 mb-4">{(error as Error).message}</p>
-                                <Button onClick={() => refetch()} variant="outline">
-                                    ลองใหม่อีกครั้ง
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    ) : (
-                        Object.entries(groupedForecasts).map(([date, forecasts]: [string, HourlyForecast[]]) => (
-                            <Card key={date} className="rounded-2xl shadow-sm border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur">
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="text-base font-semibold text-blue-700 dark:text-blue-300">
-                                        {date}
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="p-0">
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-sm">
-                                            <thead className="bg-blue-50 dark:bg-slate-700">
-                                                <tr>
-                                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-600 dark:text-gray-300">เวลา</th>
-                                                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-600 dark:text-gray-300">สภาพ</th>
-                                                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-600 dark:text-gray-300">
-                                                        <Thermometer className="h-3 w-3 inline" />
-                                                    </th>
-                                                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-600 dark:text-gray-300">
-                                                        <Droplets className="h-3 w-3 inline" />
-                                                    </th>
-                                                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-600 dark:text-gray-300">
-                                                        <Wind className="h-3 w-3 inline" />
-                                                    </th>
-                                                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-600 dark:text-gray-300">ฝน</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-100 dark:divide-slate-600">
-                                                {forecasts.map((forecast, idx) => {
-                                                    const condition = getConditionInfo(forecast.data.cond);
-                                                    return (
-                                                        <tr key={idx} className="hover:bg-blue-50/50 dark:hover:bg-slate-700/50">
-                                                            <td className="px-3 py-2.5 font-medium">{formatTime(forecast.time)}</td>
-                                                            <td className="px-3 py-2.5 text-center">
-                                                                <span className="text-lg" title={condition.label}>{condition.icon}</span>
-                                                            </td>
-                                                            <td className={`px-3 py-2.5 text-center font-semibold ${forecast.data.tc > 35 ? 'text-red-500' : forecast.data.tc < 25 ? 'text-blue-500' : 'text-gray-700 dark:text-gray-200'}`}>
-                                                                {forecast.data.tc.toFixed(1)}°
-                                                            </td>
-                                                            <td className="px-3 py-2.5 text-center text-blue-600">{forecast.data.rh}%</td>
-                                                            <td className="px-3 py-2.5 text-center text-gray-600 dark:text-gray-300">
-                                                                {forecast.data.ws10m.toFixed(1)}
-                                                            </td>
-                                                            <td className={`px-3 py-2.5 text-center ${forecast.data.rain > 0 ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
-                                                                {forecast.data.rain > 0 ? `${forecast.data.rain.toFixed(1)}` : '-'}
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))
-                    )}
-
-                    {/* Legend */}
-                    <Card className="rounded-2xl shadow-sm border-0 bg-gradient-to-r from-blue-50 to-sky-50 dark:from-slate-800 dark:to-slate-700">
-                        <CardContent className="py-4">
-                            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">คำอธิบาย</h3>
-                            <div className="grid grid-cols-2 gap-2 text-xs">
-                                <div className="flex items-center gap-2">
-                                    <Thermometer className="h-3 w-3 text-red-400" />
-                                    <span className="text-gray-600 dark:text-gray-300">อุณหภูมิ (°C)</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Droplets className="h-3 w-3 text-blue-400" />
-                                    <span className="text-gray-600 dark:text-gray-300">ความชื้น (%)</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Wind className="h-3 w-3 text-gray-400" />
-                                    <span className="text-gray-600 dark:text-gray-300">ลม (m/s)</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-blue-500">ฝน</span>
-                                    <span className="text-gray-600 dark:text-gray-300">ปริมาณฝน (mm)</span>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Attribution */}
-                    <p className="text-center text-xs text-gray-400 pb-4">
-                        ข้อมูลจาก กรมอุตุนิยมวิทยา (TMD)
-                    </p>
-                </main>
             </div>
         );
     }
 
-    // Desktop layout
+    if (error) {
+        return (
+            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center relative overflow-hidden text-slate-100 font-sans">
+                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-red-500/5 blur-[120px] rounded-full pointer-events-none" />
+                
+                <div className="z-10 flex flex-col items-center gap-4 bg-slate-900/40 backdrop-blur-md border border-red-500/20 p-8 rounded-3xl shadow-[0_0_30px_rgba(239,68,68,0.15)] text-center max-w-sm mx-4">
+                    <div className="p-3 bg-red-500/10 rounded-full border border-red-500/30">
+                        <Cloud className="h-8 w-8 text-red-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-200">การดึงข้อมูลล้มเหลว</h3>
+                    <p className="text-sm text-slate-400">{(error as Error).message}</p>
+                    <Button 
+                        onClick={() => refetch()} 
+                        className="mt-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white rounded-xl shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all duration-300 border-0"
+                    >
+                        ลองใหม่อีกครั้ง
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-sky-50 to-blue-100 p-8">
-            <div className="max-w-6xl mx-auto">
-                <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-4">
+        <div className="min-h-screen bg-slate-950 text-slate-100 relative overflow-hidden font-sans pb-12">
+            {/* Cinematic Ambient Glow Backgrounds */}
+            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-900/10 blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-[20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-blue-900/10 blur-[150px] pointer-events-none" />
+
+            {/* Premium Header */}
+            <header className="sticky top-0 z-40 bg-slate-950/70 backdrop-blur-xl border-b border-slate-900/80 shadow-[0_4px_30px_rgba(0,0,0,0.2)]">
+                <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div className="flex items-center gap-3">
                         <Button
                             variant="ghost"
                             onClick={() => navigate('/')}
-                            className="flex items-center gap-2"
+                            className="text-slate-400 hover:text-slate-100 hover:bg-slate-900/50 rounded-xl gap-2 border border-slate-900/50"
                         >
                             <ArrowLeft className="h-4 w-4" />
-                            กลับหน้าหลัก
+                            {!isMobile && "กลับหน้าหลัก"}
                         </Button>
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-800">พยากรณ์อากาศรายชั่วโมง</h1>
-                            {data?.location && (
-                                <p className="text-gray-500 flex items-center gap-2">
-                                    <MapPin className="h-4 w-4" />
-                                    {data.location.province}
-                                </p>
-                            )}
+                            <h1 className="text-xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
+                                <Cloud className="h-5 w-5 text-cyan-400" />
+                                <span>พยากรณ์อากาศระบบกึ่งอัตโนมัติ</span>
+                            </h1>
+                            <p className="text-[11px] text-slate-400">ดึงข้อมูลและพยากรณ์ตามพิกัดและภูมิภาคเชิงนิเวศวิทยา</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <RegionSelector className="w-64" />
-                        <Button onClick={() => refetch()} disabled={isRefetching}>
-                            {isRefetching ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-                            อัปเดต
+                    
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                        <RegionSelector className="w-full sm:w-60" />
+                        <Button 
+                            onClick={() => refetch()} 
+                            disabled={isRefetching}
+                            className="bg-slate-900/60 border border-slate-800 hover:bg-slate-850 text-slate-200 rounded-xl px-4 py-2 flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 transition-all duration-300"
+                        >
+                            {isRefetching ? (
+                                <Loader2 className="h-4 w-4 animate-spin text-cyan-400" />
+                            ) : (
+                                <RefreshCw className="h-4 w-4 text-cyan-400" />
+                            )}
+                            <span>อัปเดตข้อมูล</span>
                         </Button>
                     </div>
                 </div>
+            </header>
 
-                {isLoading ? (
-                    <div className="flex items-center justify-center py-20">
-                        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                    </div>
-                ) : error ? (
-                    <Card className="border-red-200 bg-red-50">
-                        <CardContent className="py-8 text-center">
-                            <p className="text-red-600 mb-4">{(error as Error).message}</p>
-                            <Button onClick={() => refetch()}>ลองใหม่</Button>
-                        </CardContent>
-                    </Card>
-                ) : (
-                    <Card className="shadow-lg">
-                        <CardContent className="p-0">
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-blue-50">
-                                        <tr>
-                                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">วันที่/เวลา</th>
-                                            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">สภาพอากาศ</th>
-                                            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">อุณหภูมิ (°C)</th>
-                                            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">ความชื้น (%)</th>
-                                            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">ลม (m/s)</th>
-                                            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">ทิศลม</th>
-                                            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">เมฆต่ำ (%)</th>
-                                            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">ฝน (mm)</th>
-                                            <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">ความกด (hPa)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y">
-                                        {data?.forecasts.map((forecast, idx) => {
-                                            const condition = getConditionInfo(forecast.data.cond);
-                                            return (
-                                                <tr key={idx} className="hover:bg-blue-50/50">
-                                                    <td className="px-6 py-3">
-                                                        <div className="font-medium">{formatDate(forecast.time)}</div>
-                                                        <div className="text-sm text-gray-500">{formatTime(forecast.time)}</div>
-                                                    </td>
-                                                    <td className="px-6 py-3 text-center">
-                                                        <div className="flex items-center justify-center gap-2">
-                                                            <span className="text-2xl">{condition.icon}</span>
-                                                            <span className={`text-sm ${condition.color}`}>{condition.label}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td className={`px-6 py-3 text-center font-semibold ${forecast.data.tc > 35 ? 'text-red-500' : forecast.data.tc < 25 ? 'text-blue-500' : ''}`}>
-                                                        {forecast.data.tc.toFixed(1)}
-                                                    </td>
-                                                    <td className="px-6 py-3 text-center text-blue-600">{forecast.data.rh}</td>
-                                                    <td className="px-6 py-3 text-center">{forecast.data.ws10m.toFixed(1)}</td>
-                                                    <td className="px-6 py-3 text-center text-gray-600">{getWindDirection(forecast.data.wd10m)}</td>
-                                                    <td className="px-6 py-3 text-center text-gray-500">{forecast.data.cloudlow}</td>
-                                                    <td className={`px-6 py-3 text-center ${forecast.data.rain > 0 ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
-                                                        {forecast.data.rain > 0 ? forecast.data.rain.toFixed(1) : '-'}
-                                                    </td>
-                                                    <td className="px-6 py-3 text-center text-gray-500">{forecast.data.slp.toFixed(0)}</td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
+            {/* Main Content Grid */}
+            <main className="max-w-7xl mx-auto px-4 md:px-8 py-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    {/* Left/Main Column: Hero Summary, Stats Grid, and Recharts Chart */}
+                    <div className="lg:col-span-2 space-y-6">
+                        
+                        {/* Current Location Badge */}
+                        <div className="flex flex-col gap-2">
+                            {data?.location && (
+                                <div className="flex items-center gap-1.5 text-cyan-400/90 text-xs bg-cyan-950/20 border border-cyan-500/20 px-3.5 py-1.5 rounded-full w-fit shadow-[0_0_10px_rgba(6,182,212,0.1)]">
+                                    <MapPin className="h-3.5 w-3.5" />
+                                    <span>สถานีตรวจวัด: </span>
+                                    <strong className="text-slate-200 font-semibold">
+                                        {data.location.tambon ? `ต.${data.location.tambon}, ` : ''}
+                                        {data.location.amphoe ? `อ.${data.location.amphoe}, ` : ''}
+                                        {data.location.province}
+                                    </strong>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Current Weather Hero Card */}
+                        <div className="bg-slate-900/30 backdrop-blur-xl border border-slate-900/90 p-6 rounded-2xl shadow-[0_0_25px_rgba(6,182,212,0.06)] flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none transition-all duration-500 group-hover:bg-cyan-500/15" />
+                            <div className="space-y-2.5">
+                                <span className="text-[10px] font-semibold text-cyan-400 uppercase tracking-widest bg-cyan-950/30 px-2.5 py-1 rounded-md border border-cyan-500/10">สภาพอากาศปัจจุบัน</span>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-50 via-slate-100 to-slate-300 drop-shadow-[0_2px_10px_rgba(255,255,255,0.05)]">
+                                        {currentForecast?.data.tc.toFixed(1) ?? '0.0'}
+                                    </span>
+                                    <span className="text-2xl text-cyan-400 font-semibold">°C</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-3xl leading-none">{condition.icon}</span>
+                                    <span className={`text-base font-bold ${condition.color}`}>{condition.label}</span>
+                                </div>
+                                <div className="text-xs text-slate-400 flex items-center gap-3">
+                                    <span>ต่ำสุด <strong className="text-blue-400 font-medium">{todayMin.toFixed(1)}°C</strong></span>
+                                    <span className="text-slate-700">|</span>
+                                    <span>สูงสุด <strong className="text-rose-400 font-medium">{todayMax.toFixed(1)}°C</strong></span>
+                                </div>
                             </div>
-                        </CardContent>
-                    </Card>
-                )}
+                            
+                            <div className="flex flex-col items-start md:items-end text-left md:text-right justify-between md:h-full min-h-[90px] gap-2">
+                                <div className="text-xs text-slate-500">
+                                    ข้อมูลเวลาจำลอง: {currentForecast ? formatTime(currentForecast.time) : '-'} น.
+                                </div>
+                                <div className="text-sm text-slate-300 font-medium bg-slate-950/40 px-3.5 py-2 rounded-xl border border-slate-900">
+                                    {data?.location.tambon ? `ต.${data.location.tambon} ` : ''}
+                                    {data?.location.amphoe ? `อ.${data.location.amphoe} ` : ''}
+                                    {data?.location.province ? `จ.${data.location.province}` : ''}
+                                </div>
+                            </div>
+                        </div>
 
-                <p className="text-center text-sm text-gray-400 mt-6">
-                    ข้อมูลพยากรณ์อากาศจาก กรมอุตุนิยมวิทยา (Thai Meteorological Department)
-                </p>
-            </div>
+                        {/* 6 Stats Cards Grid */}
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {stats.map((stat, index) => {
+                                const IconComponent = stat.icon;
+                                return (
+                                    <div 
+                                        key={index} 
+                                        className={`flex flex-col p-4 rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:border-cyan-500/35 hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] ${stat.glowColor}`}
+                                    >
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="text-xs font-medium text-slate-400">{stat.label}</span>
+                                            <div className={`p-1.5 rounded-lg bg-slate-950/60 ${stat.iconColor}`}>
+                                                <IconComponent className="h-4.5 w-4.5 drop-shadow-[0_0_4px_currentColor]" />
+                                            </div>
+                                        </div>
+                                        <div className={`text-xl font-bold tracking-tight ${stat.textColor}`}>
+                                            {stat.value}
+                                        </div>
+                                        <span className="text-[10px] text-slate-500 mt-1 leading-snug">{stat.desc}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Recharts Hourly Forecast Chart */}
+                        <div className="bg-slate-900/30 backdrop-blur-xl border border-slate-900/90 p-5 rounded-2xl shadow-[0_0_20px_rgba(6,182,212,0.06)]">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
+                                <div>
+                                    <h3 className="text-base font-semibold text-slate-200">กราฟแนวโน้มพยากรณ์รายชั่วโมง</h3>
+                                    <p className="text-xs text-slate-400">การแสดงผลอุณหภูมิ (°C) และความเข้มข้นปริมาณฝนสะสม (มม.) ใน 24 ชั่วโมงข้างหน้า</p>
+                                </div>
+                                <div className="flex items-center gap-4 text-[11px] bg-slate-950/50 px-3 py-1.5 rounded-lg border border-slate-900 w-fit">
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_6px_#22d3ee]" />
+                                        <span className="text-slate-300">อุณหภูมิ</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_6px_#3b82f6]" />
+                                        <span className="text-slate-300">ปริมาณฝน</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="w-full" style={{ height: isMobile ? 220 : 320 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <ComposedChart data={chartData} margin={{ top: 10, right: 5, left: 5, bottom: 5 }}>
+                                        <defs>
+                                            <linearGradient id="colorTempGlow" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.35}/>
+                                                <stop offset="95%" stopColor="#22d3ee" stopOpacity={0}/>
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" strokeOpacity={0.3} vertical={false} />
+                                        <XAxis 
+                                            dataKey="time" 
+                                            stroke="#475569" 
+                                            fontSize={11}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            dy={10}
+                                        />
+                                        <YAxis 
+                                            yAxisId="left"
+                                            stroke="#475569" 
+                                            fontSize={11}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            domain={['auto', 'auto']}
+                                            tickFormatter={(value) => `${value}°`}
+                                            dx={-5}
+                                        />
+                                        <YAxis 
+                                            yAxisId="right"
+                                            orientation="right"
+                                            stroke="#475569" 
+                                            fontSize={11}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            domain={[0, 'auto']}
+                                            tickFormatter={(value) => value > 0 ? `${value} มม.` : '0'}
+                                            dx={5}
+                                        />
+                                        <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#1e293b', strokeWidth: 1.5 }} />
+                                        <Area 
+                                            yAxisId="left"
+                                            type="monotone" 
+                                            dataKey="temp" 
+                                            name="อุณหภูมิ" 
+                                            stroke="#22d3ee" 
+                                            strokeWidth={2.5}
+                                            fillOpacity={1} 
+                                            fill="url(#colorTempGlow)" 
+                                            activeDot={{ r: 6, stroke: '#020617', strokeWidth: 2, fill: '#22d3ee' }}
+                                        />
+                                        <Bar 
+                                            yAxisId="right"
+                                            dataKey="rain" 
+                                            name="ปริมาณฝน" 
+                                            fill="#3b82f6" 
+                                            radius={[3, 3, 0, 0]}
+                                            maxBarSize={15}
+                                        />
+                                    </ComposedChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    {/* Right Column: Grouped Daily Forecast Rows & Info explanation */}
+                    <div className="space-y-6">
+                        
+                        {/* Daily Forecast glass rows */}
+                        <div className="bg-slate-900/30 backdrop-blur-xl border border-slate-900/90 p-5 rounded-2xl shadow-[0_0_20px_rgba(6,182,212,0.06)] flex flex-col gap-4">
+                            <div>
+                                <h3 className="text-base font-semibold text-slate-200">แนวโน้มสภาพอากาศรายวัน</h3>
+                                <p className="text-xs text-slate-400">ดึงข้อมูลจัดกลุ่มตามวัน แสดงค่าต่ำสุด-สูงสุดของอุณหภูมิ</p>
+                            </div>
+                            
+                            <div className="flex flex-col gap-3">
+                                {dailyForecastsSummary.map((day, idx) => (
+                                    <div 
+                                        key={idx} 
+                                        className="flex items-center justify-between p-4 bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-xl hover:border-cyan-500/30 transition-all duration-300 shadow-[0_0_10px_rgba(6,182,212,0.02)] group"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-sm font-bold text-slate-200 w-16 group-hover:text-cyan-400 transition-colors">
+                                                {day.dayLabel}
+                                            </span>
+                                            <div className="flex items-center gap-2.5">
+                                                <span className="text-3xl leading-none" title={day.condition.label}>
+                                                    {day.condition.icon}
+                                                </span>
+                                                <span className={`text-xs font-semibold ${day.condition.color}`}>
+                                                    {day.condition.label}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex items-center gap-4">
+                                            <div className="text-right">
+                                                <span className="text-[10px] text-slate-500 block">ต่ำสุด</span>
+                                                <span className="text-xs font-bold text-blue-400">{day.minTemp.toFixed(1)}°</span>
+                                            </div>
+                                            <div className="h-6 w-[1px] bg-slate-800" />
+                                            <div className="text-right">
+                                                <span className="text-[10px] text-slate-500 block">สูงสุด</span>
+                                                <span className="text-xs font-bold text-rose-400">{day.maxTemp.toFixed(1)}°</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Custom Legend / Explainer Card */}
+                        <div className="bg-gradient-to-br from-slate-900/30 to-slate-950/20 backdrop-blur-xl border border-slate-900/90 rounded-2xl p-5 shadow-[0_0_20px_rgba(6,182,212,0.04)]">
+                            <h3 className="text-sm font-semibold text-slate-200 mb-3.5">คู่มือเกณฑ์คำอธิบายดัชนี</h3>
+                            <div className="space-y-3 text-[11px] text-slate-400">
+                                <div className="flex items-start gap-2.5">
+                                    <Thermometer className="h-3.5 w-3.5 text-rose-400 mt-0.5" />
+                                    <div>
+                                        <span className="text-slate-300 font-semibold block">อุณหภูมิ (°C)</span>
+                                        <span>วัดความร้อนทางฟิสิกส์ ค่าปกติเฉลี่ย 25°C - 35°C</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-2.5">
+                                    <Droplets className="h-3.5 w-3.5 text-cyan-400 mt-0.5" />
+                                    <div>
+                                        <span className="text-slate-300 font-semibold block">ความชื้น (%)</span>
+                                        <span>ปริมาณละอองน้ำ ค่าที่เหมาะสมคือ 60% - 80%</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-2.5">
+                                    <Wind className="h-3.5 w-3.5 text-teal-400 mt-0.5" />
+                                    <div>
+                                        <span className="text-slate-300 font-semibold block">ความเร็วลม (m/s)</span>
+                                        <span>ค่าความเร็วลมที่พัดเฉลี่ยระดับผิวพื้น 10 เมตร</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-2.5">
+                                    <span className="text-[10px] font-bold text-blue-400 mt-0.5">ฝน</span>
+                                    <div>
+                                        <span className="text-slate-300 font-semibold block">ปริมาณน้ำฝนสะสม (mm)</span>
+                                        <span>ค่าปริมาณฝนสะสมเชิงปริมาตร ต่ำกว่า 10 มม. คือฝนเบาบาง</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </main>
+
+            {/* Footer Attribution */}
+            <footer className="max-w-7xl mx-auto px-4 md:px-8 mt-8 text-center text-[10px] text-slate-600">
+                <p>© D-MIND Weather Terminal • ข้อมูลประมวลผลและเชื่อมโยง API โดย กรมอุตุนิยมวิทยา (TMD)</p>
+            </footer>
         </div>
     );
 };

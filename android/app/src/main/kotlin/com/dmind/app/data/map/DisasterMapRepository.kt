@@ -1,5 +1,8 @@
 package com.dmind.app.data.map
 
+import android.content.Context
+import com.dmind.app.DMindApplication
+import com.dmind.app.database.AlertsCacheDAO
 import com.dmind.app.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -17,7 +20,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.max
 
-class DisasterMapRepository {
+class DisasterMapRepository(private val context: Context? = null) {
     suspend fun fetchSnapshot(): MapDataSnapshot = coroutineScope {
         val startedAt = System.currentTimeMillis()
         val tasks = listOf(
@@ -114,7 +117,7 @@ class DisasterMapRepository {
         if (query.isBlank()) return@withContext emptyList()
         val encoded = URLEncoder.encode(query, "UTF-8")
         val url = "https://nominatim.openstreetmap.org/search" +
-            "?format=json&q=$encoded&limit=5&countrycodes=th&addressdetails=1"
+            "?format=json&q=$encoded&limit=5&addressdetails=1"
 
         runCatching {
             val body = httpGet(url, headers = osmHeaders())
@@ -135,6 +138,188 @@ class DisasterMapRepository {
         }.getOrDefault(emptyList())
     }
 
+    private suspend fun reverseGeocode(lat: Double, lon: Double): String = withContext(Dispatchers.IO) {
+        val url = "https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon&zoom=10&addressdetails=1"
+        runCatching {
+            val body = httpGet(url, headers = osmHeaders())
+            val json = JSONObject(body)
+            val address = json.optJSONObject("address")
+            if (address != null) {
+                val city = address.optString("city").takeIf { it.isNotBlank() }
+                    ?: address.optString("town").takeIf { it.isNotBlank() }
+                    ?: address.optString("village").takeIf { it.isNotBlank() }
+                    ?: address.optString("suburb").takeIf { it.isNotBlank() }
+                    ?: address.optString("county").takeIf { it.isNotBlank() }
+                    ?: address.optString("state").takeIf { it.isNotBlank() }
+                    ?: address.optString("country").takeIf { it.isNotBlank() }
+                    ?: "ไม่ทราบสถานที่"
+                city
+            } else {
+                json.optString("display_name").takeIf { it.isNotBlank() } ?: "ไม่ทราบสถานที่"
+            }
+        }.getOrDefault("ไม่ทราบสถานที่")
+    }
+
+    private fun openMeteoCodeToLabel(code: Int): String = when (code) {
+        0 -> "ท้องฟ้าแจ่มใส"
+        1 -> "ท้องฟ้าโปร่ง"
+        2 -> "มีเมฆบางส่วน"
+        3 -> "ท้องฟ้าหลัว/มีเมฆมาก"
+        45, 48 -> "มีหมอก"
+        51, 53, 55 -> "ฝนละออง"
+        56, 57 -> "ฝนละอองเยือกแข็ง"
+        61 -> "ฝนตกเล็กน้อย"
+        63 -> "ฝนตกปานกลาง"
+        65 -> "ฝนตกหนัก"
+        66, 67 -> "ฝนเยือกแข็ง"
+        71, 73, 75 -> "หิมะตก"
+        77 -> "หิมะละเอียด"
+        80, 81 -> "ฝนซู่ตกเล็กน้อย"
+        82 -> "ฝนซู่ตกหนัก"
+        85, 86 -> "หิมะตกหนัก"
+        95 -> "ฝนฟ้าคะนอง"
+        96, 99 -> "ฝนฟ้าคะนองกับลูกเห็บ"
+        else -> "ไม่ทราบสภาพอากาศ"
+    }
+
+    suspend fun fetchWeatherForCoords(lat: Double, lon: Double): com.dmind.app.domain.model.SelectedWeatherInfo = withContext(Dispatchers.IO) {
+        val locationName = reverseGeocode(lat, lon)
+        val url = "https://api.open-meteo.com/v1/forecast" +
+            "?latitude=$lat&longitude=$lon" +
+            "&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,pressure_msl,wind_speed_10m" +
+            "&hourly=temperature_2m,weather_code,precipitation" +
+            "&daily=temperature_2m_max,temperature_2m_min,weather_code" +
+            "&timezone=auto"
+        
+        val body = httpGet(url)
+        val json = JSONObject(body)
+        
+        val currentObj = json.getJSONObject("current")
+        val temp = currentObj.optDouble("temperature_2m", 0.0)
+        val rh = currentObj.optDouble("relative_humidity_2m", 0.0)
+        val appTemp = currentObj.optDouble("apparent_temperature", temp)
+        val precip = currentObj.optDouble("precipitation", 0.0)
+        val code = currentObj.optInt("weather_code", 0)
+        val press = currentObj.optDouble("pressure_msl", 1013.25)
+        val wind = currentObj.optDouble("wind_speed_10m", 0.0)
+        val timeStr = currentObj.optString("time", "")
+
+        val currentSnapshot = com.dmind.app.domain.model.WeatherSnapshot(
+            locationName = locationName,
+            temperatureCelsius = temp,
+            humidityPercent = rh,
+            rainMillimeters = precip,
+            windSpeedMps = wind,
+            conditionLabel = openMeteoCodeToLabel(code),
+            forecastTime = timeStr,
+            latitude = lat,
+            longitude = lon,
+            apparentTemperatureCelsius = appTemp,
+            pressureHpa = press
+        )
+
+        val hourlyObj = json.getJSONObject("hourly")
+        val hourlyTimeArr = hourlyObj.getJSONArray("time")
+        val hourlyTempArr = hourlyObj.getJSONArray("temperature_2m")
+        val hourlyCodeArr = hourlyObj.getJSONArray("weather_code")
+        val hourlyPrecipArr = hourlyObj.getJSONArray("precipitation")
+        
+        val hourlyList = mutableListOf<com.dmind.app.domain.model.MapHourlyForecast>()
+        val hourlyCount = minOf(hourlyTimeArr.length(), 24)
+        for (i in 0 until hourlyCount) {
+            val hTime = hourlyTimeArr.optString(i, "")
+            val formattedHour = if (hTime.length >= 16) {
+                hTime.substring(11, 16)
+            } else {
+                hTime
+            }
+            hourlyList.add(
+                com.dmind.app.domain.model.MapHourlyForecast(
+                    time = formattedHour,
+                    temperatureCelsius = hourlyTempArr.optDouble(i, 0.0),
+                    conditionLabel = openMeteoCodeToLabel(hourlyCodeArr.optInt(i, 0)),
+                    conditionCode = hourlyCodeArr.optInt(i, 0),
+                    rainMillimeters = hourlyPrecipArr.optDouble(i, 0.0)
+                )
+            )
+        }
+
+        val dailyObj = json.getJSONObject("daily")
+        val dailyTimeArr = dailyObj.getJSONArray("time")
+        val dailyMaxArr = dailyObj.getJSONArray("temperature_2m_max")
+        val dailyMinArr = dailyObj.getJSONArray("temperature_2m_min")
+        val dailyCodeArr = dailyObj.getJSONArray("weather_code")
+        
+        val dailyList = mutableListOf<com.dmind.app.domain.model.MapDailyForecast>()
+        val dailyCount = dailyTimeArr.length()
+        for (i in 0 until dailyCount) {
+            val dDate = dailyTimeArr.optString(i, "")
+            val formattedDate = try {
+                val localDate = java.time.LocalDate.parse(dDate)
+                localDate.format(java.time.format.DateTimeFormatter.ofPattern("EEE d MMM", java.util.Locale("th", "TH")))
+            } catch (e: Exception) {
+                dDate
+            }
+            dailyList.add(
+                com.dmind.app.domain.model.MapDailyForecast(
+                    date = formattedDate,
+                    maxTempCelsius = dailyMaxArr.optDouble(i, 0.0),
+                    minTempCelsius = dailyMinArr.optDouble(i, 0.0),
+                    conditionLabel = openMeteoCodeToLabel(dailyCodeArr.optInt(i, 0)),
+                    conditionCode = dailyCodeArr.optInt(i, 0)
+                )
+            )
+        }
+
+        com.dmind.app.domain.model.SelectedWeatherInfo(
+            current = currentSnapshot,
+            hourly = hourlyList,
+            daily = dailyList
+        )
+    }
+
+    suspend fun getPlaceInfoForCoords(lat: Double, lon: Double): PlaceInfo = withContext(Dispatchers.IO) {
+        val url = "https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon&zoom=18&addressdetails=1&accept-language=th"
+        val body = httpGet(url, headers = osmHeaders())
+        val json = JSONObject(body)
+        val address = json.optJSONObject("address") ?: throw IllegalStateException("No address details found in Nominatim response")
+
+        val rawProvince = address.optString("province").takeIf { it.isNotBlank() }
+            ?: address.optString("state").takeIf { it.isNotBlank() }
+            ?: address.optString("state_district").takeIf { it.isNotBlank() }
+            ?: ""
+
+        val rawAmphoe = address.optString("district").takeIf { it.isNotBlank() }
+            ?: address.optString("city_district").takeIf { it.isNotBlank() }
+            ?: address.optString("county").takeIf { it.isNotBlank() }
+            ?: address.optString("city").takeIf { it.isNotBlank() }
+            ?: address.optString("amphoe").takeIf { it.isNotBlank() }
+            ?: ""
+
+        val rawTambon = address.optString("subdistrict").takeIf { it.isNotBlank() }
+            ?: address.optString("sub_district").takeIf { it.isNotBlank() }
+            ?: address.optString("tambon").takeIf { it.isNotBlank() }
+            ?: address.optString("suburb").takeIf { it.isNotBlank() }
+            ?: address.optString("village").takeIf { it.isNotBlank() }
+            ?: address.optString("town").takeIf { it.isNotBlank() }
+            ?: ""
+
+        fun String.stripThaiPrefixes(): String {
+            return this.replace("จังหวัด", "")
+                .replace("อำเภอ", "")
+                .replace("เขต", "")
+                .replace("ตำบล", "")
+                .replace("แขวง", "")
+                .trim()
+        }
+
+        val province = rawProvince.stripThaiPrefixes()
+        val amphoe = rawAmphoe.stripThaiPrefixes().takeIf { it.isNotBlank() }
+        val tambon = rawTambon.stripThaiPrefixes().takeIf { it.isNotBlank() }
+
+        PlaceInfo(province = province, amphoe = amphoe, tambon = tambon)
+    }
+
     private suspend fun fetchTmdWeather(): SourceFetchResult = withContext(Dispatchers.IO) {
         val token = BuildConfig.TMD_API_TOKEN
         if (token.isBlank()) {
@@ -150,12 +335,47 @@ class DisasterMapRepository {
         }
 
         runCatching {
+            val dbContext = context ?: runCatching { DMindApplication.instance.applicationContext }.getOrNull()
+            val latestLocation = if (dbContext != null) {
+                val dao = AlertsCacheDAO(dbContext)
+                try {
+                    dao.getLatestLocation()
+                } catch (e: Exception) {
+                    null
+                } finally {
+                    dao.close()
+                }
+            } else {
+                null
+            }
+
+            val placeInfo = latestLocation?.let { loc ->
+                runCatching { getPlaceInfoForCoords(loc.latitude, loc.longitude) }.getOrNull()
+            }
+
             val today = DateTimeFormatter.ISO_LOCAL_DATE
                 .withZone(ZoneId.of("Asia/Bangkok"))
                 .format(Instant.now())
             val fields = "tc,rh,slp,rain,ws10m,wd10m,cloudlow,cloudmed,cloudhigh,cond"
-            val url = "https://data.tmd.go.th/nwpapi/v1/forecast/location/hourly/at" +
-                "?lat=13.7563&lon=100.5018&date=$today&fields=$fields&duration=24"
+
+            val url = if (placeInfo != null && placeInfo.province.isNotBlank()) {
+                val params = mutableListOf<String>()
+                params.add("province=" + URLEncoder.encode(placeInfo.province, "UTF-8"))
+                if (!placeInfo.amphoe.isNullOrBlank()) {
+                    params.add("amphoe=" + URLEncoder.encode(placeInfo.amphoe, "UTF-8"))
+                }
+                if (!placeInfo.tambon.isNullOrBlank()) {
+                    params.add("tambon=" + URLEncoder.encode(placeInfo.tambon, "UTF-8"))
+                }
+                params.add("date=" + URLEncoder.encode(today, "UTF-8"))
+                params.add("fields=" + URLEncoder.encode(fields, "UTF-8"))
+                params.add("duration=24")
+                "https://data.tmd.go.th/nwpapi/v1/forecast/location/hourly/place?" + params.joinToString("&")
+            } else {
+                "https://data.tmd.go.th/nwpapi/v1/forecast/location/hourly/at" +
+                    "?lat=13.7563&lon=100.5018&date=$today&fields=$fields&duration=24"
+            }
+
             val body = httpGet(
                 url,
                 headers = mapOf(
@@ -169,10 +389,10 @@ class DisasterMapRepository {
             val first = forecasts.optJSONObject(0)
             val data = first?.optJSONObject("data")
             val location = rootForecast?.optJSONObject("location")
-            val province = location?.optString("province", "กรุงเทพมหานคร") ?: "กรุงเทพมหานคร"
+            val provinceName = location?.optString("province", placeInfo?.province?.takeIf { it.isNotBlank() } ?: "กรุงเทพมหานคร") ?: "กรุงเทพมหานคร"
             val summary = if (first != null && data != null) {
                 WeatherSummary(
-                    locationName = province,
+                    locationName = provinceName,
                     temperatureCelsius = data.optDouble("tc", 0.0),
                     humidityPercent = data.optDouble("rh", 0.0),
                     rainMillimeters = data.optDouble("rain", 0.0),
@@ -180,6 +400,8 @@ class DisasterMapRepository {
                     conditionCode = data.optInt("cond", 1),
                     conditionLabel = weatherConditionLabel(data.optInt("cond", 1)),
                     forecastTime = first.optString("time", ""),
+                    latitude = latestLocation?.latitude ?: 13.7563,
+                    longitude = latestLocation?.longitude ?: 100.5018,
                 )
             } else {
                 null
