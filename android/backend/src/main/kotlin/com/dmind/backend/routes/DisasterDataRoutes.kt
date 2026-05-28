@@ -8,6 +8,7 @@ import com.dmind.backend.respondError
 import com.dmind.backend.validate
 import com.dmind.backend.httpRequest
 import com.dmind.backend.json
+import com.dmind.backend.UpstreamException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.response.respond
@@ -20,43 +21,148 @@ import kotlinx.serialization.json.*
 import kotlinx.serialization.encodeToString
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.concurrent.ConcurrentHashMap
+
+private data class WeatherCacheEntry(
+    val data: JsonElement,
+    val expiryTimeMillis: Long
+)
+
+private val weatherCache = ConcurrentHashMap<String, WeatherCacheEntry>()
+
+private fun getCachedWeather(key: String): JsonElement? {
+    val entry = weatherCache[key] ?: return null
+    if (System.currentTimeMillis() > entry.expiryTimeMillis) {
+        weatherCache.remove(key)
+        return null
+    }
+    return entry.data
+}
+
+private fun putCachedWeather(key: String, data: JsonElement) {
+    if (weatherCache.size > 1000) {
+        val now = System.currentTimeMillis()
+        weatherCache.keys.removeIf { k ->
+            val e = weatherCache[k]
+            e == null || now > e.expiryTimeMillis
+        }
+    }
+    val expiry = System.currentTimeMillis() + (15 * 60 * 1000) // 15 minutes
+    weatherCache[key] = WeatherCacheEntry(data, expiry)
+}
 
 internal fun Route.disasterDataRoutes(config: GatewayConfig) {
     get("/weather") {
         call.handleSafely {
             val token = config.tmdApiToken
-            if (token.isBlank()) {
-                call.respondError(
-                    HttpStatusCode.ServiceUnavailable,
-                    "tmd_not_configured",
-                    "TMD_API_TOKEN is required for live weather data.",
-                )
+            val daily = call.request.queryParameters["daily"]?.toBoolean() ?: false
+            val region = call.request.queryParameters["region"]
+            val province = call.request.queryParameters["province"]
+            val durationStr = call.request.queryParameters["duration"]
+
+            val duration = durationStr?.toIntOrNull()?.let {
+                if (daily) it.coerceIn(1, 10) else it.coerceIn(1, 48)
+            } ?: (if (daily) 7 else 24)
+
+            val defaultFields = if (daily) {
+                "tc_max,tc_min,rh,slp,rain,ws10m,wd10m,cloudlow,cloudmed,cloudhigh,cond"
+            } else {
+                "tc,rh,slp,rain,ws10m,wd10m,cloudlow,cloudmed,cloudhigh,cond"
+            }
+            val fields = call.request.queryParameters["fields"] ?: defaultFields
+
+            // Determine cache key
+            val cacheKey = when {
+                region != null -> "region:$region:$daily:$duration:$fields"
+                province != null -> {
+                    val amphoe = call.request.queryParameters["amphoe"]
+                    val tambon = call.request.queryParameters["tambon"]
+                    val subarea = call.request.queryParameters["subarea"]
+                    val date = call.request.queryParameters["date"]
+                        ?: LocalDate.now(ZoneId.of("Asia/Bangkok")).toString()
+                    "place:$province:$amphoe:$tambon:$subarea:$date:$daily:$duration:$fields"
+                }
+                else -> {
+                    val lat = call.request.queryParameters["lat"]?.toDoubleOrNull() ?: 13.7563
+                    val lon = call.request.queryParameters["lon"]?.toDoubleOrNull() ?: 100.5018
+                    val roundedLat = String.format(java.util.Locale.US, "%.3f", lat)
+                    val roundedLon = String.format(java.util.Locale.US, "%.3f", lon)
+                    val date = call.request.queryParameters["date"]
+                        ?: LocalDate.now(ZoneId.of("Asia/Bangkok")).toString()
+                    "coords:$roundedLat:$roundedLon:$date:$daily:$duration:$fields"
+                }
+            }
+
+            val cached = getCachedWeather(cacheKey)
+            if (cached != null) {
+                val cachedStatus = if (cached.toString().contains("Open-Meteo")) "fallback" else "ok"
+                call.respond(JsonDataResponse(status = cachedStatus, detail = "cached weather", data = cached))
                 return@handleSafely
             }
 
-            val province = call.request.queryParameters["province"]
-            if (province != null) {
-                val amphoe = call.request.queryParameters["amphoe"]
-                val tambon = call.request.queryParameters["tambon"]
-                val subarea = call.request.queryParameters["subarea"]
-                val date = call.request.queryParameters["date"]
-                    ?: LocalDate.now(ZoneId.of("Asia/Bangkok")).toString()
-                val hour = call.request.queryParameters["hour"]
-                val duration = call.request.queryParameters["duration"]?.toIntOrNull()?.coerceIn(1, 48) ?: 24
-                val fields = call.request.queryParameters["fields"]
-                    ?: "tc,rh,slp,rain,ws10m,wd10m,cloudlow,cloudmed,cloudhigh,cond"
+            val lat = call.request.queryParameters["lat"]?.toDoubleOrNull() ?: 13.7563
+            val lon = call.request.queryParameters["lon"]?.toDoubleOrNull() ?: 100.5018
 
-                val params = mutableListOf<String>()
-                params.add("province=" + java.net.URLEncoder.encode(province, "UTF-8"))
-                if (amphoe != null) params.add("amphoe=" + java.net.URLEncoder.encode(amphoe, "UTF-8"))
-                if (tambon != null) params.add("tambon=" + java.net.URLEncoder.encode(tambon, "UTF-8"))
-                if (subarea != null) params.add("subarea=" + java.net.URLEncoder.encode(subarea, "UTF-8"))
-                params.add("date=" + java.net.URLEncoder.encode(date, "UTF-8"))
-                if (hour != null) params.add("hour=" + java.net.URLEncoder.encode(hour, "UTF-8"))
-                params.add("duration=" + duration.toString())
-                params.add("fields=" + java.net.URLEncoder.encode(fields, "UTF-8"))
+            if (token.isBlank()) {
+                // Fallback to Open-Meteo when TMD token is unconfigured
+                try {
+                    val fallbackData = fetchOpenMeteoFallback(lat, lon, daily, duration)
+                    putCachedWeather(cacheKey, fallbackData)
+                    call.respond(JsonDataResponse(status = "fallback", detail = "fallback Open-Meteo weather", data = fallbackData))
+                } catch (e: Exception) {
+                    call.respondError(
+                        HttpStatusCode.ServiceUnavailable,
+                        "weather_service_failed",
+                        "TMD not configured and Open-Meteo fallback failed: ${e.message}"
+                    )
+                }
+                return@handleSafely
+            }
 
-                val url = "https://data.tmd.go.th/nwpapi/v1/forecast/location/hourly/place?" + params.joinToString("&")
+            val url = when {
+                region != null -> {
+                    val apiType = if (daily) "daily" else "hourly"
+                    "https://data.tmd.go.th/nwpapi/v1/forecast/location/$apiType/region?region=" +
+                        java.net.URLEncoder.encode(region, "UTF-8") +
+                        "&fields=" + java.net.URLEncoder.encode(fields, "UTF-8") +
+                        "&duration=$duration"
+                }
+                province != null -> {
+                    val apiType = if (daily) "daily" else "hourly"
+                    val amphoe = call.request.queryParameters["amphoe"]
+                    val tambon = call.request.queryParameters["tambon"]
+                    val subarea = call.request.queryParameters["subarea"]
+                    val hour = call.request.queryParameters["hour"]
+                    val date = call.request.queryParameters["date"]
+                        ?: LocalDate.now(ZoneId.of("Asia/Bangkok")).toString()
+
+                    val params = mutableListOf<String>()
+                    params.add("province=" + java.net.URLEncoder.encode(province, "UTF-8"))
+                    if (amphoe != null) params.add("amphoe=" + java.net.URLEncoder.encode(amphoe, "UTF-8"))
+                    if (tambon != null) params.add("tambon=" + java.net.URLEncoder.encode(tambon, "UTF-8"))
+                    if (subarea != null) params.add("subarea=" + java.net.URLEncoder.encode(subarea, "UTF-8"))
+                    params.add("date=" + java.net.URLEncoder.encode(date, "UTF-8"))
+                    if (hour != null) params.add("hour=" + java.net.URLEncoder.encode(hour, "UTF-8"))
+                    params.add("duration=$duration")
+                    params.add("fields=" + java.net.URLEncoder.encode(fields, "UTF-8"))
+
+                    "https://data.tmd.go.th/nwpapi/v1/forecast/location/$apiType/place?" + params.joinToString("&")
+                }
+                else -> {
+                    val apiType = if (daily) "daily" else "hourly"
+                    validate(lat in -90.0..90.0, "lat must be between -90 and 90")
+                    validate(lon in -180.0..180.0, "lon must be between -180 and 180")
+                    val date = call.request.queryParameters["date"]
+                        ?: LocalDate.now(ZoneId.of("Asia/Bangkok")).toString()
+
+                    "https://data.tmd.go.th/nwpapi/v1/forecast/location/$apiType/at" +
+                        "?lat=$lat&lon=$lon&date=" + java.net.URLEncoder.encode(date, "UTF-8") +
+                        "&fields=" + java.net.URLEncoder.encode(fields, "UTF-8") +
+                        "&duration=$duration"
+                }
+            }
+
+            try {
                 val data = httpRequest(
                     method = "GET",
                     url = url,
@@ -65,28 +171,22 @@ internal fun Route.disasterDataRoutes(config: GatewayConfig) {
                         "authorization" to "Bearer $token",
                     ),
                 ).json()
+                putCachedWeather(cacheKey, data)
                 call.respond(JsonDataResponse(status = "ok", detail = "live TMD weather", data = data))
-            } else {
-                val lat = call.request.queryParameters["lat"]?.toDoubleOrNull() ?: 13.7563
-                val lon = call.request.queryParameters["lon"]?.toDoubleOrNull() ?: 100.5018
-                validate(lat in -90.0..90.0, "lat must be between -90 and 90")
-                validate(lon in -180.0..180.0, "lon must be between -180 and 180")
-                val duration = call.request.queryParameters["duration"]?.toIntOrNull()?.coerceIn(1, 48) ?: 24
-                val date = call.request.queryParameters["date"]
-                    ?: LocalDate.now(ZoneId.of("Asia/Bangkok")).toString()
-                val fields = call.request.queryParameters["fields"]
-                    ?: "tc,rh,slp,rain,ws10m,wd10m,cloudlow,cloudmed,cloudhigh,cond"
-                val url = "https://data.tmd.go.th/nwpapi/v1/forecast/location/hourly/at" +
-                    "?lat=$lat&lon=$lon&date=$date&fields=$fields&duration=$duration"
-                val data = httpRequest(
-                    method = "GET",
-                    url = url,
-                    headers = mapOf(
-                        "accept" to "application/json",
-                        "authorization" to "Bearer $token",
-                    ),
-                ).json()
-                call.respond(JsonDataResponse(status = "ok", detail = "live TMD weather", data = data))
+            } catch (e: Exception) {
+                // Fallback to Open-Meteo when TMD API call fails
+                try {
+                    val fallbackData = fetchOpenMeteoFallback(lat, lon, daily, duration)
+                    putCachedWeather(cacheKey, fallbackData)
+                    call.respond(JsonDataResponse(status = "fallback", detail = "fallback Open-Meteo weather (TMD API failed)", data = fallbackData))
+                } catch (fallbackEx: Exception) {
+                    val statusCode = (e as? UpstreamException)?.statusCode ?: 502
+                    call.respondError(
+                        HttpStatusCode.fromValue(statusCode).takeIf { statusCode in 400..599 } ?: HttpStatusCode.BadGateway,
+                        "weather_service_failed",
+                        "TMD API error: ${e.message}. Open-Meteo fallback also failed: ${fallbackEx.message}"
+                    )
+                }
             }
         }
     }
@@ -361,4 +461,117 @@ private fun extractSeverityScore(text: String): Int {
     val regex = Regex("""Estimated Severity:\s*([1-5])""", RegexOption.IGNORE_CASE)
     val match = regex.find(text)
     return match?.groupValues?.get(1)?.toIntOrNull() ?: 3
+}
+
+private fun fetchOpenMeteoFallback(lat: Double, lon: Double, daily: Boolean, duration: Int): JsonElement {
+    val apiType = if (daily) "daily" else "hourly"
+    val url = if (daily) {
+        "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&daily=temperature_2m_max,temperature_2m_min,relative_humidity_2m_max,rain_sum,wind_speed_10m_max,weather_code&forecast_days=$duration&timezone=Asia/Bangkok"
+    } else {
+        "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&hourly=temperature_2m,relative_humidity_2m,rain,wind_speed_10m,weather_code&forecast_days=2&timezone=Asia/Bangkok"
+    }
+
+    val raw = httpRequest("GET", url)
+    val root = Json.parseToJsonElement(raw).jsonObject
+
+    val forecastsArray = buildJsonArray {
+        if (daily) {
+            val dailyObj = root["daily"]?.jsonObject ?: return@buildJsonArray
+            val timeArr = dailyObj["time"]?.jsonArray ?: return@buildJsonArray
+            val tempMaxArr = dailyObj["temperature_2m_max"]?.jsonArray
+            val tempMinArr = dailyObj["temperature_2m_min"]?.jsonArray
+            val rainArr = dailyObj["rain_sum"]?.jsonArray
+            val wsArr = dailyObj["wind_speed_10m_max"]?.jsonArray
+            val codeArr = dailyObj["weather_code"]?.jsonArray
+
+            for (i in 0 until timeArr.size) {
+                val time = timeArr[i].jsonPrimitive.content
+                val tcMax = tempMaxArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val tcMin = tempMinArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val rain = rainArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val ws = (wsArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0) / 3.6
+                val code = codeArr?.getOrNull(i)?.jsonPrimitive?.intOrNull ?: 0
+                val cond = when (code) {
+                    0 -> 1
+                    1, 2 -> 2
+                    3 -> 3
+                    45, 48 -> 3
+                    51, 53, 55 -> 5
+                    61, 63 -> 6
+                    65 -> 7
+                    80, 81 -> 6
+                    82 -> 7
+                    95, 96, 99 -> 8
+                    else -> 1
+                }
+
+                add(buildJsonObject {
+                    put("time", time + "T00:00:00+07:00")
+                    put("data", buildJsonObject {
+                        put("tc_max", tcMax)
+                        put("tc_min", tcMin)
+                        put("rain", rain)
+                        put("ws10m", ws)
+                        put("cond", cond)
+                        put("rh", 70.0)
+                    })
+                })
+            }
+        } else {
+            val hourlyObj = root["hourly"]?.jsonObject ?: return@buildJsonArray
+            val timeArr = hourlyObj["time"]?.jsonArray ?: return@buildJsonArray
+            val tempArr = hourlyObj["temperature_2m"]?.jsonArray
+            val rhArr = hourlyObj["relative_humidity_2m"]?.jsonArray
+            val rainArr = hourlyObj["rain"]?.jsonArray
+            val wsArr = hourlyObj["wind_speed_10m"]?.jsonArray
+            val codeArr = hourlyObj["weather_code"]?.jsonArray
+
+            val count = minOf(timeArr.size, duration)
+            for (i in 0 until count) {
+                val time = timeArr[i].jsonPrimitive.content
+                val tc = tempArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val rh = rhArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val rain = rainArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val ws = (wsArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0) / 3.6
+                val code = codeArr?.getOrNull(i)?.jsonPrimitive?.intOrNull ?: 0
+                val cond = when (code) {
+                    0 -> 1
+                    1, 2 -> 2
+                    3 -> 3
+                    45, 48 -> 3
+                    51, 53, 55 -> 5
+                    61, 63 -> 6
+                    65 -> 7
+                    80, 81 -> 6
+                    82 -> 7
+                    95, 96, 99 -> 8
+                    else -> 1
+                }
+
+                add(buildJsonObject {
+                    put("time", time + ":00+07:00")
+                    put("data", buildJsonObject {
+                        put("tc", tc)
+                        put("rh", rh)
+                        put("rain", rain)
+                        put("ws10m", ws)
+                        put("cond", cond)
+                    })
+                })
+            }
+        }
+    }
+
+    return buildJsonObject {
+        put("WeatherForecasts", buildJsonArray {
+            add(buildJsonObject {
+                put("location", buildJsonObject {
+                    put("lat", lat)
+                    put("lon", lon)
+                    put("province", "Bangkok (Open-Meteo)")
+                })
+                put("forecasts", forecastsArray)
+            })
+        })
+    }
 }

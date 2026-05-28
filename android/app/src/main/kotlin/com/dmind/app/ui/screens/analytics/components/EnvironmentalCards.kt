@@ -104,6 +104,56 @@ fun EnvironmentalCards(
                 modifier = Modifier.weight(1f),
             )
         }
+
+        // Open-Meteo Enrichment Title
+        Text(
+            "Open-Meteo Enrichment",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+
+        // Open-Meteo Soil Moisture & River Flow Row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            EnvironmentalMetricCard(
+                icon = Icons.Filled.Water,
+                label = "Open-Meteo River Flow",
+                value = data.openMeteoRiverDischarge?.let { String.format(Locale.US, "%.1f m³/s", it) } ?: "-",
+                color = Color(0xFF06B6D4),
+                modifier = Modifier.weight(1f),
+            )
+            EnvironmentalMetricCard(
+                icon = Icons.Filled.WaterDrop,
+                label = "Open-Meteo Soil Moisture",
+                value = data.openMeteoSoilMoisture?.let { String.format(Locale.US, "%.2f m³/m³", it) } ?: "-",
+                color = Color(0xFF84CC16),
+                modifier = Modifier.weight(1f),
+            )
+        }
+
+        // Open-Meteo Air Metrics Row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            EnvironmentalMetricCard(
+                icon = Icons.Filled.Air,
+                label = "Open-Meteo PM2.5",
+                value = data.openMeteoPm25?.let { String.format(Locale.US, "%.1f µg/m³", it) } ?: "-",
+                color = Color(0xFFEC4899),
+                modifier = Modifier.weight(1f),
+            )
+            EnvironmentalMetricCard(
+                icon = Icons.Filled.Air,
+                label = "Open-Meteo AQI",
+                value = data.openMeteoAqi?.toString() ?: "-",
+                color = Color(0xFFF43F5E),
+                modifier = Modifier.weight(1f),
+            )
+        }
     }
 }
 

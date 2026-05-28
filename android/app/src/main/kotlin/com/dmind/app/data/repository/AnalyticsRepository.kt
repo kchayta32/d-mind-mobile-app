@@ -80,6 +80,10 @@ class AnalyticsRepository(
                 humidity = dto.humidity,
                 waterLevel = dto.waterLevel,
                 rainfall = dto.rainfall,
+                openMeteoRiverDischarge = dto.openMeteoRiverDischarge,
+                openMeteoSoilMoisture = dto.openMeteoSoilMoisture,
+                openMeteoPm25 = dto.openMeteoPm25,
+                openMeteoAqi = dto.openMeteoAqi,
             )
         }
     }

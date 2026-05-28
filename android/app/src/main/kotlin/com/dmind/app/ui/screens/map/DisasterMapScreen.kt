@@ -131,6 +131,7 @@ fun DisasterMapScreen(
                         viirsHotspot = marker.hotspot,
                         floodArea = marker.floodArea,
                     )
+                    viewModel.fetchWeatherForCoords(marker.latitude, marker.longitude)
                     scope.launch { scaffoldState.bottomSheetState.expand() }
                 },
                 onMapClick = { lat, lon ->

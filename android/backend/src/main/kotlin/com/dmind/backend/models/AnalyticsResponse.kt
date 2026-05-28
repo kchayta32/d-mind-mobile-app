@@ -51,4 +51,8 @@ data class EnvironmentalResponse(
     val waterLevel: Double?,
     val rainfall: Double?,
     val updatedAt: String,
+    val openMeteoRiverDischarge: Double? = null,
+    val openMeteoSoilMoisture: Double? = null,
+    val openMeteoPm25: Double? = null,
+    val openMeteoAqi: Int? = null,
 )

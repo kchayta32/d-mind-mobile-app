@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D-MIND | Disaster & Environmental AI Dashboard</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        :root {
+            --bg-glow: radial-gradient(circle at 50% -20%, #1e1b4b 0%, #09090b 80%);
+            --card-bg: rgba(15, 15, 25, 0.6);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --card-glow: rgba(99, 102, 241, 0.15);
+            --text-primary: #f4f4f5;
+            --text-secondary: #a1a1aa;
+            --accent-color: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.4);
+            
+            /* Severity Colors */
+            --critical: #ef4444;
+            --high: #f97316;
+            --moderate: #eab308;
+            --low: #3b82f6;
+            --safe: #22c55e;
+            
+            /* Disaster Category Colors */
+            --color-eq: #ec4899;
+            --color-flood: #06b6d4;
+            --color-wildfire: #f97316;
+            --color-storm: #a855f7;
+            --color-drought: #eab308;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #09090b;
+            background-image: var(--bg-glow);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        /* Glassmorphism Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Layout Structure */
+        header {
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--card-border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-color), #ec4899);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: white;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .logo-title h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            background: linear-gradient(to right, #ffffff, #c7d2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-title p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .controls-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Form styling */
+        .glass-select, .glass-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            color: white;
+            font-family: inherit;
+            font-size: 0.875rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .glass-select:focus, .glass-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+        }
+
+        .glass-btn {
+            background: linear-gradient(135deg, var(--accent-color), #4f46e5);
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1.25rem;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .glass-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+        }
+
+        .glass-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Toggle Switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 2px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .toggle-btn {
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            padding: 0.375rem 1rem;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .toggle-btn.demo-active {
+            background: linear-gradient(135deg, #eab308, #ca8a04);
+            color: black;
+            box-shadow: 0 2px 8px rgba(234, 179, 8, 0.3);
+        }
+
+        /* System status banner */
+        .status-banner {
+            background: rgba(99, 102, 241, 0.1);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 0.5rem 2rem;
+            font-size: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #c7d2fe;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--safe);
+            margin-right: 0.5rem;
+            box-shadow: 0 0 8px var(--safe);
+        }
+
+        .status-dot.warning {
+            background: var(--moderate);
+            box-shadow: 0 0 8px var(--moderate);
+        }
+
+        .status-dot.danger {
+            background: var(--critical);
+            box-shadow: 0 0 8px var(--critical);
+        }
+
+        /* Main Grid Containers */
+        main {
+            padding: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Card Styling */
+        .glass-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3), 0 0 15px var(--card-glow);
+        }
+
+        .glass-card.card-danger::before { background: var(--critical); }
+        .glass-card.card-warning::before { background: var(--high); }
+        .glass-card.card-info::before { background: var(--low); }
+        .glass-card.card-success::before { background: var(--safe); }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 0.75rem;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Grid of Summary Widgets */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .metric-card {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .metric-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .metric-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .metric-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 0.25rem 0;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .metric-trend {
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .trend-up { color: var(--critical); }
+        .trend-down { color: var(--safe); }
+        .trend-neutral { color: var(--text-secondary); }
+
+        /* Double Column Grid for Map & Trends */
+        .row-grid-2 {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .row-grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 1;
+        }
+
+        /* Leaflet Dark Theme Override */
+        .leaflet-container {
+            background: #09090b !important;
+        }
+        .leaflet-tile {
+            filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) !important;
+        }
+        .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+            background: rgba(15, 15, 25, 0.9) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid var(--card-border) !important;
+            backdrop-filter: blur(8px) !important;
+        }
+
+        /* Multi Chart Grid */
+        .row-grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1200px) {
+            .row-grid-3 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        @media (max-width: 768px) {
+            .row-grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+
+        /* Recent Events Table */
+        .table-container {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.875rem;
+        }
+
+        th {
+            padding: 0.75rem 1rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .badge-critical { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .badge-high { background: rgba(249, 115, 22, 0.2); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.4); }
+        .badge-moderate { background: rgba(234, 179, 8, 0.2); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.4); }
+        .badge-low { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+
+        .type-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-weight: 500;
+        }
+
+        .type-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        /* AI Chat Terminal */
+        .chat-portal {
+            display: flex;
+            flex-direction: column;
+            height: 380px;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            margin-bottom: 1rem;
+            scroll-behavior: smooth;
+        }
+
+        .chat-msg {
+            max-width: 85%;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .chat-msg.user {
+            align-self: flex-end;
+            background: var(--accent-color);
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .chat-msg.ai {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.07);
+            color: var(--text-primary);
+            border-bottom-left-radius: 2px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .chat-msg.system {
+            align-self: center;
+            background: rgba(234, 179, 8, 0.1);
+            color: #fef08a;
+            border: 1px solid rgba(234, 179, 8, 0.2);
+            text-align: center;
+            max-width: 95%;
+            font-size: 0.75rem;
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chat-input {
+            flex-grow: 1;
+        }
+
+        /* Weather info display */
+        .weather-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+        }
+        .weather-detail-item {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 6px;
+            padding: 0.35rem 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="logo-section">
+            <div class="logo-icon">DM</div>
+            <div class="logo-title">
+                <h1>D-MIND Portal</h1>
+                <p>Disaster & Environmental AI Dashboard</p>
+            </div>
+        </div>
+
+        <div class="controls-section">
+            <!-- Data Mode Selector -->
+            <div class="toggle-container">
+                <button id="liveModeBtn" class="toggle-btn active" onclick="setMode('live')">Live Data</button>
+                <button id="demoModeBtn" class="toggle-btn" onclick="setMode('demo')">Demo Mode</button>
+            </div>
+
+            <!-- Coordinate presets -->
+            <select id="locationPreset" class="glass-select" onchange="applyPresetLocation()">
+                <option value="bangkok">กรุงเทพมหานคร (Bangkok)</option>
+                <option value="chiangmai">เชียงใหม่ (Chiang Mai)</option>
+                <option value="phuket">ภูเก็ต (Phuket)</option>
+                <option value="khonkaen">ขอนแก่น (Khon Kaen)</option>
+                <option value="surat">สุราษฎร์ธานี (Surat Thani)</option>
+                <option value="custom">กำหนดเอง (Custom)...</option>
+            </select>
+
+            <!-- Latitude/Longitude -->
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="number" id="inputLat" class="glass-input" style="width: 90px;" placeholder="Lat" step="0.0001" value="13.7563" onchange="onCoordsChange()">
+                <input type="number" id="inputLon" class="glass-input" style="width: 90px;" placeholder="Lon" step="0.0001" value="100.5018" onchange="onCoordsChange()">
+            </div>
+
+            <button class="glass-btn" onclick="refreshAll()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                Refresh
+            </button>
+        </div>
+    </header>
+
+    <!-- Status Bar -->
+    <div class="status-banner">
+        <div>
+            <span id="statusIndicator" class="status-dot"></span>
+            <span id="statusText">System Online: Live Backend Data Mode</span>
+        </div>
+        <div>
+            <span>TMD NWP Forecast Status: </span>
+            <span id="tmdStatusText" style="font-weight: 600; color: white;">Connecting...</span>
+        </div>
+        <div>
+            <span>Last Sync: </span>
+            <span id="syncTimeText" style="font-weight: 600; color: white;">Never</span>
+        </div>
+    </div>
+
+    <!-- Main Grid Content -->
+    <main>
+        
+        <!-- Metrics Summary Cards -->
+        <section class="metrics-grid">
+            
+            <div class="glass-card card-danger">
+                <div class="metric-card">
+                    <div class="metric-icon" style="color: var(--critical);">🚨</div>
+                    <div class="metric-info">
+                        <span class="metric-label">Active Incidents</span>
+                        <span id="metricActiveIncidents" class="metric-value">0</span>
+                        <span class="metric-trend trend-up">
+                            <span id="metricIncidentsTrend">USGS + GISTDA Live</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card card-warning">
+                <div class="metric-card">
+                    <div class="metric-icon" style="color: var(--high);">📐</div>
+                    <div class="metric-info">
+                        <span class="metric-label">Affected Area</span>
+                        <span id="metricAffectedArea" class="metric-value">0.0 km²</span>
+                        <span class="metric-trend trend-neutral">
+                            <span>Estimated from satellite</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card card-info">
+                <div class="metric-card">
+                    <div class="metric-icon" style="color: var(--color-flood);">🌫️</div>
+                    <div class="metric-info">
+                        <span class="metric-label">Air Quality (PM2.5)</span>
+                        <span id="metricPm25" class="metric-value">0.0 µg/m³</span>
+                        <span class="metric-trend" id="pm25TrendLabel">
+                            <span class="badge" id="aqiBadge" style="margin-left: 0;">AQI --</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card card-success">
+                <div class="metric-card">
+                    <div class="metric-icon" style="color: var(--safe);">🌡️</div>
+                    <div class="metric-info">
+                        <span class="metric-label">Local Weather</span>
+                        <span id="metricWeather" class="metric-value">--°C</span>
+                        <div class="weather-detail-grid">
+                            <div class="weather-detail-item">Hum: <span id="metricHumidity">--%</span></div>
+                            <div class="weather-detail-item">Rain: <span id="metricRain">--mm</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Map & Main Trends Row -->
+        <section class="row-grid-2">
+            
+            <!-- Map Card -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span>🗺️ Thailand Disaster Live Map</span>
+                    </div>
+                    <span class="card-subtitle">Showing active warnings & coordinates</span>
+                </div>
+                <div id="map"></div>
+            </div>
+
+            <!-- Main Trend Analytics -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span>📈 Disaster Incidence Trends</span>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <select id="trendPeriod" class="glass-select" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onchange="onPeriodChange()">
+                            <option value="7d">Last 7 Days</option>
+                            <option value="30d">Last 30 Days</option>
+                            <option value="1y">Last Year</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="disasterTrendChart"></canvas>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Environmental Trends & Forecasting Row -->
+        <section class="row-grid-3">
+            
+            <!-- Open-Meteo PM2.5 Forecast Trend -->
+            <div class="glass-card card-info">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span>🌫️ Open-Meteo PM2.5 Trend</span>
+                    </div>
+                    <span class="card-subtitle">Micrograms / cubic meter forecast</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="pm25ForecastChart"></canvas>
+                </div>
+            </div>
+
+            <!-- River Discharge Trend -->
+            <div class="glass-card card-success">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span>🌊 Open-Meteo River Discharge</span>
+                    </div>
+                    <span class="card-subtitle">River flow rate forecast (m³/s)</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="riverDischargeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Soil Moisture Trend -->
+            <div class="glass-card card-warning">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span>🌱 Open-Meteo Soil Moisture</span>
+                    </div>
+                    <span class="card-subtitle">Soil moisture levels (0-7cm) m³/m³</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="soilMoistureChart"></canvas>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Recent Incidents & AI Chat Assistant -->
+        <section class="row-grid-2">
+            
+            <!-- Recent Incidents List -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span>🔔 Recent Disaster Feed</span>
+                    </div>
+                    <span class="card-subtitle">Latest USGS & GISTDA warnings</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Incident Title</th>
+                                <th>Category</th>
+                                <th>Severity</th>
+                                <th>Location</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentEventsTableBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                                    Loading alerts...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- AI Chat Terminal -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span>🤖 D-MIND AI Safety Chatbot</span>
+                    </div>
+                    <span class="card-subtitle">Powered by OpenAI / ThaiLLM</span>
+                </div>
+                <div class="chat-portal">
+                    <div id="chatMessages" class="chat-messages">
+                        <div class="chat-msg ai">
+                            สวัสดีครับ! ผมคือ <strong>D-MIND AI Safety Assistant</strong> สามารถสอบถามเกี่ยวกับการเตรียมตัวรับมือภัยพิบัติ รายงานความเสียหาย หรือประเมินสถานการณ์ได้เลยครับ
+                        </div>
+                    </div>
+                    <div class="chat-input-wrapper">
+                        <input type="text" id="chatInput" class="glass-input chat-input" placeholder="Type safety inquiry (e.g., How to handle floods?)..." onkeydown="handleChatKey(event)">
+                        <button class="glass-btn" onclick="sendChatMessage()">
+                            Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+        // Location Presets Coordinates
+        const locationPresets = {
+            bangkok: { lat: 13.7563, lon: 100.5018 },
+            chiangmai: { lat: 18.7883, lon: 98.9853 },
+            phuket: { lat: 7.8804, lon: 98.3923 },
+            khonkaen: { lat: 16.4322, lon: 102.8236 },
+            surat: { lat: 9.1400, lon: 99.3330 }
+        };
+
+        // Application State
+        let currentMode = 'live'; // 'live' or 'demo'
+        let currentPeriod = '7d';
+        let map = null;
+        let mapMarker = null;
+        let mapIncidentGroup = null;
+
+        // Charts Instances
+        let disasterChartInstance = null;
+        let pm25ChartInstance = null;
+        let riverChartInstance = null;
+        let soilChartInstance = null;
+
+        // Initialize Map
+        function initMap() {
+            const lat = parseFloat(document.getElementById('inputLat').value);
+            const lon = parseFloat(document.getElementById('inputLon').value);
+            
+            map = L.map('map').setView([lat, lon], 6);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            mapMarker = L.marker([lat, lon]).addTo(map);
+            mapMarker.bindPopup("<b>Selected Query Center</b>").openPopup();
+
+            mapIncidentGroup = L.layerGroup().addTo(map);
+        }
+
+        // Apply selected preset location
+        function applyPresetLocation() {
+            const presetVal = document.getElementById('locationPreset').value;
+            if (presetVal === 'custom') return;
+
+            const coords = locationPresets[presetVal];
+            if (coords) {
+                document.getElementById('inputLat').value = coords.lat.toFixed(4);
+                document.getElementById('inputLon').value = coords.lon.toFixed(4);
+                onCoordsChange();
+            }
+        }
+
+        // Handle raw coords manual edit
+        function onCoordsChange() {
+            const lat = parseFloat(document.getElementById('inputLat').value);
+            const lon = parseFloat(document.getElementById('inputLon').value);
+            
+            if (!isNaN(lat) && !isNaN(lon)) {
+                if (map) {
+                    map.setView([lat, lon], 8);
+                    mapMarker.setLatLng([lat, lon]);
+                    mapMarker.bindPopup(`<b>Query Center</b><br>Lat: ${lat.toFixed(4)}<br>Lon: ${lon.toFixed(4)}`).openPopup();
+                }
+                refreshAll();
+            }
+        }
+
+        // Refresh Period dropdown
+        function onPeriodChange() {
+            currentPeriod = document.getElementById('trendPeriod').value;
+            fetchTrendsData();
+        }
+
+        // Toggle Live vs Demo Modes
+        function setMode(mode) {
+            currentMode = mode;
+            const liveBtn = document.getElementById('liveModeBtn');
+            const demoBtn = document.getElementById('demoModeBtn');
+            const statusIndicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+
+            if (mode === 'live') {
+                liveBtn.classList.add('active');
+                demoBtn.classList.remove('demo-active');
+                statusIndicator.className = 'status-dot';
+                statusText.innerText = "System Online: Live Backend Data Mode";
+                
+                // Add system message in chat
+                appendSystemChatMessage("Switched to LIVE MODE. Inquires will query actual LLM models configured in backend.");
+            } else {
+                liveBtn.classList.remove('active');
+                demoBtn.classList.add('demo-active');
+                statusIndicator.className = 'status-dot warning';
+                statusText.innerText = "System Offline: Simulated Demo Data Mode";
+                
+                appendSystemChatMessage("Switched to DEMO MODE. Visualizations and Chatbot will use simulated offline generators.");
+            }
+            refreshAll();
+        }
+
+        // Main Refresh Pipeline
+        function refreshAll() {
+            document.getElementById('syncTimeText').innerText = new Date().toLocaleTimeString();
+            
+            if (currentMode === 'demo') {
+                loadDemoData();
+                return;
+            }
+
+            // Live Mode Pipeline
+            fetchEnvironmentalSummary();
+            fetchAnalyticsSummary();
+            fetchTrendsData();
+            fetchExternalOpenMeteoForecasts();
+        }
+
+        // ═════════════════════════════════════════════════════════════
+        // AJAX ENDPOINT FETCHERS (LIVE MODE)
+        // ═════════════════════════════════════════════════════════════
+
+        // 1) Fetch environmental data (AQI/PM2.5, weather etc.) from backend
+        async function fetchEnvironmentalSummary() {
+            const lat = parseFloat(document.getElementById('inputLat').value);
+            const lon = parseFloat(document.getElementById('inputLon').value);
+            
+            try {
+                const response = await fetch('/api/analytics/environmental');
+                if (!response.ok) throw new Error("HTTP error " + response.status);
+                
+                const data = await response.json();
+                
+                // Update PM2.5 details
+                document.getElementById('metricPm25').innerText = `${data.pm25.toFixed(1)} µg/m³`;
+                
+                const aqiBadge = document.getElementById('aqiBadge');
+                aqiBadge.innerText = `AQI ${data.aqi} (${data.aqiLevel})`;
+                aqiBadge.className = 'badge';
+                if (data.aqi <= 50) aqiBadge.classList.add('badge-low');
+                else if (data.aqi <= 100) aqiBadge.classList.add('badge-moderate');
+                else if (data.aqi <= 200) aqiBadge.classList.add('badge-high');
+                else aqiBadge.classList.add('badge-critical');
+
+                // Now attempt to query TMD /weather proxy
+                fetchTmdWeather(lat, lon, data);
+
+            } catch (err) {
+                console.error("Backend environmental fetch failed, falling back to direct Open-Meteo", err);
+                fetchDirectOpenMeteoWeather(lat, lon);
+            }
+        }
+
+        // 2) Fetch TMD weather from backend or fallback to Open-Meteo
+        async function fetchTmdWeather(lat, lon, envDataObj) {
+            const tmdStatusText = document.getElementById('tmdStatusText');
+            try {
+                const url = `/weather?lat=${lat}&lon=${lon}&daily=false&duration=24`;
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    if (response.status === 503) {
+                        tmdStatusText.innerHTML = `<span style="color:#facc15">TMD Token Missing (Using Open-Meteo Fallback)</span>`;
+                    }
+                    throw new Error("TMD fetch returned status " + response.status);
+                }
+
+                const jsonResp = await response.json();
+                tmdStatusText.innerHTML = `<span style="color:#22c55e">TMD API Connected</span>`;
+                
+                // Parse TMD JSON structure
+                const forecasts = jsonResp.data.WeatherForecasts?.[0]?.forecasts || [];
+                if (forecasts.length > 0) {
+                    const latest = forecasts[forecasts.length - 1].data;
+                    document.getElementById('metricWeather').innerText = `${latest.tc.toFixed(1)}°C`;
+                    document.getElementById('metricHumidity').innerText = `${latest.rh.toFixed(0)}%`;
+                    document.getElementById('metricRain').innerText = latest.rain ? `${latest.rain.toFixed(1)} mm` : `0.0 mm`;
+                } else {
+                    // TMD structure empty, fall back to backend environmental summary values
+                    document.getElementById('metricWeather').innerText = `${envDataObj.temperature.toFixed(1)}°C`;
+                    document.getElementById('metricHumidity').innerText = `${envDataObj.humidity}%`;
+                    document.getElementById('metricRain').innerText = envDataObj.rainfall ? `${envDataObj.rainfall.toFixed(1)} mm` : `0.0 mm`;
+                }
+            } catch (err) {
+                console.warn("Could not query TMD backend, pulling directly from Open-Meteo for weather", err);
+                fetchDirectOpenMeteoWeather(lat, lon);
+            }
+        }
+
+        // 3) Direct Open-Meteo Weather Fallback
+        async function fetchDirectOpenMeteoWeather(lat, lon) {
+            const tmdStatusText = document.getElementById('tmdStatusText');
+            tmdStatusText.innerHTML = `<span style="color:#fb923c">Open-Meteo Fallback Mode</span>`;
+            try {
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,rain`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                const curr = data.current;
+                document.getElementById('metricWeather').innerText = `${curr.temperature_2m.toFixed(1)}°C`;
+                document.getElementById('metricHumidity').innerText = `${curr.relative_humidity_2m}%`;
+                document.getElementById('metricRain').innerText = `${curr.rain.toFixed(1)} mm`;
+            } catch (err) {
+                console.error("Open-Meteo weather fetch failed", err);
+                document.getElementById('metricWeather').innerText = `Offline`;
+            }
+        }
+
+        // 4) Fetch summary counters and recent event tables from backend
+        async function fetchAnalyticsSummary() {
+            try {
+                const response = await fetch('/api/analytics/summary');
+                if (!response.ok) throw new Error("HTTP error " + response.status);
+                
+                const data = await response.json();
+                
+                document.getElementById('metricActiveIncidents').innerText = data.totalEvents;
+                document.getElementById('metricAffectedArea').innerText = `${data.affectedAreaKm2.toFixed(1)} km²`;
+                
+                // Clear map layers
+                mapIncidentGroup.clearLayers();
+                
+                // Build recent events table
+                const tableBody = document.getElementById('recentEventsTableBody');
+                if (data.recentEvents.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 1.5rem;">No active incidents reported.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                data.recentEvents.forEach(evt => {
+                    // Create table row
+                    const tr = document.createElement('tr');
+                    
+                    const severityClass = `badge badge-${evt.severity.toLowerCase()}`;
+                    const typeDotColor = getCategoryColor(evt.type);
+                    
+                    tr.innerHTML = `
+                        <td><strong>${evt.title}</strong></td>
+                        <td>
+                            <span class="type-indicator">
+                                <span class="type-dot" style="background: ${typeDotColor}"></span>
+                                ${capitalizeFirst(evt.type)}
+                            </span>
+                        </td>
+                        <td><span class="${severityClass}">${evt.severity}</span></td>
+                        <td>${evt.location}</td>
+                        <td style="color: var(--text-secondary); font-size: 0.8rem;">${formatTimestamp(evt.timestamp)}</td>
+                    `;
+                    tableBody.appendChild(tr);
+
+                    // Add simulated map markers around the query center or approximate coords if possible
+                    // (Since backend events might not bundle lat/lon inside summary directly, we scatter them around the query point)
+                    const baseLat = parseFloat(document.getElementById('inputLat').value);
+                    const baseLon = parseFloat(document.getElementById('inputLon').value);
+                    const randLat = baseLat + (Math.random() - 0.5) * 1.5;
+                    const randLon = baseLon + (Math.random() - 0.5) * 1.5;
+
+                    L.circle([randLat, randLon], {
+                        color: typeDotColor,
+                        fillColor: typeDotColor,
+                        fillOpacity: 0.3,
+                        radius: evt.severity === 'critical' ? 30000 : evt.severity === 'high' ? 15000 : 7000
+                    }).addTo(mapIncidentGroup)
+                      .bindPopup(`<b>${evt.title}</b><br>Severity: ${evt.severity.toUpperCase()}<br>Location: ${evt.location}`);
+                });
+
+            } catch (err) {
+                console.error("Backend analytics summary failed", err);
+                document.getElementById('recentEventsTableBody').innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--critical); padding: 1.5rem;">Failed to connect to backend analytics.</td></tr>`;
+            }
+        }
+
+        // 5) Fetch trend dataset from backend
+        async function fetchTrendsData() {
+            try {
+                const response = await fetch(`/api/analytics/trends?period=${currentPeriod}`);
+                if (!response.ok) throw new Error("HTTP error " + response.status);
+                
+                const data = await response.json();
+                renderDisasterTrendChart(data.data);
+            } catch (err) {
+                console.error("Backend trends fetch failed", err);
+            }
+        }
+
+        // 6) Fetch external Open-Meteo forecasts for Air Quality, Floods, and Soil moisture
+        function fetchExternalOpenMeteoForecasts() {
+            const lat = parseFloat(document.getElementById('inputLat').value);
+            const lon = parseFloat(document.getElementById('inputLon').value);
+
+            // Fetch PM2.5 Forecast
+            fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm2_5`)
+                .then(r => r.json())
+                .then(data => {
+                    const times = (data.hourly.time || []).slice(0, 48).map(t => formatShortTime(t));
+                    const values = (data.hourly.pm2_5 || []).slice(0, 48);
+                    renderPM25Chart(times, values);
+                })
+                .catch(err => console.error("Open-Meteo PM2.5 failed", err));
+
+            // Fetch River Discharge (Floods API)
+            fetch(`https://flood-api.open-meteo.com/v1/flood?latitude=${lat}&longitude=${lon}&daily=river_discharge&forecast_days=7`)
+                .then(r => r.json())
+                .then(data => {
+                    const days = (data.daily.time || []).map(d => formatShortDate(d));
+                    const discharge = data.daily.river_discharge || [];
+                    renderRiverDischargeChart(days, discharge);
+                })
+                .catch(err => {
+                    console.warn("River discharge not available or failed for coordinates, using empty trend", err);
+                    renderRiverDischargeChart([], []);
+                });
+
+            // Fetch Soil Moisture (Forecast API)
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=soil_moisture_0_to_7cm&forecast_days=3`)
+                .then(r => r.json())
+                .then(data => {
+                    const times = (data.hourly.time || []).slice(0, 36).map(t => formatShortTime(t));
+                    const moisture = (data.hourly.soil_moisture_0_to_7cm || []).slice(0, 36);
+                    renderSoilMoistureChart(times, moisture);
+                })
+                .catch(err => console.error("Open-Meteo Soil moisture failed", err));
+        }
+
+        // ═════════════════════════════════════════════════════════════
+        // CHART RENDERING HELPERS
+        // ═════════════════════════════════════════════════════════════
+
+        function renderDisasterTrendChart(trendPoints) {
+            const ctx = document.getElementById('disasterTrendChart').getContext('2d');
+            
+            const labels = trendPoints.map(p => formatShortDate(p.date));
+            const datasets = [
+                { label: 'Earthquakes', data: trendPoints.map(p => p.earthquake), borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.1)', fill: true, tension: 0.3 },
+                { label: 'Floods', data: trendPoints.map(p => p.flood), borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.1)', fill: true, tension: 0.3 },
+                { label: 'Wildfires', data: trendPoints.map(p => p.wildfire), borderColor: '#f97316', backgroundColor: 'rgba(249, 115, 34, 0.1)', fill: true, tension: 0.3 },
+                { label: 'Storms', data: trendPoints.map(p => p.storm), borderColor: '#a855f7', backgroundColor: 'rgba(168, 85, 247, 0.1)', fill: true, tension: 0.3 },
+                { label: 'Droughts', data: trendPoints.map(p => p.drought), borderColor: '#eab308', backgroundColor: 'rgba(234, 179, 8, 0.1)', fill: true, tension: 0.3 }
+            ];
+
+            if (disasterChartInstance) disasterChartInstance.destroy();
+
+            disasterChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#a1a1aa', font: { size: 10 } } }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a1a1aa' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a1a1aa', stepSize: 1 } }
+                    }
+                }
+            });
+        }
+
+        function renderPM25Chart(labels, values) {
+            const ctx = document.getElementById('pm25ForecastChart').getContext('2d');
+            if (pm25ChartInstance) pm25ChartInstance.destroy();
+
+            pm25ChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'PM2.5 Level (µg/m³)',
+                        data: values,
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        pointRadius: 0,
+                        tension: 0.2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#a1a1aa', maxTicksLimit: 6 } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a1a1aa' } }
+                    }
+                }
+            });
+        }
+
+        function renderRiverDischargeChart(labels, values) {
+            const ctx = document.getElementById('riverDischargeChart').getContext('2d');
+            if (riverChartInstance) riverChartInstance.destroy();
+
+            if (labels.length === 0 || values.length === 0) {
+                // If coordinates don't support river discharge (e.g. ocean/mountain without grid)
+                labels = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'];
+                values = [0, 0, 0, 0, 0, 0, 0];
+            }
+
+            riverChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'River Flow Rate (m³/s)',
+                        data: values,
+                        backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                        borderColor: '#22c55e',
+                        borderWidth: 1.5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#a1a1aa' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a1a1aa' } }
+                    }
+                }
+            });
+        }
+
+        function renderSoilMoistureChart(labels, values) {
+            const ctx = document.getElementById('soilMoistureChart').getContext('2d');
+            if (soilChartInstance) soilChartInstance.destroy();
+
+            soilChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Soil Moisture 0-7cm (m³/m³)',
+                        data: values,
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.05)',
+                        borderWidth: 2,
+                        pointRadius: 1,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#a1a1aa', maxTicksLimit: 6 } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a1a1aa' } }
+                    }
+                }
+            });
+        }
+
+        // ═════════════════════════════════════════════════════════════
+        // OFFLINE / MOCK GENERATORS (DEMO MODE)
+        // ═════════════════════════════════════════════════════════════
+
+        function loadDemoData() {
+            console.log("Loading Simulated Offline Demo Dataset");
+            const tmdStatusText = document.getElementById('tmdStatusText');
+            tmdStatusText.innerHTML = `<span style="color:#eab308">Simulated (Demo Mode)</span>`;
+
+            // Update stats indicators
+            document.getElementById('metricActiveIncidents').innerText = "14";
+            document.getElementById('metricAffectedArea').innerText = "420.5 km²";
+            
+            // Random PM2.5 and AQI values
+            const demoPm25 = 18.5 + Math.random() * 45;
+            const demoAqi = Math.round(demoPm25 * 2.2);
+            document.getElementById('metricPm25').innerText = `${demoPm25.toFixed(1)} µg/m³`;
+            
+            const aqiBadge = document.getElementById('aqiBadge');
+            let aqiLevel = "ดีมาก";
+            aqiBadge.className = 'badge';
+            if (demoAqi <= 50) { aqiBadge.classList.add('badge-low'); aqiLevel = "ดี"; }
+            else if (demoAqi <= 100) { aqiBadge.classList.add('badge-moderate'); aqiLevel = "ปานกลาง"; }
+            else if (demoAqi <= 200) { aqiBadge.classList.add('badge-high'); aqiLevel = "เริ่มมีผลต่อสุขภาพ"; }
+            else { aqiBadge.classList.add('badge-critical'); aqiLevel = "อันตราย"; }
+            aqiBadge.innerText = `AQI ${demoAqi} (${aqiLevel})`;
+
+            // Weather details
+            const demoTemp = 28 + Math.random() * 6;
+            const demoHum = 65 + Math.round(Math.random() * 25);
+            const demoRain = Math.random() > 0.4 ? Math.random() * 18 : 0.0;
+            document.getElementById('metricWeather').innerText = `${demoTemp.toFixed(1)}°C`;
+            document.getElementById('metricHumidity').innerText = `${demoHum}%`;
+            document.getElementById('metricRain').innerText = `${demoRain.toFixed(1)} mm`;
+
+            // Map markers for demo mode
+            mapIncidentGroup.clearLayers();
+            const centerLat = parseFloat(document.getElementById('inputLat').value);
+            const centerLon = parseFloat(document.getElementById('inputLon').value);
+            
+            const demoIncidents = [
+                { title: "จุดความร้อนตรวจพบรอบป่า", type: "wildfire", severity: "high", latOffset: 0.3, lonOffset: -0.4 },
+                { title: "ตรวจพบระดับน้ำแม่น้ำวิกฤต", type: "flood", severity: "critical", latOffset: -0.2, lonOffset: 0.3 },
+                { title: "แผ่นดินไหวขนาดเล็ก", type: "earthquake", severity: "low", latOffset: 0.5, lonOffset: 0.5 },
+                { title: "พายุฝนฤดูร้อนกำลังแรง", type: "storm", severity: "moderate", latOffset: -0.4, lonOffset: -0.2 }
+            ];
+
+            const tableBody = document.getElementById('recentEventsTableBody');
+            tableBody.innerHTML = '';
+
+            demoIncidents.forEach((evt, idx) => {
+                const tr = document.createElement('tr');
+                const severityClass = `badge badge-${evt.severity}`;
+                const typeDotColor = getCategoryColor(evt.type);
+                
+                tr.innerHTML = `
+                    <td><strong>${evt.title}</strong></td>
+                    <td>
+                        <span class="type-indicator">
+                            <span class="type-dot" style="background: ${typeDotColor}"></span>
+                            ${capitalizeFirst(evt.type)}
+                        </span>
+                    </td>
+                    <td><span class="${severityClass}">${evt.severity}</span></td>
+                    <td>อำเภอเมือง (Zone ${idx + 1})</td>
+                    <td style="color: var(--text-secondary); font-size: 0.8rem;">Just now</td>
+                `;
+                tableBody.appendChild(tr);
+
+                const incidentLat = centerLat + evt.latOffset;
+                const incidentLon = centerLon + evt.lonOffset;
+
+                L.circle([incidentLat, incidentLon], {
+                    color: typeDotColor,
+                    fillColor: typeDotColor,
+                    fillOpacity: 0.4,
+                    radius: evt.severity === 'critical' ? 25000 : evt.severity === 'high' ? 12000 : 6000
+                }).addTo(mapIncidentGroup)
+                  .bindPopup(`<b>${evt.title}</b><br>Severity: ${evt.severity.toUpperCase()}<br>Lat: ${incidentLat.toFixed(3)}, Lon: ${incidentLon.toFixed(3)}`);
+            });
+
+            // Trend points generator
+            const pointsCount = currentPeriod === '7d' ? 7 : currentPeriod === '30d' ? 30 : 12;
+            const points = [];
+            const now = new Date();
+            for(let i = pointsCount - 1; i >= 0; i--) {
+                const d = new Date(now);
+                if (currentPeriod === '1y') {
+                    d.setMonth(now.getMonth() - i);
+                } else {
+                    d.setDate(now.getDate() - i);
+                }
+                
+                points.push({
+                    date: d.toISOString().split('T')[0],
+                    earthquake: Math.round(Math.random() * 2),
+                    flood: Math.round(Math.random() * 4),
+                    wildfire: Math.round(Math.random() * 5),
+                    storm: Math.round(Math.random() * 3),
+                    drought: Math.round(Math.random() * 2)
+                });
+            }
+            renderDisasterTrendChart(points);
+
+            // Open-Meteo PM2.5, River discharge, and soil moisture simulated forecast trends
+            const hours48 = Array.from({length: 48}, (_, i) => `H+${i}`);
+            const pm25Values = Array.from({length: 48}, (_, i) => Math.round(30 + Math.sin(i/5) * 15 + Math.random() * 10));
+            renderPM25Chart(hours48, pm25Values);
+
+            const days7 = Array.from({length: 7}, (_, i) => `Day ${i+1}`);
+            const riverDischarge = Array.from({length: 7}, (_, i) => Math.round(150 + Math.sin(i/2) * 50 + Math.random() * 20));
+            renderRiverDischargeChart(days7, riverDischarge);
+
+            const hours36 = Array.from({length: 36}, (_, i) => `H+${i}`);
+            const soilMoisture = Array.from({length: 36}, (_, i) => 0.28 + Math.sin(i/8) * 0.05 + Math.random() * 0.01);
+            renderSoilMoistureChart(hours36, soilMoisture);
+        }
+
+        // ═════════════════════════════════════════════════════════════
+        // AI ASSISTANT CHAT TERMINAL ROUTINE
+        // ═════════════════════════════════════════════════════════════
+
+        function handleChatKey(event) {
+            if (event.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        async function sendChatMessage() {
+            const chatInput = document.getElementById('chatInput');
+            const userMsg = chatInput.value.trim();
+            if (!userMsg) return;
+
+            // Clear input
+            chatInput.value = '';
+
+            // Render user message in UI
+            appendUserChatMessage(userMsg);
+
+            // Add loading placeholder for AI
+            const loadingId = appendAiChatPlaceholder();
+
+            if (currentMode === 'demo') {
+                // Simulate Chat response
+                setTimeout(() => {
+                    const replies = [
+                        "จากการจำลองสถานการณ์: ในกรณีฝุ่น PM2.5 สูงเกินเกณฑ์มาตรฐาน ควรปิดประตูหน้าต่างเลี่ยงการระบายอากาศภายนอก สวมหน้ากาก N95 เสมอเมื่อออกจากบ้านครับ",
+                        "ในกรณีอุทกภัย (น้ำท่วม) ควรจัดเตรียมของมีค่าขึ้นที่สูง ตัดสะพานไฟ สวมรองเท้าบูทเลี่ยงโรคที่มากับน้ำ และหลีกเลี่ยงกระแสน้ำไหลเชี่ยวครับ",
+                        "หากพบภัยแล้ง (Drought) รัฐแนะนำให้กักเก็บน้ำอุปโภคบริโภค ปรับเปลี่ยนการทำเกษตรเป็นพืชใช้น้ำน้อย และดูแลป้องกันความเสี่ยงการเกิดอัคคีภัย",
+                        "สำหรับพายุฤดูร้อน (Storm) หลีกเลี่ยงการอยู่ใกล้ต้นไม้ใหญ่ ป้ายโฆษณาที่ไม่แข็งแรง และระวังเรื่องฟ้าผ่า ให้หลบในอาคารที่มั่นคงแข็งแรง"
+                    ];
+                    const randReply = replies[Math.floor(Math.random() * replies.length)];
+                    resolveAiChatPlaceholder(loadingId, randReply);
+                }, 1000);
+                return;
+            }
+
+            // Call Backend /chat API
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: userMsg,
+                        systemPrompt: "You are D-MIND Disaster AI Assistant. Answer in Thai. Keep responses brief and helpful."
+                    })
+                });
+
+                if (!response.ok) throw new Error("Status code " + response.status);
+
+                const data = await response.json();
+                resolveAiChatPlaceholder(loadingId, data.response);
+
+            } catch (err) {
+                console.error("AI Chat failed", err);
+                resolveAiChatPlaceholder(loadingId, "ขออภัยครับ ระบบเชื่อมต่อ AI ล้มเหลว กรุณาตรวจสอบการตั้งค่า OpenAI/ThaiLLM API Key ใน Ktor Backend ของคุณ หรือเปลี่ยนเป็น Demo Mode เพื่อทดสอบระบบครับ");
+            }
+        }
+
+        function appendUserChatMessage(text) {
+            const chatMessages = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'chat-msg user';
+            msgDiv.innerText = text;
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function appendAiChatPlaceholder() {
+            const chatMessages = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            const id = 'placeholder-' + Date.now();
+            msgDiv.id = id;
+            msgDiv.className = 'chat-msg ai';
+            msgDiv.innerHTML = '<em>Analyzing safety protocols...</em>';
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return id;
+        }
+
+        function resolveAiChatPlaceholder(id, htmlContent) {
+            const placeholder = document.getElementById(id);
+            if (placeholder) {
+                placeholder.innerHTML = htmlContent;
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+
+        function appendSystemChatMessage(text) {
+            const chatMessages = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'chat-msg system';
+            msgDiv.innerText = text;
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // ═════════════════════════════════════════════════════════════
+        // STRING & DATE PARSERS
+        // ═════════════════════════════════════════════════════════════
+
+        function getCategoryColor(type) {
+            switch(type.toLowerCase()) {
+                case 'earthquake': return 'var(--color-eq)';
+                case 'flood': return 'var(--color-flood)';
+                case 'wildfire': return 'var(--color-wildfire)';
+                case 'storm': return 'var(--color-storm)';
+                case 'drought': return 'var(--color-drought)';
+                default: return 'var(--accent-color)';
+            }
+        }
+
+        function capitalizeFirst(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        function formatTimestamp(isoStr) {
+            if (!isoStr) return '--';
+            try {
+                const date = new Date(isoStr);
+                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            } catch(e) {
+                return isoStr;
+            }
+        }
+
+        function formatShortDate(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}`;
+            }
+            return dateStr;
+        }
+
+        function formatShortTime(isoTimeStr) {
+            if (!isoTimeStr) return '';
+            try {
+                const date = new Date(isoTimeStr);
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+            } catch(e) {
+                return isoTimeStr;
+            }
+        }
+
+        // Startup
+        window.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            refreshAll();
+        });
+    </script>
+</body>
+</html>

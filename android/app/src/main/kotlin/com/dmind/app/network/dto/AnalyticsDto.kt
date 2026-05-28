@@ -76,6 +76,10 @@ object AnalyticsDto {
             humidity = json.optInt("humidity", 0),
             waterLevel = if (json.isNull("waterLevel")) null else json.optDouble("waterLevel"),
             rainfall = if (json.isNull("rainfall")) null else json.optDouble("rainfall"),
+            openMeteoRiverDischarge = if (json.isNull("openMeteoRiverDischarge")) null else json.optDouble("openMeteoRiverDischarge"),
+            openMeteoSoilMoisture = if (json.isNull("openMeteoSoilMoisture")) null else json.optDouble("openMeteoSoilMoisture"),
+            openMeteoPm25 = if (json.isNull("openMeteoPm25")) null else json.optDouble("openMeteoPm25"),
+            openMeteoAqi = if (json.isNull("openMeteoAqi")) null else json.optInt("openMeteoAqi"),
         )
     }
 }
@@ -123,4 +127,8 @@ data class EnvironmentalDto(
     val humidity: Int,
     val waterLevel: Double?,
     val rainfall: Double?,
+    val openMeteoRiverDischarge: Double?,
+    val openMeteoSoilMoisture: Double?,
+    val openMeteoPm25: Double?,
+    val openMeteoAqi: Int?,
 )

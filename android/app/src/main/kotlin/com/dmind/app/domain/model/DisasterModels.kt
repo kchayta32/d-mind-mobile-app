@@ -68,6 +68,10 @@ data class WeatherSnapshot(
     val longitude: Double = 100.5018,
     val apparentTemperatureCelsius: Double = 0.0,
     val pressureHpa: Double = 0.0,
+    val openMeteoRiverDischarge: Double? = null,
+    val openMeteoSoilMoisture: Double? = null,
+    val openMeteoPm25: Double? = null,
+    val openMeteoAqi: Int? = null,
 )
 
 data class MapHourlyForecast(

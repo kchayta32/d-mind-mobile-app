@@ -101,6 +101,104 @@ class ApplicationTest {
         }
     }
 
+    @Test
+    fun testTmdApiTokenResolution() {
+        val previousToken = System.getProperty("DMIND_TMD_API_TOKEN")
+        try {
+            System.setProperty("DMIND_TMD_API_TOKEN", "test-tmd-token-123")
+            val config = GatewayConfig.fromEnvironment()
+            assertEquals("test-tmd-token-123", config.tmdApiToken)
+        } finally {
+            restoreProperty("DMIND_TMD_API_TOKEN", previousToken)
+        }
+    }
+
+    @Test
+    fun weatherRouteFallsBackToOpenMeteoWhenTokenMissing() {
+        val previousTmd = System.getProperty("DMIND_TMD_API_TOKEN")
+        val previousTmd2 = System.getProperty("TMD_API_TOKEN")
+        System.clearProperty("DMIND_TMD_API_TOKEN")
+        System.clearProperty("TMD_API_TOKEN")
+        
+        val localProps = java.nio.file.Paths.get("local.properties")
+        val parentLocalProps = java.nio.file.Paths.get("../local.properties")
+        val localPropsBackup = java.nio.file.Paths.get("local.properties.bak")
+        val parentLocalPropsBackup = java.nio.file.Paths.get("../local.properties.bak")
+        
+        val renamedLocal = if (java.nio.file.Files.exists(localProps)) {
+            java.nio.file.Files.move(localProps, localPropsBackup, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+            true
+        } else false
+        val renamedParent = if (java.nio.file.Files.exists(parentLocalProps)) {
+            java.nio.file.Files.move(parentLocalProps, parentLocalPropsBackup, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+            true
+        } else false
+        
+        try {
+            testApplication {
+                application { dmindModule() }
+                val response = client.get("/weather?lat=13.7&lon=100.5")
+                assertEquals(HttpStatusCode.OK, response.status)
+                val body = response.bodyAsText()
+                assertTrue(body.contains("\"status\":\"fallback\""))
+                assertTrue(body.contains("Open-Meteo"))
+            }
+        } finally {
+            restoreProperty("DMIND_TMD_API_TOKEN", previousTmd)
+            restoreProperty("TMD_API_TOKEN", previousTmd2)
+            if (renamedLocal) {
+                java.nio.file.Files.move(localPropsBackup, localProps, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+            }
+            if (renamedParent) {
+                java.nio.file.Files.move(parentLocalPropsBackup, parentLocalProps, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+            }
+        }
+    }
+
+    @Test
+    fun environmentalAnalyticsRouteWorksWithTmdFallback() {
+        val previousTmd = System.getProperty("DMIND_TMD_API_TOKEN")
+        val previousTmd2 = System.getProperty("TMD_API_TOKEN")
+        System.clearProperty("DMIND_TMD_API_TOKEN")
+        System.clearProperty("TMD_API_TOKEN")
+        
+        val localProps = java.nio.file.Paths.get("local.properties")
+        val parentLocalProps = java.nio.file.Paths.get("../local.properties")
+        val localPropsBackup = java.nio.file.Paths.get("local.properties.bak")
+        val parentLocalPropsBackup = java.nio.file.Paths.get("../local.properties.bak")
+        
+        val renamedLocal = if (java.nio.file.Files.exists(localProps)) {
+            java.nio.file.Files.move(localProps, localPropsBackup, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+            true
+        } else false
+        val renamedParent = if (java.nio.file.Files.exists(parentLocalProps)) {
+            java.nio.file.Files.move(parentLocalProps, parentLocalPropsBackup, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+            true
+        } else false
+        
+        try {
+            testApplication {
+                application { dmindModule() }
+                val response = client.get("/api/analytics/environmental")
+                assertEquals(HttpStatusCode.OK, response.status)
+                val body = response.bodyAsText()
+                assertTrue(body.contains("\"pm25\""))
+                assertTrue(body.contains("\"aqi\""))
+                assertTrue(body.contains("\"temperature\""))
+                assertTrue(body.contains("\"humidity\""))
+            }
+        } finally {
+            restoreProperty("DMIND_TMD_API_TOKEN", previousTmd)
+            restoreProperty("TMD_API_TOKEN", previousTmd2)
+            if (renamedLocal) {
+                java.nio.file.Files.move(localPropsBackup, localProps, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+            }
+            if (renamedParent) {
+                java.nio.file.Files.move(parentLocalPropsBackup, parentLocalProps, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+            }
+        }
+    }
+
     private fun withGatewayProperties(
         adminToken: String? = null,
         block: () -> Unit,

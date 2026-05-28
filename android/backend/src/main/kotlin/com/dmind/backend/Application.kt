@@ -51,6 +51,7 @@ import com.dmind.backend.routes.disasterDataRoutes
 import com.dmind.backend.routes.alertRoutes
 import com.dmind.backend.routes.notificationRoutes
 import com.dmind.backend.routes.mediaRoutes
+import com.dmind.backend.routes.dashboardRoute
 
 fun main() {
     val port = setting("PORT")?.toIntOrNull() ?: 8080
@@ -74,6 +75,7 @@ fun Application.dmindModule() {
         alertRoutes(config, supabase)
         notificationRoutes(config, deviceRegistry)
         mediaRoutes(config, supabase)
+        dashboardRoute()
         get("/health") {
             call.respond(
                 HealthResponse(
@@ -352,7 +354,8 @@ internal data class GatewayConfig(
                 supabaseServiceRoleKey = setting("SUPABASE_SERVICE_ROLE_KEY")
                     ?: setting("SUPABASE_SERVICE_KEY")
                     ?: "",
-                tmdApiToken = setting("TMD_API_TOKEN")
+                tmdApiToken = setting("DMIND_TMD_API_TOKEN")
+                    ?: setting("TMD_API_TOKEN")
                     ?: setting("VITE_TMD_API_TOKEN")
                     ?: "",
                 fcmProjectId = setting("FCM_PROJECT_ID")

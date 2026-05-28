@@ -180,6 +180,14 @@ internal fun MapBottomSheetContent(
 
         item {
             when {
+                selectedStation != null -> {
+                    StationDetailCard(
+                        station = selectedStation,
+                        weatherInfo = state.selectedWeatherInfo,
+                        isWeatherLoading = state.isWeatherLoading,
+                        onClearSelection = onClearSelection
+                    )
+                }
                 state.isWeatherLoading -> {
                     WeatherDetailCard(weatherInfo = null, isLoading = true, onClearSelection = onClearSelection)
                 }
@@ -189,7 +197,6 @@ internal fun MapBottomSheetContent(
                 state.selectedViirsHotspot != null -> ViirsDetailCard(state.selectedViirsHotspot, onClearSelection)
                 state.selectedFloodArea != null -> FloodDetailCard(state.selectedFloodArea, onClearSelection)
                 state.selectedEvent != null -> EventDetailCard(state.selectedEvent, onClearSelection)
-                selectedStation != null -> StationDetailCard(selectedStation, onClearSelection)
                 else -> LayerSummaryCard(state = state, onOpenStations = onOpenStations)
             }
         }
@@ -460,6 +467,8 @@ private fun FloodDetailCard(
 @Composable
 private fun StationDetailCard(
     station: MonitoringStation,
+    weatherInfo: com.dmind.app.domain.model.SelectedWeatherInfo?,
+    isWeatherLoading: Boolean,
     onClearSelection: () -> Unit,
 ) {
     DmindCard(contentPadding = PaddingValues(14.dp)) {
@@ -477,6 +486,126 @@ private fun StationDetailCard(
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             station.metrics.forEach { metric ->
                 StatusPill("${metric.label}: ${metric.value}", station.status.color())
+            }
+        }
+
+        if (isWeatherLoading) {
+            Spacer(Modifier.height(16.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                androidx.compose.material3.CircularProgressIndicator(color = DmindBlue, modifier = Modifier.size(24.dp))
+            }
+        } else if (weatherInfo != null) {
+            val current = weatherInfo.current
+            
+            Spacer(Modifier.height(16.dp))
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            )
+            Spacer(Modifier.height(12.dp))
+
+            Text(
+                text = "สภาพอากาศและสิ่งแวดล้อม (Open-Meteo)",
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.height(8.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "${current.temperatureCelsius.toInt()}°C - ${current.conditionLabel}",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = "รู้สึกเหมือน ${current.apparentTemperatureCelsius.toInt()}°C | ลม ${current.windSpeedMps.toInt()} m/s",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 11.sp
+                    )
+                }
+                Text(
+                    text = when (current.conditionLabel) {
+                        "ท้องฟ้าแจ่มใส", "ท้องฟ้าโปร่ง" -> "☀️"
+                        "มีเมฆบางส่วน" -> "⛅"
+                        "ท้องฟ้าหลัว/มีเมฆมาก", "มีเมฆมาก" -> "☁️"
+                        "มีหมอก" -> "🌫️"
+                        "ฝนละออง", "ฝนตกเล็กน้อย", "ฝนซู่ตกเล็กน้อย" -> "🌧️"
+                        "ฝนตกปานกลาง" -> "🌧️"
+                        "ฝนตกหนัก", "ฝนซู่ตกหนัก" -> "🌧️"
+                        "ฝนฟ้าคะนอง" -> "⛈️"
+                        "ฝนฟ้าคะนองกับลูกเห็บ" -> "⛈️❄️"
+                        else -> "☁️"
+                    },
+                    fontSize = 28.sp
+                )
+            }
+
+            Spacer(Modifier.height(10.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                        .padding(8.dp)
+                ) {
+                    Column {
+                        Text("PM2.5", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                        Text(current.openMeteoPm25?.let { String.format(java.util.Locale.US, "%.1f", it) } ?: "-", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                        .padding(8.dp)
+                ) {
+                    Column {
+                        Text("AQI", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                        Text(current.openMeteoAqi?.toString() ?: "-", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                        .padding(8.dp)
+                ) {
+                    Column {
+                        Text("ความชื้นดิน", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                        Text(current.openMeteoSoilMoisture?.let { String.format(java.util.Locale.US, "%.2f", it) } ?: "-", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                        .padding(8.dp)
+                ) {
+                    Column {
+                        Text("การไหลน้ำ", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                        Text(current.openMeteoRiverDischarge?.let { String.format(java.util.Locale.US, "%.1f", it) } ?: "-", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
             }
         }
     }
@@ -718,6 +847,69 @@ private fun WeatherDetailCard(
                 Column {
                     Text("ปริมาณฝน", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text("${current.rainMillimeters.formatOne()} มม.", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+        
+        Spacer(Modifier.height(16.dp))
+        
+        Text(
+            text = "ข้อมูลสิ่งแวดล้อม Open-Meteo",
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .padding(10.dp)
+            ) {
+                Column {
+                    Text("PM2.5 (Open-Meteo)", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                    Text(current.openMeteoPm25?.let { String.format(java.util.Locale.US, "%.1f", it) } ?: "-", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .padding(10.dp)
+            ) {
+                Column {
+                    Text("AQI (Open-Meteo)", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                    Text(current.openMeteoAqi?.toString() ?: "-", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .padding(10.dp)
+            ) {
+                Column {
+                    Text("ความชื้นดิน (Soil)", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                    Text(current.openMeteoSoilMoisture?.let { String.format(java.util.Locale.US, "%.2f", it) } ?: "-", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .padding(10.dp)
+            ) {
+                Column {
+                    Text("การไหลของน้ำ (River)", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                    Text(current.openMeteoRiverDischarge?.let { String.format(java.util.Locale.US, "%.1f", it) } ?: "-", fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

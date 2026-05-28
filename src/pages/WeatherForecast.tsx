@@ -145,6 +145,58 @@ const WeatherForecast: React.FC = () => {
     const todayMin = todayForecasts.length ? Math.min(...todayForecasts.map(f => f.data.tc)) : (currentForecast?.data.tc ?? 0);
     const todayMax = todayForecasts.length ? Math.max(...todayForecasts.map(f => f.data.tc)) : (currentForecast?.data.tc ?? 0);
 
+    // Weather card dynamic style based on weather conditions
+    const getConditionStyle = (condCode: number) => {
+        switch (condCode) {
+            case 1:
+            case 12:
+                return {
+                    bg: 'from-amber-500/10 via-yellow-600/5 to-transparent',
+                    border: 'border-amber-500/25 hover:border-amber-500/40',
+                    glow: 'shadow-[0_0_35px_rgba(245,158,11,0.12)]',
+                    accent: 'text-amber-455',
+                    badgeBg: 'bg-amber-500/15 border-amber-500/25 text-amber-300'
+                };
+            case 8:
+                return {
+                    bg: 'from-purple-600/15 via-fuchsia-600/5 to-transparent',
+                    border: 'border-purple-500/20 hover:border-purple-500/40',
+                    glow: 'shadow-[0_0_35px_rgba(168,85,247,0.12)]',
+                    accent: 'text-purple-400',
+                    badgeBg: 'bg-purple-500/15 border-purple-500/25 text-purple-300'
+                };
+            case 5:
+            case 6:
+            case 7:
+                return {
+                    bg: 'from-blue-600/10 via-indigo-600/5 to-transparent',
+                    border: 'border-blue-500/20 hover:border-blue-500/40',
+                    glow: 'shadow-[0_0_35px_rgba(59,130,246,0.12)]',
+                    accent: 'text-blue-400',
+                    badgeBg: 'bg-blue-500/15 border-blue-500/25 text-blue-300'
+                };
+            case 9:
+            case 10:
+                return {
+                    bg: 'from-cyan-500/10 via-teal-600/5 to-transparent',
+                    border: 'border-cyan-500/20 hover:border-cyan-500/40',
+                    glow: 'shadow-[0_0_35px_rgba(6,182,212,0.12)]',
+                    accent: 'text-cyan-400',
+                    badgeBg: 'bg-cyan-500/15 border-cyan-500/25 text-cyan-300'
+                };
+            default:
+                return {
+                    bg: 'from-slate-800/15 via-slate-900/5 to-transparent',
+                    border: 'border-slate-800/80 hover:border-slate-700',
+                    glow: 'shadow-[0_0_30px_rgba(34,211,238,0.04)]',
+                    accent: 'text-cyan-400',
+                    badgeBg: 'bg-slate-850/50 border-slate-750/55 text-slate-300'
+                };
+        }
+    };
+
+    const cardStyle = currentForecast ? getConditionStyle(currentForecast.data.cond) : getConditionStyle(1);
+
     // Weather Statistics Configuration
     const stats = [
         {
@@ -152,62 +204,62 @@ const WeatherForecast: React.FC = () => {
             value: currentForecast ? `${currentForecast.data.tc.toFixed(1)} °C` : 'N/A',
             icon: Thermometer,
             iconColor: 'text-rose-400',
-            glowColor: 'shadow-[0_0_15px_rgba(244,63,94,0.15)] border-rose-500/20 bg-rose-950/20',
+            glowColor: 'shadow-[0_0_15px_rgba(244,63,94,0.12)] border-rose-500/15 bg-rose-950/15',
             textColor: 'text-rose-100',
-            desc: 'อุณหภูมิอากาศจริง'
+            desc: 'อุณหภูมิอากาศจริงในขณะนั้น'
         },
         {
             label: 'ความชื้นสัมพัทธ์',
             value: currentForecast ? `${currentForecast.data.rh.toFixed(0)} %` : 'N/A',
             icon: Droplets,
             iconColor: 'text-cyan-400',
-            glowColor: 'shadow-[0_0_15px_rgba(6,182,212,0.15)] border-cyan-500/20 bg-cyan-950/20',
+            glowColor: 'shadow-[0_0_15px_rgba(6,182,212,0.12)] border-cyan-500/15 bg-cyan-950/15',
             textColor: 'text-cyan-100',
-            desc: 'ความชื้นสัมพัทธ์ในอากาศ'
+            desc: 'ความชื้นสัมพัทธ์ในชั้นบรรยากาศ'
         },
         {
             label: 'ความเร็วลม',
             value: currentForecast ? `${currentForecast.data.ws10m.toFixed(1)} m/s` : 'N/A',
             icon: Wind,
             iconColor: 'text-teal-400',
-            glowColor: 'shadow-[0_0_15px_rgba(20,184,166,0.15)] border-teal-500/20 bg-teal-950/20',
+            glowColor: 'shadow-[0_0_15px_rgba(20,184,166,0.12)] border-teal-500/15 bg-teal-950/15',
             textColor: 'text-teal-100',
-            desc: 'ความเร็วลมที่ระดับ 10 เมตร'
+            desc: 'ความเร็วลมเฉลี่ยระดับผิวพื้น 10 เมตร'
         },
         {
             label: 'ทิศทางลม',
             value: currentForecast ? getWindDirection(currentForecast.data.wd10m) : 'N/A',
             icon: Compass,
             iconColor: 'text-amber-400',
-            glowColor: 'shadow-[0_0_15px_rgba(245,158,11,0.15)] border-amber-500/20 bg-amber-950/20',
+            glowColor: 'shadow-[0_0_15px_rgba(245,158,11,0.12)] border-amber-500/15 bg-amber-950/15',
             textColor: 'text-amber-100',
-            desc: currentForecast ? `ทิศลมทางวิทยาศาสตร์ (${currentForecast.data.wd10m}°)` : 'ทิศทางลมตามมุมองศา'
+            desc: currentForecast ? `ทางทิศวิทยาศาสตร์ (${currentForecast.data.wd10m}°)` : 'ทิศทางกระแสลมพัดตามองศา'
         },
         {
-            label: 'ปริมาณเมฆต่ำ',
+            label: 'สัดส่วนเมฆต่ำ',
             value: currentForecast ? `${currentForecast.data.cloudlow} %` : 'N/A',
             icon: Cloud,
             iconColor: 'text-sky-400',
-            glowColor: 'shadow-[0_0_15px_rgba(56,189,248,0.15)] border-sky-500/20 bg-sky-950/20',
+            glowColor: 'shadow-[0_0_15px_rgba(56,189,248,0.12)] border-sky-500/15 bg-sky-950/15',
             textColor: 'text-sky-100',
-            desc: 'สัดส่วนของเมฆชั้นต่ำ'
+            desc: 'สัดส่วนของเมฆชั้นต่ำปกคลุม'
         },
         {
             label: 'ความกดอากาศ',
             value: currentForecast ? `${currentForecast.data.slp.toFixed(0)} hPa` : 'N/A',
             icon: Gauge,
             iconColor: 'text-fuchsia-400',
-            glowColor: 'shadow-[0_0_15px_rgba(217,70,239,0.15)] border-fuchsia-500/20 bg-fuchsia-950/20',
+            glowColor: 'shadow-[0_0_15px_rgba(217,70,239,0.12)] border-fuchsia-500/15 bg-fuchsia-950/15',
             textColor: 'text-fuchsia-100',
-            desc: 'ความกดอากาศระดับน้ำทะเล'
+            desc: 'ความกดอากาศระดับน้ำทะเลปานกลาง'
         }
     ];
 
     // Custom tooltips for Recharts
-    const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string; nameAlt?: string }>; label?: string }) => {
+    const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-slate-900/95 backdrop-blur-md border border-slate-800 p-3 rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.6)] text-xs space-y-1.5">
+                <div className="bg-slate-950/95 backdrop-blur-md border border-slate-800/80 p-3.5 rounded-xl shadow-[0_4px_25px_rgba(0,0,0,0.8)] text-xs space-y-1.5">
                     <p className="text-slate-400 font-semibold mb-1">เวลา {label}</p>
                     {payload.map((item, idx) => (
                         <div key={idx} className="flex items-center gap-2">
@@ -352,33 +404,35 @@ const WeatherForecast: React.FC = () => {
                             )}
                         </div>
 
-                        {/* Current Weather Hero Card */}
-                        <div className="bg-slate-900/30 backdrop-blur-xl border border-slate-900/90 p-6 rounded-2xl shadow-[0_0_25px_rgba(6,182,212,0.06)] flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none transition-all duration-500 group-hover:bg-cyan-500/15" />
-                            <div className="space-y-2.5">
-                                <span className="text-[10px] font-semibold text-cyan-400 uppercase tracking-widest bg-cyan-950/30 px-2.5 py-1 rounded-md border border-cyan-500/10">สภาพอากาศปัจจุบัน</span>
+                        {/* Current Weather Hero Card (Dynamic condition based styling) */}
+                        <div className={`relative overflow-hidden rounded-2xl border backdrop-blur-xl bg-gradient-to-br ${cardStyle.bg} ${cardStyle.border} ${cardStyle.glow} p-6 transition-all duration-500 hover:shadow-[0_0_35px_rgba(6,182,212,0.15)] flex flex-col md:flex-row justify-between items-start md:items-center gap-6 group`}>
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-2xl pointer-events-none transition-all duration-500 group-hover:scale-110" />
+                            <div className="space-y-2.5 relative z-10">
+                                <span className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md border ${cardStyle.badgeBg}`}>
+                                    สภาพอากาศปัจจุบัน
+                                </span>
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-50 via-slate-100 to-slate-300 drop-shadow-[0_2px_10px_rgba(255,255,255,0.05)]">
+                                    <span className="text-6.5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-50 via-slate-100 to-slate-200">
                                         {currentForecast?.data.tc.toFixed(1) ?? '0.0'}
                                     </span>
-                                    <span className="text-2xl text-cyan-400 font-semibold">°C</span>
+                                    <span className={`text-2xl font-bold ${cardStyle.accent}`}>°C</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-3xl leading-none">{condition.icon}</span>
-                                    <span className={`text-base font-bold ${condition.color}`}>{condition.label}</span>
+                                    <span className="text-3.5xl leading-none">{condition.icon}</span>
+                                    <span className={`text-lg font-black ${condition.color}`}>{condition.label}</span>
                                 </div>
                                 <div className="text-xs text-slate-400 flex items-center gap-3">
                                     <span>ต่ำสุด <strong className="text-blue-400 font-medium">{todayMin.toFixed(1)}°C</strong></span>
-                                    <span className="text-slate-700">|</span>
+                                    <span className="text-slate-800">|</span>
                                     <span>สูงสุด <strong className="text-rose-400 font-medium">{todayMax.toFixed(1)}°C</strong></span>
                                 </div>
                             </div>
                             
-                            <div className="flex flex-col items-start md:items-end text-left md:text-right justify-between md:h-full min-h-[90px] gap-2">
+                            <div className="flex flex-col items-start md:items-end text-left md:text-right justify-between md:h-full min-h-[90px] gap-2 relative z-10">
                                 <div className="text-xs text-slate-500">
-                                    ข้อมูลเวลาจำลอง: {currentForecast ? formatTime(currentForecast.time) : '-'} น.
+                                    ข้อมูลเวลา: {currentForecast ? formatTime(currentForecast.time) : '-'} น.
                                 </div>
-                                <div className="text-sm text-slate-300 font-medium bg-slate-950/40 px-3.5 py-2 rounded-xl border border-slate-900">
+                                <div className="text-sm text-slate-350 font-semibold bg-slate-950/40 px-3.5 py-2.5 rounded-xl border border-slate-900">
                                     {data?.location.tambon ? `ต.${data.location.tambon} ` : ''}
                                     {data?.location.amphoe ? `อ.${data.location.amphoe} ` : ''}
                                     {data?.location.province ? `จ.${data.location.province}` : ''}
@@ -393,15 +447,15 @@ const WeatherForecast: React.FC = () => {
                                 return (
                                     <div 
                                         key={index} 
-                                        className={`flex flex-col p-4 rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:border-cyan-500/35 hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] ${stat.glowColor}`}
+                                        className={`flex flex-col p-4 rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:border-cyan-500/30 hover:shadow-[0_4px_20px_rgba(6,182,212,0.12)] ${stat.glowColor}`}
                                     >
                                         <div className="flex items-center justify-between mb-3">
-                                            <span className="text-xs font-medium text-slate-400">{stat.label}</span>
+                                            <span className="text-xs font-semibold text-slate-450">{stat.label}</span>
                                             <div className={`p-1.5 rounded-lg bg-slate-950/60 ${stat.iconColor}`}>
                                                 <IconComponent className="h-4.5 w-4.5 drop-shadow-[0_0_4px_currentColor]" />
                                             </div>
                                         </div>
-                                        <div className={`text-xl font-bold tracking-tight ${stat.textColor}`}>
+                                        <div className={`text-xl font-black tracking-tight ${stat.textColor}`}>
                                             {stat.value}
                                         </div>
                                         <span className="text-[10px] text-slate-500 mt-1 leading-snug">{stat.desc}</span>
@@ -414,17 +468,17 @@ const WeatherForecast: React.FC = () => {
                         <div className="bg-slate-900/30 backdrop-blur-xl border border-slate-900/90 p-5 rounded-2xl shadow-[0_0_20px_rgba(6,182,212,0.06)]">
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
                                 <div>
-                                    <h3 className="text-base font-semibold text-slate-200">กราฟแนวโน้มพยากรณ์รายชั่วโมง</h3>
-                                    <p className="text-xs text-slate-400">การแสดงผลอุณหภูมิ (°C) และความเข้มข้นปริมาณฝนสะสม (มม.) ใน 24 ชั่วโมงข้างหน้า</p>
+                                    <h3 className="text-base font-bold text-slate-200">กราฟพยากรณ์รายชั่วโมง</h3>
+                                    <p className="text-xs text-slate-400">อุณหภูมิ (°C) และปริมาณฝนสะสม (มม.) ใน 24 ชั่วโมงข้างหน้า</p>
                                 </div>
-                                <div className="flex items-center gap-4 text-[11px] bg-slate-950/50 px-3 py-1.5 rounded-lg border border-slate-900 w-fit">
+                                <div className="flex items-center gap-4 text-[11px] bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-900 w-fit">
                                     <div className="flex items-center gap-1.5">
                                         <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_6px_#22d3ee]" />
-                                        <span className="text-slate-300">อุณหภูมิ</span>
+                                        <span className="text-slate-350 font-medium">อุณหภูมิ</span>
                                     </div>
                                     <div className="flex items-center gap-1.5">
                                         <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_6px_#3b82f6]" />
-                                        <span className="text-slate-300">ปริมาณฝน</span>
+                                        <span className="text-slate-350 font-medium">ปริมาณฝน</span>
                                     </div>
                                 </div>
                             </div>
@@ -437,8 +491,12 @@ const WeatherForecast: React.FC = () => {
                                                 <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.35}/>
                                                 <stop offset="95%" stopColor="#22d3ee" stopOpacity={0}/>
                                             </linearGradient>
+                                            <linearGradient id="colorRainGlow" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.2}/>
+                                            </linearGradient>
                                         </defs>
-                                        <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" strokeOpacity={0.3} vertical={false} />
+                                        <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" strokeOpacity={0.25} vertical={false} />
                                         <XAxis 
                                             dataKey="time" 
                                             stroke="#475569" 
@@ -484,7 +542,7 @@ const WeatherForecast: React.FC = () => {
                                             yAxisId="right"
                                             dataKey="rain" 
                                             name="ปริมาณฝน" 
-                                            fill="#3b82f6" 
+                                            fill="url(#colorRainGlow)" 
                                             radius={[3, 3, 0, 0]}
                                             maxBarSize={15}
                                         />
@@ -501,15 +559,15 @@ const WeatherForecast: React.FC = () => {
                         {/* Daily Forecast glass rows */}
                         <div className="bg-slate-900/30 backdrop-blur-xl border border-slate-900/90 p-5 rounded-2xl shadow-[0_0_20px_rgba(6,182,212,0.06)] flex flex-col gap-4">
                             <div>
-                                <h3 className="text-base font-semibold text-slate-200">แนวโน้มสภาพอากาศรายวัน</h3>
-                                <p className="text-xs text-slate-400">ดึงข้อมูลจัดกลุ่มตามวัน แสดงค่าต่ำสุด-สูงสุดของอุณหภูมิ</p>
+                                <h3 className="text-base font-bold text-slate-200">แนวโน้มสภาพอากาศรายวัน</h3>
+                                <p className="text-xs text-slate-400">ดึงข้อมูลจัดกลุ่มรายวันล่วงหน้า 7 วัน</p>
                             </div>
                             
                             <div className="flex flex-col gap-3">
                                 {dailyForecastsSummary.map((day, idx) => (
                                     <div 
                                         key={idx} 
-                                        className="flex items-center justify-between p-4 bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-xl hover:border-cyan-500/30 transition-all duration-300 shadow-[0_0_10px_rgba(6,182,212,0.02)] group"
+                                        className="flex items-center justify-between p-4 bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-xl hover:border-cyan-500/25 transition-all duration-300 shadow-[0_0_10px_rgba(6,182,212,0.02)] group"
                                     >
                                         <div className="flex items-center gap-4">
                                             <span className="text-sm font-bold text-slate-200 w-16 group-hover:text-cyan-400 transition-colors">
@@ -528,12 +586,12 @@ const WeatherForecast: React.FC = () => {
                                         <div className="flex items-center gap-4">
                                             <div className="text-right">
                                                 <span className="text-[10px] text-slate-500 block">ต่ำสุด</span>
-                                                <span className="text-xs font-bold text-blue-400">{day.minTemp.toFixed(1)}°</span>
+                                                <span className="text-xs font-bold text-blue-400">{day.minTemp.toFixed(0)}°</span>
                                             </div>
                                             <div className="h-6 w-[1px] bg-slate-800" />
                                             <div className="text-right">
                                                 <span className="text-[10px] text-slate-500 block">สูงสุด</span>
-                                                <span className="text-xs font-bold text-rose-400">{day.maxTemp.toFixed(1)}°</span>
+                                                <span className="text-xs font-bold text-rose-400">{day.maxTemp.toFixed(0)}°</span>
                                             </div>
                                         </div>
                                     </div>
@@ -543,34 +601,27 @@ const WeatherForecast: React.FC = () => {
 
                         {/* Custom Legend / Explainer Card */}
                         <div className="bg-gradient-to-br from-slate-900/30 to-slate-950/20 backdrop-blur-xl border border-slate-900/90 rounded-2xl p-5 shadow-[0_0_20px_rgba(6,182,212,0.04)]">
-                            <h3 className="text-sm font-semibold text-slate-200 mb-3.5">คู่มือเกณฑ์คำอธิบายดัชนี</h3>
-                            <div className="space-y-3 text-[11px] text-slate-400">
+                            <h3 className="text-sm font-bold text-slate-200 mb-3.5">คู่มือคำอธิบายดัชนีอากาศ</h3>
+                            <div className="space-y-3.5 text-[11px] text-slate-400">
                                 <div className="flex items-start gap-2.5">
-                                    <Thermometer className="h-3.5 w-3.5 text-rose-400 mt-0.5" />
+                                    <Thermometer className="h-3.5 w-3.5 text-rose-455 mt-0.5" />
                                     <div>
                                         <span className="text-slate-300 font-semibold block">อุณหภูมิ (°C)</span>
-                                        <span>วัดความร้อนทางฟิสิกส์ ค่าปกติเฉลี่ย 25°C - 35°C</span>
+                                        <span>อุณหภูมิจริงที่สัมผัสได้ ค่าปกติเฉลี่ย 25°C - 35°C</span>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-2.5">
                                     <Droplets className="h-3.5 w-3.5 text-cyan-400 mt-0.5" />
                                     <div>
-                                        <span className="text-slate-300 font-semibold block">ความชื้น (%)</span>
-                                        <span>ปริมาณละอองน้ำ ค่าที่เหมาะสมคือ 60% - 80%</span>
+                                        <span className="text-slate-300 font-semibold block">ความชื้นสัมพัทธ์ (%)</span>
+                                        <span>ปริมาณไอน้ำสัมพัทธ์ในอากาศ ค่าปกติคือ 60% - 80%</span>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-2.5">
                                     <Wind className="h-3.5 w-3.5 text-teal-400 mt-0.5" />
                                     <div>
                                         <span className="text-slate-300 font-semibold block">ความเร็วลม (m/s)</span>
-                                        <span>ค่าความเร็วลมที่พัดเฉลี่ยระดับผิวพื้น 10 เมตร</span>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-2.5">
-                                    <span className="text-[10px] font-bold text-blue-400 mt-0.5">ฝน</span>
-                                    <div>
-                                        <span className="text-slate-300 font-semibold block">ปริมาณน้ำฝนสะสม (mm)</span>
-                                        <span>ค่าปริมาณฝนสะสมเชิงปริมาตร ต่ำกว่า 10 มม. คือฝนเบาบาง</span>
+                                        <span>วัดอัตราความเร็วกระแสลมพัดเฉลี่ยระดับความสูง 10 เมตร</span>
                                     </div>
                                 </div>
                             </div>
@@ -581,8 +632,8 @@ const WeatherForecast: React.FC = () => {
             </main>
 
             {/* Footer Attribution */}
-            <footer className="max-w-7xl mx-auto px-4 md:px-8 mt-8 text-center text-[10px] text-slate-600">
-                <p>© D-MIND Weather Terminal • ข้อมูลประมวลผลและเชื่อมโยง API โดย กรมอุตุนิยมวิทยา (TMD)</p>
+            <footer className="max-w-7xl mx-auto px-4 md:px-8 mt-8 text-center text-[10px] text-slate-650">
+                <p>© D-MIND Weather Terminal • ข้อมูลประมวลผลและเชื่อมโยง API โดย กรมอุตุนิยมวิทยา (TMD) และ Open-Meteo Fallback</p>
             </footer>
         </div>
     );

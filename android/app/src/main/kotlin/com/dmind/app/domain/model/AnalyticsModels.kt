@@ -43,4 +43,8 @@ data class EnvironmentalData(
     val humidity: Int,
     val waterLevel: Double?,
     val rainfall: Double?,
+    val openMeteoRiverDischarge: Double? = null,
+    val openMeteoSoilMoisture: Double? = null,
+    val openMeteoPm25: Double? = null,
+    val openMeteoAqi: Int? = null,
 )

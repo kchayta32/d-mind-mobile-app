@@ -186,7 +186,7 @@ class DisasterMapRepository(private val context: Context? = null) {
         val locationName = reverseGeocode(lat, lon)
         val url = "https://api.open-meteo.com/v1/forecast" +
             "?latitude=$lat&longitude=$lon" +
-            "&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,pressure_msl,wind_speed_10m" +
+            "&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,pressure_msl,wind_speed_10m,soil_moisture_0_to_7cm" +
             "&hourly=temperature_2m,weather_code,precipitation" +
             "&daily=temperature_2m_max,temperature_2m_min,weather_code" +
             "&timezone=auto"
@@ -204,6 +204,37 @@ class DisasterMapRepository(private val context: Context? = null) {
         val wind = currentObj.optDouble("wind_speed_10m", 0.0)
         val timeStr = currentObj.optString("time", "")
 
+        val soilMoisture = if (currentObj.isNull("soil_moisture_0_to_7cm")) null else currentObj.optDouble("soil_moisture_0_to_7cm")
+
+        var riverDischarge: Double? = null
+        try {
+            val floodUrl = "https://flood-api.open-meteo.com/v1/flood?latitude=$lat&longitude=$lon&daily=river_discharge&forecast_days=1"
+            val floodBody = httpGet(floodUrl)
+            val floodJson = JSONObject(floodBody)
+            val dailyObj = floodJson.optJSONObject("daily")
+            val dischargeArr = dailyObj?.optJSONArray("river_discharge")
+            if (dischargeArr != null && dischargeArr.length() > 0) {
+                riverDischarge = if (dischargeArr.isNull(0)) null else dischargeArr.optDouble(0)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        var pm25: Double? = null
+        var aqi: Int? = null
+        try {
+            val aqUrl = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=$lat&longitude=$lon&current=pm2_5,us_aqi"
+            val aqBody = httpGet(aqUrl)
+            val aqJson = JSONObject(aqBody)
+            val aqCurrentObj = aqJson.optJSONObject("current")
+            if (aqCurrentObj != null) {
+                pm25 = if (aqCurrentObj.isNull("pm2_5")) null else aqCurrentObj.optDouble("pm2_5")
+                aqi = if (aqCurrentObj.isNull("us_aqi")) null else aqCurrentObj.optInt("us_aqi")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
         val currentSnapshot = com.dmind.app.domain.model.WeatherSnapshot(
             locationName = locationName,
             temperatureCelsius = temp,
@@ -215,7 +246,11 @@ class DisasterMapRepository(private val context: Context? = null) {
             latitude = lat,
             longitude = lon,
             apparentTemperatureCelsius = appTemp,
-            pressureHpa = press
+            pressureHpa = press,
+            openMeteoRiverDischarge = riverDischarge,
+            openMeteoSoilMoisture = soilMoisture,
+            openMeteoPm25 = pm25,
+            openMeteoAqi = aqi
         )
 
         val hourlyObj = json.getJSONObject("hourly")

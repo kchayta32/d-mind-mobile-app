@@ -95,6 +95,9 @@ import com.dmind.app.ui.viewmodel.DamageAssessmentUiState
 import com.dmind.app.ui.viewmodel.DisasterMapUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+import androidx.compose.runtime.rememberCoroutineScope
 import com.dmind.app.network.BackendRestClient
 import com.dmind.app.data.map.DisasterMapRepository
 import com.dmind.app.data.map.PlaceInfo
@@ -195,6 +198,9 @@ fun WeatherOverviewScreen(
     var currentHumidity by remember { mutableStateOf(0f) }
     var currentRain by remember { mutableStateOf(0f) }
     var currentWindSpeed by remember { mutableStateOf(0f) }
+    var currentWindDirection by remember { mutableStateOf(0f) }
+    var currentCloudCover by remember { mutableStateOf(0) }
+    var currentPressure by remember { mutableStateOf(1012f) }
     var conditionLabel by remember { mutableStateOf("") }
     var conditionEmoji by remember { mutableStateOf("☁️") }
 
@@ -214,6 +220,9 @@ fun WeatherOverviewScreen(
                     currentHumidity = result.currentHumidity
                     currentRain = result.currentRain
                     currentWindSpeed = result.currentWindSpeed
+                    currentWindDirection = result.windDirection
+                    currentCloudCover = result.cloudCover
+                    currentPressure = result.pressure
                     conditionLabel = result.conditionLabel
                     conditionEmoji = result.conditionEmoji
                     hourlyForecast = result.hourly
@@ -327,7 +336,7 @@ fun WeatherOverviewScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // Temp
+                        // Temperature
                         GlassmorphicCard(modifier = Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
                                 Icon(
@@ -343,7 +352,7 @@ fun WeatherOverviewScreen(
                                 }
                             }
                         }
-                        // Humidity
+                        // Rainfall
                         GlassmorphicCard(modifier = Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
                                 Icon(
@@ -354,8 +363,8 @@ fun WeatherOverviewScreen(
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 Column {
-                                    Text("Humidity", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    Text("${currentHumidity.toInt()}%", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                    Text("Rainfall", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text("%.1f mm".format(currentRain), fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                 }
                             }
                         }
@@ -364,7 +373,44 @@ fun WeatherOverviewScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // Wind Speed
+                        // Humidity
+                        GlassmorphicCard(modifier = Modifier.weight(1f)) {
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
+                                Icon(
+                                    imageVector = Icons.Filled.WaterDrop,
+                                    contentDescription = null,
+                                    tint = Color(0xFF00ACC1),
+                                    modifier = Modifier.size(28.dp)
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Column {
+                                    Text("Humidity", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text("${currentHumidity.toInt()}%", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                }
+                            }
+                        }
+                        // Cloud Cover
+                        GlassmorphicCard(modifier = Modifier.weight(1f)) {
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
+                                Icon(
+                                    imageVector = Icons.Filled.Cloud,
+                                    contentDescription = null,
+                                    tint = Color(0xFF78909C),
+                                    modifier = Modifier.size(28.dp)
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Column {
+                                    Text("Cloud Cover", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text("${currentCloudCover}%", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                }
+                            }
+                        }
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Wind Speed & Direction
                         GlassmorphicCard(modifier = Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
                                 Icon(
@@ -376,45 +422,8 @@ fun WeatherOverviewScreen(
                                 Spacer(Modifier.width(8.dp))
                                 Column {
                                     Text("Wind Speed", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    Text("${currentWindSpeed} m/s", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                }
-                            }
-                        }
-                        // Direction
-                        GlassmorphicCard(modifier = Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
-                                Icon(
-                                    imageVector = Icons.Filled.Send,
-                                    contentDescription = null,
-                                    tint = Color(0xFF8E24AA),
-                                    modifier = Modifier.size(28.dp)
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Column {
-                                    Text("Direction", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    Text("NNE (25°)", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                }
-                            }
-                        }
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        // Cloud Cover
-                        GlassmorphicCard(modifier = Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
-                                Icon(
-                                    imageVector = Icons.Filled.Cloud,
-                                    contentDescription = null,
-                                    tint = Color(0xFF546E7A),
-                                    modifier = Modifier.size(28.dp)
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Column {
-                                    Text("Cloud Cover", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    val cloudCover = if (conditionLabel.lowercase().contains("clear") || conditionLabel.contains("แจ่มใส")) "15%" else "65%"
-                                    Text(cloudCover, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                    val dirLabel = getWindDirectionLabel(currentWindDirection)
+                                    Text("${currentWindSpeed} m/s ($dirLabel)", fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 }
                             }
                         }
@@ -424,13 +433,13 @@ fun WeatherOverviewScreen(
                                 Icon(
                                     imageVector = Icons.Filled.HealthAndSafety,
                                     contentDescription = null,
-                                    tint = Color(0xFFF57C00),
+                                    tint = Color(0xFFFFA726),
                                     modifier = Modifier.size(28.dp)
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 Column {
                                     Text("Pressure", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    Text("1012 hPa", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                    Text("${currentPressure.toInt()} hPa", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                 }
                             }
                         }
@@ -625,8 +634,18 @@ fun DamageAssessmentScreen(
     onRefresh: () -> Unit,
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var selectedBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+    LaunchedEffect(imageUri) {
+        selectedBitmap = imageUri?.let { uri ->
+            withContext(Dispatchers.IO) {
+                loadBitmapFromUri(context, uri)
+            }
+        }
+    }
 
     val pickMediaLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
@@ -726,14 +745,15 @@ fun DamageAssessmentScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         if (imageUri != null) {
-                            val bitmap = remember(imageUri) { loadBitmapFromUri(context, imageUri!!) }
-                            if (bitmap != null) {
+                            if (selectedBitmap != null) {
                                 Image(
-                                    bitmap = bitmap.asImageBitmap(),
+                                    bitmap = selectedBitmap!!.asImageBitmap(),
                                     contentDescription = "Selected Image",
                                     modifier = Modifier.fillMaxSize(),
                                     contentScale = ContentScale.Crop
                                 )
+                            } else {
+                                CircularProgressIndicator()
                             }
                         } else if (imageBitmap != null) {
                             Image(
@@ -761,27 +781,31 @@ fun DamageAssessmentScreen(
 
                     Button(
                         onClick = {
-                            var finalBytes: ByteArray? = null
-                            try {
-                                if (imageUri != null) {
-                                    val originalBitmap = loadBitmapFromUri(context, imageUri!!)
-                                    if (originalBitmap != null) {
-                                        val resized = resizeBitmap(originalBitmap, 1024)
-                                        finalBytes = bitmapToBytes(resized)
+                            scope.launch {
+                                val bytes = try {
+                                    withContext(Dispatchers.IO) {
+                                        if (imageUri != null) {
+                                            val originalBitmap = selectedBitmap ?: loadBitmapFromUri(context, imageUri!!)
+                                            if (originalBitmap != null) {
+                                                val resized = resizeBitmap(originalBitmap, 1024)
+                                                bitmapToBytes(resized)
+                                            } else null
+                                        } else if (imageBitmap != null) {
+                                            val resized = resizeBitmap(imageBitmap!!, 1024)
+                                            bitmapToBytes(resized)
+                                        } else null
                                     }
-                                } else if (imageBitmap != null) {
-                                    val resized = resizeBitmap(imageBitmap!!, 1024)
-                                    finalBytes = bitmapToBytes(resized)
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                    null
                                 }
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            }
 
-                            if (finalBytes != null) {
-                                val fileName = "assessment_${System.currentTimeMillis()}.jpg"
-                                onUpload(fileName, "image/jpeg", finalBytes)
-                                imageUri = null
-                                imageBitmap = null
+                                if (bytes != null) {
+                                    val fileName = "assessment_${System.currentTimeMillis()}.jpg"
+                                    onUpload(fileName, "image/jpeg", bytes)
+                                    imageUri = null
+                                    imageBitmap = null
+                                }
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
@@ -952,6 +976,8 @@ private fun DamageAssessmentCard(
     }
 }
 
+private val imageCache = java.util.concurrent.ConcurrentHashMap<String, Bitmap>()
+
 @Composable
 private fun NetworkImage(
     url: String,
@@ -959,10 +985,14 @@ private fun NetworkImage(
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop
 ) {
-    var bitmap by remember(url) { mutableStateOf<Bitmap?>(null) }
-    var isLoading by remember(url) { mutableStateOf(true) }
+    var bitmap by remember(url) { mutableStateOf<Bitmap?>(imageCache[url]) }
+    var isLoading by remember(url) { mutableStateOf(bitmap == null) }
 
     LaunchedEffect(url) {
+        if (bitmap != null) {
+            isLoading = false
+            return@LaunchedEffect
+        }
         isLoading = true
         bitmap = try {
             withContext(Dispatchers.IO) {
@@ -970,7 +1000,11 @@ private fun NetworkImage(
                 connection.doInput = true
                 connection.connect()
                 val input = connection.inputStream
-                BitmapFactory.decodeStream(input)
+                val bmp = BitmapFactory.decodeStream(input)
+                if (bmp != null) {
+                    imageCache[url] = bmp
+                }
+                bmp
             }
         } catch (e: Exception) {
             null
@@ -1091,12 +1125,23 @@ fun getWeatherInfoForCode(code: Int): Pair<String, String> {
 }
 
 // Day of week formatter helper
+fun getWindDirectionLabel(degrees: Float): String {
+    val directions = listOf("N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW")
+    val index = (((degrees + 11.25) / 22.5).toInt() % 16).let { if (it < 0) it + 16 else it }
+    return directions[index]
+}
+
 fun getDayName(dateStr: String): String {
     return try {
         val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
         val d = sdf.parse(dateStr)
-        val dayFormat = java.text.SimpleDateFormat("EEEE", java.util.Locale.US)
-        if (d != null) dayFormat.format(d) else dateStr
+        val dayFormat = java.text.SimpleDateFormat("EEEE", java.util.Locale("th", "TH"))
+        if (d != null) {
+            val formatted = dayFormat.format(d)
+            if (formatted.startsWith("วัน")) formatted.substring(3) else formatted
+        } else {
+            dateStr
+        }
     } catch (ex: Exception) {
         dateStr
     }
@@ -1381,6 +1426,9 @@ data class LoadedWeatherResult(
     val currentHumidity: Float,
     val currentRain: Float,
     val currentWindSpeed: Float,
+    val windDirection: Float,
+    val cloudCover: Int,
+    val pressure: Float,
     val conditionLabel: String,
     val conditionEmoji: String,
     val hourly: List<HourlyForecastData>,
@@ -1513,7 +1561,7 @@ fun mapTmdHourlyToDaily(forecasts: org.json.JSONArray): List<DailyForecastData> 
 }
 
 suspend fun fetchAndParseWeather(context: android.content.Context): LoadedWeatherResult {
-    val coords = getUserLocation(context) ?: Pair(13.7563, 100.5018)
+    val coords = withTimeoutOrNull(2500) { getUserLocation(context) } ?: Pair(13.7563, 100.5018)
     
     val placeInfo = runCatching {
         val repo = com.dmind.app.data.map.DisasterMapRepository(context)
@@ -1540,9 +1588,16 @@ suspend fun fetchAndParseWeather(context: android.content.Context): LoadedWeathe
         val responseText = responseTextResult.getOrThrow()
         try {
             val responseJson = org.json.JSONObject(responseText)
+            if (responseJson.optString("status") == "error") {
+                throw IllegalStateException("Backend weather proxy returned error: ${responseJson.optString("message")}")
+            }
             val dataObj = responseJson.optJSONObject("data") ?: responseJson
             val rootForecast = dataObj.optJSONArray("WeatherForecasts")?.optJSONObject(0)
             val forecasts = rootForecast?.optJSONArray("forecasts") ?: org.json.JSONArray()
+            
+            if (forecasts.length() == 0) {
+                throw IllegalStateException("Empty forecasts array from backend weather proxy")
+            }
             
             val hourlyList = mutableListOf<HourlyForecastData>()
             val hourlyCount = minOf(forecasts.length(), 24)
@@ -1559,6 +1614,10 @@ suspend fun fetchAndParseWeather(context: android.content.Context): LoadedWeathe
                 val tempVal = data.optDouble("tc", 0.0).toFloat()
                 val rhVal = data.optDouble("rh", 0.0).toInt()
                 hourlyList.add(HourlyForecastData(formattedHour, tempVal, rhVal))
+            }
+            
+            if (hourlyList.isEmpty()) {
+                throw IllegalStateException("Parsed hourly forecast list is empty")
             }
             
             val dailyList = mapTmdHourlyToDaily(forecasts)
@@ -1578,6 +1637,15 @@ suspend fun fetchAndParseWeather(context: android.content.Context): LoadedWeathe
             val humidityVal = firstData?.optDouble("rh", 60.0)?.toFloat() ?: 60f
             val rainVal = firstData?.optDouble("rain", 0.0)?.toFloat() ?: 0f
             val wsVal = firstData?.optDouble("ws10m", 0.0)?.toFloat() ?: 0f
+            val wdVal = firstData?.optDouble("wd10m", 0.0)?.toFloat() ?: 0f
+            val slpVal = firstData?.optDouble("slp", 1012.0)?.toFloat() ?: 1012f
+            
+            val cloudLow = firstData?.optInt("cloudlow", 0) ?: 0
+            val cloudMed = firstData?.optInt("cloudmed", 0) ?: 0
+            val cloudHigh = firstData?.optInt("cloudhigh", 0) ?: 0
+            val maxCloud = maxOf(cloudLow, cloudMed, cloudHigh)
+            val cloudPercent = if (maxCloud in 1..8) (maxCloud * 12.5).toInt() else maxCloud
+            
             val condCode = firstData?.optInt("cond", 1) ?: 1
             val emojiAndLabel = getTmdEmojiAndLabel(condCode)
             
@@ -1587,6 +1655,9 @@ suspend fun fetchAndParseWeather(context: android.content.Context): LoadedWeathe
                 currentHumidity = humidityVal,
                 currentRain = rainVal,
                 currentWindSpeed = wsVal,
+                windDirection = wdVal,
+                cloudCover = cloudPercent,
+                pressure = slpVal,
                 conditionLabel = emojiAndLabel.second,
                 conditionEmoji = emojiAndLabel.first,
                 hourly = hourlyList,
@@ -1612,6 +1683,9 @@ suspend fun fetchAndParseWeather(context: android.content.Context): LoadedWeathe
             currentHumidity = 0f,
             currentRain = 0f,
             currentWindSpeed = 0f,
+            windDirection = 0f,
+            cloudCover = 0,
+            pressure = 1012f,
             conditionLabel = "ไม่ทราบสภาพอากาศ",
             conditionEmoji = "☁️",
             hourly = emptyList(),
@@ -1642,7 +1716,7 @@ private fun fetchFromOpenMeteoFallback(
     amphoe: String?,
     tambon: String?
 ): LoadedWeatherResult {
-    val urlStr = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&hourly=temperature_2m,relative_humidity_2m,weather_code,precipitation,wind_speed_10m&timezone=Asia%2FBangkok"
+    val urlStr = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&hourly=temperature_2m,relative_humidity_2m,weather_code,precipitation,wind_speed_10m,wind_direction_10m,pressure_msl,cloud_cover&timezone=Asia%2FBangkok"
     val connection = (java.net.URL(urlStr).openConnection() as java.net.HttpURLConnection).apply {
         requestMethod = "GET"
         connectTimeout = 15_000
@@ -1670,6 +1744,9 @@ private fun fetchFromOpenMeteoFallback(
     val wmoCodes = hourly.getJSONArray("weather_code")
     val precipitation = hourly.getJSONArray("precipitation")
     val windSpeed10m = hourly.getJSONArray("wind_speed_10m")
+    val windDirection10m = hourly.getJSONArray("wind_direction_10m")
+    val pressureMsl = hourly.getJSONArray("pressure_msl")
+    val cloudCoverJson = hourly.getJSONArray("cloud_cover")
 
     // Find closest hour index in timesJson
     val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:00", java.util.Locale.US).apply {
@@ -1689,6 +1766,9 @@ private fun fetchFromOpenMeteoFallback(
     val humidityVal = rh2m.optDouble(currentIndex, 60.0).toFloat()
     val rainVal = precipitation.optDouble(currentIndex, 0.0).toFloat()
     val wsVal = windSpeed10m.optDouble(currentIndex, 0.0).toFloat()
+    val wdVal = windDirection10m.optDouble(currentIndex, 0.0).toFloat()
+    val pressVal = pressureMsl.optDouble(currentIndex, 1012.0).toFloat()
+    val cloudVal = cloudCoverJson.optInt(currentIndex, 0)
     val wmoCode = wmoCodes.optInt(currentIndex, 0)
     val condCode = mapWmoToTmdCode(wmoCode)
     val emojiAndLabel = getTmdEmojiAndLabel(condCode)
@@ -1740,6 +1820,9 @@ private fun fetchFromOpenMeteoFallback(
         currentHumidity = humidityVal,
         currentRain = rainVal,
         currentWindSpeed = wsVal,
+        windDirection = wdVal,
+        cloudCover = cloudVal,
+        pressure = pressVal,
         conditionLabel = emojiAndLabel.second,
         conditionEmoji = emojiAndLabel.first,
         hourly = hourlyList,

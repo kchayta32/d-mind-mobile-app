@@ -29,6 +29,8 @@ import java.time.format.DateTimeFormatter
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 /**
  * Aggregates disaster and environmental data from real external APIs:
@@ -175,9 +177,18 @@ class DataAggregatorService {
     // ═════════════════════════════════════════════════════════════
     // 3) ENVIRONMENTAL — Air4Thai + TMD real data
     // ═════════════════════════════════════════════════════════════
-    suspend fun getEnvironmentalData(): EnvironmentalResponse {
-        val airData = fetchAir4ThaiData()
-        val weatherData = fetchTmdWeatherForecast()
+    suspend fun getEnvironmentalData(latitude: Double = 13.7563, longitude: Double = 100.5018): EnvironmentalResponse = coroutineScope {
+        val airDataDeferred = async { fetchAir4ThaiData() }
+        val weatherDataDeferred = async { fetchTmdWeatherForecast(latitude, longitude) }
+        val openMeteoWeatherDeferred = async { fetchOpenMeteoWeather(latitude, longitude) }
+        val openMeteoAirQualityDeferred = async { fetchOpenMeteoAirQuality(latitude, longitude) }
+        val openMeteoRiverDeferred = async { fetchOpenMeteoRiverDischarge(latitude, longitude) }
+
+        val airData = airDataDeferred.await()
+        val weatherData = weatherDataDeferred.await()
+        val openMeteoWeather = openMeteoWeatherDeferred.await()
+        val openMeteoAirQuality = openMeteoAirQualityDeferred.await()
+        val openMeteoRiver = openMeteoRiverDeferred.await()
 
         val pm25 = airData.pm25
         val aqi = airData.aqi
@@ -189,7 +200,7 @@ class DataAggregatorService {
             else -> "มีผลต่อสุขภาพ"
         }
 
-        return EnvironmentalResponse(
+        EnvironmentalResponse(
             pm25 = pm25,
             aqi = aqi,
             aqiLevel = aqiLevel,
@@ -198,6 +209,10 @@ class DataAggregatorService {
             waterLevel = null, // Hydro-informatics API not yet integrated
             rainfall = weatherData.rainfall,
             updatedAt = Instant.now().toString(),
+            openMeteoRiverDischarge = openMeteoRiver,
+            openMeteoSoilMoisture = openMeteoWeather.soilMoisture,
+            openMeteoPm25 = openMeteoAirQuality.pm25,
+            openMeteoAqi = openMeteoAirQuality.aqi,
         )
     }
 
@@ -440,7 +455,9 @@ class DataAggregatorService {
     // ─────────────────────────────────────────────────────────────
     private fun fetchTmdStormWarnings(): ApiResult {
         val token = tmdToken()
-        if (token.isBlank()) return ApiResult(count = 0, events = emptyList(), areaKm2 = 0.0)
+        if (token.isBlank()) {
+            return fetchOpenMeteoStormWarnings(13.7563, 100.5018)
+        }
 
         return runCatching {
             val today = DateTimeFormatter.ISO_LOCAL_DATE
@@ -493,16 +510,18 @@ class DataAggregatorService {
                 areaKm2 = 0.0,
             )
         }.getOrElse {
-            ApiResult(count = 0, events = emptyList(), areaKm2 = 0.0)
+            fetchOpenMeteoStormWarnings(13.7563, 100.5018)
         }
     }
 
     // ─────────────────────────────────────────────────────────────
     // TMD Weather Forecast (temperature, humidity, rainfall)
     // ─────────────────────────────────────────────────────────────
-    private fun fetchTmdWeatherForecast(): WeatherInfo {
+    private fun fetchTmdWeatherForecast(lat: Double = 13.7563, lon: Double = 100.5018): WeatherInfo {
         val token = tmdToken()
-        if (token.isBlank()) return WeatherInfo()
+        if (token.isBlank()) {
+            return fetchOpenMeteoWeatherForecast(lat, lon)
+        }
 
         return runCatching {
             val today = DateTimeFormatter.ISO_LOCAL_DATE
@@ -510,7 +529,7 @@ class DataAggregatorService {
                 .format(Instant.now())
             val fields = "tc,rh,rain"
             val url = "https://data.tmd.go.th/nwpapi/v1/forecast/location/hourly/at" +
-                "?lat=13.7563&lon=100.5018&date=$today&fields=$fields&duration=24"
+                "?lat=$lat&lon=$lon&date=$today&fields=$fields&duration=24"
 
             val body = httpGet(url, mapOf(
                 "accept" to "application/json",
@@ -522,18 +541,78 @@ class DataAggregatorService {
             val rootForecast = weatherForecasts?.getOrNull(0)?.jsonObject
             val forecasts = rootForecast?.get("forecasts")?.jsonArray ?: JsonArray(emptyList())
 
-            if (forecasts.isEmpty()) return@runCatching WeatherInfo()
+            if (forecasts.isEmpty()) return@runCatching fetchOpenMeteoWeatherForecast(lat, lon)
 
             // Use the latest forecast entry
             val latest = forecasts.last().jsonObject
-            val data = latest["data"]?.jsonObject ?: return@runCatching WeatherInfo()
+            val data = latest["data"]?.jsonObject ?: return@runCatching fetchOpenMeteoWeatherForecast(lat, lon)
 
             WeatherInfo(
                 temperature = data["tc"]?.jsonPrimitive?.doubleOrNull ?: 0.0,
                 humidity = (data["rh"]?.jsonPrimitive?.doubleOrNull ?: 0.0).roundToInt(),
                 rainfall = data["rain"]?.jsonPrimitive?.doubleOrNull,
             )
+        }.getOrElse {
+            fetchOpenMeteoWeatherForecast(lat, lon)
+        }
+    }
+
+    private fun fetchOpenMeteoWeatherForecast(lat: Double, lon: Double): WeatherInfo {
+        return runCatching {
+            val url = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,relative_humidity_2m,rain&timezone=Asia/Bangkok"
+            val body = httpGet(url)
+            val root = json.parseToJsonElement(body).jsonObject
+            val current = root["current"]?.jsonObject ?: return WeatherInfo()
+            WeatherInfo(
+                temperature = current["temperature_2m"]?.jsonPrimitive?.doubleOrNull ?: 0.0,
+                humidity = (current["relative_humidity_2m"]?.jsonPrimitive?.doubleOrNull ?: 0.0).roundToInt(),
+                rainfall = current["rain"]?.jsonPrimitive?.doubleOrNull,
+            )
         }.getOrElse { WeatherInfo() }
+    }
+
+    private fun fetchOpenMeteoStormWarnings(lat: Double, lon: Double): ApiResult {
+        return runCatching {
+            val url = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&hourly=rain,wind_speed_10m,weather_code&forecast_days=1&timezone=Asia/Bangkok"
+            val body = httpGet(url)
+            val root = json.parseToJsonElement(body).jsonObject
+            val hourly = root["hourly"]?.jsonObject ?: return ApiResult(count = 0, events = emptyList(), areaKm2 = 0.0)
+            val timeArr = hourly["time"]?.jsonArray ?: return ApiResult(count = 0, events = emptyList(), areaKm2 = 0.0)
+            val rainArr = hourly["rain"]?.jsonArray
+            val windArr = hourly["wind_speed_10m"]?.jsonArray
+            val codeArr = hourly["weather_code"]?.jsonArray
+
+            val stormEvents = mutableListOf<EventInfo>()
+            for (i in 0 until timeArr.size) {
+                val time = timeArr[i].jsonPrimitive.content
+                val rain = rainArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val windSpeed = (windArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0) / 3.6 // km/h to m/s
+                val code = codeArr?.getOrNull(i)?.jsonPrimitive?.intOrNull ?: 0
+
+                if (code in listOf(95, 96, 99) || rain >= 20.0 || windSpeed >= 15.0) {
+                    val severity = when {
+                        code in listOf(96, 99) || rain >= 50.0 || windSpeed >= 25.0 -> "critical"
+                        code == 95 || rain >= 30.0 || windSpeed >= 20.0 -> "high"
+                        else -> "moderate"
+                    }
+                    stormEvents.add(
+                        EventInfo(
+                            title = "พายุ/ฝนหนัก กรุงเทพฯ (Open-Meteo)",
+                            type = "storm",
+                            severity = severity,
+                            location = "กรุงเทพมหานคร",
+                            timestamp = time,
+                            areaKm2 = 0.0,
+                        )
+                    )
+                }
+            }
+            ApiResult(
+                count = stormEvents.size,
+                events = stormEvents,
+                areaKm2 = 0.0,
+            )
+        }.getOrElse { ApiResult(count = 0, events = emptyList(), areaKm2 = 0.0) }
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -668,4 +747,69 @@ class DataAggregatorService {
         val humidity: Int = 0,
         val rainfall: Double? = null,
     )
+
+    private data class OpenMeteoWeatherAndSoilInfo(
+        val temperature: Double = 0.0,
+        val humidity: Int = 0,
+        val rainfall: Double? = null,
+        val soilMoisture: Double? = null,
+    )
+
+    private data class OpenMeteoAirQualityInfo(
+        val pm25: Double? = null,
+        val aqi: Int? = null,
+    )
+
+    // ─────────────────────────────────────────────────────────────
+    // Open-Meteo API Fetchers
+    // ─────────────────────────────────────────────────────────────
+    private fun fetchOpenMeteoWeather(lat: Double, lon: Double): OpenMeteoWeatherAndSoilInfo {
+        return runCatching {
+            val url = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,relative_humidity_2m,rain,soil_moisture_0_to_7cm"
+            val body = httpGet(url)
+            val root = json.parseToJsonElement(body).jsonObject
+            val current = root["current"]?.jsonObject
+            val temp = current?.get("temperature_2m")?.jsonPrimitive?.doubleOrNull ?: 0.0
+            val humidity = current?.get("relative_humidity_2m")?.jsonPrimitive?.doubleOrNull?.roundToInt() ?: 0
+            val rain = current?.get("rain")?.jsonPrimitive?.doubleOrNull
+            val soilMoisture = current?.get("soil_moisture_0_to_7cm")?.jsonPrimitive?.doubleOrNull
+            OpenMeteoWeatherAndSoilInfo(temp, humidity, rain, soilMoisture)
+        }.getOrElse { OpenMeteoWeatherAndSoilInfo() }
+    }
+
+    private fun fetchOpenMeteoAirQuality(lat: Double, lon: Double): OpenMeteoAirQualityInfo {
+        return runCatching {
+            val url = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=$lat&longitude=$lon&current=pm2_5,us_aqi"
+            val body = httpGet(url)
+            val root = json.parseToJsonElement(body).jsonObject
+            val current = root["current"]?.jsonObject
+            val pm25 = current?.get("pm2_5")?.jsonPrimitive?.doubleOrNull
+            val aqi = current?.get("us_aqi")?.jsonPrimitive?.intOrNull
+            OpenMeteoAirQualityInfo(pm25, aqi)
+        }.getOrElse { OpenMeteoAirQualityInfo() }
+    }
+
+    private fun fetchOpenMeteoRiverDischarge(lat: Double, lon: Double): Double? {
+        return runCatching {
+            val url = "https://flood-api.open-meteo.com/v1/flood?latitude=$lat&longitude=$lon&daily=river_discharge&forecast_days=1"
+            val body = httpGet(url)
+            val root = json.parseToJsonElement(body).jsonObject
+            val daily = root["daily"]?.jsonObject
+            val riverDischargeArr = daily?.get("river_discharge")?.jsonArray
+            riverDischargeArr?.getOrNull(0)?.jsonPrimitive?.doubleOrNull
+        }.getOrElse { null }
+    }
+
+    private fun fetchOpenMeteoWeatherForecastInfo(lat: Double, lon: Double): WeatherInfo {
+        return runCatching {
+            val url = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,relative_humidity_2m,rain"
+            val body = httpGet(url)
+            val root = json.parseToJsonElement(body).jsonObject
+            val current = root["current"]?.jsonObject
+            val temp = current?.get("temperature_2m")?.jsonPrimitive?.doubleOrNull ?: 0.0
+            val humidity = current?.get("relative_humidity_2m")?.jsonPrimitive?.doubleOrNull?.roundToInt() ?: 0
+            val rain = current?.get("rain")?.jsonPrimitive?.doubleOrNull
+            WeatherInfo(temp, humidity, rain)
+        }.getOrElse { WeatherInfo() }
+    }
 }

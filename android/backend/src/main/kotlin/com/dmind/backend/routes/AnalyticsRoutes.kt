@@ -33,8 +33,19 @@ fun Route.analyticsRoutes(cacheService: CacheService, aggregator: DataAggregator
         }
 
         get("/environmental") {
-            val data = cacheService.getOrFetch<EnvironmentalResponse>("analytics:environmental") {
-                aggregator.getEnvironmentalData()
+            val lat = call.request.queryParameters["lat"]?.toDoubleOrNull()
+            val lon = call.request.queryParameters["lon"]?.toDoubleOrNull()
+            val cacheKey = if (lat != null && lon != null) {
+                "analytics:environmental:$lat:$lon"
+            } else {
+                "analytics:environmental"
+            }
+            val data = cacheService.getOrFetch<EnvironmentalResponse>(cacheKey) {
+                if (lat != null && lon != null) {
+                    aggregator.getEnvironmentalData(lat, lon)
+                } else {
+                    aggregator.getEnvironmentalData()
+                }
             }
             call.respond(data)
         }
