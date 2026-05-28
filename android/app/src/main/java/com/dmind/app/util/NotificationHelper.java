@@ -178,10 +178,34 @@ public class NotificationHelper {
         String actionType,
         boolean showFullScreen
     ) {
+        int iconRes = R.drawable.ic_stat_notification;
+        int colorRes = R.color.emergencyRed;
+        
+        if (actionType != null) {
+            String typeLower = actionType.toLowerCase();
+            if (typeLower.contains("flood")) {
+                iconRes = R.drawable.ic_flood;
+                colorRes = R.color.infoBlue;
+            } else if (typeLower.contains("landslide")) {
+                iconRes = R.drawable.ic_landslide;
+                colorRes = R.color.warningOrange;
+            } else if (typeLower.contains("pm25") || typeLower.contains("pm2_5") || typeLower.contains("pollution") || typeLower.contains("pm2.5")) {
+                iconRes = R.drawable.ic_pollution;
+                colorRes = R.color.warningOrange;
+            } else if (typeLower.contains("storm")) {
+                iconRes = R.drawable.ic_storm;
+                colorRes = R.color.warningOrange;
+            } else if (typeLower.contains("tsunami") || typeLower.contains("earthquake")) {
+                iconRes = R.drawable.ic_stat_notification;
+                colorRes = R.color.emergencyRed;
+            }
+        }
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_EMERGENCY)
             .setContentTitle(title)
             .setContentText(message)
-            .setSmallIcon(R.drawable.ic_stat_notification)
+            .setSmallIcon(iconRes)
+            .setColor(context.getResources().getColor(colorRes))
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ERROR)
             .setAutoCancel(true)

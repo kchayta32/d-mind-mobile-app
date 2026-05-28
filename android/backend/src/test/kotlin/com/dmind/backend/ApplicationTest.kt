@@ -199,6 +199,41 @@ class ApplicationTest {
         }
     }
 
+    @Test
+    fun alertsEvaluateRequiresAdminToken() {
+        withGatewayProperties(adminToken = "test-admin") {
+            testApplication {
+                application { dmindModule() }
+
+                val response = client.post("/alerts/evaluate") {
+                    setBody(TextContent("{}", ContentType.Application.Json))
+                }
+
+                assertEquals(HttpStatusCode.Unauthorized, response.status)
+                assertTrue(response.bodyAsText().contains("\"code\":\"unauthorized\""))
+            }
+        }
+    }
+
+    @Test
+    fun alertsEvaluateExecutesSuccessfullyWithAdminToken() {
+        withGatewayProperties(adminToken = "test-admin") {
+            testApplication {
+                application { dmindModule() }
+
+                val response = client.post("/alerts/evaluate?force=true") {
+                    header("Authorization", "Bearer test-admin")
+                    setBody(TextContent("{}", ContentType.Application.Json))
+                }
+
+                assertEquals(HttpStatusCode.OK, response.status)
+                val body = response.bodyAsText()
+                assertTrue(body.contains("\"status\":\"evaluated\""))
+                assertTrue(body.contains("\"detail\""))
+            }
+        }
+    }
+
     private fun withGatewayProperties(
         adminToken: String? = null,
         block: () -> Unit,

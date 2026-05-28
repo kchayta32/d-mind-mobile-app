@@ -52,6 +52,7 @@ import com.dmind.backend.routes.alertRoutes
 import com.dmind.backend.routes.notificationRoutes
 import com.dmind.backend.routes.mediaRoutes
 import com.dmind.backend.routes.dashboardRoute
+import kotlinx.coroutines.launch
 
 fun main() {
     val port = setting("PORT")?.toIntOrNull() ?: 8080
@@ -65,6 +66,14 @@ fun Application.dmindModule() {
     val cacheService = com.dmind.backend.service.CacheService()
     val dataAggregator = com.dmind.backend.service.DataAggregatorService()
 
+    // Start Automatic Alert Dispatcher in a background coroutine
+    com.dmind.backend.service.AutomaticAlertDispatcher.start(
+        config = config,
+        deviceRegistry = deviceRegistry,
+        dataAggregator = dataAggregator,
+        scope = this
+    )
+
     install(ContentNegotiation) {
         json(responseJson)
     }
@@ -73,7 +82,7 @@ fun Application.dmindModule() {
         analyticsRoutes(cacheService, dataAggregator)
         disasterDataRoutes(config)
         alertRoutes(config, supabase)
-        notificationRoutes(config, deviceRegistry)
+        notificationRoutes(config, deviceRegistry, dataAggregator)
         mediaRoutes(config, supabase)
         dashboardRoute()
         get("/health") {

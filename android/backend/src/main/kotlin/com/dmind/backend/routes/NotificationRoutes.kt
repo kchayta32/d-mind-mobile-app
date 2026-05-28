@@ -17,8 +17,19 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import kotlinx.serialization.Serializable
 
-internal fun Route.notificationRoutes(config: GatewayConfig, deviceRegistry: DeviceTokenRegistry) {
+@Serializable
+data class AlertEvaluationResponse(
+    val status: String,
+    val detail: String
+)
+
+internal fun Route.notificationRoutes(
+    config: GatewayConfig,
+    deviceRegistry: DeviceTokenRegistry,
+    dataAggregator: com.dmind.backend.service.DataAggregatorService
+) {
     post("/fcm/register") {
         call.handleSafely(rateLimited = true, config = config) {
             val request = call.receive<FcmRegistrationRequest>()
@@ -76,6 +87,26 @@ internal fun Route.notificationRoutes(config: GatewayConfig, deviceRegistry: Dev
                     configured = true,
                     errors = results.filterNot { it.success }.map { it.message },
                 ),
+            )
+        }
+    }
+
+    post("/alerts/evaluate") {
+        call.handleSafely(rateLimited = true, config = config) {
+            if (!call.requireAdmin(config)) return@handleSafely
+            val force = call.request.queryParameters["force"]?.toBoolean() ?: false
+            val result = com.dmind.backend.service.AutomaticAlertDispatcher.evaluateAndDispatchAlerts(
+                config = config,
+                deviceRegistry = deviceRegistry,
+                dataAggregator = dataAggregator,
+                force = force
+            )
+            call.respond(
+                HttpStatusCode.OK,
+                AlertEvaluationResponse(
+                    status = "evaluated",
+                    detail = result
+                )
             )
         }
     }

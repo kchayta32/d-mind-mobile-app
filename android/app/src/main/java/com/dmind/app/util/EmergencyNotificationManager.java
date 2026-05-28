@@ -190,6 +190,10 @@ public class EmergencyNotificationManager {
             case "flood":
             case "flooding":
             case "landslide":
+            case "pm25":
+            case "pm2_5":
+            case "pm2.5":
+            case "pollution":
                 return AlertLevel.WARNING;
             case "storm":
                 return AlertLevel.SEVERE;
