@@ -72,4 +72,10 @@
 - อัปเดต android/app/build.gradle ให้อ่านค่า Supabase, TMD และ GISTDA จาก environment/project property/.env
 - Build ล่าสุดผ่าน .\gradlew.bat :app:compileDebugKotlin และ .\gradlew.bat :app:assembleDebug
 
+อัปเดตเพิ่มเติม 2026-05-28
+- เพิ่มชั้นข้อมูล RiverDischarge (การไหลของแม่น้ำ) และ SoilMoistureHeatmap (ความชื้นในดิน) บนแผนที่ภัยพิบัติ native
+- เชื่อมต่อ Open-Meteo APIs (Flood API และ Land API) ใน DisasterMapRepository เพื่อดึงข้อมูลอัตราการไหลของน้ำพิกัดแม่น้ำสายหลัก และความชื้นสะสมในดิน (ระดับ 0-7 ซม.) แบบ Heatmap ตามจุดพิกัดที่ระบุในประเทศไทย โดยแปลงผลลัพธ์เป็น GeoJSON Format
+- ปรับปรุง DisasterMapViewModel เพื่อรองรับการล้าง/โหลด GeoJSON layers และล้าง state ชั้นข้อมูลอื่นๆ อย่างถูกต้อง ป้องกันการทับซ้อนของ marker/heatmap ใน Compose UI
+- อัปเดต MapLibreView, DisasterMapScreen และ MapBottomSheet ให้รองรับการเรนเดอร์ GeoJSON layers และแสดงคำอธิบาย/สถิติความชื้นในดินและอัตราการไหลของแม่น้ำแบบมีสีสันสวยงาม
+
 ดูรายละเอียดสถานะล่าสุดได้ที่ android/docs/CURRENT_ANDROID_STATUS.th.md

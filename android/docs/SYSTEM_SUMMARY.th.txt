@@ -8,6 +8,11 @@
 - API key/secret ของ production ต้องอยู่ใน environment variables หรือ secret manager ของ backend เท่านั้น
 - ระบบแจ้งเตือนมือถือใช้ Firebase Cloud Messaging (FCM) สำหรับ push จาก server และใช้ native notification channel สำหรับแสดงผลในเครื่อง
 
+อัปเดตสถานะล่าสุด 2026-05-28
+- เพิ่มชั้นข้อมูล (Layer) การไหลของแม่น้ำ (RiverDischarge) และความชื้นในดิน (SoilMoistureHeatmap) บนหน้าแผนที่ภัยพิบัติ ดึงข้อมูลจาก Open-Meteo API (ไม่ใช้ API key) ตามจุดพิกัดในประเทศไทย
+- ปรับปรุงการสลับชั้นข้อมูลใน DisasterMapViewModel เพื่อล้างข้อมูลและโหลดชั้นข้อมูลใหม่ได้อย่างถูกต้องตาม Lifecycle
+- รายละเอียดล่าสุดอยู่ที่ android/docs/CURRENT_ANDROID_STATUS.th.md
+
 อัปเดตสถานะล่าสุด 2026-05-14
 - UI แผนที่ถูกปรับเป็น native dashboard ตาม mockup ล่าสุด มี header, tabs, search, controls และ bottom sheet พร้อมกราฟสถิติ
 - /risk-zones เปลี่ยนบทบาทเป็นหน้าสถานีตรวจวัด D-MIND โดยรอ API/endpoint จริง

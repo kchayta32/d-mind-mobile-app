@@ -1,6 +1,6 @@
 # สถานะปัจจุบัน Android Native D-MIND
 
-วันที่อัปเดต: 2026-05-14
+วันที่อัปเดต: 2026-05-28
 
 เอกสารนี้สรุปสถานะล่าสุดของ Android app หลังปรับ UI/UX แผนที่, เพิ่มแหล่งข้อมูลภัยพิบัติ, และนำระบบ Supabase จากเว็บแอพเดิมเข้ามาใน native Android ด้วย Kotlin/Jetpack Compose
 
@@ -66,6 +66,8 @@
 | น้ำท่วม | GISTDA `/features/flood/1day` และ WMS `/maps/flood/1day/wms` | ใช้งานแล้ว |
 | น้ำท่วมซ้ำซาก | GISTDA `/features/flood-freq` และ WMS `/maps/flood-freq/wms` | ใช้งานแล้ว |
 | ผักตบชวา | GISTDA `/features/water_hyacinth` | ใช้งานแล้ว |
+| การไหลของแม่น้ำ | Open-Meteo Flood API | ใช้งานแล้ว |
+| ความชื้นในดิน | Open-Meteo Land API | ใช้งานแล้ว |
 
 ## แหล่งข้อมูลภายนอก
 
@@ -77,6 +79,7 @@
 | GISTDA | ไฟป่า, น้ำท่วม, น้ำท่วมซ้ำซาก, ผักตบชวา, DRIPlus, NDWI, SMAP | ต้องตั้งค่า GISTDA API key ผ่าน env/build config |
 | USGS | แผ่นดินไหวทั้งในและต่างประเทศ | ใช้ public GeoJSON |
 | OpenStreetMap | base map และค้นหาสถานที่ | ใช้ tile server และ Nominatim |
+| Open-Meteo | ข้อมูลการไหลของแม่น้ำ (Flood API) และความชื้นสะสมในดิน (Land/Forestry API) | ใช้ public API ดึงตามพิกัดจุดหลักในไทย |
 
 ## GISTDA Endpoints ที่รองรับใน Android
 
@@ -171,6 +174,8 @@ Gradle อ่านค่าจาก environment, project property หรือ
 - `earthquake.usgs.gov`
 - `tile.openstreetmap.org`
 - `nominatim.openstreetmap.org`
+- `api.open-meteo.com`
+- `flood-api.open-meteo.com`
 - Supabase project domains
 
 ## ผลการตรวจสอบล่าสุด

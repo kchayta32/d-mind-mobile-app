@@ -26,6 +26,7 @@ import com.dmind.app.domain.model.HazardType
 import com.dmind.app.domain.model.Severity
 import com.dmind.app.domain.model.ViirsHotspot
 import com.dmind.app.domain.model.SelectedWeatherInfo
+import com.dmind.app.domain.repository.DisasterRepository
 import com.dmind.app.domain.usecase.GetDisasterSnapshotUseCase
 import com.dmind.app.domain.usecase.GetFloodFeaturesUseCase
 import com.dmind.app.domain.usecase.GetGistdaWmtsLayerUseCase
@@ -78,6 +79,8 @@ data class DisasterMapUiState(
     val showRadarOverlay: Boolean = false,
     val selectedWeatherInfo: SelectedWeatherInfo? = null,
     val isWeatherLoading: Boolean = false,
+    val soilMoistureGeoJson: String? = null,
+    val riverDischargeGeoJson: String? = null,
 ) {
     val visibleEvents: List<DisasterEvent>
         get() = snapshot.events.filter { event -> filter.accepts(event) }
@@ -93,6 +96,7 @@ class DisasterMapViewModel(
     private val getViirsHotspots: GetViirsHotspotsUseCase,
     private val getFloodFeatures: GetFloodFeaturesUseCase,
     private val getGistdaWmtsLayer: GetGistdaWmtsLayerUseCase,
+    private val disasterRepository: DisasterRepository,
 ) : ViewModel() {
     private val _state = MutableStateFlow(DisasterMapUiState())
     val state: StateFlow<DisasterMapUiState> = _state.asStateFlow()
@@ -246,9 +250,24 @@ class DisasterMapViewModel(
         val layer = _state.value.activeLayer
         val timeRange = validRangeForLayer(layer, _state.value.layerTimeRange)
         when (layer) {
-            DisasterLayerType.WildfireViirs -> loadViirsLayer(timeRange)
-            DisasterLayerType.Flood -> loadFloodLayer(timeRange)
-            DisasterLayerType.DroughtSmap -> loadDroughtLayer()
+            DisasterLayerType.WildfireViirs -> {
+                _state.update { it.copy(soilMoistureGeoJson = null, riverDischargeGeoJson = null) }
+                loadViirsLayer(timeRange)
+            }
+            DisasterLayerType.Flood -> {
+                _state.update { it.copy(soilMoistureGeoJson = null, riverDischargeGeoJson = null) }
+                loadFloodLayer(timeRange)
+            }
+            DisasterLayerType.DroughtSmap -> {
+                _state.update { it.copy(soilMoistureGeoJson = null, riverDischargeGeoJson = null) }
+                loadDroughtLayer()
+            }
+            DisasterLayerType.SoilMoistureHeatmap -> {
+                loadSoilMoistureHeatmap()
+            }
+            DisasterLayerType.RiverDischarge -> {
+                loadRiverDischargeLines()
+            }
             else -> {
                 _state.update {
                     it.copy(
@@ -257,6 +276,8 @@ class DisasterMapViewModel(
                         activeWmtsLayer = null,
                         viirsHotspots = emptyList(),
                         floodAreas = emptyList(),
+                        soilMoistureGeoJson = null,
+                        riverDischargeGeoJson = null,
                     )
                 }
             }
@@ -271,6 +292,8 @@ class DisasterMapViewModel(
                     layerError = null,
                     activeWmtsLayer = getGistdaWmtsLayer(DisasterLayerType.WildfireViirs, timeRange),
                     floodAreas = emptyList(),
+                    soilMoistureGeoJson = null,
+                    riverDischargeGeoJson = null,
                 )
             }
             getViirsHotspots(timeRange)
@@ -304,6 +327,8 @@ class DisasterMapViewModel(
                     layerError = null,
                     activeWmtsLayer = getGistdaWmtsLayer(DisasterLayerType.Flood, timeRange),
                     viirsHotspots = emptyList(),
+                    soilMoistureGeoJson = null,
+                    riverDischargeGeoJson = null,
                 )
             }
             getFloodFeatures(timeRange)
@@ -346,7 +371,77 @@ class DisasterMapViewModel(
                 layerLastUpdatedMillis = System.currentTimeMillis(),
                 layerError = layer.message?.takeIf { !layer.isAvailable },
                 smapConnected = layer.isAvailable && product == GistdaDroughtProduct.Smap,
+                soilMoistureGeoJson = null,
+                riverDischargeGeoJson = null,
             )
+        }
+    }
+
+    private fun loadSoilMoistureHeatmap() {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    layerLoading = true,
+                    layerError = null,
+                    activeWmtsLayer = null,
+                    viirsHotspots = emptyList(),
+                    floodAreas = emptyList(),
+                    riverDischargeGeoJson = null,
+                )
+            }
+            runCatching {
+                disasterRepository.fetchSoilMoistureGrid()
+            }.onSuccess { geoJson ->
+                _state.update {
+                    it.copy(
+                        soilMoistureGeoJson = geoJson,
+                        layerLoading = false,
+                        layerLastUpdatedMillis = System.currentTimeMillis(),
+                    )
+                }
+            }.onFailure { error ->
+                _state.update {
+                    it.copy(
+                        soilMoistureGeoJson = null,
+                        layerLoading = false,
+                        layerError = error.message ?: "ไม่สามารถโหลดข้อมูลความชื้นในดินได้",
+                    )
+                }
+            }
+        }
+    }
+
+    private fun loadRiverDischargeLines() {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    layerLoading = true,
+                    layerError = null,
+                    activeWmtsLayer = null,
+                    viirsHotspots = emptyList(),
+                    floodAreas = emptyList(),
+                    soilMoistureGeoJson = null,
+                )
+            }
+            runCatching {
+                disasterRepository.fetchRiverDischargeGrid()
+            }.onSuccess { geoJson ->
+                _state.update {
+                    it.copy(
+                        riverDischargeGeoJson = geoJson,
+                        layerLoading = false,
+                        layerLastUpdatedMillis = System.currentTimeMillis(),
+                    )
+                }
+            }.onFailure { error ->
+                _state.update {
+                    it.copy(
+                        riverDischargeGeoJson = null,
+                        layerLoading = false,
+                        layerError = error.message ?: "ไม่สามารถโหลดข้อมูลการไหลของแม่น้ำได้",
+                    )
+                }
+            }
         }
     }
 

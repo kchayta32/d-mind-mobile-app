@@ -1,5 +1,5 @@
 สถานะปัจจุบัน Android Native D-MIND
-วันที่อัปเดต: 2026-05-14
+วันที่อัปเดต: 2026-05-28
 
 เอกสารนี้สรุปสถานะล่าสุดของ Android app หลังปรับ UI/UX แผนที่, เพิ่มแหล่งข้อมูลภัยพิบัติ, และนำระบบ Supabase จากเว็บแอพเดิมเข้ามาใน native Android ด้วย Kotlin/Jetpack Compose
 
@@ -50,12 +50,15 @@ UI/UX แผนที่ล่าสุด
 - น้ำท่วม: GISTDA /features/flood/1day และ WMS /maps/flood/1day/wms
 - น้ำท่วมซ้ำซาก: GISTDA /features/flood-freq และ WMS /maps/flood-freq/wms
 - ผักตบชวา: GISTDA /features/water_hyacinth
+- การไหลของแม่น้ำ: Open-Meteo Flood API ใช้งานแล้ว
+- ความชื้นในดิน: Open-Meteo Land API ใช้งานแล้ว
 
 แหล่งข้อมูลภายนอก
 - กรมอุตุนิยมวิทยา (TMD): พยากรณ์อากาศรายชั่วโมง ต้องตั้งค่า VITE_TMD_API_TOKEN
 - GISTDA: ไฟป่า, น้ำท่วม, น้ำท่วมซ้ำซาก, ผักตบชวา, DRIPlus, NDWI, SMAP ต้องตั้งค่า GISTDA API key ผ่าน env/build config
 - USGS: แผ่นดินไหวทั้งในและต่างประเทศ ใช้ public GeoJSON
 - OpenStreetMap: base map และค้นหาสถานที่ ใช้ tile server และ Nominatim
+- Open-Meteo: ข้อมูลการไหลของแม่น้ำ (Flood API) และความชื้นสะสมในดิน (Land/Forestry API)
 - ข้อมูลถูกดึงและ refresh ทุก 5 นาทีใน repository ฝั่ง Android
 
 GISTDA endpoints ที่รองรับใน Android
@@ -96,7 +99,7 @@ Configuration
 เอกสารไม่บันทึกค่า API key จริง ให้ใส่ค่าใน .env หรือ environment ของเครื่อง build แทน
 
 Network Security
-- android/app/src/main/res/xml/network_security_config.xml อนุญาต domain ที่ใช้กับระบบปัจจุบัน เช่น api-gateway.gistda.or.th, data.tmd.go.th, earthquake.usgs.gov, tile.openstreetmap.org, nominatim.openstreetmap.org และ Supabase project domains
+- android/app/src/main/res/xml/network_security_config.xml อนุญาต domain ที่ใช้กับระบบปัจจุบัน เช่น api-gateway.gistda.or.th, data.tmd.go.th, earthquake.usgs.gov, tile.openstreetmap.org, nominatim.openstreetmap.org, api.open-meteo.com, flood-api.open-meteo.com และ Supabase project domains
 
 ผลการตรวจสอบล่าสุด
 - .\gradlew.bat :app:compileDebugKotlin ผ่าน

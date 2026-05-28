@@ -72,6 +72,14 @@ class DefaultDisasterRepository(
         return mapDataSource.fetchWeatherForCoords(lat, lon)
     }
 
+    override suspend fun fetchSoilMoistureGrid(): String {
+        return mapDataSource.fetchSoilMoistureGrid()
+    }
+
+    override suspend fun fetchRiverDischargeGrid(): String {
+        return mapDataSource.fetchRiverDischargeGrid()
+    }
+
     private fun heatEventFromWeather(weather: com.dmind.app.domain.model.WeatherSnapshot): DisasterEvent? {
         if (weather.temperatureCelsius < 35.0) return null
         val severity = when {

@@ -1145,6 +1145,8 @@ internal fun DisasterMapUiState.activeEvents(): List<DisasterEvent> {
         DisasterLayerType.WildfireViirs -> visibleEvents.filter { it.type == com.dmind.app.domain.model.HazardType.Fire }
         DisasterLayerType.Stations,
         DisasterLayerType.DroughtSmap,
+        DisasterLayerType.RiverDischarge,
+        DisasterLayerType.SoilMoistureHeatmap,
         -> emptyList()
     }
 }

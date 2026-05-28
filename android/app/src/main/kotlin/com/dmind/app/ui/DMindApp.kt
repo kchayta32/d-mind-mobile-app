@@ -89,6 +89,7 @@ fun DMindApp() {
                 getViirsHotspots = GetViirsHotspotsUseCase(container.gistdaDisasterRepository),
                 getFloodFeatures = GetFloodFeaturesUseCase(container.gistdaDisasterRepository),
                 getGistdaWmtsLayer = GetGistdaWmtsLayerUseCase(container.gistdaDisasterRepository),
+                disasterRepository = container.disasterRepository,
             )
         },
     )

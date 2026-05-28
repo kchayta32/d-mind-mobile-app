@@ -125,6 +125,8 @@ internal fun DisasterLayerType.icon(): ImageVector = when (this) {
     DisasterLayerType.Storm -> Icons.Filled.Thunderstorm
     DisasterLayerType.AirQuality -> Icons.Filled.Air
     DisasterLayerType.Stations -> Icons.Filled.Sensors
+    DisasterLayerType.RiverDischarge -> Icons.Filled.WaterDrop
+    DisasterLayerType.SoilMoistureHeatmap -> Icons.Filled.WaterDrop
 }
 
 @Composable
@@ -136,6 +138,8 @@ internal fun DisasterLayerType.localizedLabel(): String = when (this) {
     DisasterLayerType.Storm -> stringResource(R.string.map_layer_storm)
     DisasterLayerType.AirQuality -> stringResource(R.string.map_layer_air_quality)
     DisasterLayerType.Stations -> stringResource(R.string.map_layer_stations)
+    DisasterLayerType.RiverDischarge -> "การไหลของแม่น้ำ"
+    DisasterLayerType.SoilMoistureHeatmap -> "ความชื้นในดิน"
 }
 
 @Composable
@@ -147,6 +151,8 @@ internal fun DisasterLayerType.localizedDescription(): String = when (this) {
     DisasterLayerType.Storm -> stringResource(R.string.map_layer_storm_desc)
     DisasterLayerType.AirQuality -> stringResource(R.string.map_layer_air_quality_desc)
     DisasterLayerType.Stations -> stringResource(R.string.map_layer_stations_desc)
+    DisasterLayerType.RiverDischarge -> "อัตราการไหลของน้ำในแม่น้ำสายหลัก"
+    DisasterLayerType.SoilMoistureHeatmap -> "ความชื้นสะสมในดินระดับ 0-7 ซม. แบบ Heatmap"
 }
 
 @Composable

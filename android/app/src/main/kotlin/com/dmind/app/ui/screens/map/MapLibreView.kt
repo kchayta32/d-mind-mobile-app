@@ -56,6 +56,8 @@ internal fun MapLibreTerrainView(
     showRadarOverlay: Boolean,
     radarHost: String,
     activeRadarPath: String?,
+    soilMoistureGeoJson: String?,
+    riverDischargeGeoJson: String?,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -80,7 +82,9 @@ internal fun MapLibreTerrainView(
                     wmtsLayer = wmtsLayer,
                     showRadarOverlay = showRadarOverlay,
                     radarHost = radarHost,
-                    activeRadarPath = activeRadarPath
+                    activeRadarPath = activeRadarPath,
+                    soilMoistureGeoJson = soilMoistureGeoJson,
+                    riverDischargeGeoJson = riverDischargeGeoJson,
                 )))
                 map.cameraPosition = thailandCamera()
                 map.setOnMarkerClickListener { marker ->
@@ -95,14 +99,16 @@ internal fun MapLibreTerrainView(
         }
     }
 
-    LaunchedEffect(mapLibreMap, mapStyle, overlayTileUrl, overlayTileScheme, showRadarOverlay, activeRadarPath) {
+    LaunchedEffect(mapLibreMap, mapStyle, overlayTileUrl, overlayTileScheme, showRadarOverlay, activeRadarPath, soilMoistureGeoJson, riverDischargeGeoJson) {
         val map = mapLibreMap ?: return@LaunchedEffect
         map.setStyle(Style.Builder().fromJson(mapStyleJson(
             style = mapStyle,
             wmtsLayer = wmtsLayer,
             showRadarOverlay = showRadarOverlay,
             radarHost = radarHost,
-            activeRadarPath = activeRadarPath
+            activeRadarPath = activeRadarPath,
+            soilMoistureGeoJson = soilMoistureGeoJson,
+            riverDischargeGeoJson = riverDischargeGeoJson,
         )))
     }
 
@@ -281,24 +287,41 @@ private fun clusterFloodAreas(
 
 // ─── toMarkerItem extensions ────────────────────────────────
 
-private fun DisasterEvent.toMarkerItem(): MapMarkerItem = MapMarkerItem(
-    id = id, latitude = latitude, longitude = longitude,
-    title = title, snippet = "$metric - $source",
-    severity = severity, type = type, count = 1,
-    event = this, station = null, hotspot = null, floodArea = null,
-)
+private fun DisasterEvent.toMarkerItem(): MapMarkerItem {
+    val snip = when (type) {
+        HazardType.Earthquake -> "สถานที่: $description | พิกัด: $latitude, $longitude | ลึก: $metric | แหล่งข้อมูล: $source"
+        HazardType.Fire -> "$description | แหล่งข้อมูล: $source"
+        HazardType.AirQuality -> "ฝุ่น PM2.5: $metric | จังหวัด: $description | แหล่งข้อมูล: $source"
+        HazardType.Flood -> "พื้นที่น้ำท่วม: $metric | จังหวัด: $description | แหล่งข้อมูล: $source"
+        else -> "$metric - $source"
+    }
+    return MapMarkerItem(
+        id = id, latitude = latitude, longitude = longitude,
+        title = title, snippet = snip,
+        severity = severity, type = type, count = 1,
+        event = this, station = null, hotspot = null, floodArea = null,
+    )
+}
 
-private fun MonitoringStation.toMarkerItem(): MapMarkerItem = MapMarkerItem(
-    id = id, latitude = latitude, longitude = longitude,
-    title = name, snippet = province,
-    severity = status, type = HazardType.Other, count = 1,
-    event = null, station = this, hotspot = null, floodArea = null,
-    isStation = true,
-)
+private fun MonitoringStation.toMarkerItem(): MapMarkerItem {
+    val snip = if (metrics.isNotEmpty()) {
+        "${province} | " + metrics.joinToString(" • ") { "${it.label}: ${it.value}" }
+    } else {
+        province
+    }
+    return MapMarkerItem(
+        id = id, latitude = latitude, longitude = longitude,
+        title = name, snippet = snip,
+        severity = status, type = HazardType.Other, count = 1,
+        event = null, station = this, hotspot = null, floodArea = null,
+        isStation = true,
+    )
+}
 
 private fun ViirsHotspot.toMarkerItem(): MapMarkerItem = MapMarkerItem(
     id = id, latitude = latitude, longitude = longitude,
-    title = "VIIRS $detectedDate", snippet = "$province $district",
+    title = "VIIRS $detectedDate",
+    snippet = "ต. $subdistrict | โซนรับผิดชอบ: $responsibleArea | ตรวจพบเมื่อ $detectedDate (${hoursSinceDetected?.formatOne() ?: "?"} ชม. ที่แล้ว)",
     severity = if (timeBucket.ordinal <= ViirsTimeBucket.OneToThree.ordinal) Severity.Critical else Severity.Watch,
     type = HazardType.Fire, count = 1,
     event = null, station = null, hotspot = this, floodArea = null,
@@ -404,6 +427,8 @@ private fun mapStyleJson(
     showRadarOverlay: Boolean,
     radarHost: String,
     activeRadarPath: String?,
+    soilMoistureGeoJson: String?,
+    riverDischargeGeoJson: String?,
 ): String {
     val overlayTile = wmtsLayer?.tileUrl?.replace("\\", "\\\\")?.replace("\"", "\\\"")
     val overlayScheme = wmtsLayer?.tileScheme ?: "xyz"
@@ -467,6 +492,104 @@ private fun mapStyleJson(
         ""
     }
 
+    val soilMoistureData = soilMoistureGeoJson ?: """{"type": "FeatureCollection", "features": []}"""
+    val soilMoistureSource = """,
+    "soil-moisture-source": {
+      "type": "geojson",
+      "data": $soilMoistureData
+    }"""
+
+    val soilMoistureLayer = """,
+    {
+      "id": "soil-moisture-heatmap",
+      "type": "heatmap",
+      "source": "soil-moisture-source",
+      "paint": {
+        "heatmap-weight": [
+          "interpolate",
+          ["linear"],
+          ["get", "moisture"],
+          0, 0.1,
+          1, 1.0
+        ],
+        "heatmap-color": [
+          "interpolate",
+          ["linear"],
+          ["heatmap-density"],
+          0, "rgba(0, 0, 0, 0)",
+          0.15, "rgba(255, 0, 0, 0.75)",
+          0.3, "rgba(255, 127, 0, 0.75)",
+          0.5, "rgba(255, 255, 0, 0.75)",
+          0.7, "rgba(0, 255, 0, 0.75)",
+          0.85, "rgba(0, 0, 255, 0.75)",
+          1.0, "rgba(0, 0, 128, 0.75)"
+        ],
+        "heatmap-radius": 30,
+        "heatmap-opacity": 0.75
+      }
+    }"""
+
+    val riverDischargeData = riverDischargeGeoJson ?: """{"type": "FeatureCollection", "features": []}"""
+    val riverDischargeSource = """,
+    "river-discharge-source": {
+      "type": "geojson",
+      "data": $riverDischargeData
+    }"""
+
+    val isRiverPoint = riverDischargeGeoJson == null || !riverDischargeGeoJson.contains("LineString", ignoreCase = true)
+    val riverDischargeLayer = if (isRiverPoint) {
+        """,
+    {
+      "id": "river-discharge-lines",
+      "type": "circle",
+      "source": "river-discharge-source",
+      "paint": {
+        "circle-radius": [
+          "interpolate",
+          ["linear"],
+          ["get", "discharge"],
+          0, 3,
+          100, 12
+        ],
+        "circle-color": [
+          "interpolate",
+          ["linear"],
+          ["get", "discharge"],
+          0, "rgba(0, 191, 255, 0.8)",
+          100, "rgba(0, 0, 139, 0.9)"
+        ],
+        "circle-opacity": 0.8
+      }
+    }"""
+    } else {
+        """,
+    {
+      "id": "river-discharge-lines",
+      "type": "line",
+      "source": "river-discharge-source",
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-width": [
+          "interpolate",
+          ["linear"],
+          ["get", "discharge"],
+          0, 2,
+          100, 8
+        ],
+        "line-color": [
+          "interpolate",
+          ["linear"],
+          ["get", "discharge"],
+          0, "rgba(0, 191, 255, 0.8)",
+          100, "rgba(0, 0, 139, 0.9)"
+        ]
+      }
+    }"""
+    }
+
     return """
 {
   "version": 8,
@@ -476,14 +599,14 @@ private fun mapStyleJson(
       "tiles": ["${style.tileUrl}"],
       "tileSize": 256,
       "attribution": "${style.attribution}"
-    }$overlaySource$radarSource
+    }$overlaySource$radarSource$soilMoistureSource$riverDischargeSource
   },
   "layers": [
     {
       "id": "base",
       "type": "raster",
       "source": "base"
-    }$overlayLayer$radarLayer
+    }$overlayLayer$radarLayer$soilMoistureLayer$riverDischargeLayer
   ]
 }
     """.trimIndent()

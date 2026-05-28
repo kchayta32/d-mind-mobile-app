@@ -138,6 +138,164 @@ class DisasterMapRepository(private val context: Context? = null) {
         }.getOrDefault(emptyList())
     }
 
+    suspend fun fetchSoilMoistureGrid(): String = withContext(Dispatchers.IO) {
+        val lats = soilMoistureCoordinates.joinToString(",") { it.first.toString() }
+        val lons = soilMoistureCoordinates.joinToString(",") { it.second.toString() }
+        val url = "https://api.open-meteo.com/v1/forecast?latitude=$lats&longitude=$lons&current=soil_moisture_0_to_7cm"
+        
+        try {
+            val body = httpGet(url)
+            val features = JSONArray()
+            val root = runCatching { JSONArray(body) }.getOrNull()
+            
+            if (root != null) {
+                for (i in 0 until root.length()) {
+                    val item = root.optJSONObject(i) ?: continue
+                    val lat = item.optDouble("latitude")
+                    val lon = item.optDouble("longitude")
+                    val currentObj = item.optJSONObject("current")
+                    val moisture = currentObj?.optDouble("soil_moisture_0_to_7cm", 0.0) ?: 0.0
+                    
+                    val geometry = JSONObject().apply {
+                        put("type", "Point")
+                        put("coordinates", JSONArray().apply {
+                            put(lon)
+                            put(lat)
+                        })
+                    }
+                    val properties = JSONObject().apply {
+                        put("moisture", moisture)
+                    }
+                    val feature = JSONObject().apply {
+                        put("type", "Feature")
+                        put("geometry", geometry)
+                        put("properties", properties)
+                    }
+                    features.put(feature)
+                }
+            } else {
+                val singleObj = runCatching { JSONObject(body) }.getOrNull()
+                if (singleObj != null) {
+                    val lat = singleObj.optDouble("latitude")
+                    val lon = singleObj.optDouble("longitude")
+                    val currentObj = singleObj.optJSONObject("current")
+                    val moisture = currentObj?.optDouble("soil_moisture_0_to_7cm", 0.0) ?: 0.0
+                    
+                    val geometry = JSONObject().apply {
+                        put("type", "Point")
+                        put("coordinates", JSONArray().apply {
+                            put(lon)
+                            put(lat)
+                        })
+                    }
+                    val properties = JSONObject().apply {
+                        put("moisture", moisture)
+                    }
+                    val feature = JSONObject().apply {
+                        put("type", "Feature")
+                        put("geometry", geometry)
+                        put("properties", properties)
+                    }
+                    features.put(feature)
+                }
+            }
+            
+            JSONObject().apply {
+                put("type", "FeatureCollection")
+                put("features", features)
+            }.toString()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            "{\"type\":\"FeatureCollection\",\"features\":[]}"
+        }
+    }
+
+    suspend fun fetchRiverDischargeGrid(): String = withContext(Dispatchers.IO) {
+        val lats = riverDischargeCoordinates.joinToString(",") { it.lat.toString() }
+        val lons = riverDischargeCoordinates.joinToString(",") { it.lon.toString() }
+        val url = "https://flood-api.open-meteo.com/v1/flood?latitude=$lats&longitude=$lons&daily=river_discharge&forecast_days=1"
+        
+        try {
+            val body = httpGet(url)
+            val features = JSONArray()
+            val root = runCatching { JSONArray(body) }.getOrNull()
+            
+            if (root != null) {
+                for (i in 0 until root.length()) {
+                    val item = root.optJSONObject(i) ?: continue
+                    val lat = item.optDouble("latitude")
+                    val lon = item.optDouble("longitude")
+                    val dailyObj = item.optJSONObject("daily")
+                    val dischargeArr = dailyObj?.optJSONArray("river_discharge")
+                    val discharge = if (dischargeArr != null && dischargeArr.length() > 0 && !dischargeArr.isNull(0)) {
+                        dischargeArr.optDouble(0)
+                    } else {
+                        0.0
+                    }
+                    val name = riverDischargeCoordinates.getOrNull(i)?.name ?: "River Node"
+                    
+                    val geometry = JSONObject().apply {
+                        put("type", "Point")
+                        put("coordinates", JSONArray().apply {
+                            put(lon)
+                            put(lat)
+                        })
+                    }
+                    val properties = JSONObject().apply {
+                        put("discharge", discharge)
+                        put("name", name)
+                    }
+                    val feature = JSONObject().apply {
+                        put("type", "Feature")
+                        put("geometry", geometry)
+                        put("properties", properties)
+                    }
+                    features.put(feature)
+                }
+            } else {
+                val singleObj = runCatching { JSONObject(body) }.getOrNull()
+                if (singleObj != null) {
+                    val lat = singleObj.optDouble("latitude")
+                    val lon = singleObj.optDouble("longitude")
+                    val dailyObj = singleObj.optJSONObject("daily")
+                    val dischargeArr = dailyObj?.optJSONArray("river_discharge")
+                    val discharge = if (dischargeArr != null && dischargeArr.length() > 0 && !dischargeArr.isNull(0)) {
+                        dischargeArr.optDouble(0)
+                    } else {
+                        0.0
+                    }
+                    val name = riverDischargeCoordinates.firstOrNull()?.name ?: "River Node"
+                    
+                    val geometry = JSONObject().apply {
+                        put("type", "Point")
+                        put("coordinates", JSONArray().apply {
+                            put(lon)
+                            put(lat)
+                        })
+                    }
+                    val properties = JSONObject().apply {
+                        put("discharge", discharge)
+                        put("name", name)
+                    }
+                    val feature = JSONObject().apply {
+                        put("type", "Feature")
+                        put("geometry", geometry)
+                        put("properties", properties)
+                    }
+                    features.put(feature)
+                }
+            }
+            
+            JSONObject().apply {
+                put("type", "FeatureCollection")
+                put("features", features)
+            }.toString()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            "{\"type\":\"FeatureCollection\",\"features\":[]}"
+        }
+    }
+
     private suspend fun reverseGeocode(lat: Double, lon: Double): String = withContext(Dispatchers.IO) {
         val url = "https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon&zoom=10&addressdetails=1"
         runCatching {
@@ -871,6 +1029,12 @@ class DisasterMapRepository(private val context: Context? = null) {
         val population: Int,
     )
 
+    private data class RiverCoord(
+        val lat: Double,
+        val lon: Double,
+        val name: String,
+    )
+
     private companion object {
         private val thaiFormatter = DateTimeFormatter
             .ofPattern("d MMM yyyy HH:mm", Locale("th", "TH"))
@@ -889,6 +1053,56 @@ class DisasterMapRepository(private val context: Context? = null) {
             DroughtSeed("เพชรบูรณ์", 63, 16.4193, 101.1609, 7100, 82000),
             DroughtSeed("ชัยภูมิ", 67, 15.8070, 102.0322, 7800, 89000),
             DroughtSeed("กาฬสินธุ์", 73, 16.4322, 103.5057, 6900, 79000),
+        )
+
+        private val soilMoistureCoordinates = listOf(
+            Pair(18.85, 98.73),
+            Pair(19.35, 99.51),
+            Pair(19.18, 99.90),
+            Pair(16.82, 100.26),
+            Pair(17.01, 99.82),
+            Pair(15.70, 100.12),
+            Pair(15.18, 100.12),
+            Pair(14.36, 100.57),
+            Pair(14.47, 100.12),
+            Pair(14.02, 99.53),
+            Pair(16.44, 102.83),
+            Pair(14.97, 102.10),
+            Pair(17.41, 102.78),
+            Pair(17.15, 104.14),
+            Pair(16.05, 103.65),
+            Pair(14.88, 103.49),
+            Pair(15.25, 104.85),
+            Pair(15.12, 104.32),
+            Pair(16.42, 101.16),
+            Pair(13.68, 101.08)
+        )
+
+        private val riverDischargeCoordinates = listOf(
+            RiverCoord(18.790, 99.000, "Ping River - Chiang Mai"),
+            RiverCoord(16.880, 99.120, "Ping River - Tak"),
+            RiverCoord(16.480, 99.520, "Ping River - Kamphaeng Phet"),
+            RiverCoord(18.150, 100.140, "Yom River - Phrae"),
+            RiverCoord(17.010, 99.820, "Yom River - Sukhothai"),
+            RiverCoord(16.440, 100.350, "Yom River - Phichit"),
+            RiverCoord(18.780, 100.780, "Nan River - Nan"),
+            RiverCoord(17.620, 100.100, "Nan River - Uttaradit"),
+            RiverCoord(16.820, 100.260, "Nan River - Phitsanulok"),
+            RiverCoord(15.700, 100.120, "Chao Phraya River - Nakhon Sawan"),
+            RiverCoord(15.160, 100.180, "Chao Phraya River - Chainat"),
+            RiverCoord(14.890, 100.400, "Chao Phraya River - Sing Buri"),
+            RiverCoord(14.350, 100.560, "Chao Phraya River - Ayutthaya"),
+            RiverCoord(13.750, 100.490, "Chao Phraya River - Bangkok"),
+            RiverCoord(15.810, 102.030, "Chi River - Chaiyaphum"),
+            RiverCoord(16.400, 102.930, "Chi River - Khon Kaen"),
+            RiverCoord(16.150, 103.800, "Chi River - Roi Et"),
+            RiverCoord(15.800, 104.140, "Chi River - Yasothon"),
+            RiverCoord(15.010, 102.500, "Mun River - Nakhon Ratchasima"),
+            RiverCoord(15.300, 103.500, "Mun River - Surin"),
+            RiverCoord(15.220, 104.860, "Mun River - Ubon Ratchathani"),
+            RiverCoord(17.880, 102.740, "Mekong River - Nong Khai"),
+            RiverCoord(17.400, 104.800, "Mekong River - Nakhon Phanom"),
+            RiverCoord(15.320, 105.500, "Mekong River - Khong Chiam")
         )
 
         private fun weatherConditionLabel(code: Int): String = when (code) {

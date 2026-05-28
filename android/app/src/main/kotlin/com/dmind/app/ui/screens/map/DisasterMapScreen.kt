@@ -141,6 +141,8 @@ fun DisasterMapScreen(
                 showRadarOverlay = state.showRadarOverlay,
                 radarHost = state.radarHost,
                 activeRadarPath = activeRadarFramePath,
+                soilMoistureGeoJson = state.soilMoistureGeoJson,
+                riverDischargeGeoJson = state.riverDischargeGeoJson,
             )
 
             Box(

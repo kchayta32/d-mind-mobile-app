@@ -39,4 +39,14 @@ enum class DisasterLayerType(
         thaiLabel = "สถานีตรวจวัด",
         description = "สถานีและเซนเซอร์ภาคสนาม",
     ),
+    RiverDischarge(
+        thaiLabel = "การไหลของแม่น้ำ",
+        description = "อัตราการไหลของน้ำในแม่น้ำสายหลัก",
+        hazardType = HazardType.Flood,
+    ),
+    SoilMoistureHeatmap(
+        thaiLabel = "ความชื้นในดิน",
+        description = "ความชื้นสะสมในดินระดับ 0-7 ซม. แบบ Heatmap",
+        hazardType = HazardType.Drought,
+    );
 }

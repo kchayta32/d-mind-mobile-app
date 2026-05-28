@@ -33,6 +33,12 @@ Verification Results
 
 Verification used JAVA_HOME=C:\Program Files\Android\Android Studio\jbr.
 
+Update: 2026-05-28
+- Added two new disaster map layers: RiverDischarge (river discharge rates) and SoilMoistureHeatmap (soil moisture levels).
+- Integrated Open-Meteo Flood API and Land API within DisasterMapRepository to fetch river discharge data for major Thai rivers and 0-7 cm soil moisture levels, formatting the results into GeoJSON.
+- Restructured DisasterMapViewModel to clear and fetch GeoJSON layers correctly based on active layer selections, preventing overlay conflicts.
+- Enhanced MapLibreView, DisasterMapScreen, and MapBottomSheet to support styling and rendering GeoJSON points on MapLibre and showing interactive statistic legends/charts for these parameters.
+
 Remaining Product Work
 - Replace placeholder backend route bodies with production integrations.
 - Add real API DTO validation and auth.
