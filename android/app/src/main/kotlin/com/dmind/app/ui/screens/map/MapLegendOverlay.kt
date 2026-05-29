@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
@@ -97,6 +98,8 @@ internal fun DraggableLegendOverlay(
                 DisasterLayerType.WildfireViirs -> ViirsLegendContent()
                 DisasterLayerType.DroughtSmap -> DroughtLegendContent(droughtProduct)
                 DisasterLayerType.Flood -> FloodLegendContent(floodTimeRange)
+                DisasterLayerType.RiverDischarge -> RiverDischargeLegendContent()
+                DisasterLayerType.SoilMoistureHeatmap -> SoilMoistureLegendContent()
                 else -> GenericLegendContent()
             }
         }
@@ -225,5 +228,74 @@ private fun FloodFrequencyLegendContent(modifier: Modifier = Modifier) {
 private fun GenericLegendContent(modifier: Modifier = Modifier) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         SeverityLegend()
+    }
+}
+
+@Composable
+private fun RiverDischargeLegendContent(modifier: Modifier = Modifier) {
+    val colors = listOf(
+        Color(0xFFADD8E6),
+        Color(0xFF4169E1),
+        Color(0xFF0000CD),
+        Color(0xFF00008B),
+        Color(0xFF4B0082)
+    )
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("อัตราการไหลของแม่น้ำ", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(14.dp)
+                .clip(RoundedCornerShape(7.dp))
+                .background(Brush.horizontalGradient(colors))
+        )
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            val labels = listOf("ต่ำ", "ปานกลาง", "สูง", "สูงมาก")
+            val ranges = listOf("0-50", "50-200", "200-500", ">500")
+            labels.forEachIndexed { index, label ->
+                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(ranges[index], fontWeight = FontWeight.SemiBold, fontSize = 9.sp, maxLines = 1)
+                    Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 9.sp, maxLines = 1)
+                }
+            }
+        }
+        Text("หน่วย: ลบ.ม./วินาที (m³/s)", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
+    }
+}
+
+@Composable
+private fun SoilMoistureLegendContent(modifier: Modifier = Modifier) {
+    val colors = listOf(
+        Color(0xFFB2182B),
+        Color(0xFFD6604D),
+        Color(0xFFF4A582),
+        Color(0xFFFDDBC7),
+        Color(0xFFF7F7F7),
+        Color(0xFFD1E5F0),
+        Color(0xFF92C5DE),
+        Color(0xFF4393C3),
+        Color(0xFF2166AC),
+        Color(0xFF053061)
+    )
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("ความชื้นสะสมในดิน (0-7 ซม.)", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(14.dp)
+                .clip(RoundedCornerShape(7.dp))
+                .background(Brush.horizontalGradient(colors))
+        )
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            val labels = listOf("แห้งมาก", "แห้ง", "ปานกลาง", "ชื้น", "ชื้นมาก")
+            val values = listOf("0.0", "0.1", "0.2", "0.3", "0.5+")
+            labels.forEachIndexed { index, label ->
+                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(values[index], fontWeight = FontWeight.SemiBold, fontSize = 9.sp, maxLines = 1)
+                    Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 9.sp, maxLines = 1)
+                }
+            }
+        }
+        Text("หน่วย: m³/m³ (VWC)", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
     }
 }

@@ -506,26 +506,46 @@ private fun mapStyleJson(
       "source": "soil-moisture-source",
       "paint": {
         "heatmap-weight": [
-          "interpolate",
-          ["linear"],
-          ["get", "moisture"],
-          0, 0.1,
-          1, 1.0
+          "interpolate", ["linear"], ["get", "moisture"],
+          0, 0.15,
+          0.1, 0.35,
+          0.2, 0.55,
+          0.3, 0.75,
+          0.5, 1.0
         ],
         "heatmap-color": [
-          "interpolate",
-          ["linear"],
-          ["heatmap-density"],
+          "interpolate", ["linear"], ["heatmap-density"],
           0, "rgba(0, 0, 0, 0)",
-          0.15, "rgba(255, 0, 0, 0.75)",
-          0.3, "rgba(255, 127, 0, 0.75)",
-          0.5, "rgba(255, 255, 0, 0.75)",
-          0.7, "rgba(0, 255, 0, 0.75)",
-          0.85, "rgba(0, 0, 255, 0.75)",
-          1.0, "rgba(0, 0, 128, 0.75)"
+          0.1, "rgba(178, 24, 43, 0.55)",
+          0.2, "rgba(214, 96, 77, 0.6)",
+          0.3, "rgba(244, 165, 130, 0.65)",
+          0.4, "rgba(253, 219, 199, 0.65)",
+          0.5, "rgba(247, 247, 247, 0.5)",
+          0.6, "rgba(209, 229, 240, 0.65)",
+          0.7, "rgba(146, 197, 222, 0.65)",
+          0.8, "rgba(67, 147, 195, 0.7)",
+          0.9, "rgba(33, 102, 172, 0.75)",
+          1.0, "rgba(5, 48, 97, 0.8)"
         ],
-        "heatmap-radius": 30,
-        "heatmap-opacity": 0.75
+        "heatmap-radius": [
+          "interpolate", ["linear"], ["zoom"],
+          4, 40,
+          6, 55,
+          8, 70,
+          10, 85
+        ],
+        "heatmap-intensity": [
+          "interpolate", ["linear"], ["zoom"],
+          4, 0.8,
+          6, 1.0,
+          10, 1.3
+        ],
+        "heatmap-opacity": [
+          "interpolate", ["linear"], ["zoom"],
+          4, 0.7,
+          8, 0.6,
+          12, 0.5
+        ]
       }
     }"""
 
@@ -548,21 +568,59 @@ private fun mapStyleJson(
           "interpolate",
           ["linear"],
           ["get", "discharge"],
-          0, 3,
-          100, 12
+          0, 3.0,
+          50, 6.0,
+          200, 9.0,
+          500, 12.0,
+          1000, 16.0
         ],
         "circle-color": [
           "interpolate",
           ["linear"],
           ["get", "discharge"],
-          0, "rgba(0, 191, 255, 0.8)",
-          100, "rgba(0, 0, 139, 0.9)"
+          0, "rgba(173, 216, 230, 0.7)",
+          50, "rgba(65, 105, 225, 0.8)",
+          200, "rgba(0, 0, 205, 0.85)",
+          500, "rgba(0, 0, 139, 0.9)",
+          1000, "rgba(75, 0, 130, 0.95)"
         ],
         "circle-opacity": 0.8
       }
     }"""
     } else {
         """,
+    {
+      "id": "river-discharge-glow",
+      "type": "line",
+      "source": "river-discharge-source",
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round"
+      },
+      "paint": {
+        "line-width": [
+          "interpolate",
+          ["linear"],
+          ["get", "discharge"],
+          0, 3.5,
+          50, 8.0,
+          200, 13.0,
+          500, 18.0,
+          1000, 24.0
+        ],
+        "line-color": [
+          "interpolate",
+          ["linear"],
+          ["get", "discharge"],
+          0, "rgba(173, 216, 230, 0.3)",
+          50, "rgba(65, 105, 225, 0.35)",
+          200, "rgba(0, 0, 205, 0.4)",
+          500, "rgba(0, 0, 139, 0.45)",
+          1000, "rgba(75, 0, 130, 0.5)"
+        ],
+        "line-blur": 3.0
+      }
+    },
     {
       "id": "river-discharge-lines",
       "type": "line",
@@ -576,15 +634,21 @@ private fun mapStyleJson(
           "interpolate",
           ["linear"],
           ["get", "discharge"],
-          0, 2,
-          100, 8
+          0, 1.5,
+          50, 4.0,
+          200, 7.0,
+          500, 10.0,
+          1000, 14.0
         ],
         "line-color": [
           "interpolate",
           ["linear"],
           ["get", "discharge"],
-          0, "rgba(0, 191, 255, 0.8)",
-          100, "rgba(0, 0, 139, 0.9)"
+          0, "rgba(173, 216, 230, 0.7)",
+          50, "rgba(65, 105, 225, 0.8)",
+          200, "rgba(0, 0, 205, 0.85)",
+          500, "rgba(0, 0, 139, 0.9)",
+          1000, "rgba(75, 0, 130, 0.95)"
         ]
       }
     }"""

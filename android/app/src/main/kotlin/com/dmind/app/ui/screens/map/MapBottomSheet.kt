@@ -47,6 +47,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import com.dmind.app.domain.model.HazardType
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -196,7 +201,15 @@ internal fun MapBottomSheetContent(
                 }
                 state.selectedViirsHotspot != null -> ViirsDetailCard(state.selectedViirsHotspot, onClearSelection)
                 state.selectedFloodArea != null -> FloodDetailCard(state.selectedFloodArea, onClearSelection)
-                state.selectedEvent != null -> EventDetailCard(state.selectedEvent, onClearSelection)
+                state.selectedEvent != null -> {
+                    when (state.selectedEvent.type) {
+                        HazardType.Earthquake -> EarthquakeDetailCard(state.selectedEvent, onClearSelection)
+                        HazardType.AirQuality -> AirQualityDetailCard(state.selectedEvent, onClearSelection)
+                        HazardType.Storm, HazardType.Heat, HazardType.Weather -> StormDetailCard(state.selectedEvent, onClearSelection)
+                        HazardType.Drought -> DroughtDetailCard(state.selectedEvent, onClearSelection)
+                        else -> EventDetailCard(state.selectedEvent, onClearSelection)
+                    }
+                }
                 else -> LayerSummaryCard(state = state, onOpenStations = onOpenStations)
             }
         }
@@ -384,39 +397,418 @@ private fun ViirsDetailCard(
     val context = LocalContext.current
     DmindCard(contentPadding = PaddingValues(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("VIIRS ${hotspot.detectedDate}", fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.weight(1f))
+            IconBubble(HazardType.Fire.icon(), hotspot.timeBucket.color())
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text("ตรวจพบจุดความร้อน (Hotspot)", fontWeight = FontWeight.Bold, color = CriticalRed, fontSize = 13.sp)
+                Text("${hotspot.district} • จังหวัด${hotspot.province}", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+            }
             IconButton(onClick = onClearSelection) {
                 Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.btn_close))
             }
         }
-        Spacer(
+        
+        Spacer(Modifier.height(12.dp))
+        
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(1.dp)
-                .background(MaterialTheme.colorScheme.outlineVariant),
-        )
-        DetailRow(stringResource(R.string.map_country_label), hotspot.country)
-        DetailRow(stringResource(R.string.map_province_label), hotspot.province)
-        DetailRow(stringResource(R.string.map_district_label), hotspot.district)
-        DetailRow(stringResource(R.string.map_subdistrict_label), hotspot.subdistrict)
-        DetailRow(stringResource(R.string.map_date_label), hotspot.detectedDate)
+                .clip(RoundedCornerShape(12.dp))
+                .background(hotspot.timeBucket.color().copy(alpha = 0.08f))
+                .padding(12.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("เวลาที่ตรวจพบ", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("เมื่อ ${hotspot.hoursSinceDetected ?: 0} ชม. ที่แล้ว", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = hotspot.timeBucket.color())
+                Text(hotspot.detectedDate, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        
+        Spacer(Modifier.height(12.dp))
+        
+        DetailRow("ตำบล (Subdistrict):", hotspot.subdistrict)
+        DetailRow("อำเภอ (District):", hotspot.district)
+        DetailRow("จังหวัด (Province):", hotspot.province)
+        DetailRow("ประเทศ (Country):", hotspot.country)
+        DetailRow("พื้นที่รับผิดชอบ:", hotspot.responsibleArea)
         DetailRow("UTM Zone:", hotspot.utmZone)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.map_map_link_label), modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            StatusPill(hotspot.timeBucket.label, hotspot.timeBucket.color())
             TextButton(
                 onClick = {
                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(hotspot.googleMapsUrl)))
                 },
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                modifier = Modifier.height(32.dp)
             ) {
-                Text(stringResource(R.string.map_view_google_maps))
+                Text("ดูบนแผนที่ Google Maps", fontSize = 12.sp)
                 Spacer(Modifier.width(4.dp))
-                Icon(Icons.Filled.OpenInNew, contentDescription = null, modifier = Modifier.size(16.dp))
+                Icon(Icons.Filled.OpenInNew, contentDescription = null, modifier = Modifier.size(14.dp))
             }
         }
-        DetailRow(stringResource(R.string.map_responsible_area_label), hotspot.responsibleArea)
-        DetailRow("V Angle:", hotspot.vAngle)
-        DetailRow("V Direct:", hotspot.vDirect)
-        DetailRow("V Dist:", hotspot.vDist)
+        
+        var expanded by remember { mutableStateOf(false) }
+        
+        TextButton(
+            onClick = { expanded = !expanded },
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
+            Text(if (expanded) "ซ่อนข้อมูลทางเทคนิค" else "แสดงข้อมูลทางเทคนิคเพิ่มเติม", fontSize = 12.sp)
+        }
+        
+        if (expanded) {
+            Spacer(Modifier.height(4.dp))
+            DetailRow("V Angle:", hotspot.vAngle)
+            DetailRow("V Direct:", hotspot.vDirect)
+            DetailRow("V Dist:", hotspot.vDist)
+        }
+    }
+}
+
+@Composable
+private fun EarthquakeDetailCard(
+    event: DisasterEvent,
+    onClearSelection: () -> Unit,
+) {
+    val updatedAt = event.updatedAt.ifBlank { stringResource(R.string.label_latest) }
+    val (magnitude, depth) = parseEarthquakeMetric(event.metric, event.title)
+
+    DmindCard(contentPadding = PaddingValues(16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconBubble(event.type.icon(), event.severity.color())
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text("รายงานแผ่นดินไหว", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)
+                Text(event.description, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+            }
+            IconButton(onClick = onClearSelection) {
+                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.btn_close))
+            }
+        }
+        
+        Spacer(Modifier.height(12.dp))
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(CriticalRed.copy(alpha = 0.08f))
+                    .padding(12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("ขนาด (Magnitude)", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(magnitude, fontSize = 28.sp, fontWeight = FontWeight.Black, color = CriticalRed)
+                    Text("Mw (ริกเตอร์)", fontSize = 11.sp, color = CriticalRed, fontWeight = FontWeight.Bold)
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .padding(12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("ความลึก (Depth)", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(depth, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                    Text("กิโลเมตร (km)", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+        
+        Spacer(Modifier.height(12.dp))
+        
+        DetailRow("พิกัด (Coordinates):", "${event.latitude}, ${event.longitude}")
+        DetailRow("แหล่งข้อมูล:", event.source)
+        DetailRow("เวลาเกิดเหตุ:", updatedAt)
+        
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            StatusPill(event.type.localizedLabel(), DmindBlue)
+            StatusPill(event.severity.localizedLabel(), event.severity.color())
+        }
+        
+        if (event.recommendedAction.isNotBlank()) {
+            Spacer(Modifier.height(12.dp))
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            )
+            Spacer(Modifier.height(8.dp))
+            Text("ข้อแนะนำการปฏิบัติตน:", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
+            Text(event.recommendedAction, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
+        }
+    }
+}
+
+@Composable
+private fun AirQualityDetailCard(
+    event: DisasterEvent,
+    onClearSelection: () -> Unit,
+) {
+    val updatedAt = event.updatedAt.ifBlank { stringResource(R.string.label_latest) }
+    val pmValue = parsePmValue(event.metric)
+    
+    val (aqiLabel, aqiColor, advisory) = when {
+        pmValue <= 15.0 -> Triple("ดีมาก", SafeGreen, "อากาศดีเยี่ยม เหมาะสำหรับทำกิจกรรมกลางแจ้งและท่องเที่ยว")
+        pmValue <= 25.0 -> Triple("ดี", Color(0xFF8BC34A), "อากาศดี สามารถทำกิจกรรมกลางแจ้งได้ตามปกติ")
+        pmValue <= 37.5 -> Triple("ปานกลาง", WatchYellow, "ประชาชนทั่วไปทำกิจกรรมกลางแจ้งได้ตามปกติ กลุ่มเสี่ยงควรลดระยะเวลา")
+        pmValue <= 75.0 -> Triple("เริ่มมีผลกระทบ", AffectedOrange, "ควรหลีกเลี่ยงกิจกรรมกลางแจ้งที่ใช้แรงมาก สวมหน้ากากป้องกันฝุ่น")
+        else -> Triple("มีผลกระทบต่อสุขภาพ", CriticalRed, "หลีกเลี่ยงกิจกรรมกลางแจ้งทุกประเภท สวมใส่หน้ากากป้องกันฝุ่น และอยู่ในอาคาร")
+    }
+    
+    val stationName = event.title.replace("PM2.5 ", "").trim()
+
+    DmindCard(contentPadding = PaddingValues(16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconBubble(event.type.icon(), aqiColor)
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text("รายงานคุณภาพอากาศ (PM2.5)", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, fontSize = 13.sp)
+                Text(stationName, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+            }
+            IconButton(onClick = onClearSelection) {
+                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.btn_close))
+            }
+        }
+        
+        Spacer(Modifier.height(12.dp))
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1.2f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(aqiColor.copy(alpha = 0.08f))
+                    .padding(12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("ฝุ่น PM2.5", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(String.format(java.util.Locale.US, "%.1f", pmValue), fontSize = 32.sp, fontWeight = FontWeight.Black, color = aqiColor)
+                    Text("µg/m³ (ไมโครกรัม)", fontSize = 10.sp, color = aqiColor, fontWeight = FontWeight.Bold)
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .padding(12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("ระดับมลพิษ", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(aqiLabel, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = aqiColor, textAlign = TextAlign.Center)
+                    Text("คุณภาพอากาศ", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+        
+        Spacer(Modifier.height(12.dp))
+        
+        DetailRow("จังหวัด:", event.description)
+        DetailRow("แหล่งข้อมูล:", event.source)
+        DetailRow("เวลาปรับปรุง:", updatedAt)
+        
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            StatusPill(event.type.localizedLabel(), DmindBlue)
+            StatusPill(event.severity.localizedLabel(), event.severity.color())
+        }
+        
+        Spacer(Modifier.height(12.dp))
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        )
+        Spacer(Modifier.height(8.dp))
+        Text("คำแนะนำด้านสุขภาพ:", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
+        Text(advisory, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
+    }
+}
+
+@Composable
+private fun StormDetailCard(
+    event: DisasterEvent,
+    onClearSelection: () -> Unit,
+) {
+    val updatedAt = event.updatedAt.ifBlank { stringResource(R.string.label_latest) }
+    val parts = event.metric.split("•").map { it.trim() }
+    val temp = parts.firstOrNull() ?: "-"
+    val rain = parts.getOrNull(1) ?: "-"
+    val wind = parts.getOrNull(2) ?: "-"
+
+    val emoji = when {
+        event.title.contains("ร้อน") || event.type == HazardType.Heat -> "🥵☀️"
+        event.title.contains("พายุ") || event.type == HazardType.Storm -> "⛈️🌪️"
+        else -> "🌦️"
+    }
+
+    DmindCard(contentPadding = PaddingValues(16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconBubble(event.type.icon(), event.severity.color())
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(event.title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(event.description, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+            }
+            IconButton(onClick = onClearSelection) {
+                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.btn_close))
+            }
+        }
+        
+        Spacer(Modifier.height(12.dp))
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .padding(10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("สภาพอากาศ", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(emoji, fontSize = 24.sp)
+                    Text("พยากรณ์", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .padding(10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("อุณหภูมิ", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(temp, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text("เฉลี่ย/สูงสุด", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1.2f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .padding(10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("ปริมาณฝน/ลม", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(rain, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(wind, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
+        }
+        
+        Spacer(Modifier.height(12.dp))
+        DetailRow("แหล่งข้อมูล:", event.source)
+        DetailRow("เวลาปรับปรุง:", updatedAt)
+        
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            StatusPill(event.type.localizedLabel(), DmindBlue)
+            StatusPill(event.severity.localizedLabel(), event.severity.color())
+        }
+        
+        if (event.recommendedAction.isNotBlank()) {
+            Spacer(Modifier.height(12.dp))
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            )
+            Spacer(Modifier.height(8.dp))
+            Text("ข้อแนะนำ/แนวทางปฏิบัติ:", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
+            Text(event.recommendedAction, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
+        }
+    }
+}
+
+@Composable
+private fun DroughtDetailCard(
+    event: DisasterEvent,
+    onClearSelection: () -> Unit,
+) {
+    val updatedAt = event.updatedAt.ifBlank { stringResource(R.string.label_latest) }
+    
+    DmindCard(contentPadding = PaddingValues(16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconBubble(event.type.icon(), event.severity.color())
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text("สถานการณ์ภัยแล้ง", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, fontSize = 13.sp)
+                Text(event.title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+            }
+            IconButton(onClick = onClearSelection) {
+                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.btn_close))
+            }
+        }
+        
+        Spacer(Modifier.height(12.dp))
+        
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(event.severity.color().copy(alpha = 0.08f))
+                .padding(14.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("ดัชนีภัยแล้ง / ความรุนแรง", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(event.metric, fontSize = 22.sp, fontWeight = FontWeight.Black, color = event.severity.color())
+                Text("ระดับ: ${event.severity.localizedLabel()}", fontSize = 12.sp, color = event.severity.color(), fontWeight = FontWeight.Bold)
+            }
+        }
+        
+        Spacer(Modifier.height(12.dp))
+        DetailRow("พื้นที่/จังหวัด:", event.description)
+        DetailRow("แหล่งข้อมูล:", event.source)
+        DetailRow("เวลาปรับปรุง:", updatedAt)
+        
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            StatusPill(event.type.localizedLabel(), DmindBlue)
+            StatusPill(event.severity.localizedLabel(), event.severity.color())
+        }
+        
+        if (event.recommendedAction.isNotBlank()) {
+            Spacer(Modifier.height(12.dp))
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            )
+            Spacer(Modifier.height(8.dp))
+            Text("ข้อแนะนำสำหรับเกษตรกรและประชาชน:", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
+            Text(event.recommendedAction, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
+        }
     }
 }
 
@@ -622,6 +1014,21 @@ internal fun DetailRow(
         Text(label, modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(value.ifBlank { "-" }, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
+}
+
+internal fun parseEarthquakeMetric(metric: String, title: String): Pair<String, String> {
+    val metricParts = metric.split("•").map { it.trim() }
+    val magnitude = metricParts.firstOrNull()?.replace("Mw", "")?.trim()?.takeIf { it.isNotBlank() }
+        ?: title.substringAfter("แผ่นดินไหว ").substringBefore("Mw").trim().takeIf { it.isNotBlank() }
+        ?: "0.0"
+    val depth = metricParts.getOrNull(1)?.replace("กม.", "")?.trim()?.takeIf { it.isNotBlank() }
+        ?: "-"
+    return Pair(magnitude, depth)
+}
+
+internal fun parsePmValue(metric: String): Double {
+    val pmValueStr = metric.replace("ug/m3", "").replace("µg/m³", "").trim()
+    return pmValueStr.toDoubleOrNull() ?: 0.0
 }
 
 @Composable

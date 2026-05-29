@@ -220,11 +220,10 @@ class DisasterMapRepository(private val context: Context? = null) {
             val features = JSONArray()
             val root = runCatching { JSONArray(body) }.getOrNull()
             
+            val pointDischarges = mutableListOf<Double>()
             if (root != null) {
                 for (i in 0 until root.length()) {
                     val item = root.optJSONObject(i) ?: continue
-                    val lat = item.optDouble("latitude")
-                    val lon = item.optDouble("longitude")
                     val dailyObj = item.optJSONObject("daily")
                     val dischargeArr = dailyObj?.optJSONArray("river_discharge")
                     val discharge = if (dischargeArr != null && dischargeArr.length() > 0 && !dischargeArr.isNull(0)) {
@@ -232,31 +231,11 @@ class DisasterMapRepository(private val context: Context? = null) {
                     } else {
                         0.0
                     }
-                    val name = riverDischargeCoordinates.getOrNull(i)?.name ?: "River Node"
-                    
-                    val geometry = JSONObject().apply {
-                        put("type", "Point")
-                        put("coordinates", JSONArray().apply {
-                            put(lon)
-                            put(lat)
-                        })
-                    }
-                    val properties = JSONObject().apply {
-                        put("discharge", discharge)
-                        put("name", name)
-                    }
-                    val feature = JSONObject().apply {
-                        put("type", "Feature")
-                        put("geometry", geometry)
-                        put("properties", properties)
-                    }
-                    features.put(feature)
+                    pointDischarges.add(discharge)
                 }
             } else {
                 val singleObj = runCatching { JSONObject(body) }.getOrNull()
                 if (singleObj != null) {
-                    val lat = singleObj.optDouble("latitude")
-                    val lon = singleObj.optDouble("longitude")
                     val dailyObj = singleObj.optJSONObject("daily")
                     val dischargeArr = dailyObj?.optJSONArray("river_discharge")
                     val discharge = if (dischargeArr != null && dischargeArr.length() > 0 && !dischargeArr.isNull(0)) {
@@ -264,26 +243,44 @@ class DisasterMapRepository(private val context: Context? = null) {
                     } else {
                         0.0
                     }
-                    val name = riverDischargeCoordinates.firstOrNull()?.name ?: "River Node"
-                    
-                    val geometry = JSONObject().apply {
-                        put("type", "Point")
-                        put("coordinates", JSONArray().apply {
-                            put(lon)
-                            put(lat)
-                        })
-                    }
-                    val properties = JSONObject().apply {
-                        put("discharge", discharge)
-                        put("name", name)
-                    }
-                    val feature = JSONObject().apply {
-                        put("type", "Feature")
-                        put("geometry", geometry)
-                        put("properties", properties)
-                    }
-                    features.put(feature)
+                    pointDischarges.add(discharge)
                 }
+            }
+
+            // Group coordinates by river name
+            val pointDataList = riverDischargeCoordinates.mapIndexed { index, coord ->
+                val discharge = pointDischarges.getOrNull(index) ?: 0.0
+                Triple(coord.name.substringBefore(" - ").trim(), coord, discharge)
+            }
+            
+            val riverGroups = pointDataList.groupBy { it.first }
+            
+            riverGroups.forEach { (riverName, nodes) ->
+                val coordinates = JSONArray()
+                nodes.forEach { (_, coord, _) ->
+                    coordinates.put(JSONArray().apply {
+                        put(coord.lon)
+                        put(coord.lat)
+                    })
+                }
+                val avgDischarge = if (nodes.isNotEmpty()) nodes.map { it.third }.average() else 0.0
+                val maxDischarge = if (nodes.isNotEmpty()) nodes.maxOf { it.third } else 0.0
+                
+                val geometry = JSONObject().apply {
+                    put("type", "LineString")
+                    put("coordinates", coordinates)
+                }
+                val properties = JSONObject().apply {
+                    put("discharge", avgDischarge)
+                    put("maxDischarge", maxDischarge)
+                    put("name", riverName)
+                }
+                val feature = JSONObject().apply {
+                    put("type", "Feature")
+                    put("geometry", geometry)
+                    put("properties", properties)
+                }
+                features.put(feature)
             }
             
             JSONObject().apply {
@@ -1029,13 +1026,13 @@ class DisasterMapRepository(private val context: Context? = null) {
         val population: Int,
     )
 
-    private data class RiverCoord(
+    internal data class RiverCoord(
         val lat: Double,
         val lon: Double,
         val name: String,
     )
 
-    private companion object {
+    internal companion object {
         private val thaiFormatter = DateTimeFormatter
             .ofPattern("d MMM yyyy HH:mm", Locale("th", "TH"))
             .withZone(ZoneId.of("Asia/Bangkok"))
@@ -1055,7 +1052,7 @@ class DisasterMapRepository(private val context: Context? = null) {
             DroughtSeed("กาฬสินธุ์", 73, 16.4322, 103.5057, 6900, 79000),
         )
 
-        private val soilMoistureCoordinates = listOf(
+        internal val soilMoistureCoordinates = listOf(
             Pair(18.85, 98.73),
             Pair(19.35, 99.51),
             Pair(19.18, 99.90),
@@ -1075,10 +1072,45 @@ class DisasterMapRepository(private val context: Context? = null) {
             Pair(15.25, 104.85),
             Pair(15.12, 104.32),
             Pair(16.42, 101.16),
-            Pair(13.68, 101.08)
+            Pair(13.68, 101.08),
+            // Southern Thailand
+            Pair(9.14, 99.33),
+            Pair(7.88, 98.39),
+            Pair(7.19, 100.60),
+            Pair(8.43, 99.96),
+            Pair(7.56, 99.61),
+            Pair(8.06, 98.91),
+            Pair(6.54, 101.28),
+            Pair(6.19, 102.13),
+            Pair(10.50, 99.18),
+            // Eastern Thailand
+            Pair(12.61, 102.11),
+            Pair(12.24, 102.51),
+            Pair(13.36, 101.00),
+            Pair(12.68, 101.28),
+            // Central / Western Thailand
+            Pair(13.53, 99.82),
+            Pair(14.80, 100.65),
+            Pair(14.53, 100.91),
+            Pair(13.11, 99.94),
+            Pair(11.81, 99.79),
+            Pair(14.73, 99.45),
+            // Northern Thailand
+            Pair(18.29, 99.50),
+            Pair(19.91, 99.83),
+            Pair(19.30, 97.97),
+            Pair(18.15, 100.14),
+            Pair(18.78, 100.78),
+            // Northeastern Thailand
+            Pair(17.49, 101.73),
+            Pair(17.40, 104.80),
+            Pair(16.54, 104.72),
+            Pair(17.88, 102.74),
+            Pair(15.81, 102.03),
+            Pair(15.80, 104.14)
         )
 
-        private val riverDischargeCoordinates = listOf(
+        internal val riverDischargeCoordinates = listOf(
             RiverCoord(18.790, 99.000, "Ping River - Chiang Mai"),
             RiverCoord(16.880, 99.120, "Ping River - Tak"),
             RiverCoord(16.480, 99.520, "Ping River - Kamphaeng Phet"),
