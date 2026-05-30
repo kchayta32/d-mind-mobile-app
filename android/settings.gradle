@@ -1,4 +1,6 @@
+// การตั้งค่าและการจัดการปลั๊กอินสำหรับระบบ build
 pluginManagement {
+    // กำหนดแหล่งดาวน์โหลดปลั๊กอินหลัก
     repositories {
         google()
         mavenCentral()
@@ -6,5 +8,6 @@ pluginManagement {
     }
 }
 
+// กำหนดโมดูลที่รวมอยู่ในโปรเจกต์นี้
 include ':app'
 include ':backend'

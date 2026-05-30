@@ -19,17 +19,20 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import kotlinx.serialization.Serializable
 
+// โมเดลรายงานผลการวิเคราะห์และประเมินระบบเตือนภัยฉุกเฉิน
 @Serializable
 data class AlertEvaluationResponse(
     val status: String,
     val detail: String
 )
 
+// กำหนดเส้นทาง URL (Routing) ทั้งหมดสำหรับการแจ้งเตือนผ่าน FCM และการทำงานของระบบเตือนภัยอัตโนมัติ
 internal fun Route.notificationRoutes(
     config: GatewayConfig,
     deviceRegistry: DeviceTokenRegistry,
     dataAggregator: com.dmind.backend.service.DataAggregatorService
 ) {
+    // เส้นทางสำหรับการลงทะเบียน FCM Token ของผู้ใช้เพื่อรองรับการรับข้อความแจ้งเตือนภัยพิบัติ
     post("/fcm/register") {
         call.handleSafely(rateLimited = true, config = config) {
             val request = call.receive<FcmRegistrationRequest>()
@@ -46,6 +49,7 @@ internal fun Route.notificationRoutes(
         }
     }
 
+    // เส้นทางสำหรับผู้ดูแลระบบ (Admin) ส่งแจ้งเตือนทั่วไปหรือแจ้งเตือนเหตุเจาะจงไปยังอุปกรณ์ต่างๆ
     post("/notifications/send") {
         call.handleSafely(rateLimited = true, config = config) {
             if (!call.requireAdmin(config)) return@handleSafely
@@ -91,6 +95,7 @@ internal fun Route.notificationRoutes(
         }
     }
 
+    // เส้นทางด่วนสำหรับการรันฟังก์ชันวิเคราะห์สภาพอากาศสะสม/พยากรณ์อากาศเพื่อส่งสัญญาณเตือนภัยโดยอัตโนมัติ
     post("/alerts/evaluate") {
         call.handleSafely(rateLimited = true, config = config) {
             if (!call.requireAdmin(config)) return@handleSafely

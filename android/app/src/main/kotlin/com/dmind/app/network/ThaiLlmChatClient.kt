@@ -7,9 +7,11 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
+// คลาสสำหรับการเชื่อมต่อสนทนากับโมเดลภาษาขนาดใหญ่ (Thai Large Language Model - LLM) ผ่านช่องทางเครือข่าย
 class ThaiLlmChatClient(
     private val config: ThaiLlmConfig = ThaiLlmConfig,
 ) {
+    // ส่งชุดลำดับข้อความการสนทนาทั้งหมดเพื่อรับคำตอบประมวลผลข้อความถัดไปจากโมเดล LLM
     suspend fun complete(
         messages: List<ThaiLlmMessage>,
         maxTokens: Int = 2048,
@@ -45,10 +47,12 @@ class ThaiLlmChatClient(
             ?: throw IllegalStateException("ThaiLLM response did not include assistant content.")
     }
 
+    // ฟังก์ชันตรวจสอบว่าค่าคีย์และคอนฟิกของระบบ AI มีการกรอกข้อมูลอย่างถูกต้อง
     private fun ensureConfigured() {
         check(config.isConfigured) { "ยังไม่ได้ตั้งค่า DMIND_THAI_LLM_API_KEY" }
     }
 
+    // ฟังก์ชันระดับต่ำสำหรับเขียนและส่ง HTTP Request ในระบบการสนทนากับเซิร์ฟเวอร์ AI
     private fun request(
         path: String,
         body: String,
@@ -79,7 +83,8 @@ class ThaiLlmChatClient(
     }
 }
 
+// โมเดลโครงสร้างข้อมูลข้อความแชทสนทนากับ AI
 data class ThaiLlmMessage(
-    val role: String,
-    val content: String,
+    val role: String, // บทบาทผู้ส่งข้อความ (เช่น user, system, assistant)
+    val content: String, // เนื้อหาของบทสนทนา
 )

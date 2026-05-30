@@ -11,8 +11,11 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 
+// กำหนดเส้นทาง URL (Routing) ทั้งหมดที่ใช้จัดการงานประมวลผลและวิเคราะห์ข้อมูลสถิติ
 fun Route.analyticsRoutes(cacheService: CacheService, aggregator: DataAggregatorService) {
     route("/api/analytics") {
+        
+        // ดึงข้อมูลภาพรวมสถิติภัยพิบัติล่าสุด (มีระบบดึงข้อมูลจากแคชเพื่อลดการทำงานของฐานข้อมูล)
         get("/summary") {
             val summary = cacheService.getOrFetch<AnalyticsSummaryResponse>("analytics:summary") {
                 aggregator.getAnalyticsSummary()
@@ -20,6 +23,7 @@ fun Route.analyticsRoutes(cacheService: CacheService, aggregator: DataAggregator
             call.respond(summary)
         }
 
+        // ดึงข้อมูลแนวโน้มสถิติภัยพิบัติตามช่วงเวลาที่กำหนด เช่น 7 วัน, 30 วัน หรือ 1 ปี
         get("/trends") {
             val period = call.request.queryParameters["period"] ?: "7d"
             val validPeriod = when (period) {
@@ -32,6 +36,7 @@ fun Route.analyticsRoutes(cacheService: CacheService, aggregator: DataAggregator
             call.respond(trends)
         }
 
+        // ดึงข้อมูลสถิติและสภาพสิ่งแวดล้อมรอบตัว (ฝุ่น PM2.5, ดัชนีคุณภาพอากาศ AQI, ข้อมูลแหล่งน้ำ)
         get("/environmental") {
             val lat = call.request.queryParameters["lat"]?.toDoubleOrNull()
             val lon = call.request.queryParameters["lon"]?.toDoubleOrNull()

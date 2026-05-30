@@ -18,6 +18,7 @@ import com.dmind.app.activity.EmergencyAlertActivity;
  * 3. Custom siren sound playback
  * 4. Emergency haptics vibration patterns
  */
+// คลาสสำหรับจัดการและส่งสัญญาณเตือนภัยฉุกเฉินระดับประเทศ (Emergency Alert Manager) เช่น สึนามิ น้ำท่วม แผ่นดินไหว
 public class EmergencyNotificationManager {
     
     public static final String CHANNEL_ID_EMERGENCY = "emergency_alerts";
@@ -29,13 +30,14 @@ public class EmergencyNotificationManager {
     private Context context;
     private NotificationHelper notificationHelper;
     
+    // คอนสตรักเตอร์สำหรับสร้างตัวจัดการการแจ้งเตือนฉุกเฉินและกำหนดคอนเท็กซ์
     public EmergencyNotificationManager(Context context) {
         this.context = context.getApplicationContext();
         this.notificationHelper = new NotificationHelper(this.context);
     }
     
     // ============================================================
-    // Emergency Alert Triggers
+    // การส่งสัญญาณแจ้งเตือนฉุกเฉิน (Emergency Alert Triggers)
     // ============================================================
     
     /**
@@ -45,6 +47,7 @@ public class EmergencyNotificationManager {
      * @param message - Alert message
      * @param alertType - Type of disaster (flood, tsunami, etc.)
      */
+    // เริ่มส่งสัญญาณแจ้งเตือนภัยพิบัติฉุกเฉิน (สร้างช่องการแจ้งเตือน แสดงข้อความแบบเต็มหน้าจอ เล่นไซเรน และสั่นสะเทือน)
     public void triggerEmergencyAlert(String title, String message, String alertType) {
         // Ensure notification channel exists
         notificationHelper.createEmergencyNotificationChannel();
@@ -70,6 +73,7 @@ public class EmergencyNotificationManager {
      * @param title - SOS title (e.g., "SOS: User needs help")
      * @param message - SOS message
      */
+    // เริ่มส่งสัญญาณแจ้งเตือนระบบ SOS พิกัดช่วยเหลือของผู้ใช้
     public void triggerSOSNotification(String title, String message) {
         notificationHelper.createSOSChannel();
         notificationHelper.showSOSNotification(title, message);
@@ -86,6 +90,7 @@ public class EmergencyNotificationManager {
      * @param message - Alert message
      * @param alertType - Type of alert
      */
+    // แสดงหน้าจอเตือนภัยฉุกเฉินแบบเต็มหน้าจอ (บดบังหน้าจอล็อคและทำให้เครื่องตื่น)
     public void showFullScreenAlert(String title, String message, String alertType) {
         // Open EmergencyAlertActivity with full-screen intent
         Intent intent = new Intent(context, EmergencyAlertActivity.class);
@@ -99,12 +104,13 @@ public class EmergencyNotificationManager {
     }
     
     // ============================================================
-    // Sound & Vibration
+    // เสียงและการสั่น (Sound & Vibration)
     // ============================================================
     
     /**
      * Play siren sound (5 seconds, looped)
      */
+    // เล่นเสียงไซเรนเพื่อเตือนภัยฉุกเฉิน
     public void playSirenSound() {
         System.out.println("Playing siren sound via emergency notification channel");
     }
@@ -114,6 +120,7 @@ public class EmergencyNotificationManager {
      * - 1 second pulse, repeated 3 times
      * - High intensity for maximum wake effect
      */
+    // สั่นเตือนภัยฉุกเฉินแบบเน้นย้ำความแรงสูง เพื่อปลุกผู้ใช้ให้ตื่นตัว
     public void triggerEmergencyVibration() {
         // Vibration pattern: 0ms delay, 300ms vibrate, 100ms pause, 300ms vibrate, etc.
         long[] pattern = {0, 300, 100, 300, 100, 300, 100, 300, 100, 300};
@@ -124,6 +131,7 @@ public class EmergencyNotificationManager {
     /**
      * Trigger subtle vibration for SOS alerts
      */
+    // สั่นเตือนระบบ SOS สั้นๆ แบบนุ่มนวลกว่าภัยพิบัติ
     public void triggerSOSVibration() {
         // Shorter, double-vibration pattern for SOS
         long[] pattern = {0, 200, 100, 200};
@@ -131,6 +139,7 @@ public class EmergencyNotificationManager {
         vibrate(pattern);
     }
 
+    // สั่งการตัวสั่นของเครื่องตามรูปแบบจังหวะที่กำหนด
     private void vibrate(long[] pattern) {
         Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
         if (vibrator == null || !vibrator.hasVibrator()) {
@@ -145,13 +154,14 @@ public class EmergencyNotificationManager {
     }
     
     // ============================================================
-    // DND (Do Not Disturb) Management
+    // การจัดการโหมดห้ามรบกวน (DND - Do Not Disturb Management)
     // ============================================================
     
     /**
      * Check if notification policy access is granted
      * This is required to bypass Do Not Disturb mode
      */
+    // ตรวจสอบว่าแอปได้รับสิทธิ์การละเว้นโหมดห้ามรบกวน (Do Not Disturb Bypass) หรือยัง
     public boolean isNotificationPolicyAccessGranted() {
         return notificationHelper.isNotificationPolicyAccessGranted();
     }
@@ -160,6 +170,7 @@ public class EmergencyNotificationManager {
      * Request notification policy access
      * Opens the settings page where user can grant DND bypass permission
      */
+    // ขอสิทธิ์การละเว้นโหมดห้ามรบกวนจากผู้ใช้ โดยเปิดหน้าตั้งค่าของระบบ
     public void requestNotificationPolicyAccess() {
         notificationHelper.requestNotificationPolicyAccess(0);
     }
@@ -167,17 +178,19 @@ public class EmergencyNotificationManager {
     /**
      * Request notification access (for older Android versions)
      */
+    // ขอสิทธิ์การเข้าถึงการแจ้งเตือนของระบบสำหรับ Android รุ่นเก่า
     public void requestNotificationAccess() {
         notificationHelper.requestNotificationAccess();
     }
     
     // ============================================================
-    // Alert Categorization
+    // การจัดหมวดหมู่สัญญาณเตือน (Alert Categorization)
     // ============================================================
     
     /**
      * Get alert level based on alert type
      */
+    // คืนค่าระดับความรุนแรงของภัยพิบัติ (Alert Level) โดยระบุตามประเภทของภัยพิบัติ
     public AlertLevel getAlertLevel(String alertType) {
         if (alertType == null) {
             return AlertLevel.INFO;
@@ -205,18 +218,20 @@ public class EmergencyNotificationManager {
     /**
      * Check if alert should trigger full-screen notification
      */
+    // ตรวจสอบว่าประเภทภัยพิบัติที่กำหนด ควรแสดงผลแบบเต็มหน้าจอทันทีหรือไม่ (กรณีรุนแรงมาก)
     public boolean shouldTriggerFullScreen(String alertType) {
         AlertLevel level = getAlertLevel(alertType);
         return level == AlertLevel.CRITICAL || level == AlertLevel.SEVERE;
     }
     
     // ============================================================
-    // Notification Status
+    // สถานะการแจ้งเตือน (Notification Status)
     // ============================================================
     
     /**
      * Cancel all emergency notifications
      */
+    // ยกเลิกข้อความและสัญญาณเตือนภัยฉุกเฉินทั้งหมดบนแถบการแจ้งเตือน
     public void cancelAllNotifications() {
         notificationHelper.cancelAllNotifications();
     }
@@ -224,6 +239,7 @@ public class EmergencyNotificationManager {
     /**
      * Check if emergency notification is currently showing
      */
+    // ตรวจสอบว่าหน้าต่างแจ้งเตือนภัยพิบัติกำลังแสดงผลอยู่บนแถบหรือไม่
     public boolean isEmergencyNotificationVisible() {
         // This would require tracking notification state
         // For now, return false
@@ -231,7 +247,7 @@ public class EmergencyNotificationManager {
     }
     
     // ============================================================
-    // Alert Level Enum
+    // อีนัมระดับความรุนแรง (Alert Level Enum)
     // ============================================================
     
     public enum AlertLevel {
@@ -252,12 +268,13 @@ public class EmergencyNotificationManager {
     }
     
     // ============================================================
-    // Utility Methods
+    // เมธอดช่วยเหลือทั่วไป (Utility Methods)
     // ============================================================
     
     /**
      * Get notification helper instance
      */
+    // รับอินสแตนซ์ของ NotificationHelper
     public NotificationHelper getNotificationHelper() {
         return notificationHelper;
     }
@@ -265,6 +282,7 @@ public class EmergencyNotificationManager {
     /**
      * Get context
      */
+    // รับค่า Context ของแอปพลิเคชัน
     public Context getContext() {
         return context;
     }

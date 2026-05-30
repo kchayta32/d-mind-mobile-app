@@ -8,7 +8,9 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 
+// กำหนดเส้นทาง URL (Routing) สำหรับแสดงหน้าจอ Dashboard ของระบบ
 fun Route.dashboardRoute() {
+    // บริการดึงไฟล์ HTML เพื่อแสดงหน้าแดชบอร์ด
     get("/dashboard") {
         val htmlStream = this::class.java.classLoader.getResourceAsStream("dashboard.html")
         if (htmlStream != null) {

@@ -11,8 +11,10 @@ import com.dmind.app.domain.model.HazardType
 import com.dmind.app.domain.model.Severity
 import com.dmind.app.domain.model.WeatherSnapshot
 
+// แปลงข้อมูลแผนที่ระดับ Data (MapDataSnapshot) เป็นข้อมูลสภาพอากาศของ Domain (WeatherSnapshot)
 fun MapDataSnapshot.toWeatherSnapshot(): WeatherSnapshot? = weather?.toDomain()
 
+// แปลงโมเดลสรุปสภาพอากาศระดับ Data (WeatherSummary) เป็น Domain (WeatherSnapshot)
 fun WeatherSummary.toDomain(): WeatherSnapshot = WeatherSnapshot(
     locationName = locationName,
     temperatureCelsius = temperatureCelsius,
@@ -23,6 +25,7 @@ fun WeatherSummary.toDomain(): WeatherSnapshot = WeatherSnapshot(
     forecastTime = forecastTime,
 )
 
+// แปลงรายการสถานะแหล่งข้อมูลภายนอกจากระดับ Data เป็นระดับ Domain
 fun MapDataSnapshot.toExternalSourceStatuses(): List<ExternalSourceStatus> = statuses.map {
     ExternalSourceStatus(
         name = it.name,
@@ -33,6 +36,7 @@ fun MapDataSnapshot.toExternalSourceStatuses(): List<ExternalSourceStatus> = sta
     )
 }
 
+// แปลงจุดพิกัดภัยพิบัติ (DisasterPoint) จากระดับ Data เป็นภัยพิบัติระดับ Domain (DisasterEvent) พร้อมคำแนะนำ
 fun DisasterPoint.toDomain(): DisasterEvent = DisasterEvent(
     id = id,
     type = type.toHazardType(),
@@ -47,6 +51,7 @@ fun DisasterPoint.toDomain(): DisasterEvent = DisasterEvent(
     recommendedAction = recommendedActionFor(type.toHazardType(), severity.toDomain()),
 )
 
+// แปลงระดับความรุนแรงระดับ Data (DisasterSeverity) เป็นระดับความรุนแรงระดับ Domain (Severity)
 fun DisasterSeverity.toDomain(): Severity = when (this) {
     DisasterSeverity.Low -> Severity.Normal
     DisasterSeverity.Medium -> Severity.Watch
@@ -54,6 +59,7 @@ fun DisasterSeverity.toDomain(): Severity = when (this) {
     DisasterSeverity.VeryHigh -> Severity.Critical
 }
 
+// แปลงประเภทข้อมูลภัยพิบัติระดับ Data เป็นประเภทภัยพิบัติระดับ Domain (HazardType)
 fun DisasterDataType.toHazardType(): HazardType = when (this) {
     DisasterDataType.Earthquake -> HazardType.Earthquake
     DisasterDataType.Wildfire -> HazardType.Fire
@@ -63,6 +69,7 @@ fun DisasterDataType.toHazardType(): HazardType = when (this) {
     DisasterDataType.Place -> HazardType.Other
 }
 
+// สร้างข้อความแนะนำแนวทางการปฏิบัติสำหรับผู้ใช้ตามประเภทภัยพิบัติและระดับความรุนแรงที่ระบุ
 fun recommendedActionFor(type: HazardType, severity: Severity): String {
     val urgency = when (severity) {
         Severity.Critical -> "Avoid the affected area and follow official evacuation guidance."

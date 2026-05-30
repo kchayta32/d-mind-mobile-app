@@ -16,12 +16,15 @@ import java.net.URL
  * Repository for fetching analytics data from the Ktor backend.
  * Uses the same base URL as BackendRestClient.
  */
+// คลาสหลักสำหรับดึงข้อมูลสรุปสถิติ แนวโน้ม และข้อมูลสิ่งแวดล้อมจาก Ktor Backend
 class AnalyticsRepository(
     private val baseUrl: String = BackendConfig.baseUrl,
 ) {
+    // ตรวจสอบว่ามีการกำหนดที่อยู่เบส URL ของ Backend แล้วหรือไม่
     val isConfigured: Boolean
         get() = baseUrl.startsWith("http://") || baseUrl.startsWith("https://")
 
+    // ดึงข้อมูลสถิติภาพรวมภัยพิบัติ (Summary) และแปลงข้อมูลเป็นระดับ Domain
     suspend fun fetchSummary(): Result<AnalyticsSummary> = withContext(Dispatchers.IO) {
         runCatching {
             val json = JSONObject(httpGet("/api/analytics/summary"))
@@ -50,6 +53,7 @@ class AnalyticsRepository(
         }
     }
 
+    // ดึงข้อมูลแนวโน้มภัยพิบัติแยกตามหมวดหมู่ในช่วงเวลาที่กำหนด (Trends)
     suspend fun fetchTrends(period: String): Result<List<TrendDataPoint>> = withContext(Dispatchers.IO) {
         runCatching {
             val json = JSONObject(httpGet("/api/analytics/trends?period=$period"))
@@ -68,6 +72,7 @@ class AnalyticsRepository(
         }
     }
 
+    // ดึงข้อมูลวัดสถิติสิ่งแวดล้อม เช่น ฝุ่น PM2.5, คุณภาพอากาศ AQI, อุณหภูมิ และปริมาณน้ำฝน
     suspend fun fetchEnvironmental(): Result<EnvironmentalData> = withContext(Dispatchers.IO) {
         runCatching {
             val json = JSONObject(httpGet("/api/analytics/environmental"))
@@ -80,14 +85,13 @@ class AnalyticsRepository(
                 humidity = dto.humidity,
                 waterLevel = dto.waterLevel,
                 rainfall = dto.rainfall,
-                openMeteoRiverDischarge = dto.openMeteoRiverDischarge,
-                openMeteoSoilMoisture = dto.openMeteoSoilMoisture,
                 openMeteoPm25 = dto.openMeteoPm25,
                 openMeteoAqi = dto.openMeteoAqi,
             )
         }
     }
 
+    // ฟังก์ชันเชื่อมต่อและอ่านข้อมูลจากเซิร์ฟเวอร์ด้วยคำสั่ง HTTP GET
     private fun httpGet(path: String): String {
         val connection = (URL("${baseUrl.trimEnd('/')}$path").openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"

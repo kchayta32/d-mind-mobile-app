@@ -43,6 +43,7 @@
 
     <!-- Camera (Damage assessment photos) -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <!-- Storage - For photo attachments -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"

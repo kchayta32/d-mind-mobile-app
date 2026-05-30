@@ -104,6 +104,7 @@ import com.dmind.app.data.map.PlaceInfo
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
+// หน้าจอแสดงเบอร์โทรศัพท์ฉุกเฉินและการโทรติดต่อหน่วยงานต่างๆ
 @Composable
 fun EmergencyContactsScreen() {
     val context = LocalContext.current
@@ -150,6 +151,7 @@ fun EmergencyContactsScreen() {
     }
 }
 
+// หน้าจอแสดงคู่มือการรับมือภัยพิบัติฉุกเฉินประเภทต่างๆ
 @Composable
 fun EmergencyManualScreen() {
     val guides = listOf(
@@ -188,6 +190,7 @@ fun EmergencyManualScreen() {
     }
 }
 
+// หน้าจอแสดงข้อมูลสภาพอากาศปัจจุบัน รายละเอียดสถิติ และการพยากรณ์ล่วงหน้า
 @Composable
 fun WeatherOverviewScreen(
     mapState: DisasterMapUiState,
@@ -482,6 +485,7 @@ fun WeatherOverviewScreen(
     }
 }
 
+// หน้าจอแสดงการพยากรณ์สภาพอากาศรายสัปดาห์ (7 วัน) พร้อมแถบแสดงช่วงอุณหภูมิ
 @Composable
 fun WeeklyForecastScreen(
     mapState: DisasterMapUiState,
@@ -626,6 +630,7 @@ fun WeeklyForecastScreen(
     }
 }
 
+// หน้าจอประเมินความเสียหายจากภาพถ่ายภัยพิบัติ พร้อมส่งวิเคราะห์และประวัติการประเมิน
 @Composable
 fun DamageAssessmentScreen(
     state: DamageAssessmentUiState,
@@ -884,6 +889,7 @@ fun DamageAssessmentScreen(
     }
 }
 
+// ส่วนแสดงการ์ดรายการข้อมูลประเมินความเสียหายแต่ละรายการ
 @Composable
 private fun DamageAssessmentCard(
     record: DamageAssessmentRecord,
@@ -976,8 +982,10 @@ private fun DamageAssessmentCard(
     }
 }
 
+// แคชสำหรับเก็บรูปภาพเพื่อเพิ่มประสิทธิภาพในการโหลดซ้ำ
 private val imageCache = java.util.concurrent.ConcurrentHashMap<String, Bitmap>()
 
+// คอมโพสเซเบิลสำหรับโหลดและแสดงรูปภาพจากอินเทอร์เน็ต
 @Composable
 private fun NetworkImage(
     url: String,
@@ -1035,6 +1043,7 @@ private fun NetworkImage(
     }
 }
 
+// โหลดรูปภาพ Bitmap จาก Uri ของอุปกรณ์
 private fun loadBitmapFromUri(context: android.content.Context, uri: android.net.Uri): android.graphics.Bitmap? {
     return try {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
@@ -1049,6 +1058,7 @@ private fun loadBitmapFromUri(context: android.content.Context, uri: android.net
     }
 }
 
+// ปรับขนาดรูปภาพ Bitmap เพื่อให้ไม่เกินขนาดที่กำหนดและประหยัดการใช้หน่วยความจำ
 private fun resizeBitmap(bitmap: android.graphics.Bitmap, maxDimension: Int): android.graphics.Bitmap {
     val width = bitmap.width
     val height = bitmap.height
@@ -1064,18 +1074,21 @@ private fun resizeBitmap(bitmap: android.graphics.Bitmap, maxDimension: Int): an
     return android.graphics.Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
 }
 
+// แปลงรูปภาพ Bitmap เป็นอาเรย์ของไบต์ในรูปแบบ JPEG เพื่อส่งอัปโหลด
 private fun bitmapToBytes(bitmap: android.graphics.Bitmap): ByteArray {
     val stream = java.io.ByteArrayOutputStream()
     bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, stream)
     return stream.toByteArray()
 }
 
+// โครงสร้างข้อมูลสำหรับเบอร์ติดต่อฉุกเฉิน
 private data class EmergencyContact(
     val name: String,
     val phone: String,
     val description: String,
 )
 
+// โครงสร้างข้อมูลสำหรับคู่มือภัยพิบัติ
 private data class GuideCard(
     val title: String,
     val icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -1083,11 +1096,11 @@ private data class GuideCard(
     val color: androidx.compose.ui.graphics.Color,
 )
 
-// Forecast data structures
+// โครงสร้างข้อมูลสภาพอากาศรายชั่วโมงและรายวัน
 data class HourlyForecastData(val time: String, val temp: Float, val rainProbability: Int)
 data class DailyForecastData(val date: String, val minTemp: Float, val maxTemp: Float, val weatherCode: Int)
 
-// Safe coordinate resolver helper
+// ฟังก์ชันช่วยหาพิกัดละติจูดและลองจิจูดจากชื่อจังหวัด
 fun getCoordsForLocation(locationName: String): Pair<Double, Double> {
     val name = locationName.trim().lowercase()
     return when {
@@ -1104,7 +1117,7 @@ fun getCoordsForLocation(locationName: String): Pair<Double, Double> {
     }
 }
 
-// Weather code mapping helper
+// ฟังก์ชันแปลงรหัสสภาพอากาศ WMO เป็นสัญลักษณ์อีโมจิและข้อความคำอธิบายภาษาอังกฤษ
 fun getWeatherInfoForCode(code: Int): Pair<String, String> {
     return when (code) {
         0 -> Pair("☀️", "Clear Sky")
@@ -1124,13 +1137,14 @@ fun getWeatherInfoForCode(code: Int): Pair<String, String> {
     }
 }
 
-// Day of week formatter helper
+// ฟังก์ชันแปลงองศาทิศทางลมเป็นทิศทางแบบตัวอักษรย่อภาษาอังกฤษ
 fun getWindDirectionLabel(degrees: Float): String {
     val directions = listOf("N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW")
     val index = (((degrees + 11.25) / 22.5).toInt() % 16).let { if (it < 0) it + 16 else it }
     return directions[index]
 }
 
+// ฟังก์ชันจัดรูปแบบวันในรอบสัปดาห์จากสตริงวันที่ในรูปแบบไทย
 fun getDayName(dateStr: String): String {
     return try {
         val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
@@ -1147,7 +1161,7 @@ fun getDayName(dateStr: String): String {
     }
 }
 
-// Glassmorphic Custom Card
+// คอมโพสเซเบิลสำหรับตกแต่งการ์ดในรูปแบบกึ่งโปร่งใส (Glassmorphism)
 @Composable
 fun GlassmorphicCard(
     modifier: Modifier = Modifier,
@@ -1170,7 +1184,7 @@ fun GlassmorphicCard(
     }
 }
 
-// Temp Range Track Canvas Component
+// คอมโพสเซเบิลสำหรับวาดแถบกราฟิกแสดงช่วงอุณหภูมิต่ำสุด-สูงสุดของวัน
 @Composable
 fun TempRangeTrack(
     minTemp: Float,
@@ -1224,7 +1238,7 @@ fun TempRangeTrack(
     }
 }
 
-// Weather Trend Chart Canvas Component
+// คอมโพสเซเบิลสำหรับวาดกราฟเส้นแสดงแนวโน้มอุณหภูมิและกราฟแท่งความน่าจะเป็นของฝนตกรายชั่วโมง
 @Composable
 fun WeatherTrendChart(
     hourlyForecast: List<HourlyForecastData>,
@@ -1420,6 +1434,7 @@ fun WeatherTrendChart(
 // TMD Place-Based Weather Helpers
 // ============================================================================
 
+// โครงสร้างข้อมูลผลลัพธ์สภาพอากาศที่ดึงมาเรียบร้อยแล้ว
 data class LoadedWeatherResult(
     val locationDisplayName: String,
     val currentTemp: Float,
@@ -1435,6 +1450,7 @@ data class LoadedWeatherResult(
     val daily: List<DailyForecastData>
 )
 
+// ฟังก์ชันตรวจสอบสิทธิ์และดึงตำแหน่งพิกัดปัจจุบันของผู้ใช้
 suspend fun getUserLocation(context: android.content.Context): Pair<Double, Double>? = kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
     var resumed = false
     fun resumeSafe(result: Pair<Double, Double>?) {
@@ -1518,6 +1534,7 @@ suspend fun getUserLocation(context: android.content.Context): Pair<Double, Doub
     }
 }
 
+// ฟังก์ชันแปลงรหัสสภาพอากาศของกรมอุตุนิยมวิทยาเป็นสัญลักษณ์อีโมจิและข้อความไทย
 fun getTmdEmojiAndLabel(code: Int): Pair<String, String> {
     return when (code) {
         1 -> Pair("☀️", "ท้องฟ้าแจ่มใส")
@@ -1536,6 +1553,7 @@ fun getTmdEmojiAndLabel(code: Int): Pair<String, String> {
     }
 }
 
+// ฟังก์ชันแปลงและสรุปข้อมูลพยากรณ์อากาศรายชั่วโมงของกรมอุตุฯ เป็นข้อมูลรายวัน
 fun mapTmdHourlyToDaily(forecasts: org.json.JSONArray): List<DailyForecastData> {
     val dailyMap = mutableMapOf<String, MutableList<Pair<Float, Int>>>()
     for (i in 0 until forecasts.length()) {
@@ -1560,6 +1578,7 @@ fun mapTmdHourlyToDaily(forecasts: org.json.JSONArray): List<DailyForecastData> 
     }.sortedBy { it.date }
 }
 
+// ฟังก์ชันดึงและวิเคราะห์ข้อมูลสภาพอากาศจากหน่วยงานบริการข้อมูล
 suspend fun fetchAndParseWeather(context: android.content.Context): LoadedWeatherResult {
     val coords = withTimeoutOrNull(2500) { getUserLocation(context) } ?: Pair(13.7563, 100.5018)
     
@@ -1694,6 +1713,7 @@ suspend fun fetchAndParseWeather(context: android.content.Context): LoadedWeathe
     }
 }
 
+// ฟังก์ชันแปลงรหัสสภาพอากาศ WMO ให้สอดคล้องกับรหัสสภาพอากาศของกรมอุตุนิยมวิทยาไทย
 fun mapWmoToTmdCode(wmoCode: Int): Int {
     return when (wmoCode) {
         0 -> 1 // ท้องฟ้าแจ่มใส
@@ -1709,6 +1729,7 @@ fun mapWmoToTmdCode(wmoCode: Int): Int {
     }
 }
 
+// ฟังก์ชันสำรองสำหรับดึงข้อมูลสภาพอากาศโดยตรงจาก Open-Meteo API เมื่อระบบหลักใช้งานไม่ได้
 private fun fetchFromOpenMeteoFallback(
     lat: Double,
     lon: Double,

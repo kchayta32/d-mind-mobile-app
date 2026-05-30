@@ -10,10 +10,13 @@ import java.net.HttpURLConnection
 import java.net.URLEncoder
 import java.net.URL
 
+// ตัวช่วยสร้างพาร์ท API ย่อย (Endpoints) สำหรับข้อมูลและแผนที่ภัยพิบัติของ GISTDA
 object GistdaEndpointPaths {
+    // คืนค่าพาธของพิกัดดาวเทียมสำหรับตรวจพบจุดความร้อน VIIRS
     fun viirsFeaturePath(timeRange: GistdaTimeRange): String =
         "resources/features/viirs/${timeRange.featureSegment}"
 
+    // คืนค่าพาธข้อมูลพื้นที่น้ำท่วมจากการวิเคราะห์ดาวเทียม
     fun floodFeaturePath(timeRange: GistdaTimeRange): String =
         if (timeRange == GistdaTimeRange.FloodFrequency) {
             "resources/features/flood-freq"
@@ -21,6 +24,7 @@ object GistdaEndpointPaths {
             "resources/features/flood/${timeRange.featureSegment}"
         }
 
+    // คืนค่าพาธระบบ WMTS (Web Map Tile Service) สำหรับแสดงพื้นที่น้ำท่วม
     fun floodWmtsPath(timeRange: GistdaTimeRange): String =
         if (timeRange == GistdaTimeRange.FloodFrequency) {
             "resources/maps/flood-freq/wmts"
@@ -28,6 +32,7 @@ object GistdaEndpointPaths {
             "resources/maps/flood/${timeRange.floodWmtsSegment}/wmts"
         }
 
+    // คืนค่าพาธระบบ WMS (Web Map Service) สำหรับดึงแผนที่น้ำท่วม
     fun floodWmsPath(timeRange: GistdaTimeRange): String =
         if (timeRange == GistdaTimeRange.FloodFrequency) {
             "resources/maps/flood-freq/wms"
@@ -35,26 +40,32 @@ object GistdaEndpointPaths {
             "resources/maps/flood/${timeRange.floodWmtsSegment}/wms"
         }
 
+    // คืนค่าพาธระบบ WMTS ของแผนที่ภาพถ่ายจุดความร้อน VIIRS
     fun viirsWmtsPath(timeRange: GistdaTimeRange): String =
         "resources/maps/viirs/${timeRange.viirsWmtsSegment}/wmts"
 
+    // คืนค่าพาธระบบ WMS ของแผนที่จุดความร้อน VIIRS
     fun viirsWmsPath(timeRange: GistdaTimeRange): String =
         "resources/maps/viirs/${timeRange.viirsWmtsSegment}/wms"
 
+    // คืนค่าพาธ WMTS ของผลิตภัณฑ์ตรวจวัดความชื้นในดิน SMAP
     fun smapWmtsPath(): String = "resources/maps/smap/7days/wmts"
 
+    // คืนค่าพาธ WMS สำหรับผลิตภัณฑ์ตรวจจับภัยแล้งตามประเภทที่ระบุ
     fun droughtWmsPath(product: GistdaDroughtProduct): String = when (product) {
         GistdaDroughtProduct.Smap -> "resources/maps/smap/7days/wms"
         GistdaDroughtProduct.Ndwi -> "resources/maps/ndwi/7days/wms"
         GistdaDroughtProduct.DriPlus -> "resources/maps/dri/7days/wms"
     }
 
+    // คืนค่าพาธแผนที่รูปภาพความแล้งตามระบบ TMS หรือ WMTS
     fun droughtMapPath(product: GistdaDroughtProduct): String = when (product) {
         GistdaDroughtProduct.Smap -> smapWmtsPath()
         GistdaDroughtProduct.Ndwi -> "resources/maps/ndwi/7days/tms"
         GistdaDroughtProduct.DriPlus -> "resources/maps/dri/7days/tms"
     }
 
+    // เลือกใช้พาธ WMTS หรือแผนที่ที่เหมาะสมตามชั้นข้อมูลและขอบเขตช่วงเวลา
     fun wmtsPath(
         type: DisasterLayerType,
         timeRange: GistdaTimeRange,
@@ -66,14 +77,17 @@ object GistdaEndpointPaths {
         else -> null
     }
 
+    // รูปแบบการเรียกเก็บพารามิเตอร์แผ่นภาพพิกัด (Tile Scheme)
     fun tileScheme(type: DisasterLayerType, droughtProduct: GistdaDroughtProduct?): String =
         "xyz"
 }
 
+// คลาสหลักที่ใช้คุยกับระบบ GISTDA Open API สำหรับดาวน์โหลดพิกัดข้อมูลภัยพิบัติและลิงก์แผนที่รูปภาพ
 class GistdaApi(
     private val baseUrl: String = BuildConfig.DMIND_GISTDA_BASE_URL,
     private val apiKey: String = BuildConfig.DMIND_GISTDA_API_KEY,
 ) {
+    // ฟังก์ชันร้องขอพิกัดภูมิศาสตร์และรายละเอียดจุดความร้อนไฟป่า (VIIRS) ในประเทศไทย
     suspend fun getViirsFeatures(
         timeRange: GistdaTimeRange,
         limit: Int,
@@ -86,6 +100,7 @@ class GistdaApi(
         )
     }
 
+    // ฟังก์ชันร้องขอพิกัดทางภูมิศาสตร์และขนาดของพื้นที่ประสบอุทกภัย (Flood Features)
     suspend fun getFloodFeatures(
         timeRange: GistdaTimeRange,
         limit: Int,
@@ -97,6 +112,7 @@ class GistdaApi(
         )
     }
 
+    // คืนค่าลิงก์ URL สำหรับเรนเดอร์ชั้นแผนที่ WMTS ไทล์ บนคอมโพเนนต์ Maps API
     fun wmtsTileUrl(
         type: DisasterLayerType,
         timeRange: GistdaTimeRange,
@@ -110,8 +126,10 @@ class GistdaApi(
         return "${resourceUrl(path)}/{z}/{x}/{y}$extension?api_key=$encodedKey"
     }
 
+    // เช็คสถานะว่าแอปพลิเคชันมีการใส่คีย์ผ่าน System Config แล้วหรือยัง
     fun hasApiKey(): Boolean = apiKey.isNotBlank()
 
+    // ยิงคำขอเรียก JSON ของ GISTDA API โดยใช้สิทธิ์ผ่าน API Key ใน Header
     private suspend fun getJson(
         path: String,
         query: String,
@@ -127,10 +145,12 @@ class GistdaApi(
         )
     }
 
+    // แปลงพาร์ทไอเทมให้เป็น URL ปลายทางปลายพารามิเตอร์แบบเต็ม
     private fun resourceUrl(path: String): String {
         return "${baseUrl.trim().trimEnd('/')}/${path.trimStart('/')}"
     }
 
+    // ฟังก์ชันยิง HTTP Get ใน Thread เบื้องหลังเพื่อรับส่งข้อมูลเครือข่ายอย่างปลอดภัย
     private suspend fun httpGet(
         url: String,
         headers: Map<String, String>,

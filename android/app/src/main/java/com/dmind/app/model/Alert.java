@@ -3,8 +3,10 @@ package com.dmind.app.model;
 /**
  * Alert - Represents a disaster alert from the backend.
  */
+// โมเดลข้อมูลแทนการแจ้งเตือนภัยพิบัติที่ได้รับจากระบบหลังบ้าน
 public class Alert {
     
+    // คุณสมบัติต่างๆ ของการแจ้งเตือน
     private int id;
     private String type; // flood, tsunami, earthquake, landslide, storm
     private String level; // critical, warning, info
@@ -13,7 +15,7 @@ public class Alert {
     private boolean read;
     private long timestamp;
     
-    // Getters
+    // Getters สำหรับเข้าถึงข้อมูลคุณสมบัติ
     public int getId() { return id; }
     public String getType() { return type; }
     public String getLevel() { return level; }
@@ -22,7 +24,7 @@ public class Alert {
     public boolean isRead() { return read; }
     public long getTimestamp() { return timestamp; }
     
-    // Setters
+    // Setters สำหรับกำหนดค่าคุณสมบัติ
     public void setId(int id) { this.id = id; }
     public void setType(String type) { this.type = type; }
     public void setLevel(String level) { this.level = level; }
@@ -38,6 +40,7 @@ public class Alert {
     /**
      * Check if alert is critical
      */
+    // ตรวจสอบว่าเป็นการแจ้งเตือนระดับวิกฤติหรือไม่
     public boolean isCritical() {
         return "critical".equalsIgnoreCase(level);
     }
@@ -45,6 +48,7 @@ public class Alert {
     /**
      * Check if alert should trigger full-screen notification
      */
+    // ตรวจสอบว่าควรแสดงผลแจ้งเตือนแบบเต็มหน้าจอหรือไม่ (ระดับวิกฤติหรือแจ้งเตือน)
     public boolean shouldShowFullScreen() {
         return "critical".equalsIgnoreCase(level) || "warning".equalsIgnoreCase(level);
     }
@@ -52,6 +56,7 @@ public class Alert {
     /**
      * Get notification importance based on level
      */
+    // ระดับความสำคัญของการแจ้งเตือนในระบบ Android Notification ตามระดับความรุนแรง
     public int getNotificationImportance() {
         switch (level != null ? level.toLowerCase() : "") {
             case "critical":
@@ -66,6 +71,7 @@ public class Alert {
     /**
      * Get alert icon resource based on type
      */
+    // ดึงข้อมูลไอคอนทรัพยากร (Resource ID) ตามประเภทของภัยพิบัติ
     public int getIconResource() {
         switch (type != null ? type.toLowerCase() : "") {
             case "tsunami":
@@ -82,6 +88,7 @@ public class Alert {
     /**
      * Get human-readable alert level
      */
+    // แปลงระดับความรุนแรงให้อ่านเข้าใจง่ายในภาษาไทยและภาษาอังกฤษ
     public String getHumanReadableLevel() {
         switch (level != null ? level.toLowerCase() : "") {
             case "critical":
@@ -96,6 +103,7 @@ public class Alert {
     /**
      * Convert to JSON string
      */
+    // แปลงโมเดลข้อมูลนี้ให้อยู่ในรูปแบบข้อความโครงสร้าง JSON
     public String toJson() {
         return String.format(
             "{\"id\":%d,\"type\":\"%s\",\"level\":\"%s\",\"title\":\"%s\",\"message\":\"%s\",\"read\":%b,\"timestamp\":%d}",
@@ -110,6 +118,7 @@ public class Alert {
     /**
      * Create critical emergency alert
      */
+    // เมธอดสำหรับสร้างอ็อบเจกต์แจ้งเตือนระดับวิกฤติอย่างรวดเร็ว
     public static Alert createCriticalAlert(String type, String title, String message) {
         Alert alert = new Alert();
         alert.type = type;
@@ -124,6 +133,7 @@ public class Alert {
     /**
      * Create warning alert
      */
+    // เมธอดสำหรับสร้างอ็อบเจกต์แจ้งเตือนระดับเฝ้าระวังอย่างรวดเร็ว
     public static Alert createWarningAlert(String type, String title, String message) {
         Alert alert = new Alert();
         alert.type = type;
@@ -138,6 +148,7 @@ public class Alert {
     /**
      * Create info alert
      */
+    // เมธอดสำหรับสร้างอ็อบเจกต์แจ้งเตือนระดับข้อมูลข่าวสารทั่วไปอย่างรวดเร็ว
     public static Alert createInfoAlert(String type, String title, String message) {
         Alert alert = new Alert();
         alert.type = type;

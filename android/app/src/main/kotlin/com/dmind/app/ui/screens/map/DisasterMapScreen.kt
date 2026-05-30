@@ -41,12 +41,35 @@ import com.dmind.app.ui.viewmodel.DisasterMapUiState
 import com.dmind.app.ui.viewmodel.DisasterMapViewModel
 import com.dmind.app.ui.viewmodel.RainViewerFrame
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import com.dmind.app.domain.model.HazardType
+import androidx.compose.material3.Button
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
+import com.dmind.app.ui.components.IconBubble
+import com.dmind.app.ui.components.color
+import com.dmind.app.ui.components.icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 
+// หน้าจอแผนที่ภัยพิบัติหลัก (Disaster Map) แสดงผลเชิงพื้นที่ร่วมกับชั้นข้อมูลและสถานีตรวจวัด
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DisasterMapScreen(
     state: DisasterMapUiState,
     viewModel: DisasterMapViewModel,
+    darkTheme: Boolean,
     onBack: () -> Unit,
     onOpenStations: () -> Unit,
 ) {
@@ -55,15 +78,27 @@ fun DisasterMapScreen(
     var focusedPlace by remember { mutableStateOf<PlaceSearchResult?>(null) }
     var selectedStation by remember { mutableStateOf<MonitoringStation?>(null) }
     var showFilters by rememberSaveable { mutableStateOf(false) }
+    var clickedMarkerItem by remember { mutableStateOf<MapMarkerItem?>(null) }
+    var showMarkerPreview by remember { mutableStateOf(false) }
     var showLayers by rememberSaveable { mutableStateOf(false) }
     var showLegend by rememberSaveable { mutableStateOf(true) }
     var legendOffsetX by rememberSaveable(state.activeLayer) { mutableStateOf(0f) }
     var legendOffsetY by rememberSaveable(state.activeLayer) { mutableStateOf(0f) }
-    var mapStyle by rememberSaveable { mutableStateOf(MapTileStyle.Standard) }
+    var mapStyle by rememberSaveable { mutableStateOf(if (darkTheme) MapTileStyle.Dark else MapTileStyle.Standard) }
+
+    // อัปเดตรูปแบบแผนที่ตามความมืด/สว่างของระบบโดยอัตโนมัติ
+    LaunchedEffect(darkTheme) {
+        if (darkTheme && mapStyle == MapTileStyle.Standard) {
+            mapStyle = MapTileStyle.Dark
+        } else if (!darkTheme && mapStyle == MapTileStyle.Dark) {
+            mapStyle = MapTileStyle.Standard
+        }
+    }
     var cameraActionId by remember { mutableLongStateOf(0L) }
     var cameraActionKind by remember { mutableStateOf<MapCameraActionKind?>(null) }
     val activeWmtsLayer = state.activeWmtsLayer?.takeIf { it.isAvailable }
     val markerText = rememberMapMarkerText()
+    // ประกอบรายการมาร์กเกอร์ต่างๆ (เหตุการณ์, สถานี, จุดความร้อน) ที่จะวาดลงบนแผนที่
     val markers = remember(
         state.activeLayer,
         state.visibleEvents,
@@ -85,6 +120,7 @@ fun DisasterMapScreen(
         cameraActionKind = kind
     }
 
+    // โครงสร้างหน้าจอแบบมี Bottom Sheet ยื่นออกมาด้านล่างเพื่อแสดงข้อมูลและตัวเลือกพิเศษ
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 112.dp,
@@ -117,6 +153,7 @@ fun DisasterMapScreen(
                 .padding(bottom = padding.calculateBottomPadding()),
         ) {
             val activeRadarFramePath = state.radarFrames.getOrNull(state.currentRadarFrameIndex)?.path
+            // วิวจำลองแผนที่เชิงพื้นที่หลัก (MapLibre View)
             MapLibreTerrainView(
                 modifier = Modifier.fillMaxSize(),
                 markers = markers,
@@ -125,6 +162,8 @@ fun DisasterMapScreen(
                 focusedPlace = focusedPlace,
                 cameraAction = cameraActionKind?.let { MapCameraAction(cameraActionId, it) },
                 onMarkerClick = { marker ->
+                    clickedMarkerItem = marker
+                    showMarkerPreview = true
                     selectedStation = marker.station
                     viewModel.selectLayerFeature(
                         event = marker.event,
@@ -132,9 +171,10 @@ fun DisasterMapScreen(
                         floodArea = marker.floodArea,
                     )
                     viewModel.fetchWeatherForCoords(marker.latitude, marker.longitude)
-                    scope.launch { scaffoldState.bottomSheetState.expand() }
                 },
                 onMapClick = { lat, lon ->
+                    clickedMarkerItem = null
+                    showMarkerPreview = false
                     viewModel.fetchWeatherForCoords(lat, lon)
                     scope.launch { scaffoldState.bottomSheetState.expand() }
                 },
@@ -161,6 +201,7 @@ fun DisasterMapScreen(
                     ),
             )
 
+            // แถบค้นหาและปุ่มส่วนหัวแผนที่
             MapTopBar(
                 state = state,
                 onBack = onBack,
@@ -179,6 +220,7 @@ fun DisasterMapScreen(
                     .padding(14.dp),
             )
 
+            // ปุ่มควบคุมมุมมองซูมเข้า/ออก ปรับตำแหน่ง และปุ่มเปิดหน้าต่างตัวกรอง/ชั้นข้อมูล
             MapControls(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
@@ -190,6 +232,7 @@ fun DisasterMapScreen(
                 onLayers = { showLayers = true },
             )
 
+            // แผงคำอธิบายสัญลักษณ์และเกณฑ์วัดความรุนแรงบนแผนที่ (แบบลากย้ายได้)
             if (showLegend) {
                 DraggableLegendOverlay(
                     layer = state.activeLayer,
@@ -219,6 +262,7 @@ fun DisasterMapScreen(
                 )
             }
 
+            // แถบเครื่องมือเล่นเฟรมความเคลื่อนไหวของพายุฝน (Radar Timeline)
             if (state.showRadarOverlay && (state.activeLayer == DisasterLayerType.Storm || state.activeLayer.name == "Weather")) {
                 RadarTimelinePlayer(
                     radarFrames = state.radarFrames,
@@ -233,6 +277,24 @@ fun DisasterMapScreen(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(start = 14.dp, end = 14.dp, bottom = 128.dp),
+                )
+            }
+
+            // การ์ดพรีวิวข้อมูลขนาดย่อเมื่อแตะมาร์กเกอร์
+            if (showMarkerPreview && clickedMarkerItem != null) {
+                MarkerPreviewCard(
+                    marker = clickedMarkerItem!!,
+                    onViewDetailsClick = {
+                        showMarkerPreview = false
+                        scope.launch { scaffoldState.bottomSheetState.expand() }
+                    },
+                    onDismissClick = {
+                        showMarkerPreview = false
+                        clickedMarkerItem = null
+                    },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 128.dp, start = 16.dp, end = 16.dp),
                 )
             }
 
@@ -257,6 +319,7 @@ fun DisasterMapScreen(
         }
     }
 
+    // หน้าต่างแผ่นกรองสำหรับตัวเลือกสถิติและสถานี
     if (showFilters) {
         ModalBottomSheet(
             onDismissRequest = { showFilters = false },
@@ -272,6 +335,7 @@ fun DisasterMapScreen(
         }
     }
 
+    // หน้าต่างสลับชั้นข้อมูลแผนที่ (Layer Sheet)
     if (showLayers) {
         ModalBottomSheet(
             onDismissRequest = { showLayers = false },
@@ -295,6 +359,121 @@ fun DisasterMapScreen(
     LaunchedEffect(scaffoldState.bottomSheetState.currentValue) {
         if (scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded) {
             selectedStation = null
+        }
+    }
+}
+
+// คอมโพสเซเบิลการ์ดพรีวิวข้อมูลขนาดย่อเมื่อแตะหมุดแสดงข้อมูลบนแผนที่
+@Composable
+private fun MarkerPreviewCard(
+    marker: MapMarkerItem,
+    onViewDetailsClick: () -> Unit,
+    onDismissClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val shortStatus = remember(marker) {
+        when {
+            marker.isStation && marker.station != null -> {
+                val pm = marker.station.metrics.firstOrNull { it.label.contains("PM2.5", ignoreCase = true) }
+                val water = marker.station.metrics.firstOrNull { it.label.contains("น้ำ", ignoreCase = true) || it.label.contains("ไหล", ignoreCase = true) }
+                when {
+                    pm != null -> "${pm.label}: ${pm.value}"
+                    water != null -> "${water.label}: ${water.value}"
+                    marker.station.metrics.isNotEmpty() -> "${marker.station.metrics.first().label}: ${marker.station.metrics.first().value}"
+                    else -> "ตรวจวัดสถานะปกติ"
+                }
+            }
+            marker.event != null -> {
+                val event = marker.event
+                val typeLabel = when (event.type) {
+                    HazardType.Earthquake -> "แผ่นดินไหว"
+                    HazardType.Flood -> "น้ำท่วม"
+                    HazardType.Storm -> "พายุ"
+                    HazardType.Fire -> "ไฟป่า"
+                    HazardType.AirQuality -> "คุณภาพอากาศ"
+                    HazardType.Heat -> "ความร้อน"
+                    HazardType.Drought -> "ภัยแล้ง"
+                    else -> event.type.label
+                }
+                "$typeLabel: ${event.metric}"
+            }
+            marker.hotspot != null -> "ตรวจพบจุดความร้อนเมื่อ ${marker.hotspot.hoursSinceDetected ?: 0} ชม. ที่แล้ว"
+            marker.floodArea != null -> {
+                val area = marker.floodArea.areaSquareMeters?.let {
+                    String.format(java.util.Locale.US, "%,.0f ตร.ม.", it)
+                } ?: "ตรวจพบคราบน้ำท่วม"
+                "พื้นที่น้ำท่วม: $area"
+            }
+            else -> marker.snippet.substringBefore("|").trim()
+        }
+    }
+
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f),
+        tonalElevation = 6.dp,
+        shadowElevation = 8.dp,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.Top
+            ) {
+                IconBubble(
+                    icon = marker.type.icon(),
+                    color = marker.severity.color(),
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = marker.title,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = shortStatus,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Spacer(modifier = Modifier.width(4.dp))
+                IconButton(
+                    onClick = onDismissClick,
+                    modifier = Modifier.size(28.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = "Dismiss",
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            Button(
+                onClick = onViewDetailsClick,
+                shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .height(36.dp)
+            ) {
+                Text(
+                    text = "ดูรายละเอียด",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 12.sp
+                )
+            }
         }
     }
 }

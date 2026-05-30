@@ -7,9 +7,11 @@ import com.dmind.app.network.dto.GistdaFeatureResponseDto
 import com.dmind.app.network.dto.GistdaFloodFeatureDto
 import com.dmind.app.network.dto.GistdaViirsFeatureDto
 
+// คลาส Remote Data Source สำหรับดึงข้อมูลเหตุการณ์ภัยพิบัติและข้อมูลชั้นแผนที่ (WMS/WMTS) จาก GISTDA API
 class GistdaRemoteDataSource(
     private val api: GistdaApi = GistdaApi(),
 ) {
+    // ดึงข้อมูลจุดความร้อนและไฟป่า VIIRS จาก GISTDA ตามช่วงเวลาที่กำหนด
     suspend fun fetchViirsHotspots(
         timeRange: GistdaTimeRange,
         limit: Int,
@@ -21,6 +23,7 @@ class GistdaRemoteDataSource(
         }
     }
 
+    // ดึงข้อมูลพื้นที่ประสบอุทกภัย/น้ำท่วม จาก GISTDA ตามช่วงเวลาที่กำหนด
     suspend fun fetchFloodAreas(
         timeRange: GistdaTimeRange,
         limit: Int,
@@ -32,8 +35,10 @@ class GistdaRemoteDataSource(
         }
     }
 
+    // ตรวจสอบว่ามีการกำหนด API Key สำหรับเรียกใช้ API ของ GISTDA หรือไม่
     fun hasApiKey(): Boolean = api.hasApiKey()
 
+    // สร้างลิงก์ URL สำหรับชั้นแผนที่ WMTS Tile ตามประเภทภัยพิบัติและผลิตภัณฑ์ภัยแล้งที่ระบุ
     fun wmtsTileUrl(
         type: com.dmind.app.domain.model.DisasterLayerType,
         timeRange: GistdaTimeRange,

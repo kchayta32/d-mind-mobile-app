@@ -16,7 +16,9 @@ import io.ktor.server.routing.post
 import java.time.Instant
 import java.util.UUID
 
+// กำหนดเส้นทาง URL (Routing) ทั้งหมดที่เกี่ยวข้องกับระบบจัดการไฟล์สื่อมีเดียและการอัปโหลดรูปภาพ
 internal fun Route.mediaRoutes(config: GatewayConfig, supabase: SupabaseGateway) {
+    // เส้นทางสำหรับการอัปโหลดรูปภาพรายงานเหตุการณ์ภัยพิบัติไปยัง Supabase Storage
     post("/media/incident-images") {
         call.handleSafely(rateLimited = true, config = config) {
             if (!supabase.isConfigured) {

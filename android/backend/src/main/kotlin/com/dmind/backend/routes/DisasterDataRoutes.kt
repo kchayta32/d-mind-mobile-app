@@ -23,13 +23,16 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.util.concurrent.ConcurrentHashMap
 
+// โครงสร้างข้อมูลแคชสำหรับจัดเก็บสภาพอากาศพร้อมเวลาหมดอายุ
 private data class WeatherCacheEntry(
     val data: JsonElement,
     val expiryTimeMillis: Long
 )
 
+// ตัวแปรสำหรับเก็บแคชสภาพอากาศเพื่อลดการส่งคำขอไปยัง API ปลายทางบ่อยเกินไป
 private val weatherCache = ConcurrentHashMap<String, WeatherCacheEntry>()
 
+// ค้นหาและดึงข้อมูลสภาพอากาศจากแคช หากหมดอายุแล้วจะลบทิ้งและส่งค่ากลับเป็น null
 private fun getCachedWeather(key: String): JsonElement? {
     val entry = weatherCache[key] ?: return null
     if (System.currentTimeMillis() > entry.expiryTimeMillis) {
@@ -39,6 +42,7 @@ private fun getCachedWeather(key: String): JsonElement? {
     return entry.data
 }
 
+// บันทึกข้อมูลสภาพอากาศลงแคช โดยตั้งค่าเวลาหมดอายุไว้ที่ 15 นาที
 private fun putCachedWeather(key: String, data: JsonElement) {
     if (weatherCache.size > 1000) {
         val now = System.currentTimeMillis()
@@ -51,7 +55,10 @@ private fun putCachedWeather(key: String, data: JsonElement) {
     weatherCache[key] = WeatherCacheEntry(data, expiry)
 }
 
+// กำหนดเส้นทาง URL (Routing) ที่เกี่ยวกับข้อมูลพยากรณ์อากาศ ภัยพิบัติ และการประเมินวิเคราะห์ผลด้วย AI
 internal fun Route.disasterDataRoutes(config: GatewayConfig) {
+    
+    // เส้นทาง API สำหรับดึงข้อมูลสภาพอากาศ (รองรับ TMD API และ Open-Meteo เป็น Fallback)
     get("/weather") {
         call.handleSafely {
             val token = config.tmdApiToken
@@ -171,7 +178,7 @@ internal fun Route.disasterDataRoutes(config: GatewayConfig) {
                         "authorization" to "Bearer $token",
                     ),
                 ).json()
-                putCachedWeather(cacheKey, data)
+                putCachedWeather(data = data, key = cacheKey)
                 call.respond(JsonDataResponse(status = "ok", detail = "live TMD weather", data = data))
             } catch (e: Exception) {
                 // Fallback to Open-Meteo when TMD API call fails
@@ -191,6 +198,24 @@ internal fun Route.disasterDataRoutes(config: GatewayConfig) {
         }
     }
 
+    // เส้นทาง API สำหรับดึงข้อมูลเหตุการณ์แผ่นดินไหวล่าสุดทั่วโลกจาก USGS
+    get("/usgs-earthquakes") {
+        call.handleSafely {
+            val data = httpRequest(
+                method = "GET",
+                url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson"
+            )
+            call.respond(
+                JsonDataResponse(
+                    status = "ok",
+                    detail = "live USGS earthquakes",
+                    data = data.json()
+                )
+            )
+        }
+    }
+
+    // เส้นทาง API สำหรับขอรับการประเมินวิเคราะห์ระดับความเสียหายภัยพิบัติจากภาพถ่ายและคำอธิบายโดย AI
     post("/damage-assessment") {
         call.handleSafely(rateLimited = true, config = config) {
             val request = call.receive<DamageAssessmentRequest>()
@@ -240,6 +265,7 @@ internal fun Route.disasterDataRoutes(config: GatewayConfig) {
         }
     }
 
+    // เส้นทาง API สำหรับเปิดห้องสนทนาโต้ตอบแบบเรียลไทม์กับโมเดลปัญญาประดิษฐ์ (Chatbot) ด้านข้อมูลภัยพิบัติ
     post("/chat") {
         call.handleSafely(rateLimited = true, config = config) {
             val request = call.receive<ChatRequest>()
@@ -280,12 +306,14 @@ internal fun Route.disasterDataRoutes(config: GatewayConfig) {
     }
 }
 
+// โมเดลสำหรับตัวรับส่งข้อความแชทเดี่ยว
 @Serializable
 data class ChatMessageItem(
     val role: String,
     val content: String
 )
 
+// โครงสร้างคำขอสำหรับฟังก์ชันสนทนากับ AI
 @Serializable
 data class ChatRequest(
     val message: String,
@@ -293,6 +321,7 @@ data class ChatRequest(
     val systemPrompt: String? = null
 )
 
+// โครงสร้างข้อมูลตอบกลับจากบริการแชท
 @Serializable
 data class ChatResponse(
     val status: String,
@@ -300,6 +329,7 @@ data class ChatResponse(
     val model: String? = null
 )
 
+// โครงสร้างข้อมูลส่งคำขอวิเคราะห์ประเมินความเสียหาย
 @Serializable
 data class DamageAssessmentRequest(
     val imageUrl: String? = null,
@@ -307,6 +337,7 @@ data class DamageAssessmentRequest(
     val incidentId: String? = null
 )
 
+// โครงสร้างข้อมูลที่ตอบกลับผลลัพธ์การประเมินภัยพิบัติ
 @Serializable
 data class DamageAssessmentResponse(
     val status: String,
@@ -316,11 +347,13 @@ data class DamageAssessmentResponse(
     val model: String? = null
 )
 
+// ตัวแปลง JSON ส่วนตัว
 private val jsonParser = Json {
     ignoreUnknownKeys = true
     encodeDefaults = false
 }
 
+// ส่งคำสั่งสนทนาผ่านไปยังโมเดลภาษาขนาดใหญ่ภายนอก (OpenAI หรือ Thai LLM)
 private fun proxyChatToExternalModel(
     config: GatewayConfig,
     systemPrompt: String?,
@@ -384,6 +417,7 @@ private fun proxyChatToExternalModel(
     }
 }
 
+// ส่งภาพและรายละเอียดภัยพิบัติไปให้โมเดล AI เพื่อประเมินความเสียหาย
 private fun proxyDamageAssessmentToExternalModel(
     config: GatewayConfig,
     imageUrl: String?,
@@ -457,12 +491,14 @@ private fun proxyDamageAssessmentToExternalModel(
     }
 }
 
+// แยกดึงเฉพาะคะแนนระดับความรุนแรงภัยพิบัติออกมาจากข้อความวิเคราะห์ของโมเดลภาษา
 private fun extractSeverityScore(text: String): Int {
     val regex = Regex("""Estimated Severity:\s*([1-5])""", RegexOption.IGNORE_CASE)
     val match = regex.find(text)
     return match?.groupValues?.get(1)?.toIntOrNull() ?: 3
 }
 
+// ดึงข้อมูลสภาพอากาศแบบสำรองจากบริการพับลิก Open-Meteo ในกรณีที่ TMD API ขัดข้องหรือไม่มี Token
 private fun fetchOpenMeteoFallback(lat: Double, lon: Double, daily: Boolean, duration: Int): JsonElement {
     val apiType = if (daily) "daily" else "hourly"
     val url = if (daily) {

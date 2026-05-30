@@ -69,11 +69,13 @@ import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.remember
 import com.dmind.app.ui.components.IconBubble
+import com.dmind.app.ui.screens.map.formatOne
 import com.dmind.app.ui.components.ScreenHeader
 import com.dmind.app.ui.components.StatusPill
 import com.dmind.app.ui.viewmodel.ReportMessage
 import com.dmind.app.ui.viewmodel.ReportUiState
 
+// หน้าจอเขียนรายงานแจ้งเหตุภัยพิบัติจากภาคประชาชน (Crowdsourced Incident Reporting Screen)
 @Composable
 fun ReportScreen(
     state: ReportUiState,
@@ -98,6 +100,7 @@ fun ReportScreen(
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
+    // ตัวเลือกเลือกรูปภาพจากคลังสื่อของเครื่อง
     val pickMediaLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
@@ -107,6 +110,7 @@ fun ReportScreen(
         }
     }
 
+    // ตัวจัดการถ่ายภาพผ่านกล้องถ่ายรูป
     val takePhotoLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap ->
@@ -138,6 +142,7 @@ fun ReportScreen(
             )
         }
 
+        // การ์ดกรอกรายละเอียดและประเภทภัยพิบัติ
         item {
             DmindCard(modifier = Modifier.padding(horizontal = 18.dp)) {
                 Text(stringResource(R.string.incident_details), fontWeight = FontWeight.Bold)
@@ -151,6 +156,7 @@ fun ReportScreen(
                         )
                     }
                 }
+                // ช่องป้อนหัวข้อ คำอธิบาย และพิกัดสถานที่
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
@@ -174,6 +180,7 @@ fun ReportScreen(
                     label = { Text(stringResource(R.string.report_field_location)) },
                     singleLine = true,
                 )
+                // ตัวเลือกระดับความรุนแรงของภัยพิบัติ
                 Text(stringResource(R.string.report_severity), fontWeight = FontWeight.SemiBold)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     (1..5).forEach { level ->
@@ -219,7 +226,7 @@ fun ReportScreen(
                     }
                 }
 
-                // Image Preview
+                // ส่วนแสดงพรีวิวภาพถ่ายที่เลือกหรือถ่ายเสร็จพร้อมปุ่มลลออก
                 if (imageUri != null || imageBitmap != null) {
                     Box(
                         modifier = Modifier
@@ -248,7 +255,6 @@ fun ReportScreen(
                             )
                         }
 
-                        // Close button to remove image
                         IconButton(
                             onClick = {
                                 imageUri = null
@@ -264,6 +270,7 @@ fun ReportScreen(
                     }
                 }
 
+                // ปุ่มกดยืนยันการส่งรายงานเหตุ
                 Button(
                     onClick = {
                         var finalBytes: ByteArray? = null
@@ -339,6 +346,7 @@ fun ReportScreen(
     }
 }
 
+// คอมโพสเซเบิลการ์ดสรุปประวัติรายงานที่ส่งแล้วขนาดย่อ
 @Composable
 private fun ReportCard(
     report: IncidentReportRecord,
@@ -358,12 +366,14 @@ private fun ReportCard(
     }
 }
 
+// คลาสข้อมูลสำหรับเก็บประเภทรายงานภัยพิบัติเพื่อใช้แสดงตัวเลือก
 private data class ReportTypeOption(
     val value: String,
     val label: String,
     val icon: androidx.compose.ui.graphics.vector.ImageVector,
 )
 
+// ฟังก์ชันเปลี่ยนคำแจ้งเตือนผลลัพธ์เป็นภาษาปัจจุบันตามระบบ
 @Composable
 private fun ReportMessage.localizedText(): String = when (this) {
     ReportMessage.ValidationError -> stringResource(R.string.report_validation_error)
@@ -371,6 +381,7 @@ private fun ReportMessage.localizedText(): String = when (this) {
     ReportMessage.SubmitError -> stringResource(R.string.report_submit_error)
 }
 
+// ฟังก์ชันโหลดไฟล์บิตแมปจากพิกัด URI
 private fun loadBitmapFromUri(context: android.content.Context, uri: android.net.Uri): android.graphics.Bitmap? {
     return try {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
@@ -385,6 +396,7 @@ private fun loadBitmapFromUri(context: android.content.Context, uri: android.net
     }
 }
 
+// ฟังก์ชันย่อขนาดภาพบิตแมปก่อนอัปโหลดเพื่อลดการใช้งานแบนด์วิดท์
 private fun resizeBitmap(bitmap: android.graphics.Bitmap, maxDimension: Int): android.graphics.Bitmap {
     val width = bitmap.width
     val height = bitmap.height
@@ -400,6 +412,7 @@ private fun resizeBitmap(bitmap: android.graphics.Bitmap, maxDimension: Int): an
     return android.graphics.Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
 }
 
+// ฟังก์ชันบีบอัดและแปลงรูปภาพบิตแมปเป็นอาเรย์ไบต์
 private fun bitmapToBytes(bitmap: android.graphics.Bitmap): ByteArray {
     val stream = java.io.ByteArrayOutputStream()
     bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, stream)

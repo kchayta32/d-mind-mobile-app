@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 
+// ชุดคู่สีสำหรับธีมสว่าง (Light Theme Scheme)
 private val LightScheme = lightColorScheme(
     primary = Color(0xFF2563EB),
     onPrimary = Color.White,
@@ -44,6 +45,7 @@ private val LightScheme = lightColorScheme(
     inverseOnSurface = Color(0xFFF8FAFC),
 )
 
+// ชุดคู่สีสำหรับธีมมืด (Dark Theme Scheme)
 private val DarkScheme = darkColorScheme(
     primary = Color(0xFF7DB6FF),
     onPrimary = Color(0xFF06142F),
@@ -75,6 +77,7 @@ private val DarkScheme = darkColorScheme(
  * Custom typography optimized for Thai and English text rendering.
  * Uses system default font which includes Noto Sans Thai on Android 5+.
  */
+// การตั้งค่ารูปแบบตัวอักษร (Typography) ของแอป ซึ่งถูกปรับให้เหมาะกับภาษาไทยและภาษาอังกฤษ
 private val DMindTypography = Typography(
     displayLarge = TextStyle(
         fontWeight = FontWeight.ExtraBold,
@@ -162,6 +165,7 @@ private val DMindTypography = Typography(
     ),
 )
 
+// คอมโพสเซเบิลหลักสำหรับการกำหนดธีม (Theme) ให้กับแอป DMind
 @Composable
 fun DMindTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

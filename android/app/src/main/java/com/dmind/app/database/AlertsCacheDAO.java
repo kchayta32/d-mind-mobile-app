@@ -24,18 +24,20 @@ import java.util.List;
  * 3. Alert cache (received alerts from backend)
  * 4. User location history
  */
+// ตัวจัดการการเข้าถึงฐานข้อมูล SQLite สำหรับเก็บข้อมูลแจ้งเตือน พื้นที่อันตราย และประวัติตำแหน่ง
 public class AlertsCacheDAO extends SQLiteOpenHelper {
     
+    // กำหนดชื่อและเวอร์ชันของฐานข้อมูล
     private static final String DATABASE_NAME = "dmind_alerts.db";
     private static final int DATABASE_VERSION = 1;
     
-    // Table names
+    // รายชื่อตารางในระบบฐานข้อมูล
     public static final String TABLE_DANGER_ZONES = "danger_zones";
     public static final String TABLE_SOS_QUEUE = "sos_queue";
     public static final String TABLE_ALERTS_CACHE = "alerts_cache";
     public static final String TABLE_LOCATION_HISTORY = "location_history";
     
-    // Danger Zones columns
+    // โครงสร้างคอลัมน์ของตารางพื้นที่อันตราย (Danger Zones)
     public static final String COLUMN_ZONE_ID = "zone_id";
     public static final String COLUMN_ZONE_NAME = "zone_name";
     public static final String COLUMN_ZONE_TYPE = "zone_type";
@@ -46,7 +48,7 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
     public static final String COLUMN_ZONE_EXPIRY = "expiry_time";
     public static final String COLUMN_ZONE_ENABLED = "is_enabled";
     
-    // SOS Queue columns
+    // โครงสร้างคอลัมน์ของตารางคิวข้อความขอความช่วยเหลือฉุกเฉิน (SOS Queue)
     public static final String COLUMN_SOS_ID = "sos_id";
     public static final String COLUMN_SOS_USER_ID = "user_id";
     public static final String COLUMN_SOS_LATITUDE = "latitude";
@@ -57,7 +59,7 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
     public static final String COLUMN_SOS_CREATED = "created_at";
     public static final String COLUMN_SOS_SENT = "sent_at";
     
-    // Alerts Cache columns
+    // โครงสร้างคอลัมน์ของตารางประวัติการบันทึกการแจ้งเตือน (Alerts Cache)
     public static final String COLUMN_ALERT_ID = "alert_id";
     public static final String COLUMN_ALERT_TYPE = "alert_type";
     public static final String COLUMN_ALERT_LEVEL = "alert_level";
@@ -66,7 +68,7 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
     public static final String COLUMN_ALERT_READ = "is_read";
     public static final String COLUMN_ALERT_TIMESTAMP = "timestamp";
     
-    // Location History columns
+    // โครงสร้างคอลัมน์ของตารางประวัติตำแหน่งผู้ใช้ (Location History)
     public static final String COLUMN_LOC_ID = "loc_id";
     public static final String COLUMN_LOC_LATITUDE = "latitude";
     public static final String COLUMN_LOC_LONGITUDE = "longitude";
@@ -76,13 +78,14 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
     
     private static final String TAG = "AlertsCacheDAO";
     
+    // คอนสตรักเตอร์สำหรับสร้างและเตรียมการเชื่อมต่อฐานข้อมูล
     public AlertsCacheDAO(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
     
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // Create danger zones table
+        // สร้างตารางสำหรับเก็บข้อมูลพื้นที่อันตราย
         String CREATE_DANGER_ZONES_TABLE = "CREATE TABLE " + TABLE_DANGER_ZONES + " (" +
                 COLUMN_ZONE_ID + " INTEGER PRIMARY KEY," +
                 COLUMN_ZONE_NAME + " TEXT," +
@@ -96,7 +99,7 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
                 ")";
         db.execSQL(CREATE_DANGER_ZONES_TABLE);
         
-        // Create SOS queue table
+        // สร้างตารางสำหรับคิวข้อความขอความช่วยเหลือฉุกเฉิน (SOS)
         String CREATE_SOS_QUEUE_TABLE = "CREATE TABLE " + TABLE_SOS_QUEUE + " (" +
                 COLUMN_SOS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                 COLUMN_SOS_USER_ID + " TEXT," +
@@ -110,7 +113,7 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
                 ")";
         db.execSQL(CREATE_SOS_QUEUE_TABLE);
         
-        // Create alerts cache table
+        // สร้างตารางสำหรับประวัติการรับการแจ้งเตือนภัยพิบัติ
         String CREATE_ALERTS_CACHE_TABLE = "CREATE TABLE " + TABLE_ALERTS_CACHE + " (" +
                 COLUMN_ALERT_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                 COLUMN_ALERT_TYPE + " TEXT," +
@@ -122,7 +125,7 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
                 ")";
         db.execSQL(CREATE_ALERTS_CACHE_TABLE);
         
-        // Create location history table
+        // สร้างตารางสำหรับเก็บประวัติตำแหน่งทางภูมิศาสตร์ของผู้ใช้
         String CREATE_LOCATION_HISTORY_TABLE = "CREATE TABLE " + TABLE_LOCATION_HISTORY + " (" +
                 COLUMN_LOC_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                 COLUMN_LOC_LATITUDE + " REAL," +
@@ -138,13 +141,13 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
     
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Drop old tables
+        // ลบตารางเดิมออกหากมีการอัปเกรดเวอร์ชันฐานข้อมูล
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_DANGER_ZONES);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_SOS_QUEUE);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_ALERTS_CACHE);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_LOCATION_HISTORY);
         
-        // Create new tables
+        // สร้างตารางใหม่ทั้งหมดหลังจากลบเสร็จสิ้น
         onCreate(db);
         
         Log.d(TAG, "Database upgraded from version " + oldVersion + " to " + newVersion);
@@ -157,6 +160,7 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
     /**
      * Add danger zone to database
      */
+    // เพิ่มข้อมูลพื้นที่อันตรายใหม่ลงในฐานข้อมูล
     public long addDangerZone(DangerZone zone) {
         SQLiteDatabase db = this.getWritableDatabase();
         
@@ -181,6 +185,7 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
     /**
      * Get all danger zones
      */
+    // ดึงรายการพื้นที่อันตรายทั้งหมดที่เปิดใช้งานและยังไม่หมดอายุ
     public List<DangerZone> getAllDangerZones() {
         List<DangerZone> zones = new ArrayList<>();
         String query = "SELECT * FROM " + TABLE_DANGER_ZONES + 
@@ -221,6 +226,7 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
     /**
      * Enqueue SOS message
      */
+    // เพิ่มข้อความ SOS เข้าสู่คิวการส่ง (ใช้สำหรับเก็บออฟไลน์เมื่อไม่มีสัญญาณเน็ต)
     public long enqueueSOS(String userId, double latitude, double longitude, 
                           int batteryLevel, String message) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -244,6 +250,7 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
     /**
      * Get pending SOS messages
      */
+    // ดึงข้อมูลข้อความขอความช่วยเหลือ SOS ที่ยังอยู่ในสถานะรอดำเนินการส่ง
     public List<SOSMessage> getPendingSOSMessages() {
         List<SOSMessage> messages = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -279,6 +286,7 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
     /**
      * Mark a queued SOS message as sent.
      */
+    // อัปเดตสถานะของข้อความ SOS ในคิวว่าได้ถูกส่งออกเรียบร้อยแล้ว
     public int markSOSAsSent(int sosId) {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -299,6 +307,7 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
     /**
      * Mark a queued SOS message as failed but keep it retriable.
      */
+    // เปลี่ยนสถานะข้อความ SOS ให้กลับมารอการส่งใหม่ (กรณีส่งล้มเหลว)
     public int markSOSAsPending(int sosId) {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -322,6 +331,7 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
     /**
      * Add alert to cache
      */
+    // บันทึกรายการภัยพิบัติที่ได้รับลงในแคชฐานข้อมูลของเครื่อง
     public long addAlert(String alertType, String alertLevel, String message, String title) {
         SQLiteDatabase db = this.getWritableDatabase();
         
@@ -342,6 +352,7 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
     /**
      * Get unread alerts
      */
+    // ดึงรายการแจ้งเตือนภัยพิบัติที่ยังไม่ได้กดอ่าน
     public List<Alert> getUnreadAlerts() {
         List<Alert> alerts = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -379,6 +390,7 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
     /**
      * Add location to history
      */
+    // บันทึกประวัติตำแหน่งปัจจุบันของผู้ใช้เก็บไว้ในประวัติการเดินทางบนระบบออฟไลน์
     public long addLocation(double latitude, double longitude, float accuracy) {
         SQLiteDatabase db = this.getWritableDatabase();
         
@@ -397,6 +409,7 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
     /**
      * Get the latest location record from the location_history table.
      */
+    // ดึงข้อมูลพิกัดสถานที่ล่าสุดที่อัปเดตลงเครื่อง
     public LocationRecord getLatestLocation() {
         SQLiteDatabase db = this.getReadableDatabase();
         LocationRecord record = null;

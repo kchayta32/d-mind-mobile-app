@@ -2,7 +2,9 @@ package com.dmind.app.data.supabase
 
 import com.dmind.app.network.ThaiLlmMessage
 
+// อ็อบเจกต์เก็บชุดคำสั่งระบบ (System Prompt) และฟังก์ชันสร้างคิวข้อความสำหรับ Dr.Mind AI
 object DrMindPrompt {
+    // ชุดคำสั่งระบบสำหรับกำหนดบทบาท กฎเกณฑ์ ข้อพึงระวัง และเบอร์โทรศัพท์ฉุกเฉินให้ AI ทำงานตามบริบทที่กำหนด
     const val SYSTEM_INSTRUCTION: String = """
 คุณคือ Dr.Mind ผู้ช่วยภาษาไทยสำหรับแอป D-MIND Disaster Monitor
 
@@ -16,6 +18,7 @@ object DrMindPrompt {
 7. ห้ามแต่งจังหวัด เวลา ระดับความรุนแรง จำนวนผู้ได้รับผลกระทบ หรือสถานะที่ไม่มีใน context
 """
 
+    // ฟังก์ชันประกอบรายการข้อความสำหรับส่งไปถามโมเดลภาษาขนาดใหญ่ (LLM) โดยรวมคำสั่งระบบ, บริบทข้อมูล Supabase, ประวัติการสนทนาย้อนหลัง และคำถามล่าสุดของผู้ใช้
     fun buildMessages(
         userMessage: String,
         chatHistory: List<Pair<String, String>>,

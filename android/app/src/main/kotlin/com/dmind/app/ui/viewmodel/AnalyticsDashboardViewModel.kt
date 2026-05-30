@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+// คลาสเก็บข้อมูลสถานะ UI (UI State) สำหรับแดชบอร์ดการวิเคราะห์และสถิติภัยพิบัติ
 data class AnalyticsDashboardUiState(
     val summary: AnalyticsSummary? = null,
     val trends: List<TrendDataPoint> = emptyList(),
@@ -21,6 +22,7 @@ data class AnalyticsDashboardUiState(
     val error: String? = null,
 )
 
+// คลาส ViewModel สำหรับการประมวลผลข้อมูลและจัดการสถานะของหน้าจอ AnalyticsDashboard
 class AnalyticsDashboardViewModel(
     private val repository: AnalyticsRepository,
 ) : ViewModel() {
@@ -32,6 +34,7 @@ class AnalyticsDashboardViewModel(
         refresh()
     }
 
+    // ดึงข้อมูลใหม่ทั้งหมด (สรุปสถิติ แนวโน้ม และสภาพแวดล้อม)
     fun refresh() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
@@ -54,6 +57,7 @@ class AnalyticsDashboardViewModel(
         }
     }
 
+    // เลือกและอัปเดตช่วงเวลาในการแสดงผลกราฟแนวโน้มภัยพิบัติ
     fun selectPeriod(period: String) {
         if (period == _state.value.selectedPeriod) return
         _state.update { it.copy(selectedPeriod = period) }

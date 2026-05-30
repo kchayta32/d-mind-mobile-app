@@ -10,9 +10,11 @@ import com.dmind.app.domain.model.ViirsHotspot
 import com.dmind.app.domain.repository.GistdaDisasterRepository
 import com.dmind.app.network.api.GistdaEndpointPaths
 
+// คลาสเชื่อมโยงการทำงานสำหรับการเรียกข้อมูล GISTDA และจัดการแผนที่ระดับชั้น (Layer) ตามเงื่อนไขต่างๆ
 class GistdaDisasterRepositoryImpl(
     private val remoteDataSource: GistdaRemoteDataSource = GistdaRemoteDataSource(),
 ) : GistdaDisasterRepository {
+    // ดึงข้อมูลจุดความร้อนและไฟป่า VIIRS จาก Remote Data Source และแปลงข้อมูลไปเป็น Domain
     override suspend fun fetchViirsHotspots(
         timeRange: GistdaTimeRange,
         limit: Int,
@@ -21,6 +23,7 @@ class GistdaDisasterRepositoryImpl(
         remoteDataSource.fetchViirsHotspots(timeRange, limit, offset).map { it.toDomain() }
     }
 
+    // ดึงข้อมูลพื้นที่ประสบอุทกภัยจาก Remote Data Source และแปลงข้อมูลไปเป็น Domain
     override suspend fun fetchFloodFeatures(
         timeRange: GistdaTimeRange,
         limit: Int,
@@ -29,6 +32,7 @@ class GistdaDisasterRepositoryImpl(
         remoteDataSource.fetchFloodAreas(timeRange, limit, offset).map { it.toDomain(timeRange) }
     }
 
+    // สร้างและส่งคืนข้อมูลชั้นแผนที่ GistdaLayer สำหรับแสดงบนแผนที่แอปพลิเคชัน (เช่น ลิงก์ชั้นภาพแผนที่ WMTS Tile)
     override fun getWmtsLayer(
         type: DisasterLayerType,
         timeRange: GistdaTimeRange,

@@ -3,11 +3,13 @@ package com.dmind.app.network.dto
 import org.json.JSONArray
 import org.json.JSONObject
 
+// โมเดล DTO สำหรับรับข้อมูลรายการพิกัดเวกเตอร์ภูมิศาสตร์ (GeoJSON Features) จาก GISTDA
 data class GistdaFeatureResponseDto(
-    val numberMatched: Int,
-    val features: List<GistdaRawFeatureDto>,
+    val numberMatched: Int, // จำนวนรวมรายการข้อมูลทั้งหมดที่ตรงเงื่อนไขสืบค้น
+    val features: List<GistdaRawFeatureDto>, // รายการฟีเจอร์พิกัดภูมิศาสตร์ย่อย
 ) {
     companion object {
+        // ฟังก์ชันช่วยแกะโครงสร้างผลลัพธ์ JSON ของ GeoJSON ฟีเจอร์
         fun fromJson(body: String): GistdaFeatureResponseDto {
             val json = JSONObject(body)
             val featureArray = json.optJSONArray("features")
@@ -24,14 +26,16 @@ data class GistdaFeatureResponseDto(
     }
 }
 
+// โครงสร้างของข้อมูลดิบแต่ละพิกัดเวกเตอร์ (Raw Feature) และเครื่องมือหาจุดพิกัดกึ่งกลาง
 data class GistdaRawFeatureDto(
-    val id: String,
-    val properties: JSONObject,
-    val geometry: JSONObject?,
-    val centerLatitude: Double?,
-    val centerLongitude: Double?,
+    val id: String, // ไอดีเฉพาะระบุตัวตนเวกเตอร์
+    val properties: JSONObject, // รายละเอียดค่าแอตทริบิวต์ (Properties) ย่อยของเวกเตอร์
+    val geometry: JSONObject?, // ข้อมูลโครงสร้างเรขาคณิต (Geometry เช่น Point, Polygon)
+    val centerLatitude: Double?, // ละติจูดกึ่งกลางที่ได้จากการคำนวณหาจุดเฉลี่ยรูปทรง
+    val centerLongitude: Double?, // ลองจิจูดกึ่งกลางที่ได้จากการคำนวณหาจุดเฉลี่ยรูปทรง
 ) {
     companion object {
+        // แปลงออบเจกต์ฟีเจอร์เดี่ยวจากรูปแบบ JSON มาเป็น DTO ของระบบพร้อมระบุไอดีอัตโนมัติ
         fun fromJson(feature: JSONObject, index: Int): GistdaRawFeatureDto {
             val geometry = feature.optJSONObject("geometry")
             val center = centroidFromGeometry(geometry)
@@ -48,6 +52,7 @@ data class GistdaRawFeatureDto(
     }
 }
 
+// ฟังก์ชันขยายสำหรับใช้ตรวจสอบหาค่าความสำคัญลำดับแรกที่ค้นพบเพื่อทำเป็นข้อมูลข้อความ
 internal fun JSONObject.displayValue(
     vararg names: String,
     default: String = "-",
@@ -64,6 +69,7 @@ internal fun JSONObject.displayValue(
     return default
 }
 
+// ดึงค่าทศนิยม (Double) ลำดับแรกที่ตรวจพบคีย์ตามรายการลำดับชื่อคุณสมบัติ
 internal fun JSONObject.firstDouble(vararg names: String): Double? {
     for (name in names) {
         if (!has(name) || isNull(name)) continue
@@ -78,6 +84,7 @@ internal fun JSONObject.firstDouble(vararg names: String): Double? {
     return null
 }
 
+// ดึงค่าจำนวนเต็ม (Integer) ลำดับแรกที่ตรวจพบคีย์ตามรายการลำดับชื่อคุณสมบัติ
 internal fun JSONObject.firstInt(vararg names: String): Int? {
     for (name in names) {
         if (!has(name) || isNull(name)) continue
@@ -92,6 +99,7 @@ internal fun JSONObject.firstInt(vararg names: String): Int? {
     return null
 }
 
+// ฟังก์ชันช่วยหาจุดกึ่งกลาง (Centroid) ของอาร์เรย์พิกัด เพื่อหาค่าเฉลี่ยตำแหน่งละติจูด/ลองจิจูด
 internal fun centroidFromGeometry(geometry: JSONObject?): Pair<Double, Double>? {
     val coordinates = geometry?.optJSONArray("coordinates") ?: return null
     val points = mutableListOf<Pair<Double, Double>>()
@@ -100,6 +108,7 @@ internal fun centroidFromGeometry(geometry: JSONObject?): Pair<Double, Double>? 
     return points.map { it.first }.average() to points.map { it.second }.average()
 }
 
+// ฟังก์ชันวนซ้ำแบบ Recursion ค้นหาพิกัดคู่เลขทศนิยมละติจูด/ลองจิจูดจากข้อมูลอาร์เรย์พิกัดซ้อนย่อย
 private fun collectCoordinatePairs(
     node: Any?,
     points: MutableList<Pair<Double, Double>>,
@@ -118,6 +127,7 @@ private fun collectCoordinatePairs(
     }
 }
 
+// แปลงค่าอินพุตพิกัดให้อยู่ในรูปทศนิยม Double
 private fun Any?.asCoordinateDouble(): Double? = when (this) {
     is Number -> toDouble()
     is String -> toDoubleOrNull()

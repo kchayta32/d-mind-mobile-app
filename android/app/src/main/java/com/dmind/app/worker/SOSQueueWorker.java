@@ -26,15 +26,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+// คลาสเวิร์กเกอร์ (Worker) สำหรับจัดการส่งสัญญาณ SOS ที่ค้างอยู่ในคิวแบบเบื้องหลัง (Background Task) ผ่าน WorkManager
 public class SOSQueueWorker extends Worker {
 
     private static final String TAG = "SOSQueueWorker";
     private static final String UNIQUE_WORK_NAME = "dmind_sos_queue_flush";
 
+    // คอนสตรักเตอร์สำหรับกำหนดค่าคอนเท็กซ์และพารามิเตอร์ให้กับเวิร์กเกอร์
     public SOSQueueWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
     }
 
+    // เมธอดหลักที่รันงานเบื้องหลังเพื่อดึงข้อมูล SOS ที่ค้างอยู่ในฐานข้อมูลออกมาพยายามส่งออกไปยังเซิร์ฟเวอร์
     @NonNull
     @Override
     public Result doWork() {
@@ -80,6 +83,7 @@ public class SOSQueueWorker extends Worker {
         return hadTransientFailure ? Result.retry() : Result.success();
     }
 
+    // ส่งข้อมูล SOSMessage ไปยังเซิร์ฟเวอร์ Backend ผ่าน HTTP POST
     private boolean postSOS(String endpoint, SOSMessage message) {
         HttpURLConnection connection = null;
         try {
@@ -108,6 +112,7 @@ public class SOSQueueWorker extends Worker {
         }
     }
 
+    // สั่งให้เวิร์กเกอร์ SOSQueueWorker เริ่มทำงานในคิวระบบ โดยระบุเงื่อนไขต้องเชื่อมต่ออินเทอร์เน็ต (Connected)
     public static void enqueue(Context context) {
         Constraints constraints = new Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)

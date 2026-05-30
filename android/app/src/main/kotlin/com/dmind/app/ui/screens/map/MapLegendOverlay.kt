@@ -48,6 +48,7 @@ import com.dmind.app.ui.components.DmindBlue
 import com.dmind.app.ui.components.SeverityLegend
 import kotlin.math.roundToInt
 
+// คอมโพสเซเบิลปุ่มสลับสำหรับแสดงผลแผงคำอธิบายสัญลักษณ์ (Legend)
 @Composable
 internal fun LegendToggleButton(
     onClick: () -> Unit,
@@ -64,6 +65,7 @@ internal fun LegendToggleButton(
     }
 }
 
+// คอมโพสเซเบิลแสดงแผงคำอธิบายสัญลักษณ์แผนที่แบบลากขยับได้ (Draggable Legend Overlay)
 @Composable
 internal fun DraggableLegendOverlay(
     layer: DisasterLayerType,
@@ -98,14 +100,13 @@ internal fun DraggableLegendOverlay(
                 DisasterLayerType.WildfireViirs -> ViirsLegendContent()
                 DisasterLayerType.DroughtSmap -> DroughtLegendContent(droughtProduct)
                 DisasterLayerType.Flood -> FloodLegendContent(floodTimeRange)
-                DisasterLayerType.RiverDischarge -> RiverDischargeLegendContent()
-                DisasterLayerType.SoilMoistureHeatmap -> SoilMoistureLegendContent()
                 else -> GenericLegendContent()
             }
         }
     }
 }
 
+// ส่วนหัวของแผงคำอธิบายพร้อมปุ่มปิดและไอคอนสัญญะสำหรับใช้ลากย้ายแผง
 @Composable
 private fun LegendHeader(
     onDismiss: () -> Unit,
@@ -127,6 +128,7 @@ private fun LegendHeader(
     }
 }
 
+// ข้อมูลคำอธิบายสำหรับระดับความสดใหม่ของจุดความร้อนไฟป่าดาวเทียม VIIRS
 @Composable
 private fun ViirsLegendContent(modifier: Modifier = Modifier) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -146,6 +148,7 @@ private fun ViirsLegendContent(modifier: Modifier = Modifier) {
     }
 }
 
+// ข้อมูลคำอธิบายเชิงแถบสีไล่ระดับสำหรับดัชนีภัยแล้งของ GISTDA
 @Composable
 private fun DroughtLegendContent(
     product: GistdaDroughtProduct,
@@ -178,6 +181,7 @@ private fun DroughtLegendContent(
     }
 }
 
+// ข้อมูลคำอธิบายสำหรับพื้นที่น้ำท่วม แยกตามระดับความรุนแรงหรือความถี่
 @Composable
 private fun FloodLegendContent(
     timeRange: GistdaTimeRange,
@@ -193,6 +197,7 @@ private fun FloodLegendContent(
     }
 }
 
+// ข้อมูลคำอธิบายสำหรับข้อมูลความถี่เหตุการณ์น้ำท่วมสะสม
 @Composable
 private fun FloodFrequencyLegendContent(modifier: Modifier = Modifier) {
     val buckets = FloodFrequencyBucket.entries
@@ -224,78 +229,10 @@ private fun FloodFrequencyLegendContent(modifier: Modifier = Modifier) {
     }
 }
 
+// ข้อมูลคำอธิบายระดับความรุนแรงทั่วไปประจำชั้นข้อมูลแผนที่
 @Composable
 private fun GenericLegendContent(modifier: Modifier = Modifier) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         SeverityLegend()
-    }
-}
-
-@Composable
-private fun RiverDischargeLegendContent(modifier: Modifier = Modifier) {
-    val colors = listOf(
-        Color(0xFFADD8E6),
-        Color(0xFF4169E1),
-        Color(0xFF0000CD),
-        Color(0xFF00008B),
-        Color(0xFF4B0082)
-    )
-    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("อัตราการไหลของแม่น้ำ", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(14.dp)
-                .clip(RoundedCornerShape(7.dp))
-                .background(Brush.horizontalGradient(colors))
-        )
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            val labels = listOf("ต่ำ", "ปานกลาง", "สูง", "สูงมาก")
-            val ranges = listOf("0-50", "50-200", "200-500", ">500")
-            labels.forEachIndexed { index, label ->
-                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(ranges[index], fontWeight = FontWeight.SemiBold, fontSize = 9.sp, maxLines = 1)
-                    Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 9.sp, maxLines = 1)
-                }
-            }
-        }
-        Text("หน่วย: ลบ.ม./วินาที (m³/s)", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
-    }
-}
-
-@Composable
-private fun SoilMoistureLegendContent(modifier: Modifier = Modifier) {
-    val colors = listOf(
-        Color(0xFFB2182B),
-        Color(0xFFD6604D),
-        Color(0xFFF4A582),
-        Color(0xFFFDDBC7),
-        Color(0xFFF7F7F7),
-        Color(0xFFD1E5F0),
-        Color(0xFF92C5DE),
-        Color(0xFF4393C3),
-        Color(0xFF2166AC),
-        Color(0xFF053061)
-    )
-    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("ความชื้นสะสมในดิน (0-7 ซม.)", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(14.dp)
-                .clip(RoundedCornerShape(7.dp))
-                .background(Brush.horizontalGradient(colors))
-        )
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            val labels = listOf("แห้งมาก", "แห้ง", "ปานกลาง", "ชื้น", "ชื้นมาก")
-            val values = listOf("0.0", "0.1", "0.2", "0.3", "0.5+")
-            labels.forEachIndexed { index, label ->
-                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(values[index], fontWeight = FontWeight.SemiBold, fontSize = 9.sp, maxLines = 1)
-                    Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 9.sp, maxLines = 1)
-                }
-            }
-        }
-        Text("หน่วย: m³/m³ (VWC)", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
     }
 }

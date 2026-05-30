@@ -4,7 +4,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+// คลาสสำหรับทดสอบข้อมูลพิกัดต่างๆ ของภัยพิบัติและสภาพแวดล้อมจาก DisasterMapRepository
 class DisasterMapRepositoryTest {
+    
+    // ทดสอบจำนวนพิกัดข้อมูลความชื้นในดินว่ามีจำนวนครบ 50 จุดตามข้อกำหนด
     @Test
     fun testSoilMoistureCoordinatesCount() {
         // Task 2 requires expanding coordinates list to ~50 points
@@ -12,6 +15,7 @@ class DisasterMapRepositoryTest {
         assertEquals(50, coords.size)
     }
 
+    // ทดสอบข้อมูลพิกัดการระบายน้ำของแม่น้ำ ว่ามีจำนวนครบ 24 จุด และมีแม่น้ำสายหลักตรงตามที่กำหนดครบ 7 สาย
     @Test
     fun testRiverDischargeCoordinates() {
         // Task 1: Check river names and coordinate count

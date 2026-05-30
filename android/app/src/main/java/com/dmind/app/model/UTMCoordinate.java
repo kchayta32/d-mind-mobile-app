@@ -5,8 +5,10 @@ package com.dmind.app.model;
  * 
  * UTM is used for regional distance calculations and provides meter-based coordinates.
  */
+// โมเดลข้อมูลพิกัดระบบ UTM (Universal Transverse Mercator) เพื่อช่วยคำนวณระยะทางเป็นเมตรอย่างแม่นยำ
 public class UTMCoordinate {
     
+    // คุณสมบัติต่างๆ ของพิกัด UTM
     private int zone;
     private double easting;
     private double northing;
@@ -17,14 +19,14 @@ public class UTMCoordinate {
     /**
      * Create UTM coordinate
      */
+    // คอนสตรักเตอร์สำหรับพิกัด UTM โดยดึงโซนเริ่มต้นและคำนวณแปลงพิกัดทันที
     public UTMCoordinate(int zone, double latitude, double longitude) {
         this.zone = zone;
         this.latitude = latitude;
         this.longitude = longitude;
         this.isNorthernHemisphere = latitude >= 0;
         
-        // Convert to UTM coordinates (simplified)
-        // In production, use GeographicLib or similar library
+        // แปลงพิกัดภูมิศาสตร์ปกติเป็นรูปแบบ UTM
         convertToUTM();
     }
     
@@ -32,19 +34,19 @@ public class UTMCoordinate {
      * Convert WGS84 to UTM (simplified implementation)
      * For production, use a proper geodesy library
      */
+    // อัลกอริทึมแปลงระบบพิกัดภูมิศาสตร์ (WGS84) เป็นพิกัด UTM แบบย่อ (easting, northing)
     private void convertToUTM() {
-        // Simplified formula - for production use GeographicLib or similar
         double latRad = GeoPoint.toRadians(latitude);
         double lonRad = GeoPoint.toRadians(longitude);
         double lonZero = GeoPoint.toRadians((zone - 1) * 6 - 180 + 3);
         
-        // Eccentricity of WGS84 ellipsoid
+        // ค่าสัมประสิทธิ์ความเยื้องศูนย์กลางของทรงรี WGS84
         double e = 0.0818191908429;
         double e2 = e * e;
         double e4 = e2 * e2;
         double e6 = e4 * e2;
         
-        //footprint latitude
+        // คำนวณหาค่าละติจูดโครงร่าง (footprint latitude)
         double mu = latRad - (e2/2 - 5*e4/24 + e6/12) * Math.sin(2*latRad) 
                     + (7*e4/48 - 29*e6/240) * Math.sin(4*latRad)
                     - (7*e4/240 + 17*e6/240) * Math.sin(6*latRad);
@@ -54,23 +56,23 @@ public class UTMCoordinate {
         double C = e2 / (1 - e2) * Math.cos(latRad) * Math.cos(latRad);
         double A = (lonRad - lonZero) * Math.cos(latRad);
         
-        // M is distance from equator to latitude in meters
+        // M คือระยะทางตามแนวเส้นเมอริเดียนจากเส้นศูนย์สูตรถึงละติจูด (เมตร)
         double M = 6378137.0 * ((1 - e2/4 - 3*e4/64 - 5*e6/256) * latRad 
                 - (3*e2/8 + 3*e4/32 + 45*e6/1024) * Math.sin(2*latRad)
                 + (15*e4/256 + 45*e6/1024) * Math.sin(4*latRad)
                 - (35*e6/3072) * Math.sin(6*latRad));
         
-        // UTM coordinates
+        // คำนวณค่าพิกัด UTM แกน X (easting) และแกน Y (northing)
         northing = M + 6378137.0 * (latRad - mu) * (1 + T + C);
         easting = 500000 + 6378137.0 * A * (1 - T + (5 - 18*T + T*T + 14*C - 58*C*C) * A * A / 24);
         
-        // Add false northing for southern hemisphere
+        // เพิ่มค่าชดเชย False Northing สำหรับซีกโลกใต้
         if (!isNorthernHemisphere) {
             northing += 10000000;
         }
     }
     
-    // Getters
+    // Getters สำหรับเข้าถึงค่าพิกัด UTM
     public int getZone() { return zone; }
     public double getEasting() { return easting; }
     public double getNorthing() { return northing; }
@@ -78,7 +80,7 @@ public class UTMCoordinate {
     public double getLongitude() { return longitude; }
     public boolean isNorthernHemisphere() { return isNorthernHemisphere; }
     
-    // Setters
+    // Setters สำหรับกำหนดค่าพิกัด UTM
     public void setZone(int zone) { this.zone = zone; }
     public void setEasting(double easting) { this.easting = easting; }
     public void setNorthing(double northing) { this.northing = northing; }
@@ -90,6 +92,7 @@ public class UTMCoordinate {
      * Calculate distance to another UTM coordinate
      * UTM coordinates are in meters, so this is straightforward
      */
+    // คำนวณระยะทางตรงระหว่างพิกัด UTM สองจุด (หน่วยเป็นเมตรโดยใช้ทฤษฎีบทพีทาโกรัส)
     public double distanceTo(UTMCoordinate other) {
         double dx = this.easting - other.easting;
         double dy = this.northing - other.northing;
@@ -99,6 +102,7 @@ public class UTMCoordinate {
     /**
      * Check if this UTM coordinate is within a radius of another coordinate
      */
+    // ตรวจสอบว่าพิกัดนี้อยู่ในรัศมีขอบเขตที่กำหนดหรือไม่ (รัศมีหน่วยเป็นเมตร)
     public boolean isWithinRadius(UTMCoordinate other, double radiusMeters) {
         return distanceTo(other) <= radiusMeters;
     }
@@ -106,6 +110,7 @@ public class UTMCoordinate {
     /**
      * Check if this coordinate is in the same UTM zone as another
      */
+    // ตรวจสอบว่าพิกัดนี้อยู่ในโซน UTM เดียวกันกับอีกพิกัดหรือไม่
     public boolean inSameZone(UTMCoordinate other) {
         return this.zone == other.zone;
     }
@@ -114,14 +119,15 @@ public class UTMCoordinate {
      * Convert to GeoPoint (WGS84) - simplified
      * For production, use GeographicLib
      */
+    // แปลงพิกัด UTM ให้กลับเป็นจุดพิกัดทางภูมิศาสตร์ GeoPoint
     public GeoPoint toGeoPoint() {
-        // Simplified - in production, use Geodetic to UTM conversion
         return new GeoPoint(latitude, longitude);
     }
     
     /**
      * Convert to string representation
      */
+    // แสดงข้อมูลรายละเอียดพิกัด UTM ในรูปแบบข้อความ
     @Override
     public String toString() {
         return String.format("UTM Zone %d%s, E: %.2fm, N: %.2fm", 
@@ -133,6 +139,7 @@ public class UTMCoordinate {
     /**
      * Check if coordinates are valid
      */
+    // ตรวจสอบว่าค่าของโซน ค่าทิศตะวันออก และค่าทิศเหนือเป็นพิกัด UTM ที่ถูกต้องตามทฤษฎีหรือไม่
     public boolean isValid() {
         return zone >= 1 && zone <= 60 &&
                easting >= 100000 && easting <= 900000 &&
@@ -146,6 +153,7 @@ public class UTMCoordinate {
     /**
      * Create UTM coordinate from GeoPoint
      */
+    // เมธอด static สำหรับสร้างวัตถุพิกัด UTM จากวัตถุ GeoPoint
     public static UTMCoordinate fromGeoPoint(GeoPoint point) {
         int zone = (int) Math.floor((point.getLongitude() + 180) / 6) + 1;
         return new UTMCoordinate(zone, point.getLatitude(), point.getLongitude());
@@ -155,6 +163,7 @@ public class UTMCoordinate {
      * Create UTM coordinate from string
      * Example: "54N 345678E 1375678N"
      */
+    // เมธอด static สำหรับการแปลงข้อความพิกัดรูปแบบ UTM ให้เป็นวัตถุ UTMCoordinate
     public static UTMCoordinate fromString(String utmString) {
         try {
             String[] parts = utmString.split("[,\\s]+");
@@ -171,7 +180,7 @@ public class UTMCoordinate {
                 return coord;
             }
         } catch (Exception e) {
-            // Failed to parse
+            // ดักจับข้อผิดพลาดการดึงข้อมูลรูปแบบข้อความ
         }
         return null;
     }

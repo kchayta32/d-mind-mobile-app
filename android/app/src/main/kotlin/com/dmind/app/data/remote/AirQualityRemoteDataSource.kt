@@ -13,7 +13,9 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Locale
 
+// คลาสเชื่อมต่อและดึงข้อมูลคุณภาพอากาศ (PM2.5) จาก GISTDA Air Pollution API
 class AirQualityRemoteDataSource {
+    // ดึงข้อมูลคุณภาพอากาศแบบเรียลไทม์ และกรณีเกิดข้อผิดพลาดจะดึงข้อมูลสำรองแทน
     suspend fun fetchAirQuality(): AirQualityResult = withContext(Dispatchers.IO) {
         runCatching {
             val body = httpGet("https://air.gistda.or.th/rest/getPollution?lv=0&type=PM25&id=THA")
@@ -49,6 +51,7 @@ class AirQualityRemoteDataSource {
         }
     }
 
+    // แปลงข้อมูลดิบรูปแบบ JSON ที่ได้รับจาก GISTDA เป็นรายการเหตุการณ์ระดับ Domain
     private fun parseAirQuality(body: String): List<DisasterEvent> {
         val trimmed = body.trim()
         val rows = when {
@@ -95,6 +98,7 @@ class AirQualityRemoteDataSource {
         }
     }
 
+    // ฟังก์ชันเชื่อมต่อเครือข่ายและดึงข้อมูลผ่าน HTTP GET Request
     private fun httpGet(url: String): String {
         val connection = (URL(url).openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"
@@ -114,6 +118,7 @@ class AirQualityRemoteDataSource {
         }
     }
 
+    // สร้างรายการข้อมูลจำลองคุณภาพอากาศ (PM2.5) สำหรับจังหวัดหลักๆ เมื่อดึงข้อมูลจริงไม่ได้
     private fun fallbackAirQualityEvents(): List<DisasterEvent> = listOf(
         airEvent("pm25-bkk", "Bangkok Central", "Bangkok", 13.7563, 100.5018, 42.0),
         airEvent("pm25-cm", "Chiang Mai City", "Chiang Mai", 18.7883, 98.9853, 76.0),
@@ -122,6 +127,7 @@ class AirQualityRemoteDataSource {
         airEvent("pm25-songkhla", "Songkhla", "Songkhla", 7.1898, 100.5951, 24.0),
     )
 
+    // สร้างเหตุการณ์ PM2.5 สำหรับข้อมูลจำลอง
     private fun airEvent(
         id: String,
         station: String,
@@ -146,6 +152,7 @@ class AirQualityRemoteDataSource {
         )
     }
 
+    // ประเมินระดับความรุนแรงของค่าฝุ่น PM2.5
     private fun pm25Severity(pm25: Double): Severity = when {
         pm25 >= 75.0 -> Severity.Critical
         pm25 >= 50.0 -> Severity.Affected
@@ -153,6 +160,7 @@ class AirQualityRemoteDataSource {
         else -> Severity.Normal
     }
 
+    // ฟังก์ชันตัวช่วยค้นหาและรับ JSONArray ตัวแรกที่พบตามชื่อฟิลด์ที่กำหนด
     private fun JSONObject.firstArrayOf(vararg names: String): JSONArray {
         for (name in names) {
             val array = optJSONArray(name)
@@ -161,6 +169,7 @@ class AirQualityRemoteDataSource {
         return JSONArray()
     }
 
+    // ฟังก์ชันตัวช่วยแปลงเป็น Double หรือส่งคืนค่า null หากไม่มีข้อมูล
     private fun JSONObject.optDoubleOrNull(name: String): Double? {
         if (!has(name) || isNull(name)) return null
         return when (val value = opt(name)) {
@@ -170,6 +179,7 @@ class AirQualityRemoteDataSource {
         }
     }
 
+    // ฟังก์ชันแปลงทศนิยมเป็น String ทศนิยม 1 ตำแหน่ง
     private fun Double.oneDecimal(): String = String.format(Locale.US, "%.1f", this)
 
     companion object {
@@ -177,6 +187,7 @@ class AirQualityRemoteDataSource {
     }
 }
 
+// คลาสผลลัพธ์ข้อมูลคุณภาพอากาศพร้อมสถานะแหล่งข้อมูล
 data class AirQualityResult(
     val events: List<DisasterEvent>,
     val fromFallback: Boolean,

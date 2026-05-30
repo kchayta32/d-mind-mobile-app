@@ -33,11 +33,13 @@ val LocalLanguage = staticCompositionLocalOf { LocaleManager.THAI }
  * Manages in-app locale switching for Thai (default) / English.
  * Persists choice in DataStore and applies it via attachBaseContext.
  */
+// ออบเจ็กต์สำหรับจัดการภาษาของแอปพลิเคชัน (Locale Manager) รองรับภาษาไทย (เริ่มต้น) และภาษาอังกฤษ
 object LocaleManager {
     private val languageKey = stringPreferencesKey("language")
     const val THAI = "th"
     const val ENGLISH = "en"
 
+    // ดึงค่าภาษาปัจจุบันออกมาในรูปแบบของ Kotlin Flow สำหรับการสังเกตการเปลี่ยนแปลงภาษาแบบ Reactive
     fun languageFlow(context: Context): Flow<String> {
         return context.applicationContext.localeDataStore.data
             .catch { error ->
@@ -55,6 +57,7 @@ object LocaleManager {
     /**
      * Returns the persisted language code, defaulting to Thai.
      */
+    // ดึงค่าภาษาปัจจุบันที่บันทึกไว้ใน DataStore (หากไม่พบ ให้คืนค่าภาษาไทยเป็นค่าเริ่มต้น)
     fun getLanguage(context: Context): String {
         return runBlocking(Dispatchers.IO) {
             try {
@@ -68,6 +71,7 @@ object LocaleManager {
     /**
      * Persists the language code and recreates the activity to apply the change.
      */
+    // บันทึกภาษาที่เลือกใหม่ลงใน DataStore และทำการสร้าง Activity ใหม่ (recreate) เพื่อเริ่มใช้ภาษาใหม่
     fun setLanguage(activity: Activity, languageCode: String) {
         val nextLanguage = languageCode.toSupportedLanguage()
         if (getLanguage(activity) == nextLanguage) return
@@ -84,6 +88,7 @@ object LocaleManager {
      * Wraps the base context with the selected locale.
      * Call from Activity.attachBaseContext(LocaleManager.wrapContext(base)).
      */
+    // ครอบ Context ของ Activity ด้วย Configuration ภาษาที่เลือก เพื่อให้เนื้อหารีซอร์สเปลี่ยนเป็นภาษานั้นๆ
     fun wrapContext(base: Context): Context {
         val language = getLanguage(base)
         val locale = Locale(language)
@@ -100,6 +105,7 @@ object LocaleManager {
         return base.createConfigurationContext(config)
     }
 
+    // ฟังก์ชันเสริมสำหรับแปลงค่า String ให้เป็นภาษาที่ระบบรองรับ (ไทย / อังกฤษ)
     private fun String?.toSupportedLanguage(): String {
         return when (this) {
             ENGLISH -> ENGLISH
@@ -108,6 +114,7 @@ object LocaleManager {
     }
 }
 
+// คอมโพสเซเบิลฟังก์ชัน (Composable Function) สำหรับมอบขอบเขตภาษาปัจจุบัน (LocalLanguage) ให้กับ UI ของ Jetpack Compose
 @Composable
 fun LocaleProvider(content: @Composable () -> Unit) {
     val context = LocalContext.current

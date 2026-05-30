@@ -1,17 +1,19 @@
 package com.dmind.app.domain.model
 
+// โครงสร้างข้อมูลประเมินความรุนแรงของพื้นที่น้ำท่วม
 data class FloodArea(
-    val id: String,
-    val latitude: Double,
-    val longitude: Double,
-    val province: String,
-    val district: String,
-    val subdistrict: String,
-    val areaSquareMeters: Double?,
-    val updatedAt: String,
-    val timeRange: GistdaTimeRange,
-    val recurrenceCount: Int? = null,
+    val id: String, // รหัสของข้อมูลพื้นที่
+    val latitude: Double, // ละติจูดของพิกัดพื้นที่น้ำท่วม
+    val longitude: Double, // ลองจิจูดของพิกัดพื้นที่น้ำท่วม
+    val province: String, // ชื่อจังหวัด
+    val district: String, // ชื่ออำเภอ
+    val subdistrict: String, // ชื่อตำบล
+    val areaSquareMeters: Double?, // ขนาดพื้นที่ประสบภัย (ตารางเมตร)
+    val updatedAt: String, // วันเวลาที่อัปเดตข้อมูลล่าสุด
+    val timeRange: GistdaTimeRange, // ขอบเขตช่วงเวลาของข้อมูลภัยพิบัติจาก Gistda
+    val recurrenceCount: Int? = null, // จำนวนรอบการเกิดซ้ำ (กรณีพื้นที่ท่วมซ้ำซาก)
 ) {
+    // การคำนวณระดับความรุนแรงอัตโนมัติอ้างอิงจากขนาดพื้นที่หรือประวัติการท่วมซ้ำซาก
     val severity: Severity
         get() = when {
             timeRange == GistdaTimeRange.FloodFrequency && (recurrenceCount ?: 0) > 12 -> Severity.Critical
@@ -23,13 +25,15 @@ data class FloodArea(
             else -> Severity.Normal
         }
 
+    // คืนค่ากลุ่มช่วงความถี่ในการท่วมซ้ำซาก
     val frequencyBucket: FloodFrequencyBucket
         get() = floodFrequencyBucket(recurrenceCount)
 }
 
+// ลำดับช่วงความถี่สำหรับจัดแสดงเป็นระดับบนแผนที่หรือตารางข้อมูล
 enum class FloodFrequencyBucket(
-    val label: String,
-    val description: String,
+    val label: String, // เลเบลป้ายสัญลักษณ์ช่วงตัวเลข
+    val description: String, // รายละเอียดคำอธิบายภาษาไทย
 ) {
     LessThanOne("<1", "น้อยกว่า 1 ครั้ง"),
     OneToThree("1-3", "1 ถึง 3 ครั้ง"),
@@ -39,6 +43,7 @@ enum class FloodFrequencyBucket(
     MoreThanTwelve(">12", "มากกว่า 12 ครั้ง"),
 }
 
+// ฟังก์ชันแปลงจำนวนครั้งการเกิดท่วมซ้ำให้เป็น Enum ช่วงความถี่
 fun floodFrequencyBucket(count: Int?): FloodFrequencyBucket {
     val value = count ?: 0
     return when {

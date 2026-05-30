@@ -44,6 +44,7 @@ import com.dmind.app.ui.screens.analytics.components.SummaryCards
 import com.dmind.app.ui.screens.analytics.components.TrendCharts
 import com.dmind.app.ui.viewmodel.AnalyticsDashboardUiState
 
+// หน้าจอแดชบอร์ดแสดงผลสถิติและข้อมูลการวิเคราะห์ข้อมูลภัยพิบัติ
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnalyticsDashboardScreen(
@@ -60,7 +61,7 @@ fun AnalyticsDashboardScreen(
         contentPadding = PaddingValues(bottom = 84.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        // Header
+        // แถบเครื่องมือด้านบน
         item {
             AnalyticsTopBar(
                 onBack = onBack,
@@ -69,7 +70,7 @@ fun AnalyticsDashboardScreen(
             )
         }
 
-        // Period selector
+        // ตัวเลือกช่วงเวลาข้อมูล (7 วัน, 30 วัน, 1 ปี)
         item {
             PeriodSelector(
                 selectedPeriod = state.selectedPeriod,
@@ -78,7 +79,7 @@ fun AnalyticsDashboardScreen(
             )
         }
 
-        // Loading indicator
+        // แสดงสัญลักษณ์การโหลดข้อมูล
         if (state.isLoading && state.summary == null) {
             item {
                 Box(
@@ -92,7 +93,7 @@ fun AnalyticsDashboardScreen(
             }
         }
 
-        // Error message
+        // แสดงข้อความผิดพลาด
         state.error?.let { error ->
             item {
                 Surface(
@@ -113,7 +114,7 @@ fun AnalyticsDashboardScreen(
             }
         }
 
-        // Summary cards
+        // การ์ดสรุปข้อมูลสถิติภาพรวมภัยพิบัติ
         item {
             SummaryCards(
                 summary = state.summary,
@@ -123,7 +124,7 @@ fun AnalyticsDashboardScreen(
             )
         }
 
-        // Disaster stat breakdown
+        // ส่วนการแสดงแผนภูมิแยกสถิติตามประเภทภัยพิบัติ
         item {
             DisasterStatCharts(
                 summary = state.summary,
@@ -131,7 +132,7 @@ fun AnalyticsDashboardScreen(
             )
         }
 
-        // Trend chart
+        // ส่วนแผนภูมิแนวโน้มภัยพิบัติย้อนหลัง
         item {
             TrendCharts(
                 trends = state.trends,
@@ -140,7 +141,7 @@ fun AnalyticsDashboardScreen(
             )
         }
 
-        // Environmental data
+        // การ์ดแสดงผลข้อมูลและดัชนีทางสิ่งแวดล้อม
         item {
             EnvironmentalCards(
                 data = state.environmental,
@@ -150,6 +151,7 @@ fun AnalyticsDashboardScreen(
     }
 }
 
+// คอมโพสเซเบิลแถบเครื่องมือด้านบนสุดของหน้าจอวิเคราะห์สถิติ
 @Composable
 private fun AnalyticsTopBar(
     onBack: () -> Unit,
@@ -218,6 +220,7 @@ private fun AnalyticsTopBar(
     }
 }
 
+// คอมโพสเซเบิลสำหรับเลือกช่วงเวลาในการกรองข้อมูลวิเคราะห์
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PeriodSelector(

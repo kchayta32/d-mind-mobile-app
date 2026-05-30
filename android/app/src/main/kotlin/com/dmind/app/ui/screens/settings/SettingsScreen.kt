@@ -49,6 +49,7 @@ import com.dmind.app.util.LocaleManager
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.foundation.clickable
 
+// หน้าจอการตั้งค่าแอพพลิเคชั่น (Language, Theme, Survey, System Reliability and Configs)
 @Composable
 fun SettingsScreen(
     status: ReliabilityStatus,
@@ -78,7 +79,7 @@ fun SettingsScreen(
             )
         }
 
-        // Language Selector
+        // การตั้งค่าภาษาปัจจุบันและการสลับภาษา
         item {
             DmindCard(Modifier.padding(horizontal = 18.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -104,7 +105,7 @@ fun SettingsScreen(
             }
         }
 
-        // Theme Toggle
+        // ปุ่มสลับสว่าง-มืด (Theme Toggle)
         item {
             DmindCard(Modifier.padding(horizontal = 18.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -123,7 +124,7 @@ fun SettingsScreen(
             }
         }
 
-        // Satisfaction Survey Card
+        // ส่วนประเมินความพึงพอใจการใช้งานแอปพลิเคชัน
         item {
             DmindCard(Modifier.padding(horizontal = 18.dp).clickable { onOpenSatisfactionSurvey() }) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -138,7 +139,7 @@ fun SettingsScreen(
             }
         }
 
-        // Reliability Checklist
+        // ส่วนตรวจสอบสิทธิ์ของอุปกรณ์เพื่อให้แอปพลิเคชันทำงานได้เต็มประสิทธิภาพ (Reliability Checklist)
         item {
             DmindCard(Modifier.padding(horizontal = 18.dp)) {
                 Text(stringResource(R.string.reliability_checklist), fontWeight = FontWeight.Bold)
@@ -150,7 +151,7 @@ fun SettingsScreen(
             }
         }
 
-        // Configuration
+        // ส่วนการตั้งค่าปลายทางของ Server API และ Supabase
         item {
             DmindCard(Modifier.padding(horizontal = 18.dp)) {
                 Text(stringResource(R.string.settings_configuration), fontWeight = FontWeight.Bold)
@@ -169,6 +170,7 @@ fun SettingsScreen(
     }
 }
 
+// แถวตรวจสอบสิทธิ์ระบบปฏิบัติการเดี่ยวพร้อมปุ่มจัดการสิทธิ์
 @Composable
 private fun PermissionRow(
     label: String,
@@ -191,6 +193,7 @@ private fun PermissionRow(
     }
 }
 
+// แถวแสดงผลค่าการตั้งค่าปลายทางระบบเดี่ยว
 @Composable
 private fun ConfigRow(
     label: String,

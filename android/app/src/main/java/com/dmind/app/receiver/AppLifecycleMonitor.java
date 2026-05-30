@@ -16,13 +16,16 @@ import com.dmind.app.util.EmergencyNotificationManager;
  * - When app goes to background: Prepare for full-screen alert
  * - When app returns to foreground: Resume normal operation
  */
+// ตัวตรวจจับวงจรชีวิตของแอปพลิเคชันเพื่อจัดการการแจ้งเตือนภัยพิบัติฉุกเฉินตามสถานะการเปิด/ปิดแอป
 public class AppLifecycleMonitor implements DefaultLifecycleObserver {
     
     private static final String TAG = "AppLifecycleMonitor";
     
+    // ตัวแปรการจัดการแจ้งเตือนฉุกเฉินและสถานะเบื้องหลัง
     private EmergencyNotificationManager emergencyManager;
     private boolean isBackground = false;
     
+    // คอนสตรักเตอร์เตรียมตัวจัดการสำหรับการแจ้งเตือนภัย
     public AppLifecycleMonitor(Application application) {
         // Initialize with emergency notification manager
         this.emergencyManager = new EmergencyNotificationManager(application);
@@ -36,7 +39,7 @@ public class AppLifecycleMonitor implements DefaultLifecycleObserver {
     public void onCreate(LifecycleOwner owner) {
         Log.d(TAG, "Application onCreate");
         
-        // Initialize emergency notification manager
+        // สร้างช่องทางการแจ้งเตือนภัยฉุกเฉินและการทำงานเบื้องหลังเมื่อสร้างหน้าจอ
         emergencyManager.getNotificationHelper().createEmergencyNotificationChannel();
         emergencyManager.getNotificationHelper().createBackgroundChannel();
     }
@@ -45,6 +48,7 @@ public class AppLifecycleMonitor implements DefaultLifecycleObserver {
     public void onStart(LifecycleOwner owner) {
         Log.d(TAG, "Application onStart");
         
+        // กำหนดสถานะว่าแอปไม่ได้ทำงานอยู่ในเบื้องหลังแล้ว
         isBackground = false;
     }
     
@@ -54,7 +58,7 @@ public class AppLifecycleMonitor implements DefaultLifecycleObserver {
         
         isBackground = false;
         
-        // Check if battery optimization is enabled
+        // ตรวจสอบความถูกต้องของการตั้งค่าประหยัดแบตเตอรี่ในอุปกรณ์
         checkBatteryOptimization();
     }
     
@@ -64,7 +68,7 @@ public class AppLifecycleMonitor implements DefaultLifecycleObserver {
         
         isBackground = true;
         
-        // Hide emergency notification from status bar (but keep service running)
+        // ยกเลิกข้อความแจ้งเตือนด่วนบนแถบแจ้งเตือนเมื่อแอปถูกพักไว้ชั่วคราว
         emergencyManager.cancelAllNotifications();
     }
     
@@ -72,6 +76,7 @@ public class AppLifecycleMonitor implements DefaultLifecycleObserver {
     public void onStop(LifecycleOwner owner) {
         Log.d(TAG, "Application onStop");
         
+        // กำหนดสถานะว่าแอปพลิเคชันลงไปทำงานอยู่ในเบื้องหลัง (Background)
         isBackground = true;
     }
     
@@ -87,9 +92,9 @@ public class AppLifecycleMonitor implements DefaultLifecycleObserver {
     /**
      * Check if battery optimization is enabled and show warning if needed
      */
+    // ตรวจสอบว่าแอปถูกจำกัดพลังงานหรือประหยัดแบตเตอรี่โดยระบบปฏิบัติการหรือไม่
     private void checkBatteryOptimization() {
-        // Implementation would check if app is on battery optimization whitelist
-        // For now, this is handled in BatteryOptimizationSettingsActivity
+        // การตรวจสอบนี้แยกไปทำในระดับหน้าจอ BatteryOptimizationSettingsActivity
         
         Log.d(TAG, "Battery optimization check (handled separately)");
     }
@@ -102,8 +107,9 @@ public class AppLifecycleMonitor implements DefaultLifecycleObserver {
      * Check if emergency alert should trigger full-screen intent
      * This should be called from EmergencyNotificationManager
      */
+    // ตรวจสอบว่าประเภทการเตือนภัยที่ได้รับ ควรเปิดการเตือนภัยแบบเต็มหน้าจอทันทีหรือไม่
     public boolean shouldTriggerFullScreenAlert(String alertType) {
-        // Critical alerts always trigger full-screen
+        // เหตุการณ์วิกฤติ เช่น สึนามิ แผ่นดินไหว และน้ำท่วม จะบังคับเปิดเต็มหน้าจอเสมอ
         if (alertType != null) {
             String lowerType = alertType.toLowerCase();
             return lowerType.contains("tsunami") || 
@@ -116,6 +122,7 @@ public class AppLifecycleMonitor implements DefaultLifecycleObserver {
     /**
      * Cancel all active emergency alerts
      */
+    // ยกเลิกการแสดงผลการแจ้งเตือนฉุกเฉินทั้งหมดที่ค้างอยู่
     public void cancelEmergencyAlerts() {
         emergencyManager.cancelAllNotifications();
     }
@@ -127,6 +134,7 @@ public class AppLifecycleMonitor implements DefaultLifecycleObserver {
     /**
      * Check if app is in background
      */
+    // ตรวจสอบว่าปัจจุบันแอปพลิเคชันทำงานอยู่ในเบื้องหลังหรือไม่
     public boolean isAppInBackground() {
         return isBackground;
     }
@@ -134,6 +142,7 @@ public class AppLifecycleMonitor implements DefaultLifecycleObserver {
     /**
      * Get emergency notification manager
      */
+    // เข้าถึงตัวจัดการการส่งข้อมูลแจ้งเตือนฉุกเฉิน
     public EmergencyNotificationManager getEmergencyManager() {
         return emergencyManager;
     }

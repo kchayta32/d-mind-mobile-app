@@ -4,6 +4,7 @@ import android.content.Context
 import com.dmind.app.DMindApplication
 import com.dmind.app.database.AlertsCacheDAO
 import com.dmind.app.BuildConfig
+import com.dmind.app.network.BackendConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -20,7 +21,9 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.max
 
+// คลาสหลักสำหรับจัดการและดึงข้อมูลด้านภัยพิบัติ สภาพอากาศ และค้นหาสถานที่บนแผนที่
 class DisasterMapRepository(private val context: Context? = null) {
+    // ดึงข้อมูลสถานะภัยพิบัติและสภาพอากาศแบบ Snapshot จากแหล่งข้อมูลภายนอกทั้งหมดแบบขนานกัน
     suspend fun fetchSnapshot(): MapDataSnapshot = coroutineScope {
         val startedAt = System.currentTimeMillis()
         val tasks = listOf(
@@ -108,11 +111,13 @@ class DisasterMapRepository(private val context: Context? = null) {
         )
     }
 
+    // ค้นหา API Key ของ GISTDA ที่กำหนดไว้ใน BuildConfig
     private fun gistdaApiKey(): String = BuildConfig.GISTDA_API_KEY
         .ifBlank { BuildConfig.GISTDA_WMS_API_KEY }
         .ifBlank { BuildConfig.GISTDA_DISASTER_API_KEY }
         .ifBlank { BuildConfig.GISTDA_FIRE_API_KEY }
 
+    // ค้นหาสถานที่บนแผนที่จากคำค้นหาที่ระบุ (Nominatim API)
     suspend fun searchPlaces(query: String): List<PlaceSearchResult> = withContext(Dispatchers.IO) {
         if (query.isBlank()) return@withContext emptyList()
         val encoded = URLEncoder.encode(query, "UTF-8")
@@ -138,161 +143,7 @@ class DisasterMapRepository(private val context: Context? = null) {
         }.getOrDefault(emptyList())
     }
 
-    suspend fun fetchSoilMoistureGrid(): String = withContext(Dispatchers.IO) {
-        val lats = soilMoistureCoordinates.joinToString(",") { it.first.toString() }
-        val lons = soilMoistureCoordinates.joinToString(",") { it.second.toString() }
-        val url = "https://api.open-meteo.com/v1/forecast?latitude=$lats&longitude=$lons&current=soil_moisture_0_to_7cm"
-        
-        try {
-            val body = httpGet(url)
-            val features = JSONArray()
-            val root = runCatching { JSONArray(body) }.getOrNull()
-            
-            if (root != null) {
-                for (i in 0 until root.length()) {
-                    val item = root.optJSONObject(i) ?: continue
-                    val lat = item.optDouble("latitude")
-                    val lon = item.optDouble("longitude")
-                    val currentObj = item.optJSONObject("current")
-                    val moisture = currentObj?.optDouble("soil_moisture_0_to_7cm", 0.0) ?: 0.0
-                    
-                    val geometry = JSONObject().apply {
-                        put("type", "Point")
-                        put("coordinates", JSONArray().apply {
-                            put(lon)
-                            put(lat)
-                        })
-                    }
-                    val properties = JSONObject().apply {
-                        put("moisture", moisture)
-                    }
-                    val feature = JSONObject().apply {
-                        put("type", "Feature")
-                        put("geometry", geometry)
-                        put("properties", properties)
-                    }
-                    features.put(feature)
-                }
-            } else {
-                val singleObj = runCatching { JSONObject(body) }.getOrNull()
-                if (singleObj != null) {
-                    val lat = singleObj.optDouble("latitude")
-                    val lon = singleObj.optDouble("longitude")
-                    val currentObj = singleObj.optJSONObject("current")
-                    val moisture = currentObj?.optDouble("soil_moisture_0_to_7cm", 0.0) ?: 0.0
-                    
-                    val geometry = JSONObject().apply {
-                        put("type", "Point")
-                        put("coordinates", JSONArray().apply {
-                            put(lon)
-                            put(lat)
-                        })
-                    }
-                    val properties = JSONObject().apply {
-                        put("moisture", moisture)
-                    }
-                    val feature = JSONObject().apply {
-                        put("type", "Feature")
-                        put("geometry", geometry)
-                        put("properties", properties)
-                    }
-                    features.put(feature)
-                }
-            }
-            
-            JSONObject().apply {
-                put("type", "FeatureCollection")
-                put("features", features)
-            }.toString()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            "{\"type\":\"FeatureCollection\",\"features\":[]}"
-        }
-    }
-
-    suspend fun fetchRiverDischargeGrid(): String = withContext(Dispatchers.IO) {
-        val lats = riverDischargeCoordinates.joinToString(",") { it.lat.toString() }
-        val lons = riverDischargeCoordinates.joinToString(",") { it.lon.toString() }
-        val url = "https://flood-api.open-meteo.com/v1/flood?latitude=$lats&longitude=$lons&daily=river_discharge&forecast_days=1"
-        
-        try {
-            val body = httpGet(url)
-            val features = JSONArray()
-            val root = runCatching { JSONArray(body) }.getOrNull()
-            
-            val pointDischarges = mutableListOf<Double>()
-            if (root != null) {
-                for (i in 0 until root.length()) {
-                    val item = root.optJSONObject(i) ?: continue
-                    val dailyObj = item.optJSONObject("daily")
-                    val dischargeArr = dailyObj?.optJSONArray("river_discharge")
-                    val discharge = if (dischargeArr != null && dischargeArr.length() > 0 && !dischargeArr.isNull(0)) {
-                        dischargeArr.optDouble(0)
-                    } else {
-                        0.0
-                    }
-                    pointDischarges.add(discharge)
-                }
-            } else {
-                val singleObj = runCatching { JSONObject(body) }.getOrNull()
-                if (singleObj != null) {
-                    val dailyObj = singleObj.optJSONObject("daily")
-                    val dischargeArr = dailyObj?.optJSONArray("river_discharge")
-                    val discharge = if (dischargeArr != null && dischargeArr.length() > 0 && !dischargeArr.isNull(0)) {
-                        dischargeArr.optDouble(0)
-                    } else {
-                        0.0
-                    }
-                    pointDischarges.add(discharge)
-                }
-            }
-
-            // Group coordinates by river name
-            val pointDataList = riverDischargeCoordinates.mapIndexed { index, coord ->
-                val discharge = pointDischarges.getOrNull(index) ?: 0.0
-                Triple(coord.name.substringBefore(" - ").trim(), coord, discharge)
-            }
-            
-            val riverGroups = pointDataList.groupBy { it.first }
-            
-            riverGroups.forEach { (riverName, nodes) ->
-                val coordinates = JSONArray()
-                nodes.forEach { (_, coord, _) ->
-                    coordinates.put(JSONArray().apply {
-                        put(coord.lon)
-                        put(coord.lat)
-                    })
-                }
-                val avgDischarge = if (nodes.isNotEmpty()) nodes.map { it.third }.average() else 0.0
-                val maxDischarge = if (nodes.isNotEmpty()) nodes.maxOf { it.third } else 0.0
-                
-                val geometry = JSONObject().apply {
-                    put("type", "LineString")
-                    put("coordinates", coordinates)
-                }
-                val properties = JSONObject().apply {
-                    put("discharge", avgDischarge)
-                    put("maxDischarge", maxDischarge)
-                    put("name", riverName)
-                }
-                val feature = JSONObject().apply {
-                    put("type", "Feature")
-                    put("geometry", geometry)
-                    put("properties", properties)
-                }
-                features.put(feature)
-            }
-            
-            JSONObject().apply {
-                put("type", "FeatureCollection")
-                put("features", features)
-            }.toString()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            "{\"type\":\"FeatureCollection\",\"features\":[]}"
-        }
-    }
-
+    // ค้นหาชื่อเมือง/สถานที่จากพิกัดตำแหน่ง (Reverse Geocoding)
     private suspend fun reverseGeocode(lat: Double, lon: Double): String = withContext(Dispatchers.IO) {
         val url = "https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon&zoom=10&addressdetails=1"
         runCatching {
@@ -315,6 +166,7 @@ class DisasterMapRepository(private val context: Context? = null) {
         }.getOrDefault("ไม่ทราบสถานที่")
     }
 
+    // แปลงรหัสสภาพอากาศของ Open-Meteo เป็นข้อความภาษาไทยอธิบายสภาพอากาศ
     private fun openMeteoCodeToLabel(code: Int): String = when (code) {
         0 -> "ท้องฟ้าแจ่มใส"
         1 -> "ท้องฟ้าโปร่ง"
@@ -337,11 +189,12 @@ class DisasterMapRepository(private val context: Context? = null) {
         else -> "ไม่ทราบสภาพอากาศ"
     }
 
+    // ดึงข้อมูลสภาพอากาศและคุณภาพอากาศ (PM2.5 / AQI) รายชั่วโมงและรายวันจาก Open-Meteo ตามพิกัดที่กำหนด
     suspend fun fetchWeatherForCoords(lat: Double, lon: Double): com.dmind.app.domain.model.SelectedWeatherInfo = withContext(Dispatchers.IO) {
         val locationName = reverseGeocode(lat, lon)
         val url = "https://api.open-meteo.com/v1/forecast" +
             "?latitude=$lat&longitude=$lon" +
-            "&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,pressure_msl,wind_speed_10m,soil_moisture_0_to_7cm" +
+            "&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,pressure_msl,wind_speed_10m" +
             "&hourly=temperature_2m,weather_code,precipitation" +
             "&daily=temperature_2m_max,temperature_2m_min,weather_code" +
             "&timezone=auto"
@@ -358,22 +211,6 @@ class DisasterMapRepository(private val context: Context? = null) {
         val press = currentObj.optDouble("pressure_msl", 1013.25)
         val wind = currentObj.optDouble("wind_speed_10m", 0.0)
         val timeStr = currentObj.optString("time", "")
-
-        val soilMoisture = if (currentObj.isNull("soil_moisture_0_to_7cm")) null else currentObj.optDouble("soil_moisture_0_to_7cm")
-
-        var riverDischarge: Double? = null
-        try {
-            val floodUrl = "https://flood-api.open-meteo.com/v1/flood?latitude=$lat&longitude=$lon&daily=river_discharge&forecast_days=1"
-            val floodBody = httpGet(floodUrl)
-            val floodJson = JSONObject(floodBody)
-            val dailyObj = floodJson.optJSONObject("daily")
-            val dischargeArr = dailyObj?.optJSONArray("river_discharge")
-            if (dischargeArr != null && dischargeArr.length() > 0) {
-                riverDischarge = if (dischargeArr.isNull(0)) null else dischargeArr.optDouble(0)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
 
         var pm25: Double? = null
         var aqi: Int? = null
@@ -402,8 +239,8 @@ class DisasterMapRepository(private val context: Context? = null) {
             longitude = lon,
             apparentTemperatureCelsius = appTemp,
             pressureHpa = press,
-            openMeteoRiverDischarge = riverDischarge,
-            openMeteoSoilMoisture = soilMoisture,
+            openMeteoRiverDischarge = null,
+            openMeteoSoilMoisture = null,
             openMeteoPm25 = pm25,
             openMeteoAqi = aqi
         )
@@ -468,6 +305,7 @@ class DisasterMapRepository(private val context: Context? = null) {
         )
     }
 
+    // ดึงข้อมูลชื่อจังหวัด อำเภอ และตำบลจากพิกัดตำแหน่ง
     suspend fun getPlaceInfoForCoords(lat: Double, lon: Double): PlaceInfo = withContext(Dispatchers.IO) {
         val url = "https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon&zoom=18&addressdetails=1&accept-language=th"
         val body = httpGet(url, headers = osmHeaders())
@@ -510,6 +348,7 @@ class DisasterMapRepository(private val context: Context? = null) {
         PlaceInfo(province = province, amphoe = amphoe, tambon = tambon)
     }
 
+    // ดึงข้อมูลพยากรณ์อากาศพิกัดปัจจุบันจากกรมอุตุนิยมวิทยา (TMD NWP API)
     private suspend fun fetchTmdWeather(): SourceFetchResult = withContext(Dispatchers.IO) {
         val token = BuildConfig.TMD_API_TOKEN
         if (token.isBlank()) {
@@ -620,10 +459,23 @@ class DisasterMapRepository(private val context: Context? = null) {
         }
     }
 
+    // ดึงข้อมูลรายงานการเกิดแผ่นดินไหวล่าสุดในรอบสัปดาห์จาก USGS
     private suspend fun fetchUsgsEarthquakes(): SourceFetchResult = withContext(Dispatchers.IO) {
         runCatching {
-            val body = httpGet("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson")
-            val json = JSONObject(body)
+            val json = try {
+                val primaryBody = httpGet("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson")
+                JSONObject(primaryBody)
+            } catch (e: Exception) {
+                val fallbackUrl = "${BackendConfig.baseUrl}/usgs-earthquakes"
+                val proxyResponse = httpGet(fallbackUrl)
+                val proxyJson = JSONObject(proxyResponse)
+                val dataVal = proxyJson.opt("data")
+                when (dataVal) {
+                    is JSONObject -> dataVal
+                    is String -> JSONObject(dataVal)
+                    else -> throw e
+                }
+            }
             val features = json.optJSONArray("features") ?: JSONArray()
             val points = (0 until features.length()).mapNotNull { index ->
                 val feature = features.optJSONObject(index) ?: return@mapNotNull null
@@ -670,6 +522,7 @@ class DisasterMapRepository(private val context: Context? = null) {
         }
     }
 
+    // ดึงข้อมูลจุดความร้อนและไฟป่าในรอบ 1 วันล่าสุดจาก GISTDA VIIRS API
     private suspend fun fetchGistdaWildfires(): SourceFetchResult = withContext(Dispatchers.IO) {
         val apiKey = gistdaApiKey()
         val country = URLEncoder.encode("ราชอาณาจักรไทย", "UTF-8")
@@ -738,6 +591,7 @@ class DisasterMapRepository(private val context: Context? = null) {
         }
     }
 
+    // ดึงข้อมูลพื้นที่ประสบอุทกภัย/น้ำท่วมล่าสุดในรอบ 1 วันจาก GISTDA API
     private suspend fun fetchGistdaFloods(): SourceFetchResult = withContext(Dispatchers.IO) {
         val apiKey = gistdaApiKey()
         val url = "https://api-gateway.gistda.or.th/api/2.0/resources/features/flood/1day" +
@@ -797,6 +651,7 @@ class DisasterMapRepository(private val context: Context? = null) {
         }
     }
 
+    // ดึงข้อมูลวิเคราะห์พื้นที่น้ำท่วมซ้ำซากจาก GISTDA API
     private suspend fun fetchGistdaFloodFrequency(): SourceFetchResult = withContext(Dispatchers.IO) {
         val apiKey = gistdaApiKey()
         val url = "https://api-gateway.gistda.or.th/api/2.0/resources/features/flood-freq" +
@@ -858,6 +713,7 @@ class DisasterMapRepository(private val context: Context? = null) {
         }
     }
 
+    // ดึงข้อมูลการกระจายตัวของผักตบชวาและสิ่งกีดขวางทางน้ำจาก GISTDA API
     private suspend fun fetchGistdaWaterHyacinths(): SourceFetchResult = withContext(Dispatchers.IO) {
         val apiKey = gistdaApiKey()
         val url = "https://api-gateway.gistda.or.th/api/2.0/resources/features/water_hyacinth" +
@@ -923,6 +779,7 @@ class DisasterMapRepository(private val context: Context? = null) {
         }
     }
 
+    // ตรวจสอบความถูกต้องและการตอบสนองของ Layer บริการ WMS จาก GISTDA
     private suspend fun fetchGistdaWmsLayer(
         name: String,
         path: String,
@@ -964,6 +821,7 @@ class DisasterMapRepository(private val context: Context? = null) {
         }
     }
 
+    // สร้างชุดข้อมูลพิกัดพื้นที่ความเสี่ยงภัยแล้งในแต่ละจังหวัด (อ้างอิงจาก GISTDA DRI)
     private fun generateDroughtProvinceRiskPoints(): List<DisasterPoint> {
         return droughtProvinceSeeds.map { seed ->
             DisasterPoint(
@@ -981,6 +839,7 @@ class DisasterMapRepository(private val context: Context? = null) {
         }
     }
 
+    // ฟังก์ชันเชื่อมต่อและรับข้อมูลผ่าน HTTP GET Request
     private suspend fun httpGet(
         url: String,
         headers: Map<String, String> = emptyMap(),
@@ -1006,17 +865,20 @@ class DisasterMapRepository(private val context: Context? = null) {
         }
     }
 
+    // กำหนด Headers สำหรับการเรียกใช้ OpenStreetMap Nominatim API
     private fun osmHeaders(): Map<String, String> = mapOf(
         "accept" to "application/json",
         "User-Agent" to "D-MIND Android native map/2.0",
     )
 
+    // โครงสร้างสำหรับเก็บผลลัพธ์การดึงข้อมูลจากแต่ละแหล่งข้อมูล
     private data class SourceFetchResult(
         val points: List<DisasterPoint> = emptyList(),
         val weather: WeatherSummary? = null,
         val status: MapExternalSourceStatus,
     )
 
+    // โครงสร้างข้อมูลสำหรับจุดพิกัดจำลองภัยแล้ง
     private data class DroughtSeed(
         val name: String,
         val riskLevel: Int,
@@ -1026,12 +888,14 @@ class DisasterMapRepository(private val context: Context? = null) {
         val population: Int,
     )
 
+    // โครงสร้างข้อมูลพิกัดลำน้ำ/แม่น้ำ
     internal data class RiverCoord(
         val lat: Double,
         val lon: Double,
         val name: String,
     )
 
+    // ส่วนเก็บค่าคงที่และฟังก์ชันตัวช่วยประเมินระดับความรุนแรงของภัยพิบัติแต่ละประเภท
     internal companion object {
         private val thaiFormatter = DateTimeFormatter
             .ofPattern("d MMM yyyy HH:mm", Locale("th", "TH"))
@@ -1213,6 +1077,8 @@ class DisasterMapRepository(private val context: Context? = null) {
             if (epochMillis <= 0L) return ""
             return thaiFormatter.format(Instant.ofEpochMilli(epochMillis))
         }
+
+        private fun Double.formatOne(): String = String.format(Locale.US, "%.1f", this)
 
         private fun JSONArray.optDoubleOrNull(index: Int): Double? {
             if (index < 0 || index >= length()) return null

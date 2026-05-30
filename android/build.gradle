@@ -1,12 +1,16 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
+// ไฟล์คอนฟิกูเรชันระดับบนสุด (Top-level) สำหรับแชร์การตั้งค่าระหว่างโปรเจกต์ย่อยหรือโมดูลทั้งหมด
 
+// กำหนดการตั้งค่าสำหรับการทำงานของระบบ Build (Gradle plugins และ Dependencies)
 buildscript {
 
+    // แหล่งจัดเก็บไลบรารีและปลั๊กอินสำหรับ Build Script
     repositories {
         google()
         mavenCentral()
         gradlePluginPortal()
     }
+    // ปลั๊กอินเสริมที่จำเป็นในขั้นตอนการสร้างแอปพลิเคชัน
     dependencies {
         classpath 'com.android.tools.build:gradle:8.13.2'
         classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.3.21'
@@ -19,15 +23,19 @@ buildscript {
     }
 }
 
+// โหลดตัวแปรและค่าคอนฟิกูเรชันร่วมจากไฟล์ variables.gradle
 apply from: "variables.gradle"
 
+// กำหนดการตั้งค่าที่ใช้ร่วมกันในทุกโปรเจกต์ย่อย (Sub-projects)
 allprojects {
+    // แหล่งดาวน์โหลดไลบรารีสำหรับการพัฒนาแอปพลิเคชัน
     repositories {
         google()
         mavenCentral()
     }
 }
 
+// ทาสก์สำหรับล้างข้อมูลไฟล์ที่เกิดขึ้นระหว่างกระบวนการ build (Clean Build)
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

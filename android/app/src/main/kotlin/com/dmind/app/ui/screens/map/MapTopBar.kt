@@ -37,6 +37,7 @@ import com.dmind.app.data.map.PlaceSearchResult
 import com.dmind.app.ui.components.DmindBlue
 import com.dmind.app.ui.viewmodel.DisasterMapUiState
 
+// คอมโพสเซเบิลแถบเครื่องมือส่วนหัวของหน้าจอแผนที่ มีช่องค้นหาพิกัด/สถานที่และปุ่มรีเฟรช
 @Composable
 internal fun MapTopBar(
     state: DisasterMapUiState,
@@ -52,9 +53,11 @@ internal fun MapTopBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            // ปุ่มย้อนกลับแบบกึ่งโปร่งแสง
             MapGlassButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.btn_back))
             }
+            // ช่องกรอกข้อความสำหรับค้นหาสถานที่บนแผนที่
             OutlinedTextField(
                 value = state.searchQuery,
                 onValueChange = onSearchQueryChange,
@@ -80,6 +83,7 @@ internal fun MapTopBar(
             }
         }
 
+        // ส่วนแสดงรายการผลลัพธ์การค้นหาสถานที่เมื่อมีข้อมูลกลับมา
         if (state.searchResults.isNotEmpty()) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -114,6 +118,7 @@ internal fun MapTopBar(
     }
 }
 
+// ปุ่มลัดกลมสไตล์กระจกเงากึ่งโปร่งแสง (Glass Button) สำหรับใช้งานบนแผนที่
 @Composable
 internal fun MapGlassButton(
     onClick: () -> Unit,

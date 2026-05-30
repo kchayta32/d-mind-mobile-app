@@ -9,11 +9,13 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.time.Instant
 
+// คลาส Repository สำหรับเชื่อมต่อและจัดการข้อมูลทั้งหมดกับ Supabase Database, Storage และ AI Edge Functions
 class SupabaseRepository(
     private val client: SupabaseRestClient = SupabaseRestClient(),
     private val backendClient: BackendRestClient = BackendRestClient(),
     private val thaiLlmClient: ThaiLlmChatClient = ThaiLlmChatClient(),
 ) {
+    // ดึงข้อมูลรายงานเหตุการณ์ภัยพิบัติสาธารณะล่าสุดจากตาราง incident_reports_public
     suspend fun fetchIncidentReports(limit: Int = 25): Result<List<IncidentReportRecord>> = runCatching {
         client.select(
             table = "incident_reports_public",
@@ -21,6 +23,7 @@ class SupabaseRepository(
         ).mapObjects { it.toIncidentReportRecord() }
     }
 
+    // ส่งข้อมูลแจ้งเหตุภัยพิบัติใหม่ขึ้นระบบ (โดยหากตั้งค่าเซิร์ฟเวอร์หลักไว้ จะส่งไปเซิร์ฟเวอร์หลักก่อน)
     suspend fun submitIncidentReport(draft: IncidentReportDraft): Result<IncidentReportRecord?> = runCatching {
         if (backendClient.isConfigured) {
             return@runCatching backendClient.submitIncidentReport(draft)
@@ -43,6 +46,7 @@ class SupabaseRepository(
             ?.toIncidentReportRecord()
     }
 
+    // ดึงข้อมูลแจ้งเตือนภัยพิบัติแบบเรียลไทม์ที่ยังคงมีผลอยู่
     suspend fun fetchRealtimeAlerts(limit: Int = 30): Result<List<RealtimeAlertRecord>> = runCatching {
         client.select(
             table = "realtime_alerts",
@@ -50,6 +54,7 @@ class SupabaseRepository(
         ).mapObjects { it.toRealtimeAlertRecord() }
     }
 
+    // ดึงประวัติการแจ้งเตือนส่วนบุคคล
     suspend fun fetchNotificationHistory(limit: Int = 40): Result<List<NotificationRecord>> = runCatching {
         client.select(
             table = "notifications",
@@ -57,6 +62,7 @@ class SupabaseRepository(
         ).mapObjects { it.toNotificationRecord() }
     }
 
+    // ทำเครื่องหมายว่าอ่านแล้วสำหรับการแจ้งเตือนที่ระบุ
     suspend fun markNotificationAsRead(id: String): Result<NotificationRecord?> = runCatching {
         client.update(
             table = "notifications",
@@ -65,6 +71,7 @@ class SupabaseRepository(
         ).firstObjectOrNull()?.toNotificationRecord()
     }
 
+    // บันทึกตั้งค่าการรับข้อมูลแจ้งเตือนของผู้ใช้
     suspend fun saveNotificationSettings(draft: NotificationSettingsDraft): Result<Unit> = runCatching {
         client.insert(
             table = "user_notification_settings",
@@ -77,6 +84,7 @@ class SupabaseRepository(
         Unit
     }
 
+    // ส่งข้อมูลขอความช่วยเหลือสำหรับผู้ประสบภัย
     suspend fun submitVictimReport(draft: VictimReportDraft): Result<Unit> = runCatching {
         client.insert(
             table = "victim_reports",
@@ -91,6 +99,7 @@ class SupabaseRepository(
         Unit
     }
 
+    // ส่งผลการประเมินความพึงพอใจการใช้งานของแอปพลิเคชัน
     suspend fun submitSatisfactionSurvey(draft: SatisfactionSurveyDraft): Result<Unit> = runCatching {
         client.insert(
             table = "satisfaction_surveys",
@@ -109,6 +118,7 @@ class SupabaseRepository(
         Unit
     }
 
+    // เรียกใช้งานการสนทนากับ Dr.Mind AI โดยค้นข้อมูลจากฐานข้อมูลมาเป็นบริบทในการตอบ
     suspend fun invokeAiChat(
         message: String,
         chatHistory: List<Pair<String, String>>,
@@ -134,6 +144,7 @@ class SupabaseRepository(
         }
     }
 
+    // ฟังก์ชันสำรองเรียกใช้ Edge Function ai-chat บน Supabase โดยตรง
     private suspend fun invokeAiChatEdgeFunction(
         message: String,
         chatHistory: List<Pair<String, String>>,
@@ -179,6 +190,7 @@ class SupabaseRepository(
         return aiResponse
     }
 
+    // ส่งวิเคราะห์ภาพถ่ายความเสียหายจากภัยพิบัติด้วยบริการ AI
     suspend fun invokeDamageAssessment(draft: DamageAssessmentDraft): Result<JSONObject> = runCatching {
         val assessment = client.insert(
             table = "damage_assessments",
@@ -201,6 +213,7 @@ class SupabaseRepository(
         )
     }
 
+    // ดึงรายงานผลการประเมินความเสียหายทั้งหมด
     suspend fun fetchDamageAssessments(): Result<List<DamageAssessmentRecord>> = runCatching {
         client.select(
             table = "damage_assessments",
@@ -208,6 +221,7 @@ class SupabaseRepository(
         ).mapObjects { it.toDamageAssessmentRecord() }
     }
 
+    // ลบรายการประเมินความเสียหาย
     suspend fun deleteDamageAssessment(id: String): Result<Unit> = runCatching {
         client.delete(
             table = "damage_assessments",
@@ -216,6 +230,7 @@ class SupabaseRepository(
         Unit
     }
 
+    // ดึงรายการขอความช่วยเหลือฉุกเฉินทั้งหมด
     suspend fun fetchVictimReports(): Result<List<VictimReportRecord>> = runCatching {
         client.select(
             table = "victim_reports",
@@ -223,6 +238,7 @@ class SupabaseRepository(
         ).mapObjects { it.toVictimReportRecord() }
     }
 
+    // อัปโหลดรูปภาพเหตุการณ์ไปยัง Bucket incident-images บน Supabase Storage
     suspend fun uploadIncidentImage(
         fileName: String,
         contentType: String,
@@ -240,6 +256,7 @@ class SupabaseRepository(
         )
     }
 
+    // อัปโหลดรูปภาพประเมินความเสียหายไปยัง Storage ของ Supabase
     suspend fun uploadDamageAssessmentImage(
         fileName: String,
         contentType: String,
@@ -253,11 +270,13 @@ class SupabaseRepository(
         )
     }
 
+    // แปลงพิกัดทางภูมิศาสตร์ให้อยู่ในรูปของ JSONObject
     private fun coordinateJson(lat: Double?, lng: Double?): JSONObject? {
         if (lat == null || lng == null) return null
         return JSONObject().put("lat", lat).put("lng", lng)
     }
 
+    // ดึงข้อมูลเรียลไทม์จากตารางต่างๆ ใน Supabase เพื่อใช้เป็นเนื้อหาอ้างอิงให้ Dr.Mind AI
     private suspend fun fetchDrMindSupabaseContext(): String {
         val sections = listOf(
             "realtime_alerts" to runCatching {
@@ -315,6 +334,7 @@ class SupabaseRepository(
     }
 }
 
+// ฟังก์ชันขยายสำหรับแปลง JSONArray เป็น List ของวัตถุที่ระบุ
 private fun <T> JSONArray.mapObjects(transform: (JSONObject) -> T): List<T> {
     val items = mutableListOf<T>()
     for (index in 0 until length()) {
@@ -323,8 +343,10 @@ private fun <T> JSONArray.mapObjects(transform: (JSONObject) -> T): List<T> {
     return items
 }
 
+// ฟังก์ชันขยายสำหรับดึงวัตถุตัวแรกจาก JSONArray
 private fun JSONArray.firstObjectOrNull(): JSONObject? = if (length() > 0) optJSONObject(0) else null
 
+// ฟังก์ชันขยายสำหรับดึงวัตถุตามจำนวนที่จำกัดจาก JSONArray
 private fun JSONArray.takeObjects(limit: Int): List<JSONObject> {
     val items = mutableListOf<JSONObject>()
     for (index in 0 until length().coerceAtMost(limit)) {
@@ -333,6 +355,7 @@ private fun JSONArray.takeObjects(limit: Int): List<JSONObject> {
     return items
 }
 
+// แปลงข้อมูลแถวในแต่ละตารางเป็นบรรทัดข้อความสำหรับส่งให้โมเดล AI
 private fun JSONObject.toDrMindContextLine(table: String): String {
     val fields = when (table) {
         "realtime_alerts" -> listOf(
@@ -387,6 +410,7 @@ private fun JSONObject.toDrMindContextLine(table: String): String {
         .ifBlank { toString().take(500) }
 }
 
+// แปลง JSONObject เป็นโมเดลรายงานเหตุการณ์ระดับภัยพิบัติ
 private fun JSONObject.toIncidentReportRecord(): IncidentReportRecord = IncidentReportRecord(
     id = optString("id"),
     type = optString("type"),
@@ -399,6 +423,7 @@ private fun JSONObject.toIncidentReportRecord(): IncidentReportRecord = Incident
     createdAt = optString("created_at"),
 )
 
+// แปลง JSONObject เป็นโมเดลรายงานแจ้งเตือนภัยพิบัติแบบเรียลไทม์
 private fun JSONObject.toRealtimeAlertRecord(): RealtimeAlertRecord = RealtimeAlertRecord(
     id = optString("id"),
     alertType = optString("alert_type"),
@@ -410,6 +435,7 @@ private fun JSONObject.toRealtimeAlertRecord(): RealtimeAlertRecord = RealtimeAl
     createdAt = optNullableString("created_at"),
 )
 
+// แปลง JSONObject เป็นโมเดลข้อมูลจดบันทึกการแจ้งเตือนในระบบ
 private fun JSONObject.toNotificationRecord(): NotificationRecord = NotificationRecord(
     id = optString("id"),
     title = optString("title"),
@@ -420,11 +446,13 @@ private fun JSONObject.toNotificationRecord(): NotificationRecord = Notification
     createdAt = optString("created_at"),
 )
 
+// ฟังก์ชันตัวช่วยดึงข้อความจาก JSONObject หรือส่งคืนค่าว่าง/Null หากไม่มีข้อมูล
 private fun JSONObject.optNullableString(name: String): String? {
     if (!has(name) || isNull(name)) return null
     return optString(name).takeIf { it.isNotBlank() }
 }
 
+// แปลง JSONObject เป็นโมเดลผลสรุปการประเมินความเสียหาย
 private fun JSONObject.toDamageAssessmentRecord(): DamageAssessmentRecord {
     val detectedCategoriesJson = optJSONArray("detected_categories")
     val categories = mutableListOf<String>()
@@ -450,6 +478,7 @@ private fun JSONObject.toDamageAssessmentRecord(): DamageAssessmentRecord {
     )
 }
 
+// แปลง JSONObject เป็นโมเดลรายการคำร้องขอความช่วยเหลือจากผู้ประสบภัย
 private fun JSONObject.toVictimReportRecord(): VictimReportRecord {
     val coords = optJSONObject("coordinates")
     val lat = coords?.optDouble("lat") ?: 0.0

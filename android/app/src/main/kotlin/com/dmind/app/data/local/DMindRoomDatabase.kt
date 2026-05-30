@@ -9,6 +9,7 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.RoomDatabase
 
+// การกำหนดคลาสฐานข้อมูลหลักของ Room Database สำหรับแอปพลิเคชัน D-MIND
 @Database(
     entities = [
         AlertEntity::class,
@@ -20,12 +21,17 @@ import androidx.room.RoomDatabase
     exportSchema = false,
 )
 abstract class DMindRoomDatabase : RoomDatabase() {
+    // การเข้าถึง DAO สำหรับการจัดการข้อมูลการแจ้งเตือนภัยพิบัติ
     abstract fun alertDao(): AlertDao
+    // การเข้าถึง DAO สำหรับการจัดการคิวส่งข้อมูลขอความช่วยเหลือฉุกเฉิน (SOS)
     abstract fun sosQueueDao(): SosQueueDao
+    // การเข้าถึง DAO สำหรับข้อมูลพื้นที่เสี่ยงภัยอันตราย
     abstract fun dangerZoneDao(): DangerZoneDao
+    // การเข้าถึง DAO สำหรับเก็บประวัติตำแหน่งทางภูมิศาสตร์ของผู้ใช้
     abstract fun locationHistoryDao(): LocationHistoryDao
 }
 
+// ตารางและโครงสร้างข้อมูลสำหรับจัดเก็บประวัติการแจ้งเตือน
 @Entity(tableName = "alerts")
 data class AlertEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -37,6 +43,7 @@ data class AlertEntity(
     val isRead: Boolean = false,
 )
 
+// ตารางและโครงสร้างข้อมูลสำหรับคิว SOS รอส่งข้อมูลเมื่อเครือข่ายพร้อมใช้งาน
 @Entity(tableName = "sos_queue")
 data class SosQueueEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -50,6 +57,7 @@ data class SosQueueEntity(
     val sentAt: Long? = null,
 )
 
+// ตารางและโครงสร้างข้อมูลสำหรับจัดเก็บพื้นที่เสี่ยงภัย (Danger Zone)
 @Entity(tableName = "danger_zones")
 data class DangerZoneEntity(
     @PrimaryKey val id: Long,
@@ -63,6 +71,7 @@ data class DangerZoneEntity(
     val isEnabled: Boolean = true,
 )
 
+// ตารางและโครงสร้างข้อมูลสำหรับจัดเก็บประวัติพิกัดตำแหน่งของผู้ใช้งาน
 @Entity(tableName = "location_history")
 data class LocationHistoryEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -72,6 +81,7 @@ data class LocationHistoryEntity(
     val timestamp: Long,
 )
 
+// อินเตอร์เฟสสำหรับจัดการคำสั่ง SQL หรือเข้าถึงฐานข้อมูลของตารางการแจ้งเตือน (Alerts)
 @Dao
 interface AlertDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -81,6 +91,7 @@ interface AlertDao {
     suspend fun latestAlerts(): List<AlertEntity>
 }
 
+// อินเตอร์เฟสสำหรับจัดการข้อมูลคิว SOS ในฐานข้อมูล
 @Dao
 interface SosQueueDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -90,6 +101,7 @@ interface SosQueueDao {
     suspend fun pendingMessages(): List<SosQueueEntity>
 }
 
+// อินเตอร์เฟสสำหรับจัดการข้อมูลพื้นที่เสี่ยงภัยที่ยังคงทำงานหรือมีผลอยู่
 @Dao
 interface DangerZoneDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -99,6 +111,7 @@ interface DangerZoneDao {
     suspend fun activeZones(): List<DangerZoneEntity>
 }
 
+// อินเตอร์เฟสสำหรับจัดการประวัติตำแหน่งพิกัดของผู้ใช้งาน
 @Dao
 interface LocationHistoryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)

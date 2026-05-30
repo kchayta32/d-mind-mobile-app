@@ -11,13 +11,16 @@ import java.net.URLEncoder
 import java.net.URL
 import java.util.UUID
 
+// คลาสจัดการการเชื่อมต่อ HTTP REST API กับระบบหลังบ้านของแอปพลิเคชัน
 class BackendRestClient(
     private val baseUrl: String = BackendConfig.baseUrl,
     private val installationId: String? = null,
 ) {
+    // เช็คว่าระบบได้รับกังฟูเกอร์ URL สำหรับเรียกเชื่อมต่อ API แล้วหรือไม่
     val isConfigured: Boolean
         get() = baseUrl.startsWith("http://") || baseUrl.startsWith("https://")
 
+    // ฟังก์ชันส่งรายงานเหตุด่วนแจ้งเตือนภัยพิบัติ (Incident Report) ไปยังเซิร์ฟเวอร์
     suspend fun submitIncidentReport(draft: IncidentReportDraft): IncidentReportRecord = withContext(Dispatchers.IO) {
         ensureConfigured()
         val payload = JSONObject()
@@ -60,6 +63,7 @@ class BackendRestClient(
         )
     }
 
+    // ฟังก์ชันอัปโหลดไฟล์รูปภาพประกอบการรายงานเหตุขัดข้องไปยังคลาวด์/เซิร์ฟเวอร์
     suspend fun uploadIncidentImage(
         fileName: String,
         contentType: String,
@@ -80,6 +84,7 @@ class BackendRestClient(
         }
     }
 
+    // ฟังก์ชันดึงพยากรณ์และสภาพอากาศของแต่ละพื้นที่ (จังหวัด, อำเภอ, ตำบล)
     suspend fun fetchWeatherByPlace(
         province: String,
         amphoe: String?,
@@ -104,10 +109,12 @@ class BackendRestClient(
         )
     }
 
+    // ตรวจสอบความถูกต้องของ Base URL ก่อนประมวลผลคำขอเชื่อมต่อเครือข่าย
     private fun ensureConfigured() {
         check(isConfigured) { "Backend gateway is not configured." }
     }
 
+    // ฟังก์ชันหลักที่ทำงานส่งและรอรับค่าข้อมูล HTTP Request/Response จากเซิร์ฟเวอร์หลังบ้าน
     private fun request(
         method: String,
         path: String,
@@ -142,6 +149,7 @@ class BackendRestClient(
     }
 }
 
+// ฟังก์ชันส่วนขยายสำหรับอ่านค่าข้อความในรูปแบบ String ที่รองรับค่าว่างหรือ null ในโครงสร้าง JSONObject
 private fun JSONObject.optNullableString(name: String): String? {
     if (!has(name) || isNull(name)) return null
     return optString(name).takeIf { it.isNotBlank() }

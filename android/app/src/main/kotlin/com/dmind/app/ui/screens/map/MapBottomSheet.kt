@@ -85,6 +85,7 @@ import com.dmind.app.ui.components.icon
 import com.dmind.app.ui.components.localizedLabel
 import com.dmind.app.ui.viewmodel.DisasterMapUiState
 
+// คอมโพสเซเบิลหลักจัดการเนื้อหาใน Bottom Sheet ของแผนที่ ทั้งข้อมูลภาพรวมและหน้ารายละเอียดขององค์ประกอบที่แตะเลือก
 @Composable
 internal fun MapBottomSheetContent(
     state: DisasterMapUiState,
@@ -149,6 +150,7 @@ internal fun MapBottomSheetContent(
             }
         }
 
+        // ส่วนประกอบสำหรับการสลับกรองช่วงเวลาข้อมูลภัยพิบัติ
         if (state.activeLayer == DisasterLayerType.Flood || state.activeLayer == DisasterLayerType.WildfireViirs) {
             item {
                 TimeRangeSelector(
@@ -159,6 +161,7 @@ internal fun MapBottomSheetContent(
             }
         }
 
+        // ส่วนประกอบเลือกชุดข้อมูลและผลิตภัณฑ์ภัยแล้ง GISTDA
         if (state.activeLayer == DisasterLayerType.DroughtSmap) {
             item {
                 DroughtProductSelector(
@@ -168,6 +171,7 @@ internal fun MapBottomSheetContent(
             }
         }
 
+        // บล็อกข้อมูลสถิติขนาดย่อแสดงจำนวนเหตุการณ์ วิกฤต และสถานี
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 val count = when (state.activeLayer) {
@@ -183,6 +187,7 @@ internal fun MapBottomSheetContent(
             }
         }
 
+        // เลือกแสดงรายละเอียดจำแนกตามประเภทวัตถุที่คลิก (เช่น สถานี, สภาพอากาศ, จุดความร้อน, เหตุการณ์ภัยพิบัติ)
         item {
             when {
                 selectedStation != null -> {
@@ -214,6 +219,7 @@ internal fun MapBottomSheetContent(
             }
         }
 
+        // ปุ่มทางลัดเปิดชั้นข้อมูล แสดง/ซ่อนตำนานแผนที่ และปุ่มคัดกรองข้อมูล
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 AssistChip(onClick = onOpenLayers, label = { Text(stringResource(R.string.map_layers)) }, leadingIcon = {
@@ -226,6 +232,7 @@ internal fun MapBottomSheetContent(
             }
         }
 
+        // รายการอัปเดตสถานการณ์ภัยพิบัติล่าสุดขนาดย่อ
         item {
             DmindCard(contentPadding = PaddingValues(14.dp)) {
                 Text(stringResource(R.string.map_recent_items), fontWeight = FontWeight.Bold)
@@ -240,6 +247,7 @@ internal fun MapBottomSheetContent(
             }
         }
 
+        // การ์ดแสดงผลสถานะการเชื่อมต่อข้อมูลกับหน่วยงานต่างๆ (Data Sources)
         item {
             DmindCard(contentPadding = PaddingValues(14.dp)) {
                 Text(stringResource(R.string.map_sources), fontWeight = FontWeight.Bold)
@@ -263,6 +271,7 @@ internal fun MapBottomSheetContent(
 
 // ─── Selectors ──────────────────────────────────────────────
 
+// คอมโพสเซเบิลเลือกช่วงเวลาการตรวจวัดข้อมูลย้อนหลัง
 @Composable
 private fun TimeRangeSelector(
     activeLayer: DisasterLayerType,
@@ -296,6 +305,7 @@ private fun TimeRangeSelector(
     }
 }
 
+// คอมโพสเซเบิลจัดการตัวเลือกประเภทข้อมูลดัชนีภัยแล้ง
 @Composable
 private fun DroughtProductSelector(
     selected: GistdaDroughtProduct,
@@ -319,6 +329,7 @@ private fun DroughtProductSelector(
 
 // ─── Detail Cards ───────────────────────────────────────────
 
+// คอมโพสเซเบิลแสดงคำอธิบายสถานะและการให้บริการชั้นข้อมูลปัจจุบัน
 @Composable
 private fun LayerSummaryCard(
     state: DisasterMapUiState,
@@ -356,6 +367,7 @@ private fun LayerSummaryCard(
     }
 }
 
+// การ์ดรายละเอียดเหตุการณ์ภัยพิบัติทั่วไป
 @Composable
 private fun EventDetailCard(
     event: DisasterEvent,
@@ -389,6 +401,7 @@ private fun EventDetailCard(
     }
 }
 
+// การ์ดแสดงข้อมูลจุดความร้อนจากระบบดาวเทียม VIIRS
 @Composable
 private fun ViirsDetailCard(
     hotspot: ViirsHotspot,
@@ -468,6 +481,7 @@ private fun ViirsDetailCard(
     }
 }
 
+// การ์ดแสดงข้อมูลรายละเอียดเหตุการณ์แผ่นดินไหว ขนาด และระดับความลึก
 @Composable
 private fun EarthquakeDetailCard(
     event: DisasterEvent,
@@ -552,6 +566,7 @@ private fun EarthquakeDetailCard(
     }
 }
 
+// การ์ดแสดงรายละเอียดการวัดดัชนีคุณภาพอากาศและค่าฝุ่นละออง PM2.5
 @Composable
 private fun AirQualityDetailCard(
     event: DisasterEvent,
@@ -644,6 +659,7 @@ private fun AirQualityDetailCard(
     }
 }
 
+// การ์ดแสดงข้อมูลภัยพิบัติจากพายุ สภาพอากาศ และระดับความร้อน
 @Composable
 private fun StormDetailCard(
     event: DisasterEvent,
@@ -749,6 +765,7 @@ private fun StormDetailCard(
     }
 }
 
+// การ์ดแสดงผลสรุปสถานการณ์ดัชนีความแห้งแล้งในพื้นที่
 @Composable
 private fun DroughtDetailCard(
     event: DisasterEvent,
@@ -812,6 +829,7 @@ private fun DroughtDetailCard(
     }
 }
 
+// การ์ดแสดงข้อมูลขอบเขตและสถิติพื้นที่น้ำท่วมจากดาวเทียม
 @Composable
 private fun FloodDetailCard(
     floodArea: FloodArea,
@@ -856,6 +874,7 @@ private fun FloodDetailCard(
     }
 }
 
+// การ์ดแสดงผลการวัดและค่าสถานะต่างๆ จากสถานีตรวจวัดทางกายภาพ
 @Composable
 private fun StationDetailCard(
     station: MonitoringStation,
@@ -974,30 +993,7 @@ private fun StationDetailCard(
                         Text(current.openMeteoAqi?.toString() ?: "-", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-                        .padding(8.dp)
-                ) {
-                    Column {
-                        Text("ความชื้นดิน", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
-                        Text(current.openMeteoSoilMoisture?.let { String.format(java.util.Locale.US, "%.2f", it) } ?: "-", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-                        .padding(8.dp)
-                ) {
-                    Column {
-                        Text("การไหลน้ำ", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
-                        Text(current.openMeteoRiverDischarge?.let { String.format(java.util.Locale.US, "%.1f", it) } ?: "-", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
+
             }
         }
     }
@@ -1005,6 +1001,7 @@ private fun StationDetailCard(
 
 // ─── Helper composables ─────────────────────────────────────
 
+// ส่วนประกอบแสดงแถวข้อมูลรายละเอียดแบบกุญแจ-ค่า (Key-Value)
 @Composable
 internal fun DetailRow(
     label: String,
@@ -1016,6 +1013,7 @@ internal fun DetailRow(
     }
 }
 
+// ฟังก์ชันย่อยสำหรับสกัดค่าขนาดและระดับความลึกของแผ่นดินไหว
 internal fun parseEarthquakeMetric(metric: String, title: String): Pair<String, String> {
     val metricParts = metric.split("•").map { it.trim() }
     val magnitude = metricParts.firstOrNull()?.replace("Mw", "")?.trim()?.takeIf { it.isNotBlank() }
@@ -1026,11 +1024,13 @@ internal fun parseEarthquakeMetric(metric: String, title: String): Pair<String, 
     return Pair(magnitude, depth)
 }
 
+// ฟังก์ชันย่อยพาร์สตัวเลขค่าฝุ่นละออง PM2.5
 internal fun parsePmValue(metric: String): Double {
     val pmValueStr = metric.replace("ug/m3", "").replace("µg/m³", "").trim()
     return pmValueStr.toDoubleOrNull() ?: 0.0
 }
 
+// แถวรายงานสถานะเหตุการณ์ทั่วไปขนาดย่อ
 @Composable
 private fun UpdateRow(event: DisasterEvent) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -1043,6 +1043,7 @@ private fun UpdateRow(event: DisasterEvent) {
     }
 }
 
+// แถวรายงานข้อมูลอัปเดตจุดความร้อนขนาดย่อ
 @Composable
 private fun ViirsUpdateRow(hotspot: ViirsHotspot) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -1060,6 +1061,7 @@ private fun ViirsUpdateRow(hotspot: ViirsHotspot) {
     }
 }
 
+// แถวรายงานข้อมูลอัปเดตพื้นที่น้ำท่วมขนาดย่อ
 @Composable
 private fun FloodUpdateRow(floodArea: FloodArea) {
     val color = if (floodArea.timeRange == GistdaTimeRange.FloodFrequency) floodArea.frequencyBucket.color() else floodArea.severity.color()
@@ -1093,6 +1095,7 @@ private fun FloodUpdateRow(floodArea: FloodArea) {
     }
 }
 
+// การ์ดรายละเอียดพยากรณ์อากาศและค่ามลพิษสิ่งแวดล้อมรอบตัวผู้ใช้
 @Composable
 private fun WeatherDetailCard(
     weatherInfo: com.dmind.app.domain.model.SelectedWeatherInfo?,
@@ -1295,30 +1298,7 @@ private fun WeatherDetailCard(
                     Text(current.openMeteoAqi?.toString() ?: "-", fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
             }
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                    .padding(10.dp)
-            ) {
-                Column {
-                    Text("ความชื้นดิน (Soil)", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
-                    Text(current.openMeteoSoilMoisture?.let { String.format(java.util.Locale.US, "%.2f", it) } ?: "-", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                    .padding(10.dp)
-            ) {
-                Column {
-                    Text("การไหลของน้ำ (River)", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
-                    Text(current.openMeteoRiverDischarge?.let { String.format(java.util.Locale.US, "%.1f", it) } ?: "-", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                }
-            }
+
         }
         
         Spacer(Modifier.height(20.dp))
@@ -1429,6 +1409,7 @@ private fun WeatherDetailCard(
     }
 }
 
+// คอมโพสเซเบิลพล็อตเส้นแนวโน้มการเปลี่ยนแปลงอุณหภูมิรายชั่วโมง (Canvas Trendline)
 @Composable
 fun HourlyTemperatureTrendLine(
     hourly: List<com.dmind.app.domain.model.MapHourlyForecast>,
@@ -1543,6 +1524,7 @@ fun HourlyTemperatureTrendLine(
 
 // ─── State helper extensions ────────────────────────────────
 
+// ฟังก์ชันขยายสำหรับกรองเหตุการณ์ที่กำลังเปิดใช้งานตามชั้นข้อมูล
 internal fun DisasterMapUiState.activeEvents(): List<DisasterEvent> {
     return when (activeLayer) {
         DisasterLayerType.Earthquake -> visibleEvents.filter { it.type == com.dmind.app.domain.model.HazardType.Earthquake }
@@ -1552,12 +1534,11 @@ internal fun DisasterMapUiState.activeEvents(): List<DisasterEvent> {
         DisasterLayerType.WildfireViirs -> visibleEvents.filter { it.type == com.dmind.app.domain.model.HazardType.Fire }
         DisasterLayerType.Stations,
         DisasterLayerType.DroughtSmap,
-        DisasterLayerType.RiverDischarge,
-        DisasterLayerType.SoilMoistureHeatmap,
         -> emptyList()
     }
 }
 
+// ฟังก์ชันขยายคำนวณจำนวนเหตุการณ์ระดับวิกฤตที่แสดงผลอยู่
 internal fun DisasterMapUiState.activeCriticalCount(): Int {
     return when (activeLayer) {
         DisasterLayerType.WildfireViirs -> viirsHotspots.count { it.timeBucket in listOf(ViirsTimeBucket.LessThanOne, ViirsTimeBucket.OneToThree) }

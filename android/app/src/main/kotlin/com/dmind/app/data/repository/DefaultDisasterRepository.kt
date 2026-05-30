@@ -16,10 +16,12 @@ import com.dmind.app.domain.model.Severity
 import com.dmind.app.domain.model.StationMetric
 import com.dmind.app.domain.repository.DisasterRepository
 
+// คลาส Repository เริ่มต้นสำหรับรวบรวมข้อมูลภัยพิบัติ สภาพอากาศ และระบบตรวจวัดรอบตัว เพื่อป้อนให้กับ Domain layer
 class DefaultDisasterRepository(
     private val mapDataSource: DisasterMapRepository = DisasterMapRepository(),
     private val airQualityDataSource: AirQualityRemoteDataSource = AirQualityRemoteDataSource(),
 ) : DisasterRepository {
+    // ดึงข้อมูลสถานะภัยพิบัติทั้งหมด ประกอบด้วยแผนที่ภัยพิบัติ คุณภาพอากาศ และข้อมูลสถานีตรวจวัด
     override suspend fun fetchSnapshot(): DisasterSnapshot {
         val mapResult = runCatching { mapDataSource.fetchSnapshot() }
         val airResult = airQualityDataSource.fetchAirQuality()
@@ -64,22 +66,17 @@ class DefaultDisasterRepository(
         )
     }
 
+    // ค้นหาชื่อสถานที่บนแผนที่ผ่าน DataSource
     override suspend fun searchPlaces(query: String): List<PlaceSearchResult> {
         return mapDataSource.searchPlaces(query)
     }
 
+    // ดึงข้อมูลสภาพอากาศพยากรณ์ล่วงหน้าสำหรับพิกัดพิกัดที่กำหนด
     override suspend fun fetchWeatherForCoords(lat: Double, lon: Double): com.dmind.app.domain.model.SelectedWeatherInfo {
         return mapDataSource.fetchWeatherForCoords(lat, lon)
     }
 
-    override suspend fun fetchSoilMoistureGrid(): String {
-        return mapDataSource.fetchSoilMoistureGrid()
-    }
-
-    override suspend fun fetchRiverDischargeGrid(): String {
-        return mapDataSource.fetchRiverDischargeGrid()
-    }
-
+    // สร้างรายงานเหตุการณ์ความร้อนจัดหากอุณหภูมิถึงเกณฑ์ที่กำหนด
     private fun heatEventFromWeather(weather: com.dmind.app.domain.model.WeatherSnapshot): DisasterEvent? {
         if (weather.temperatureCelsius < 35.0) return null
         val severity = when {
@@ -102,6 +99,7 @@ class DefaultDisasterRepository(
         )
     }
 
+    // สร้างรายงานเหตุการณ์พายุหรือฝนตกหนักหากสภาพอากาศถึงเกณฑ์ที่กำหนด
     private fun stormEventFromWeather(weather: com.dmind.app.domain.model.WeatherSnapshot): DisasterEvent? {
         if (weather.rainMillimeters <= 0.0 && weather.windSpeedMps < 10.0) return null
         val severity = when {
@@ -124,12 +122,14 @@ class DefaultDisasterRepository(
         )
     }
 
+    // เหตุการณ์จำลองภัยพิบัติแบบ Local ในกรณีระบบดึงข้อมูลล้มเหลว
     private fun fallbackEvents(): List<DisasterEvent> = listOf(
         event("fallback-flood-ayutthaya", HazardType.Flood, "Flood watch Ayutthaya", "River basin watch zone", 14.3532, 100.5689, Severity.Watch, "42 cm", "Local fallback"),
         event("fallback-fire-north", HazardType.Fire, "Hotspot watch Chiang Mai", "Satellite fallback estimate", 18.7953, 98.9986, Severity.Affected, "68%", "Local fallback"),
         event("fallback-drought-korat", HazardType.Drought, "Drought risk Nakhon Ratchasima", "Soil moisture watch", 14.9799, 102.0977, Severity.Watch, "55%", "Local fallback"),
     )
 
+    // ฟังก์ชันตัวช่วยสร้างเหตุการณ์ DisasterEvent แบบกำหนดเอง
     private fun event(
         id: String,
         type: HazardType,
@@ -154,6 +154,7 @@ class DefaultDisasterRepository(
         recommendedAction = recommendedActionFor(type, severity),
     )
 
+    // จำลองพิกัดและข้อมูลของสถานีตรวจวัดทางสิ่งแวดล้อมต่างๆ ในไทย
     private fun monitoringStations(): List<MonitoringStation> = listOf(
         MonitoringStation(
             id = "dmind-bkk-01",
@@ -213,6 +214,7 @@ class DefaultDisasterRepository(
         ),
     )
 
+    // สร้างรายงานสถานะของแหล่งข้อมูลสำหรับสถานีตรวจวัด
     private fun stationSourceStatus(stations: List<MonitoringStation>) = ExternalSourceStatus(
         name = "D-MIND stations",
         agency = "D-MIND Sensor Network",
@@ -221,5 +223,6 @@ class DefaultDisasterRepository(
         detail = "Station and sensor-style data are available locally until api-from-sensor provides production endpoints.",
     )
 
+    // แปลงระดับค่าทศนิยมเป็น 1 ตำแหน่งสำหรับความเข้ากันได้
     private fun Double.formatOne(): String = java.lang.String.format(java.util.Locale.US, "%.1f", this)
 }

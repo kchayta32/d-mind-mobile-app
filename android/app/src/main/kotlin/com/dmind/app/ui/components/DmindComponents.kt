@@ -47,6 +47,7 @@ import com.dmind.app.domain.model.HazardType
 import com.dmind.app.domain.model.Severity
 import com.dmind.app.ui.theme.DMindTheme
 
+// การกำหนดโทนสีหลักและระดับความรุนแรงต่างๆ ของแอปพลิเคชัน
 val SafeGreen = Color(0xFF16A34A)
 val WatchYellow = Color(0xFFEAB308)
 val AffectedOrange = Color(0xFFF97316)
@@ -54,6 +55,7 @@ val CriticalRed = Color(0xFFDC2626)
 val DmindBlue = Color(0xFF2563EB)
 val DmindInk = Color(0xFF0F172A)
 
+// คอมโพสเซเบิลการ์ดแบบกำหนดเอง เพื่อใช้เป็นคอนเทนเนอร์แสดงผลข้อมูลทั่วไป
 @Composable
 fun DmindCard(
     modifier: Modifier = Modifier,
@@ -75,6 +77,7 @@ fun DmindCard(
     }
 }
 
+// คอมโพสเซเบิลแถบส่วนหัวของแต่ละหน้าจอ ประกอบด้วยไอคอน ชื่อเรื่อง และคำอธิบายย่อย
 @Composable
 fun ScreenHeader(
     title: String,
@@ -110,6 +113,7 @@ fun ScreenHeader(
     }
 }
 
+// คอมโพสเซเบิลไอคอนในกรอบทรงกลม/มน พร้อมสีพื้นหลังแบบโปร่งแสง
 @Composable
 fun IconBubble(
     icon: ImageVector,
@@ -130,6 +134,7 @@ fun IconBubble(
     }
 }
 
+// คอมโพสเซเบิลแสดงสถานะแบบเม็ดยา (Pill status label)
 @Composable
 fun StatusPill(
     label: String,
@@ -153,6 +158,7 @@ fun StatusPill(
     }
 }
 
+// คอมโพสเซเบิลแสดงกระเบื้องข้อมูลตัวเลขเชิงสถิติ (Metric tile)
 @Composable
 fun MetricTile(
     value: String,
@@ -183,6 +189,7 @@ fun MetricTile(
     }
 }
 
+// คอมโพสเซเบิลแสดงหน้าจอว่างเปล่ากรณีไม่มีข้อมูล
 @Composable
 fun EmptyState(
     title: String,
@@ -206,6 +213,7 @@ fun EmptyState(
     }
 }
 
+// คอมโพสเซเบิลคำอธิบายสีของระดับความรุนแรง
 @Composable
 fun SeverityLegend(
     modifier: Modifier = Modifier,
@@ -223,6 +231,7 @@ fun SeverityLegend(
     }
 }
 
+// คอมโพสเซเบิลจุดสีและชื่อระดับความรุนแรงย่อย
 @Composable
 private fun LegendDot(
     label: String,
@@ -242,6 +251,7 @@ private fun LegendDot(
     }
 }
 
+// ฟังก์ชันแปลงระดับความรุนแรงเป็นสีประจำสถานะ
 fun Severity.color(): Color = when (this) {
     Severity.Normal -> SafeGreen
     Severity.Watch -> WatchYellow
@@ -249,6 +259,7 @@ fun Severity.color(): Color = when (this) {
     Severity.Critical -> CriticalRed
 }
 
+// ฟังก์ชันแปลงระดับความรุนแรงเป็นข้อความภาษาไทย/อังกฤษตามระบบ
 @Composable
 fun Severity.localizedLabel(): String = when (this) {
     Severity.Normal -> stringResource(R.string.severity_normal)
@@ -257,6 +268,7 @@ fun Severity.localizedLabel(): String = when (this) {
     Severity.Critical -> stringResource(R.string.severity_critical)
 }
 
+// ฟังก์ชันแมปไอคอนประจำประเภทภัยพิบัติ
 fun HazardType.icon(): ImageVector = when (this) {
     HazardType.Earthquake -> Icons.Filled.Warning
     HazardType.Flood -> Icons.Filled.WaterDrop
@@ -270,6 +282,7 @@ fun HazardType.icon(): ImageVector = when (this) {
     HazardType.Other -> Icons.Filled.Place
 }
 
+// ส่วนการแสดงผลพรีวิวสำหรับส่วนประกอบหน้าจอ (UI components preview)
 @Preview(showBackground = true)
 @Composable
 private fun ComponentsPreview() {

@@ -53,6 +53,7 @@ import com.dmind.app.ui.components.ScreenHeader
 import com.dmind.app.ui.components.WatchYellow
 import com.dmind.app.ui.viewmodel.SatisfactionSurveyUiState
 
+// หน้าจอแบบสอบถามประเมินความพึงพอใจต่อการใช้งานระบบ D-MIND (Satisfaction Survey Screen)
 @Composable
 fun SatisfactionSurveyScreen(
     state: SatisfactionSurveyUiState,
@@ -68,8 +69,8 @@ fun SatisfactionSurveyScreen(
             .fillMaxSize()
             .statusBarsPadding()
     ) {
+        // ส่วนแสดงเมื่อผู้ใช้ประเมินความพึงพอใจสำเร็จ (Thank you screen)
         if (state.isSuccess) {
-            // Premium thank you screen with spring scale-in animation
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -142,7 +143,7 @@ fun SatisfactionSurveyScreen(
                             fontSize = 16.sp
                         )
 
-                        // Beautiful Star Rating Row
+                        // การเลือกจำนวนดาวเพื่อประเมินความพึงพอใจ (1-5 ดาว)
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -164,7 +165,6 @@ fun SatisfactionSurveyScreen(
                             }
                         }
 
-                        // Rating Label Description
                         val ratingLabel = when (rating) {
                             1 -> R.string.rating_very_poor
                             2 -> R.string.rating_poor
@@ -182,7 +182,7 @@ fun SatisfactionSurveyScreen(
 
                         Spacer(Modifier.height(10.dp))
 
-                        // User Type Select
+                        // ตัวเลือกประเภทผู้ใช้เพื่อจำแนกกลุ่มผลตอบรับ
                         Text(
                             text = stringResource(R.string.survey_user_type_prompt),
                             fontWeight = FontWeight.SemiBold,
@@ -209,6 +209,7 @@ fun SatisfactionSurveyScreen(
 
                         Spacer(Modifier.height(10.dp))
 
+                        // ช่องกรอกความคิดเห็นและข้อเสนอแนะเพิ่มเติม
                         OutlinedTextField(
                             value = comments,
                             onValueChange = { comments = it },
@@ -220,6 +221,7 @@ fun SatisfactionSurveyScreen(
 
                         Spacer(Modifier.height(10.dp))
 
+                        // ปุ่มส่งแบบประเมินพร้อมตัวโหลดประมวลผล
                         Button(
                             onClick = {
                                 onSubmit(rating, comments.ifBlank { null }, userType)

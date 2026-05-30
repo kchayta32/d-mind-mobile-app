@@ -41,6 +41,7 @@ import com.dmind.app.ui.components.icon
 import com.dmind.app.ui.components.localizedLabel
 import com.dmind.app.ui.viewmodel.DisasterMapUiState
 
+// คอมโพสเซเบิลสำหรับแผ่นสัญญะตัวกรองข้อมูลบนแผนที่ (ตัวเลือกประเภทภัยพิบัติ ระดับความรุนแรงขั้นต่ำ และตัวเลือกเปิด/ปิดสถานี)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MapFilterSheet(
@@ -92,6 +93,7 @@ internal fun MapFilterSheet(
     }
 }
 
+// คอมโพสเซเบิลสำหรับจัดการตัวเลือกการสลับชั้นข้อมูลแผนที่ภัยพิบัติและรูปแบบการแสดงผลพื้นหลัง
 @Composable
 internal fun LayerSheet(
     selectedLayer: DisasterLayerType,
@@ -141,6 +143,7 @@ internal fun LayerSheet(
     }
 }
 
+// แถวตัวเลือกชั้นข้อมูลเดี่ยวที่รองรับการแตะเพื่อทำงาน
 @Composable
 private fun SelectableLayerRow(
     selected: Boolean,

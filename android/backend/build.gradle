@@ -1,27 +1,42 @@
+// ปลั๊กอินสำหรับรันภาษา Kotlin บน JVM
 apply plugin: 'org.jetbrains.kotlin.jvm'
+// ปลั๊กอินสำหรับการทำงานด้าน Serialization (แปลงข้อมูลเป็น JSON)
 apply plugin: 'org.jetbrains.kotlin.plugin.serialization'
+// ปลั๊กอินสำหรับระบุความเป็นแอปพลิเคชัน เพื่อให้สามารถรันและแพ็กเกจได้
 apply plugin: 'application'
 
+// กำหนด Repository หลักสำหรับการดึง dependencies
 repositories {
     mavenCentral()
 }
 
+// ตั้งค่าโปรเจกต์ Kotlin ให้ใช้ Java Development Kit (JDK) เวอร์ชัน 21
 kotlin {
     jvmToolchain(21)
 }
 
+// กำหนด Entry Point หรือคลาสหลักที่จะถูกเรียกเมื่อเริ่มต้นแอปพลิเคชัน
 application {
     mainClass = 'com.dmind.backend.ApplicationKt'
 }
 
+// ประกาศไลบรารีหรือ Dependency ต่างๆ ที่ใช้ในโปรเจกต์
 dependencies {
+    // ไลบรารีหลักของ Ktor Server
     implementation "io.ktor:ktor-server-core-jvm:$ktorVersion"
+    // เอนจิน Netty สำหรับรันเซิร์ฟเวอร์
     implementation "io.ktor:ktor-server-netty-jvm:$ktorVersion"
+    // ระบบ Content Negotiation เพื่อจัดการกับประเภทข้อมูล เช่น JSON
     implementation "io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion"
+    // ไลบรารีสำหรับแปลงออบเจกต์เป็น JSON โดยใช้ kotlinx-json
     implementation "io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion"
+    // ไลบรารีสำหรับการรับรองสิทธิ์ความปลอดภัยผ่านระบบ OAuth2 ของ Google
     implementation "com.google.auth:google-auth-library-oauth2-http:$googleAuthVersion"
+    // ระบบบันทึก Log ของแอปพลิเคชัน
     implementation "ch.qos.logback:logback-classic:1.5.18"
 
+    // ไลบรารีสำหรับการทดสอบระบบบนเครื่องทดสอบจำลอง (Test Host)
     testImplementation "io.ktor:ktor-server-test-host-jvm:$ktorVersion"
+    // เครื่องมือสำหรับการทำ Unit Test ด้วย Kotlin Test และ JUnit
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit"
 }

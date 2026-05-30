@@ -7,7 +7,10 @@ import java.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
+// คลาสทดสอบการประมวลผลและการรวมข้อมูลสถิติภัยพิบัติสำหรับหน้าแดชบอร์ดหลัก (Home Summary)
 class HomeSummaryTest {
+    
+    // ทดสอบการจัดหมวดหมู่และนับจำนวนเหตุการณ์ภัยพิบัติจำแนกตามประเภท (ประเภทละ 1 เหตุการณ์)
     @Test
     fun `aggregates home hazard counts by type`() {
         val counts = aggregateHomeHazardCounts(
@@ -27,6 +30,7 @@ class HomeSummaryTest {
         assertEquals(1, counts.storm)
     }
 
+    // ทดสอบการคัดกรองเหตุการณ์ภัยพิบัติเฉพาะที่เกิดขึ้นภายใน 24 ชั่วโมงที่ผ่านมา โดยอิงจากวันเวลาจำลองที่กำหนด
     @Test
     fun `filters parseable events to last 24 hours`() {
         val now = Instant.parse("2026-05-16T12:00:00Z")
@@ -45,6 +49,7 @@ class HomeSummaryTest {
         assertEquals(1, counts.storm)
     }
 
+    // ทดสอบกลไกสำรอง (Fallback) หากค่าวันเวลาไม่สามารถแปลงรูปแบบได้ ให้รวมเหตุการณ์นั้นเข้าคำนวณทั้งหมด
     @Test
     fun `falls back to all events when timestamps cannot be parsed`() {
         val counts = aggregateHomeHazardCounts(
@@ -59,6 +64,7 @@ class HomeSummaryTest {
         assertEquals(1, counts.flood)
     }
 
+    // ฟังก์ชันผู้ช่วยสำหรับการสร้างออบเจกต์จำลองของเหตุการณ์ภัยพิบัติ (DisasterEvent) เพื่อการทดสอบ
     private fun event(
         id: String,
         type: HazardType,

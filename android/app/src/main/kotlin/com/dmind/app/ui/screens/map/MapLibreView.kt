@@ -44,6 +44,7 @@ import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
 import kotlin.math.floor
 
+// คอมโพสเซเบิลสำหรับติดตั้งแผนที่เชิงพื้นที่ด้วย SDK MapLibre รองรับการพล็อตรุ่นมาร์กเกอร์และชั้นข้อมูล GeoJSON / WMTS
 @Composable
 internal fun MapLibreTerrainView(
     markers: List<MapMarkerItem>,
@@ -56,8 +57,8 @@ internal fun MapLibreTerrainView(
     showRadarOverlay: Boolean,
     radarHost: String,
     activeRadarPath: String?,
-    soilMoistureGeoJson: String?,
-    riverDischargeGeoJson: String?,
+    soilMoistureGeoJson: String? = null,
+    riverDischargeGeoJson: String? = null,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -68,6 +69,7 @@ internal fun MapLibreTerrainView(
     var mapLibreMap by remember { mutableStateOf<MapLibreMap?>(null) }
     val overlayTileUrl = wmtsLayer?.tileUrl
     val overlayTileScheme = wmtsLayer?.tileScheme
+    // ตัวเริ่มและกำหนดค่าแผนที่ MapLibre (MapLibre View) และเพิ่มการดักรับเหตุการณ์แตะมาร์กเกอร์/แผนที่
     val mapView = remember {
         MapLibre.getInstance(context)
         MapView(context).apply {
@@ -99,6 +101,7 @@ internal fun MapLibreTerrainView(
         }
     }
 
+    // อัปเดตรูปแบบสไตล์แผนที่หรือการแสดงชั้นข้อมูลแบบไดนามิก
     LaunchedEffect(mapLibreMap, mapStyle, overlayTileUrl, overlayTileScheme, showRadarOverlay, activeRadarPath, soilMoistureGeoJson, riverDischargeGeoJson) {
         val map = mapLibreMap ?: return@LaunchedEffect
         map.setStyle(Style.Builder().fromJson(mapStyleJson(
@@ -112,6 +115,7 @@ internal fun MapLibreTerrainView(
         )))
     }
 
+    // อัปเดตและเคลียร์หมุด/มาร์กเกอร์บนแผนที่เมื่อข้อมูลเปลี่ยน
     LaunchedEffect(mapLibreMap, markers, mapStyle, overlayTileUrl, overlayTileScheme) {
         val map = mapLibreMap ?: return@LaunchedEffect
         markerLookup.clear()
@@ -130,6 +134,7 @@ internal fun MapLibreTerrainView(
         }
     }
 
+    // ย้ายและซูมกล้องแผนที่ไปยังตำแหน่งที่ผู้ใช้ค้นหา
     LaunchedEffect(mapLibreMap, focusedPlace) {
         val map = mapLibreMap ?: return@LaunchedEffect
         val place = focusedPlace ?: return@LaunchedEffect
@@ -139,6 +144,7 @@ internal fun MapLibreTerrainView(
             .build()
     }
 
+    // ดำเนินการย้ายกล้อง ซูมเข้า/ออกตามคำสั่งของปุ่มควบคุม
     LaunchedEffect(mapLibreMap, cameraAction) {
         val map = mapLibreMap ?: return@LaunchedEffect
         val action = cameraAction ?: return@LaunchedEffect
@@ -179,6 +185,7 @@ internal fun MapLibreTerrainView(
 
 // ─── Marker building ────────────────────────────────────────
 
+// ฟังก์ชันหลักสร้างและจับกลุ่ม (Cluster) รายการมาร์กเกอร์ตามประเภทชั้นข้อมูลปัจจุบัน
 internal fun buildMapMarkerItems(
     state: DisasterMapUiState,
     text: MapMarkerText,
@@ -208,6 +215,7 @@ internal fun buildMapMarkerItems(
 
 // ─── Clustering ─────────────────────────────────────────────
 
+// ฟังก์ชันรวมกลุ่มจุดเหตุการณ์ภัยพิบัติที่พิกัดใกล้กัน
 private fun clusterEvents(
     events: List<DisasterEvent>,
     text: MapMarkerText,
@@ -236,6 +244,7 @@ private fun clusterEvents(
         }
 }
 
+// ฟังก์ชันรวมกลุ่มจุดความร้อน (VIIRS Hotspot) ใกล้กันเพื่อการแสดงผลสะอาดตา
 private fun clusterHotspots(
     hotspots: List<ViirsHotspot>,
     text: MapMarkerText,
@@ -261,6 +270,7 @@ private fun clusterHotspots(
         }
 }
 
+// ฟังก์ชันรวมกลุ่มพื้นที่ประสบภัยน้ำท่วม
 private fun clusterFloodAreas(
     floodAreas: List<FloodArea>,
     text: MapMarkerText,
@@ -287,6 +297,7 @@ private fun clusterFloodAreas(
 
 // ─── toMarkerItem extensions ────────────────────────────────
 
+// แปลงเหตุการณ์ภัยพิบัติ (DisasterEvent) ไปเป็นข้อมูลมาร์กเกอร์
 private fun DisasterEvent.toMarkerItem(): MapMarkerItem {
     val snip = when (type) {
         HazardType.Earthquake -> "สถานที่: $description | พิกัด: $latitude, $longitude | ลึก: $metric | แหล่งข้อมูล: $source"
@@ -303,6 +314,7 @@ private fun DisasterEvent.toMarkerItem(): MapMarkerItem {
     )
 }
 
+// แปลงข้อมูลสถานีตรวจวัดทางกายภาพไปเป็นมาร์กเกอร์
 private fun MonitoringStation.toMarkerItem(): MapMarkerItem {
     val snip = if (metrics.isNotEmpty()) {
         "${province} | " + metrics.joinToString(" • ") { "${it.label}: ${it.value}" }
@@ -318,6 +330,7 @@ private fun MonitoringStation.toMarkerItem(): MapMarkerItem {
     )
 }
 
+// แปลงข้อมูลจุดความร้อนไปเป็นมาร์กเกอร์
 private fun ViirsHotspot.toMarkerItem(): MapMarkerItem = MapMarkerItem(
     id = id, latitude = latitude, longitude = longitude,
     title = "VIIRS $detectedDate",
@@ -328,6 +341,7 @@ private fun ViirsHotspot.toMarkerItem(): MapMarkerItem = MapMarkerItem(
     viirsBucket = timeBucket,
 )
 
+// แปลงข้อมูลพื้นที่น้ำท่วมไปเป็นมาร์กเกอร์
 private fun FloodArea.toMarkerItem(text: MapMarkerText): MapMarkerItem = MapMarkerItem(
     id = id, latitude = latitude, longitude = longitude,
     title = if (timeRange == GistdaTimeRange.FloodFrequency) text.floodRecurrentTitle(province) else text.floodShortTitle(province),
@@ -343,6 +357,7 @@ private fun FloodArea.toMarkerItem(text: MapMarkerText): MapMarkerItem = MapMark
 
 // ─── Marker icon rendering ─────────────────────────────────
 
+// ฟังก์ชันวาดบิตแมปไอคอนมาร์กเกอร์แบบกำหนดเอง เช่น วาดตามระดับความรุนแรงและขนาดกลุ่ม
 private fun markerIcon(context: Context, item: MapMarkerItem): org.maplibre.android.annotations.Icon {
     val size = when {
         item.floodFrequencyBucket != null -> 20
@@ -421,14 +436,15 @@ private fun thailandCamera(): CameraPosition = CameraPosition.Builder()
     .zoom(5.35)
     .build()
 
+// สร้าง JSON รูปแบบสไตล์แผนที่ MapLibre พร้อมชั้นข้อมูล Raster Overlay
 private fun mapStyleJson(
     style: MapTileStyle,
     wmtsLayer: GistdaLayer?,
     showRadarOverlay: Boolean,
     radarHost: String,
     activeRadarPath: String?,
-    soilMoistureGeoJson: String?,
-    riverDischargeGeoJson: String?,
+    soilMoistureGeoJson: String? = null,
+    riverDischargeGeoJson: String? = null,
 ): String {
     val overlayTile = wmtsLayer?.tileUrl?.replace("\\", "\\\\")?.replace("\"", "\\\"")
     val overlayScheme = wmtsLayer?.tileScheme ?: "xyz"
@@ -492,167 +508,10 @@ private fun mapStyleJson(
         ""
     }
 
-    val soilMoistureData = soilMoistureGeoJson ?: """{"type": "FeatureCollection", "features": []}"""
-    val soilMoistureSource = """,
-    "soil-moisture-source": {
-      "type": "geojson",
-      "data": $soilMoistureData
-    }"""
-
-    val soilMoistureLayer = """,
-    {
-      "id": "soil-moisture-heatmap",
-      "type": "heatmap",
-      "source": "soil-moisture-source",
-      "paint": {
-        "heatmap-weight": [
-          "interpolate", ["linear"], ["get", "moisture"],
-          0, 0.15,
-          0.1, 0.35,
-          0.2, 0.55,
-          0.3, 0.75,
-          0.5, 1.0
-        ],
-        "heatmap-color": [
-          "interpolate", ["linear"], ["heatmap-density"],
-          0, "rgba(0, 0, 0, 0)",
-          0.1, "rgba(178, 24, 43, 0.55)",
-          0.2, "rgba(214, 96, 77, 0.6)",
-          0.3, "rgba(244, 165, 130, 0.65)",
-          0.4, "rgba(253, 219, 199, 0.65)",
-          0.5, "rgba(247, 247, 247, 0.5)",
-          0.6, "rgba(209, 229, 240, 0.65)",
-          0.7, "rgba(146, 197, 222, 0.65)",
-          0.8, "rgba(67, 147, 195, 0.7)",
-          0.9, "rgba(33, 102, 172, 0.75)",
-          1.0, "rgba(5, 48, 97, 0.8)"
-        ],
-        "heatmap-radius": [
-          "interpolate", ["linear"], ["zoom"],
-          4, 40,
-          6, 55,
-          8, 70,
-          10, 85
-        ],
-        "heatmap-intensity": [
-          "interpolate", ["linear"], ["zoom"],
-          4, 0.8,
-          6, 1.0,
-          10, 1.3
-        ],
-        "heatmap-opacity": [
-          "interpolate", ["linear"], ["zoom"],
-          4, 0.7,
-          8, 0.6,
-          12, 0.5
-        ]
-      }
-    }"""
-
-    val riverDischargeData = riverDischargeGeoJson ?: """{"type": "FeatureCollection", "features": []}"""
-    val riverDischargeSource = """,
-    "river-discharge-source": {
-      "type": "geojson",
-      "data": $riverDischargeData
-    }"""
-
-    val isRiverPoint = riverDischargeGeoJson == null || !riverDischargeGeoJson.contains("LineString", ignoreCase = true)
-    val riverDischargeLayer = if (isRiverPoint) {
-        """,
-    {
-      "id": "river-discharge-lines",
-      "type": "circle",
-      "source": "river-discharge-source",
-      "paint": {
-        "circle-radius": [
-          "interpolate",
-          ["linear"],
-          ["get", "discharge"],
-          0, 3.0,
-          50, 6.0,
-          200, 9.0,
-          500, 12.0,
-          1000, 16.0
-        ],
-        "circle-color": [
-          "interpolate",
-          ["linear"],
-          ["get", "discharge"],
-          0, "rgba(173, 216, 230, 0.7)",
-          50, "rgba(65, 105, 225, 0.8)",
-          200, "rgba(0, 0, 205, 0.85)",
-          500, "rgba(0, 0, 139, 0.9)",
-          1000, "rgba(75, 0, 130, 0.95)"
-        ],
-        "circle-opacity": 0.8
-      }
-    }"""
-    } else {
-        """,
-    {
-      "id": "river-discharge-glow",
-      "type": "line",
-      "source": "river-discharge-source",
-      "layout": {
-        "line-join": "round",
-        "line-cap": "round"
-      },
-      "paint": {
-        "line-width": [
-          "interpolate",
-          ["linear"],
-          ["get", "discharge"],
-          0, 3.5,
-          50, 8.0,
-          200, 13.0,
-          500, 18.0,
-          1000, 24.0
-        ],
-        "line-color": [
-          "interpolate",
-          ["linear"],
-          ["get", "discharge"],
-          0, "rgba(173, 216, 230, 0.3)",
-          50, "rgba(65, 105, 225, 0.35)",
-          200, "rgba(0, 0, 205, 0.4)",
-          500, "rgba(0, 0, 139, 0.45)",
-          1000, "rgba(75, 0, 130, 0.5)"
-        ],
-        "line-blur": 3.0
-      }
-    },
-    {
-      "id": "river-discharge-lines",
-      "type": "line",
-      "source": "river-discharge-source",
-      "layout": {
-        "line-join": "round",
-        "line-cap": "round"
-      },
-      "paint": {
-        "line-width": [
-          "interpolate",
-          ["linear"],
-          ["get", "discharge"],
-          0, 1.5,
-          50, 4.0,
-          200, 7.0,
-          500, 10.0,
-          1000, 14.0
-        ],
-        "line-color": [
-          "interpolate",
-          ["linear"],
-          ["get", "discharge"],
-          0, "rgba(173, 216, 230, 0.7)",
-          50, "rgba(65, 105, 225, 0.8)",
-          200, "rgba(0, 0, 205, 0.85)",
-          500, "rgba(0, 0, 139, 0.9)",
-          1000, "rgba(75, 0, 130, 0.95)"
-        ]
-      }
-    }"""
-    }
+    val soilMoistureSource = ""
+    val soilMoistureLayer = ""
+    val riverDischargeSource = ""
+    val riverDischargeLayer = ""
 
     return """
 {

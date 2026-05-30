@@ -22,9 +22,11 @@ import com.dmind.app.util.FCMTokenRegistrar
 import com.dmind.app.worker.SOSQueueWorker
 import com.google.firebase.messaging.FirebaseMessaging
 
+// คลาส Repository สำหรับจัดการและตรวจสอบสถานะการทำงานของฟังก์ชันพื้นฐานในระดับ Native (เช่น สิทธิ์การเข้าถึงข้อมูล, สถานะการติดตามตำแหน่ง)
 class NativeStatusRepository(private val context: Context) {
     private val appContext = context.applicationContext
 
+    // ดึงและอัปเดตสถานะความน่าเชื่อถือและความพร้อมของระบบ (เช่น สิทธิ์การเข้าถึงตำแหน่งและการแจ้งเตือน)
     fun refreshStatus(): ReliabilityStatus {
         val dao = AlertsCacheDAO(appContext)
         return ReliabilityStatus(
@@ -41,6 +43,7 @@ class NativeStatusRepository(private val context: Context) {
         )
     }
 
+    // เริ่มต้นระบบติดตามตำแหน่งในพื้นหลัง (Background Location Service)
     fun startMonitoring(): Boolean {
         if (!hasLocationPermission()) return false
 
@@ -54,12 +57,14 @@ class NativeStatusRepository(private val context: Context) {
         return true
     }
 
+    // หยุดการทำงานของระบบติดตามตำแหน่งในพื้นหลัง
     fun stopMonitoring() {
         val intent = Intent(appContext, BackgroundLocationService::class.java)
             .setAction(BackgroundLocationService.ACTION_STOP)
         appContext.startService(intent)
     }
 
+    // ฟังก์ชันสำหรับจำลองการส่งสัญญาณขอความช่วยเหลือฉุกเฉิน (SOS) เข้าคิวระบบเพื่อรอส่งไปยังเซิร์ฟเวอร์
     fun queueDemoSOS(): Long {
         val batteryLevel = getBatteryLevel()
         val id = AlertsCacheDAO(appContext).enqueueSOS(
@@ -75,6 +80,7 @@ class NativeStatusRepository(private val context: Context) {
         return id
     }
 
+    // ฟังก์ชันสำหรับจำลองการแจ้งเตือนฉุกเฉินบนหน้าจอแบบเต็มจอ
     fun triggerDemoAlert() {
         EmergencyNotificationManager(appContext).triggerEmergencyAlert(
             "D-MIND emergency test",
@@ -83,6 +89,7 @@ class NativeStatusRepository(private val context: Context) {
         )
     }
 
+    // ดึง FCM Token ล่าสุดจาก Firebase และส่งไปลงทะเบียนกับเซิร์ฟเวอร์
     fun refreshFcmToken(onComplete: (Boolean) -> Unit) {
         FirebaseMessaging.getInstance().token
             .addOnCompleteListener { task ->
@@ -99,44 +106,53 @@ class NativeStatusRepository(private val context: Context) {
             }
     }
 
+    // เปิดหน้าการตั้งค่าแบตเตอรี่ของแอปพลิเคชัน
     fun openBatterySettings(activity: Activity) {
         activity.startActivity(Intent(activity, BatteryOptimizationSettingsActivity::class.java))
     }
 
+    // เปิดหน้าตั้งค่าหลักของแอปพลิเคชันในระดับระบบปฏิบัติการ Android
     fun openAppSettings(activity: Activity) {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
         intent.data = android.net.Uri.parse("package:${activity.packageName}")
         activity.startActivity(intent)
     }
 
+    // เปิดหน้าการตั้งค่าสิทธิ์การเข้าถึงโหมดห้ามรบกวน (Do Not Disturb - DND)
     fun openDndSettings(activity: Activity) {
         activity.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))
     }
 
+    // ตรวจสอบว่าแอปพลิเคชันได้รับสิทธิ์การเข้าถึงตำแหน่งหรือไม่
     private fun hasLocationPermission(): Boolean =
         ContextCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
             ContextCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
+    // ตรวจสอบว่าแอปพลิเคชันได้รับสิทธิ์การเข้าถึงตำแหน่งในพื้นหลัง (Background Location) หรือไม่
     private fun hasBackgroundLocationPermission(): Boolean =
         Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
             ContextCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED
 
+    // ตรวจสอบว่าได้รับสิทธิ์การส่งการแจ้งเตือน (Notifications) หรือไม่
     private fun hasNotificationPermission(): Boolean =
         Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             ContextCompat.checkSelfPermission(appContext, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
 
+    // ตรวจสอบว่าแอปพลิเคชันได้รับการยกเว้นจากการประหยัดพลังงานแบตเตอรี่ (Battery Optimization) หรือไม่
     private fun isIgnoringBatteryOptimizations(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true
         val powerManager = appContext.getSystemService(Context.POWER_SERVICE) as? PowerManager
         return powerManager?.isIgnoringBatteryOptimizations(appContext.packageName) == true
     }
 
+    // ตรวจสอบว่าแอปพลิเคชันได้รับสิทธิ์การเข้าถึงนโยบายการแจ้งเตือน (โหมดห้ามรบกวน) หรือไม่
     private fun hasDndAccess(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true
         val manager = appContext.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
         return manager?.isNotificationPolicyAccessGranted == true
     }
 
+    // ดึงระดับพลังงานแบตเตอรี่ปัจจุบัน (เปอร์เซ็นต์)
     private fun getBatteryLevel(): Int {
         val batteryManager = appContext.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
         return batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) ?: -1

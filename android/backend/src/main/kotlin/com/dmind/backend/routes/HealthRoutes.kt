@@ -6,7 +6,9 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 
+// กำหนดเส้นทาง URL (Routing) สำหรับตรวจสอบความพร้อมใช้งานและสถานะสุขภาพของระบบ
 fun Route.healthRoutes() {
+    // เส้นทางสำหรับตอบกลับสถานะการทำงานเพื่อความสะดวกในการทำ Health Check
     get("/health") {
         call.respond(
             HealthResponse(

@@ -4,7 +4,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
 
+// คลาสทดสอบความถูกต้องในการแปลงและวิเคราะห์ข้อมูล JSON (Data Transfer Object) จาก GISTDA API
 class GistdaDtoParsingTest {
+    
+    // ทดสอบความสามารถในการทดแทนฟิลด์ที่ขาดหายด้วยเครื่องหมาย "-" สำหรับข้อมูลตำแหน่งจุดความร้อน VIIRS
     @Test
     fun `viirs dto uses dash fallbacks for missing location fields`() {
         val response = GistdaFeatureResponseDto.fromJson(
@@ -38,6 +41,7 @@ class GistdaDtoParsingTest {
         assertEquals("1.789", dto.vDist)
     }
 
+    // ทดสอบการคำนวณพิกัดจุดศูนย์กลางของโพลีกอน (Centroid) และดึงคุณสมบัติน้ำท่วมอื่นๆ จาก JSON ได้อย่างปลอดภัย
     @Test
     fun `flood dto calculates polygon centroid safely`() {
         val response = GistdaFeatureResponseDto.fromJson(

@@ -9,22 +9,24 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+// คลาสโมเดล DTO สำหรับจัดกลุ่มพารามิเตอร์ข้อมูลจุดความร้อนไฟป่า (VIIRS Features)
 data class GistdaViirsFeatureDto(
-    val id: String,
-    val latitude: Double,
-    val longitude: Double,
-    val country: String,
-    val province: String,
-    val district: String,
-    val subdistrict: String,
-    val detectedDate: String,
-    val utmZone: String,
-    val responsibleArea: String,
-    val vAngle: String,
-    val vDirect: String,
-    val vDist: String,
-    val hoursSinceDetected: Double?,
+    val id: String, // รหัสประจำตัวจุดตรวจพบ
+    val latitude: Double, // ละติจูดของพิกัด
+    val longitude: Double, // ลองจิจูดของพิกัด
+    val country: String, // ชื่อประเทศ
+    val province: String, // ชื่อจังหวัด
+    val district: String, // ชื่ออำเภอ
+    val subdistrict: String, // ชื่อตำบล
+    val detectedDate: String, // วันเวลาพิกัดสังเกตการณ์ดาวเทียม
+    val utmZone: String, // รหัสโซนแผนที่ระบบ UTM
+    val responsibleArea: String, // พื้นที่หน่วยงานและกฎหมายที่รับผิดชอบ
+    val vAngle: String, // มุมตรวจวัด
+    val vDirect: String, // ทิศทางพิกัด
+    val vDist: String, // ระยะอ้างอิง
+    val hoursSinceDetected: Double?, // ระยะเวลาหลังจากการตรวจจับได้ (ชั่วโมง)
 ) {
+    // แปลงออบเจกต์ DTO ชนิดนี้ให้กลายเป็น Domain Model (ViirsHotspot) สำหรับระบบแผนที่และตาราง
     fun toDomain(): ViirsHotspot = ViirsHotspot(
         id = id,
         latitude = latitude,
@@ -43,6 +45,7 @@ data class GistdaViirsFeatureDto(
     )
 
     companion object {
+        // วิเคราะห์ข้อมูลจุดความร้อนจาก Raw GeoJSON Feature มาป้อนเข้า DTO คอนสตรัคเตอร์
         fun fromFeature(feature: GistdaRawFeatureDto, index: Int): GistdaViirsFeatureDto? {
             val properties = feature.properties
             val lat = feature.centerLatitude
@@ -69,12 +72,14 @@ data class GistdaViirsFeatureDto(
             )
         }
 
+        // ดึงเฉพาะข้อมูลวันที่และเวลาที่บันทึกพิกัดดาวเทียม
         private fun detectedDate(properties: JSONObject): String {
             val date = properties.displayValue("th_date", "acq_date", "date", "_createdAt")
             val time = properties.displayValue("th_time", "acq_time", "time", default = "")
             return listOf(date, time).filter { it.isNotBlank() && it != "-" }.joinToString(" ").ifBlank { "-" }
         }
 
+        // ตรวจสอบและประมวลผลคำนวณชั่วโมงที่ล่วงเลยหลังจากการพิกัดตรวจจับภัยพิบัติจนถึง ณ ขณะนี้
         private fun hoursSinceDetected(properties: JSONObject): Double? {
             properties.firstDouble("hours_since_detected", "hours", "age_hours", "time_since_detected")?.let {
                 return it
@@ -93,11 +98,13 @@ data class GistdaViirsFeatureDto(
             return null
         }
 
+        // แปลงข้อความ ISO Time representation ให้อยู่ในรูป Instant Object
         private fun parseInstant(value: String): Instant? {
             if (value.isBlank() || value == "-") return null
             return runCatching { Instant.parse(value) }.getOrNull()
         }
 
+        // พาร์ทวันที่และเวลา (Acquisition Time) ในรูปแบบทุ่งกว้างตามข้อกำหนดเขตเวลาเอเชีย/กรุงเทพฯ
         private fun parseAcquisitionDate(date: String, time: String): Instant? {
             val paddedTime = time.padStart(4, '0').take(4)
             val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm", Locale.US)

@@ -1,7 +1,9 @@
 package com.dmind.backend.models
 
+// นำเข้าไลบรารีสำหรับการทำ Serialization (แปลงเป็น JSON)
 import kotlinx.serialization.Serializable
 
+// โมเดลรายงานสรุปสถิติภัยพิบัติ (รวมทุกประเภท, การแบ่งตามความรุนแรง, และเหตุการณ์ล่าสุด)
 @Serializable
 data class AnalyticsSummaryResponse(
     val totalEvents: Int,
@@ -15,6 +17,7 @@ data class AnalyticsSummaryResponse(
     val recentEvents: List<RecentEvent>,
 )
 
+// โมเดลรายละเอียดของเหตุการณ์ภัยพิบัติล่าสุดที่เกิดขึ้น
 @Serializable
 data class RecentEvent(
     val title: String,
@@ -24,12 +27,14 @@ data class RecentEvent(
     val timestamp: String,
 )
 
+// โมเดลข้อมูลแนวโน้มสถิติของภัยพิบัติในช่วงเวลาที่ระบุ
 @Serializable
 data class TrendDataResponse(
     val period: String,
     val data: List<TrendPoint>,
 )
 
+// โมเดลสถิติภัยพิบัติรายช่วงเวลา (เช่น รายวัน) เพื่อใช้แสดงผลกราฟแนวโน้ม
 @Serializable
 data class TrendPoint(
     val date: String,
@@ -41,6 +46,7 @@ data class TrendPoint(
     val drought: Int,
 )
 
+// โมเดลรายงานข้อมูลและคุณภาพสิ่งแวดล้อม (PM2.5, ดัชนี AQI, อุณหภูมิ, น้ำ, ฝน)
 @Serializable
 data class EnvironmentalResponse(
     val pm25: Double,
@@ -51,8 +57,6 @@ data class EnvironmentalResponse(
     val waterLevel: Double?,
     val rainfall: Double?,
     val updatedAt: String,
-    val openMeteoRiverDischarge: Double? = null,
-    val openMeteoSoilMoisture: Double? = null,
     val openMeteoPm25: Double? = null,
     val openMeteoAqi: Int? = null,
 )

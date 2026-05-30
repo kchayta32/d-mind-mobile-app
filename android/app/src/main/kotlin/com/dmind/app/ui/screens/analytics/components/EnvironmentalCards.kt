@@ -40,6 +40,7 @@ import com.dmind.app.R
 import com.dmind.app.domain.model.EnvironmentalData
 import java.util.Locale
 
+// คอมโพสเซเบิลหลักสำหรับแสดงกลุ่มการ์ดข้อมูลดัชนีทางสิ่งแวดล้อม เช่น คุณภาพอากาศ อุณหภูมิ และปริมาณน้ำ
 @Composable
 fun EnvironmentalCards(
     data: EnvironmentalData?,
@@ -57,14 +58,14 @@ fun EnvironmentalCards(
             fontWeight = FontWeight.Bold,
         )
 
-        // PM2.5 / AQI Card
+        // การ์ดแสดงค่าดัชนีคุณภาพอากาศ (AQI) และระดับฝุ่นละออง PM2.5
         AqiCard(
             pm25 = data.pm25,
             aqi = data.aqi,
             aqiLevel = data.aqiLevel,
         )
 
-        // Weather metrics row
+        // การ์ดแสดงค่าอุณหภูมิและความชื้นสัมพัทธ์
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -85,6 +86,7 @@ fun EnvironmentalCards(
             )
         }
 
+        // การ์ดแสดงระดับน้ำในแม่น้ำและปริมาณน้ำฝนสะสม
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -105,7 +107,7 @@ fun EnvironmentalCards(
             )
         }
 
-        // Open-Meteo Enrichment Title
+        // ส่วนการแสดงข้อมูลคุณภาพอากาศที่เสริมประสิทธิภาพจากระบบ Open-Meteo
         Text(
             "Open-Meteo Enrichment",
             style = MaterialTheme.typography.titleMedium,
@@ -113,28 +115,6 @@ fun EnvironmentalCards(
             modifier = Modifier.padding(top = 8.dp)
         )
 
-        // Open-Meteo Soil Moisture & River Flow Row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            EnvironmentalMetricCard(
-                icon = Icons.Filled.Water,
-                label = "Open-Meteo River Flow",
-                value = data.openMeteoRiverDischarge?.let { String.format(Locale.US, "%.1f m³/s", it) } ?: "-",
-                color = Color(0xFF06B6D4),
-                modifier = Modifier.weight(1f),
-            )
-            EnvironmentalMetricCard(
-                icon = Icons.Filled.WaterDrop,
-                label = "Open-Meteo Soil Moisture",
-                value = data.openMeteoSoilMoisture?.let { String.format(Locale.US, "%.2f m³/m³", it) } ?: "-",
-                color = Color(0xFF84CC16),
-                modifier = Modifier.weight(1f),
-            )
-        }
-
-        // Open-Meteo Air Metrics Row
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -157,6 +137,7 @@ fun EnvironmentalCards(
     }
 }
 
+// คอมโพสเซเบิลการ์ดสรุปข้อมูลดัชนีคุณภาพอากาศและไล่ระดับเฉดสีตามความรุนแรง
 @Composable
 private fun AqiCard(
     pm25: Double,
@@ -251,6 +232,7 @@ private fun AqiCard(
     }
 }
 
+// คอมโพสเซเบิลการ์ดแสดงหน่วยวัดทางสิ่งแวดล้อมแบบมาตรฐานเดียว
 @Composable
 private fun EnvironmentalMetricCard(
     icon: ImageVector,
@@ -290,5 +272,5 @@ private fun EnvironmentalMetricCard(
     }
 }
 
-// Duplicated from DmindComponents to avoid circular dependency
+// ค่าสีกำหนดใช้งานร่วมเพื่อป้องกัน circular dependency
 private val DmindBlueCompat = Color(0xFF2563EB)

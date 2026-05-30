@@ -6,7 +6,10 @@ import com.dmind.app.domain.model.GistdaTimeRange
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
+// คลาสทดสอบการทำงานในการสร้างพาธปลายทาง (Endpoint Paths) สำหรับดึงข้อมูลจาก GISTDA API
 class GistdaEndpointPathsTest {
+    
+    // ทดสอบการสร้างพาธของข้อมูลจุดความร้อน VIIRS ว่าจัดการความแตกต่างของชื่อวัน (3days vs 3day) และ WMS/WMTS ได้ถูกต้อง
     @Test
     fun `viirs feature and wmts paths handle three day naming difference`() {
         assertEquals(
@@ -27,6 +30,7 @@ class GistdaEndpointPathsTest {
         )
     }
 
+    // ทดสอบการสร้างพาธแผนที่น้ำท่วม (Flood WMS/WMTS) ว่าใช้รูปแบบชื่อวันแบบเอกพจน์ (Singular Day Map Path) ของ GISTDA ถูกต้อง
     @Test
     fun `flood maps use GISTDA singular day map path naming`() {
         assertEquals(
@@ -43,6 +47,7 @@ class GistdaEndpointPathsTest {
         )
     }
 
+    // ทดสอบการสร้างพาธเฉพาะสำหรับข้อมูลประวัติความถี่ของการเกิดน้ำท่วม (Flood Frequency)
     @Test
     fun `flood frequency uses dedicated map path`() {
         assertEquals(
@@ -59,6 +64,7 @@ class GistdaEndpointPathsTest {
         )
     }
 
+    // ทดสอบพาธแผนที่ภัยแล้งรอบ 7 วัน (Drought Maps) สำหรับผลิตภัณฑ์ย่อยต่างๆ เช่น SMAP, NDWI, DRI+ และรูปแบบ Tile Scheme
     @Test
     fun `drought 7 day map paths are available for smap ndwi and dri plus`() {
         assertEquals(

@@ -1,5 +1,6 @@
 package com.dmind.backend
 
+// นำเข้าไลบรารีและแพ็กเกจที่จำเป็น
 import com.google.auth.oauth2.GoogleCredentials
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -54,11 +55,13 @@ import com.dmind.backend.routes.mediaRoutes
 import com.dmind.backend.routes.dashboardRoute
 import kotlinx.coroutines.launch
 
+// ฟังก์ชันหลัก (Entry Point) สำหรับเริ่มต้นทำงานเซิร์ฟเวอร์ Ktor บน Netty Engine
 fun main() {
     val port = setting("PORT")?.toIntOrNull() ?: 8080
     embeddedServer(Netty, port = port, module = Application::dmindModule).start(wait = true)
 }
 
+// โมดูลหลักในการตั้งค่าเซิร์ฟเวอร์ Ktor (กำหนด Routing, Content Negotiation และบริการอื่นๆ)
 fun Application.dmindModule() {
     val config = GatewayConfig.fromEnvironment()
     val supabase = SupabaseGateway(config)
@@ -74,10 +77,12 @@ fun Application.dmindModule() {
         scope = this
     )
 
+    // ตั้งค่าสำหรับการแปลงข้อมูล Request/Response เป็น JSON
     install(ContentNegotiation) {
         json(responseJson)
     }
 
+    // กำหนดเส้นทาง (Routing) ของ API แต่ละส่วน
     routing {
         analyticsRoutes(cacheService, dataAggregator)
         disasterDataRoutes(config)
@@ -85,6 +90,7 @@ fun Application.dmindModule() {
         notificationRoutes(config, deviceRegistry, dataAggregator)
         mediaRoutes(config, supabase)
         dashboardRoute()
+        // เส้นทางสำหรับตรวจสอบสถานะการทำงานของเซิร์ฟเวอร์
         get("/health") {
             call.respond(
                 HealthResponse(
@@ -98,6 +104,7 @@ fun Application.dmindModule() {
 
 }
 
+// ฟังก์ชันตรวจสอบความถูกต้องของสิทธิ์ผู้ดูแลระบบ (Admin Bearer Token)
 internal suspend fun ApplicationCall.requireAdmin(config: GatewayConfig): Boolean {
     if (config.adminToken.isBlank()) {
         respondError(
@@ -116,13 +123,16 @@ internal suspend fun ApplicationCall.requireAdmin(config: GatewayConfig): Boolea
     return true
 }
 
+// ฟังก์ชันส่ง response ข้อผิดพลาดกลับไปยังไคลเอนต์ในรูปแบบโครงสร้างมาตรฐาน
 internal suspend fun ApplicationCall.respondError(status: HttpStatusCode, code: String, message: String) {
     respond(status, ErrorResponse(code = code, message = message, requestId = requestId()))
 }
 
+// ดึงค่า Request ID จาก Header หรือทำการสร้าง UUID ใหม่ขึ้นมา
 private fun ApplicationCall.requestId(): String =
     request.headers["X-Request-ID"]?.takeIf { it.isNotBlank() } ?: UUID.randomUUID().toString()
 
+// ฟังก์ชันตรวจสอบความปลอดภัย รันคำสั่งดักจับ Exception และจำกัดความถี่คำขอ (Rate Limit)
 internal suspend fun ApplicationCall.handleSafely(
     rateLimited: Boolean = false,
     config: GatewayConfig = GatewayConfig.fromEnvironment(),
@@ -148,23 +158,29 @@ internal suspend fun ApplicationCall.handleSafely(
     }
 }
 
+// ค้นหาที่อยู่ IP หรือระบุคีย์เพื่อระบุตัวตนในการทำ Rate Limit
 private fun ApplicationCall.rateLimitKey(): String =
     request.headers["X-Forwarded-For"]?.substringBefore(',')?.trim()?.takeIf { it.isNotBlank() }
         ?: request.headers["X-Real-IP"]?.takeIf { it.isNotBlank() }
         ?: "local"
 
+// ฟังก์ชันสำหรับตรวจเช็คเงื่อนิวัด หากไม่เป็นจริงจะโยน ValidationException
 internal fun validate(condition: Boolean, message: String) {
     if (!condition) throw ValidationException(message)
 }
 
+// คลาสข้อยกเว้นสำหรับข้อมูลที่ไม่ผ่านเกณฑ์ตรวจสอบ
 internal class ValidationException(message: String) : IllegalArgumentException(message)
+// คลาสข้อยกเว้นสำหรับกรณีที่การดึงข้อมูลจาก API ปลายทางล้มเหลว
 internal class UpstreamException(val statusCode: Int, body: String) :
     IllegalStateException("HTTP $statusCode: ${body.take(240)}")
 
+// ออบเจกต์สำหรับจำกัดจำนวนคำขอในแต่ละช่วงเวลา (Rate Limiting)
 private object RateLimiter {
     private data class Bucket(var windowStartMillis: Long, var count: Int)
     private val buckets = ConcurrentHashMap<String, Bucket>()
 
+    // ตรวจสอบและอัปเดตจำนวนคำขอในสไลดิ้งวินโดว์ของ IP ปลายทาง
     fun allow(key: String, limitPerMinute: Int): Boolean {
         if (limitPerMinute <= 0) return true
         val now = System.currentTimeMillis()
@@ -181,12 +197,15 @@ private object RateLimiter {
     }
 }
 
+// โมเดลสำหรับส่งข้อมูลแสดงสถานะการทำงาน (Health Response)
 @Serializable
 data class HealthResponse(val status: String, val service: String, val detail: String)
 
+// โมเดลข้อมูลตอบกลับของเกตเวย์
 @Serializable
 data class GatewayResponse(val id: String, val status: String, val detail: String)
 
+// โมเดลรายงานรายละเอียดจากการวิเคราะห์ข้อมูลหรือเหตุการณ์
 @Serializable
 data class ReportResponse(
     val id: String,
@@ -195,9 +214,11 @@ data class ReportResponse(
     val report: JsonElement,
 )
 
+// โมเดลข้อมูลตอบกลับแบบ JSON
 @Serializable
 data class JsonDataResponse(val status: String, val detail: String, val data: JsonElement)
 
+// โมเดลข้อมูลตอบกลับเมื่ออัปโหลดไฟล์สื่อสำเร็จ
 @Serializable
 data class MediaUploadResponse(
     val id: String,
@@ -207,6 +228,7 @@ data class MediaUploadResponse(
     val publicUrl: String,
 )
 
+// โมเดลผลลัพธ์การส่งข้อความแจ้งเตือนผ่านระบบ Push Notification
 @Serializable
 data class NotificationSendResponse(
     val status: String,
@@ -218,9 +240,11 @@ data class NotificationSendResponse(
     val errors: List<String> = emptyList(),
 )
 
+// โมเดลรายละเอียดความผิดพลาดที่เกิดขึ้น
 @Serializable
 data class ErrorResponse(val code: String, val message: String, val requestId: String)
 
+// โมเดลคำขอช่วยเหลือฉุกเฉิน (SOS Request)
 @Serializable
 data class SosRequest(
     val id: String? = null,
@@ -231,6 +255,7 @@ data class SosRequest(
     val message: String,
 )
 
+// โมเดลรายงานเหตุการณ์/ภัยพิบัติที่ผู้ใช้งานแจ้งเข้ามา
 @Serializable
 data class IncidentReportRequest(
     val type: String,
@@ -244,9 +269,11 @@ data class IncidentReportRequest(
     val installationId: String? = null,
 )
 
+// โมเดลระบุพิกัดละติจูดและลองจิจูด
 @Serializable
 data class Coordinates(val lat: Double? = null, val lng: Double? = null)
 
+// โมเดลคำขอลงทะเบียน Token ของอุปกรณ์เพื่อรับการแจ้งเตือนผ่าน FCM
 @Serializable
 data class FcmRegistrationRequest(
     val token: String,
@@ -255,6 +282,7 @@ data class FcmRegistrationRequest(
     val installationId: String? = null,
 )
 
+// โมเดลคำขอส่งการแจ้งเตือนไปยังกลุ่มเป้าหมายหรือผู้ใช้งานรายคน
 @Serializable
 data class NotificationSendRequest(
     val title: String,
@@ -266,6 +294,7 @@ data class NotificationSendRequest(
     val broadcast: Boolean = false,
 )
 
+// ข้อมูลของอุปกรณ์ที่ถูกบันทึกไว้ในระบบส่งข้อความแจ้งเตือน
 @Serializable
 internal data class RegisteredDevice(
     val token: String,
@@ -275,6 +304,7 @@ internal data class RegisteredDevice(
     val updatedAt: String,
 )
 
+// คลาสจัดการการบันทึกและดึงข้อมูลโทเค็นของแต่ละอุปกรณ์ในระบบ
 internal class DeviceTokenRegistry(
     private val storePath: Path,
     private val supabase: SupabaseGateway,
@@ -285,6 +315,7 @@ internal class DeviceTokenRegistry(
         load()
     }
 
+    // ลงทะเบียนหรืออัปเดตอุปกรณ์พร้อมบันทึกไฟล์โลคอลและซิงก์ข้อมูลไปที่ Supabase
     @Synchronized
     fun register(request: FcmRegistrationRequest): String {
         val device = RegisteredDevice(
@@ -306,6 +337,7 @@ internal class DeviceTokenRegistry(
         return "registered ${devices.size} device token(s);$syncDetail"
     }
 
+    // ค้นหารายชื่อโทเค็นเป้าหมายตามเงื่อนไขในตัวแปรคำขอส่งแจ้งเตือน
     fun resolveTargets(request: NotificationSendRequest): List<String> {
         request.token?.takeIf { it.isNotBlank() }?.let { return listOf(it) }
         if (request.broadcast) return devices.keys().toList()
@@ -318,6 +350,7 @@ internal class DeviceTokenRegistry(
         return emptyList()
     }
 
+    // โหลดโทเค็นที่บันทึกไว้ในเครื่องขึ้นมาที่หน่วยความจำเมื่อระบบเริ่มทำงาน
     private fun load() {
         if (!Files.exists(storePath)) return
         runCatching {
@@ -327,6 +360,7 @@ internal class DeviceTokenRegistry(
         }
     }
 
+    // เขียนโทเค็นปัจจุบันที่ถูกลงทะเบียนทั้งหมดลงไฟล์จัดเก็บแบบถาวร
     @Synchronized
     private fun persist() {
         Files.createDirectories(storePath.parent ?: Paths.get("."))
@@ -338,6 +372,7 @@ internal class DeviceTokenRegistry(
     }
 }
 
+// คลาสเก็บบันทึกข้อมูลการตั้งค่าและคีย์ต่างๆ ที่ระบบจำเป็นต้องใช้
 internal data class GatewayConfig(
     val adminToken: String,
     val supabaseUrl: String,
@@ -353,6 +388,7 @@ internal data class GatewayConfig(
     val thaiLlmModel: String,
 ) {
     companion object {
+        // อ่านการตั้งค่าทั้งหมดจากสภาพแวดล้อมระบบ (Environment Variables หรือไฟล์ local.properties)
         fun fromEnvironment(): GatewayConfig {
             val tokenStore = setting("DMIND_TOKEN_STORE_PATH") ?: "build/device-push-tokens.json"
             return GatewayConfig(
@@ -382,10 +418,12 @@ internal data class GatewayConfig(
     }
 }
 
+// คลาสจัดการการเชื่อมต่อ ส่งคำขอ และจัดการข้อมูลต่างๆ ใน Supabase
 internal class SupabaseGateway(private val config: GatewayConfig) {
     val isConfigured: Boolean =
         config.supabaseUrl.startsWith("https://") && config.supabaseServiceRoleKey.isNotBlank()
 
+    // ดึงข้อมูลการแจ้งเตือนที่กำลังเปิดใช้งานอยู่ในปัจจุบัน
     fun fetchActiveAlerts(): JsonElement {
         ensureConfigured()
         return request(
@@ -394,6 +432,7 @@ internal class SupabaseGateway(private val config: GatewayConfig) {
         ).json()
     }
 
+    // บันทึกข้อมูลรายงานเหตุการณ์ใหม่ลงในฐานข้อมูล Supabase
     fun insertIncidentReport(request: IncidentReportRequest): JsonElement {
         ensureConfigured()
         val payload = buildJsonObject {
@@ -427,6 +466,7 @@ internal class SupabaseGateway(private val config: GatewayConfig) {
         ).json()
     }
 
+    // ลงทะเบียนหรืออัปเดต Token อุปกรณ์ในฐานข้อมูล Supabase
     fun upsertDeviceToken(device: RegisteredDevice): JsonElement {
         ensureConfigured()
         val payload = buildJsonObject {
@@ -448,6 +488,7 @@ internal class SupabaseGateway(private val config: GatewayConfig) {
         ).json()
     }
 
+    // อัปโหลดไฟล์วัตถุ (สื่อรูปภาพ/วิดีโอ) ไปจัดเก็บบน Supabase Storage
     fun uploadObject(bucket: String, path: String, contentType: String, bytes: ByteArray): UploadedObject {
         ensureConfigured()
         val encodedPath = path.split('/').joinToString("/") {
@@ -471,6 +512,7 @@ internal class SupabaseGateway(private val config: GatewayConfig) {
         )
     }
 
+    // ส่งคำขอแบบระบุ Auth Header เพื่อใช้เรียก Supabase API
     private fun request(
         method: String,
         path: String,
@@ -492,13 +534,16 @@ internal class SupabaseGateway(private val config: GatewayConfig) {
         )
     }
 
+    // ยืนยันว่าการตั้งค่า Supabase สมบูรณ์และพร้อมใช้งาน
     private fun ensureConfigured() {
         check(isConfigured) { "Supabase service role configuration is missing." }
     }
 }
 
+// โมเดลสำหรับเก็บผลลัพธ์การอัปโหลดไฟล์
 internal data class UploadedObject(val storagePath: String, val publicUrl: String)
 
+// คลาสบริการส่งการแจ้งเตือนด้วย Push Notification ผ่าน FCM HTTP v1 API
 internal class FcmHttpV1Sender private constructor(
     private val projectId: String,
     private val credentials: GoogleCredentials?,
@@ -506,6 +551,7 @@ internal class FcmHttpV1Sender private constructor(
 ) {
     val isConfigured: Boolean = projectId.isNotBlank() && credentials != null
 
+    // ทำการส่งแจ้งเตือนโดยใช้โทเค็นและเนื้อหาที่กำหนด
     fun send(token: String, request: NotificationSendRequest): SendResult {
         if (!isConfigured || credentials == null) {
             return SendResult(false, configurationMessage)
@@ -534,6 +580,7 @@ internal class FcmHttpV1Sender private constructor(
     companion object {
         private const val FCM_SCOPE = "https://www.googleapis.com/auth/firebase.messaging"
 
+        // สร้างอินสแตนซ์ผู้ส่งโดยอิงจากรายละเอียดสิทธิ์ของ Google
         fun fromConfig(config: GatewayConfig): FcmHttpV1Sender {
             if (config.fcmProjectId.isBlank()) {
                 return FcmHttpV1Sender("", null, "FCM_PROJECT_ID or FIREBASE_PROJECT_ID is not configured")
@@ -555,8 +602,10 @@ internal class FcmHttpV1Sender private constructor(
     }
 }
 
+// โมเดลรายงานผลการส่งแจ้งเตือนรายโทเค็น
 internal data class SendResult(val success: Boolean, val message: String)
 
+// ฟังก์ชันส่วนขยายช่วยแปลง NotificationSendRequest เป็นโครงสร้าง FCM Message
 private fun NotificationSendRequest.toFcmMessage(token: String): FcmV1Message =
     FcmV1Message(
         token = token,
@@ -568,12 +617,14 @@ private fun NotificationSendRequest.toFcmMessage(token: String): FcmV1Message =
         android = FcmAndroidConfig(priority = "HIGH"),
     )
 
+// คลาสส่งคำขอของระบบ FCM V1
 @Serializable
 private data class FcmV1Request(
     val message: FcmV1Message,
     @SerialName("validate_only") val validateOnly: Boolean = false,
 )
 
+// ข้อมูลข้อความใน API ของ FCM V1
 @Serializable
 private data class FcmV1Message(
     val token: String,
@@ -581,9 +632,11 @@ private data class FcmV1Message(
     val android: FcmAndroidConfig,
 )
 
+// การตั้งค่าลำดับความสำคัญของข้อความแจ้งเตือนบน Android
 @Serializable
 private data class FcmAndroidConfig(val priority: String)
 
+// ฟังก์ชันแบบ Low-level สำหรับส่งคำขอ HTTP Request
 internal fun httpRequest(
     method: String,
     url: String,
@@ -619,11 +672,14 @@ internal fun httpRequest(
     }
 }
 
+// ฟังก์ชันส่วนขยายช่วยแปลง String ไปเป็นโครงสร้าง JsonElement
 internal fun String.json(): JsonElement = responseJson.parseToJsonElement(ifBlank { "{}" })
 
+// ฟังก์ชันทำความสะอาดชื่อไฟล์โดยแทนที่ตัวอักษรพิเศษที่ไม่ปลอดภัยด้วยเครื่องหมายขีดล่าง
 internal fun String.sanitizeFileName(): String =
     replace(Regex("[^A-Za-z0-9._-]"), "_").trim('_').take(120)
 
+// ดึงค่าการตั้งค่าจากระบบหรือแหล่งไฟล์ตั้งค่าแบบเรียงลำดับความสำคัญ
 private fun setting(name: String): String? {
     val propertyName = "dmind." + name.lowercase().replace('_', '.')
     val raw = System.getProperty(name)
@@ -634,6 +690,7 @@ private fun setting(name: String): String? {
     return raw?.trim()?.removeSurrounding("\"")?.removeSurrounding("'")?.trim()
 }
 
+// ช่วยดึงค่าคอนฟิกจากการอ่านไฟล์ local.properties ในระบบ
 private fun loadFromLocalProperties(name: String): String? {
     val paths = listOf(
         Paths.get("local.properties"),
@@ -654,6 +711,7 @@ private fun loadFromLocalProperties(name: String): String? {
     return null
 }
 
+// การตั้งค่าพารามิเตอร์เริ่มต้นสำหรับการประมวลผล JSON
 private val responseJson = Json {
     prettyPrint = false
     ignoreUnknownKeys = true

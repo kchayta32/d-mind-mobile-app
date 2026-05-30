@@ -38,6 +38,7 @@ import com.dmind.app.ui.components.DmindBlue
 import com.dmind.app.ui.components.WatchYellow
 import java.util.Locale
 
+// คอมโพสเซเบิลหลักสำหรับแสดงกลุ่มการ์ดตัวเลขสรุปสถิติภาพรวมภัยพิบัติ (จำนวนเหตุการณ์ทั้งหมด, พื้นที่ประสบภัย, ความรุนแรงระดับวิกฤต/สูง)
 @Composable
 fun SummaryCards(
     summary: AnalyticsSummary?,
@@ -98,6 +99,7 @@ fun SummaryCards(
     }
 }
 
+// คอมโพสเซเบิลการ์ดสถิติด้านการวิเคราะห์หลักแบบไล่เฉดสีพร้อมไอคอนและหน่วยวัด
 @Composable
 private fun SummaryMetricCard(
     title: String,

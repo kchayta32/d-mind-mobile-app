@@ -3,7 +3,10 @@ package com.dmind.app.ui.screens.map
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
+// คลาสทดสอบการทำงานของฟังก์ชันสำหรับจัดรูปแบบข้อมูลที่นำไปแสดงผลบน Bottom Sheet ของแผนที่
 class MapBottomSheetHelperTest {
+    
+    // ทดสอบฟังก์ชันในการแยกแยะและสกัดข้อมูลขนาด (Magnitude) และความลึก (Depth) ของการเกิดแผ่นดินไหวจากข้อมูลดิบ
     @Test
     fun testParseEarthquakeMetric() {
         // Test case 1: Standard metric format
@@ -35,6 +38,7 @@ class MapBottomSheetHelperTest {
         assertEquals("15.0", depth4)
     }
 
+    // ทดสอบฟังก์ชันในการสกัดและแปลงค่าความหนาแน่นฝุ่น PM2.5 จากรูปแบบหน่วยข้อความต่างๆ ให้เป็นตัวเลข Double
     @Test
     fun testParsePmValue() {
         // Test case 1: Standard ug/m3 metric

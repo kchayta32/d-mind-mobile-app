@@ -9,8 +9,10 @@ import java.util.List;
 /**
  * DangerZone - Represents a geofenced disaster danger zone.
  */
+// โมเดลข้อมูลแทนพื้นที่อันตรายตามขอบเขตภูมิศาสตร์ (Geofenced Danger Zone)
 public class DangerZone {
     
+    // คุณสมบัติต่างๆ ของพื้นที่อันตราย
     private int id;
     private String name;
     private String type; // flood, tsunami, earthquake, landslide, storm, etc.
@@ -21,7 +23,7 @@ public class DangerZone {
     private long expiryTime;
     private boolean enabled;
     
-    // Getters
+    // Getters สำหรับเข้าถึงข้อมูลคุณสมบัติ
     public int getId() { return id; }
     public String getName() { return name; }
     public String getType() { return type; }
@@ -32,7 +34,7 @@ public class DangerZone {
     public long getExpiryTime() { return expiryTime; }
     public boolean isEnabled() { return enabled; }
     
-    // Setters
+    // Setters สำหรับกำหนดค่าคุณสมบัติ
     public void setId(int id) { this.id = id; }
     public void setName(String name) { this.name = name; }
     public void setType(String type) { this.type = type; }
@@ -50,6 +52,7 @@ public class DangerZone {
     /**
      * Check if zone is still active (not expired)
      */
+    // ตรวจสอบว่าพื้นที่อันตรายนี้ยังคงมีผลอยู่หรือไม่ (ยังไม่หมดอายุและเปิดใช้งาน)
     public boolean isActive() {
         return enabled && System.currentTimeMillis() < expiryTime;
     }
@@ -57,6 +60,7 @@ public class DangerZone {
     /**
      * Parse polygon vertices from WKT or JSON format
      */
+    // แปลงจุดพิกัดในรูปแบบข้อความ WKT หรือ JSON Array ให้เป็นรายการของวัตถุ GeoPoint
     public List<GeoPoint> getVertices() {
         List<GeoPoint> vertices = new ArrayList<>();
 
@@ -102,6 +106,7 @@ public class DangerZone {
     /**
      * Get remaining time until expiry
      */
+    // ดึงเวลาที่เหลือก่อนที่การแจ้งเตือนพื้นที่อันตรายนี้จะหมดอายุ (มิลลิวินาที)
     public long getTimeUntilExpiry() {
         return Math.max(0, expiryTime - System.currentTimeMillis());
     }
@@ -109,6 +114,7 @@ public class DangerZone {
     /**
      * Check if zone is about to expire
      */
+    // ตรวจสอบว่าพื้นที่อันตรายใกล้จะหมดอายุการแจ้งเตือนแล้วหรือไม่ (เหลือน้อยกว่า 1 ชั่วโมง)
     public boolean isExpiringSoon() {
         return getTimeUntilExpiry() < 60 * 60 * 1000; // Less than 1 hour
     }
@@ -116,6 +122,7 @@ public class DangerZone {
     /**
      * Get human-readable zone type
      */
+    // แปลงชื่อประเภทภัยพิบัติภาษาอังกฤษให้เป็นคำอ่านภาษาไทยและภาษาอังกฤษที่เข้าใจง่าย
     public String getHumanReadableType() {
         switch (type != null ? type.toLowerCase() : "") {
             case "flood":
@@ -141,6 +148,7 @@ public class DangerZone {
     /**
      * Create flood danger zone
      */
+    // เมธอดแบบ static สำหรับสร้างพื้นที่อันตรายประเภทน้ำท่วมอย่างรวดเร็ว
     public static DangerZone createFloodZone(int id, String name, String alertTitle, 
                                              String alertMessage, String polygon, long expiryTime) {
         DangerZone zone = new DangerZone();
@@ -159,6 +167,7 @@ public class DangerZone {
     /**
      * Create tsunami danger zone
      */
+    // เมธอดแบบ static สำหรับสร้างพื้นที่อันตรายประเภทสึนามิอย่างรวดเร็ว
     public static DangerZone createTsunamiZone(int id, String name, String alertTitle,
                                                 String alertMessage, String polygon, long expiryTime) {
         DangerZone zone = new DangerZone();

@@ -7,22 +7,28 @@ import com.dmind.backend.NotificationSendRequest
 import kotlinx.coroutines.*
 import java.util.concurrent.ConcurrentHashMap
 
-object AutomaticAlertDispatcher {
+// ออบเจกต์ระบบตรวจสอบเฝ้าระวังภัยและแจ้งเตือนภัยพิบัติอัตโนมัติ (เช่น แจ้งเตือนฝุ่นละออง PM2.5)
+internal object AutomaticAlertDispatcher {
+    // บันทึกเวลาที่ส่งการแจ้งเตือนล่าสุดแยกตามสถานที่และประเภท เพื่อใช้ในการทำ Cooldown
     private val lastSentAlerts = ConcurrentHashMap<String, Long>()
-    private const val COOLDOWN_MS = 3600_000L // 1 hour cooldown for duplicate alerts
+    // กำหนดเวลา Cooldown 1 ชั่วโมง เพื่อป้องกันไม่ให้ส่งแจ้งเตือนซ้ำๆ รบกวนผู้ใช้งานมากเกินไป
+    private const val COOLDOWN_MS = 3600_000L
 
+    // ข้อมูลของพิกัดสถานที่ในระบบที่ทำการเฝ้าระวังภัยพิบัติและสภาพแวดล้อม
     data class MonitoredLocation(
         val name: String,
         val latitude: Double,
         val longitude: Double
     )
 
+    // รายการพิกัดพื้นที่หลักที่ระบบทำการตรวจสอบเป็นระยะ
     val monitoredLocations = listOf(
         MonitoredLocation("กรุงเทพมหานคร (Bangkok)", 13.7563, 100.5018),
         MonitoredLocation("เชียงใหม่ (Chiang Mai)", 18.7883, 98.9853),
         MonitoredLocation("สุราษฎร์ธานี (Surat Thani)", 9.1400, 99.3333)
     )
 
+    // เริ่มการทำงานระบบเฝ้าระวังเบื้องหลัง (Background Worker) ด้วย Coroutine
     fun start(
         config: GatewayConfig,
         deviceRegistry: DeviceTokenRegistry,
@@ -30,7 +36,7 @@ object AutomaticAlertDispatcher {
         scope: CoroutineScope
     ) {
         scope.launch {
-            // Initial delay to let application start up completely
+            // หน่วงเวลา 15 วินาทีเมื่อเซิร์ฟเวอร์เริ่มทำงาน เพื่อรอให้ส่วนอื่นพร้อมทำงานเต็มที่
             delay(15_000)
             while (isActive) {
                 try {
@@ -40,12 +46,13 @@ object AutomaticAlertDispatcher {
                 } catch (e: Exception) {
                     println("AutomaticAlertDispatcher background loop error: ${e.message}")
                 }
-                // Check every 10 minutes (600,000 ms) in background
+                // ตรวจสอบข้อมูลความปลอดภัยซ้ำทุกๆ 10 นาที
                 delay(600_000)
             }
         }
     }
 
+    // ฟังก์ชันดึงข้อมูลสิ่งแวดล้อมมาประเมิน หากดัชนีฝุ่นละออง PM2.5 สูงเกินค่าปกติ จะแจ้งเตือนผู้ใช้ทันที
     suspend fun evaluateAndDispatchAlerts(
         config: GatewayConfig,
         deviceRegistry: DeviceTokenRegistry,
@@ -64,57 +71,7 @@ object AutomaticAlertDispatcher {
                 // Fetch environmental metrics using DataAggregatorService
                 val metrics = dataAggregator.getEnvironmentalData(location.latitude, location.longitude)
                 
-                // 1. River Discharge check
-                val discharge = metrics.openMeteoRiverDischarge
-                if (discharge != null) {
-                    if (discharge > 5.0) {
-                        val key = "${location.name}:flood"
-                        val lastSent = lastSentAlerts[key] ?: 0L
-                        if (force || (now - lastSent > COOLDOWN_MS)) {
-                            val title = "เฝ้าระวังน้ำท่วมขัง/น้ำล้นตลิ่ง"
-                            val message = "ตรวจพบอัตราการไหลของน้ำที่ ${location.name} สูงถึง ${String.format("%.2f", discharge)} m³/s (เกณฑ์เฝ้าระวัง 5.0 m³/s) โปรดระมัดระวัง"
-                            
-                            val targets = deviceRegistry.resolveTargets(NotificationSendRequest(title, message, "flood", broadcast = true))
-                            if (targets.isNotEmpty() && sender.isConfigured) {
-                                targets.forEach { token ->
-                                    sender.send(token, NotificationSendRequest(title, message, "flood", token = token))
-                                }
-                                notificationCount += targets.size
-                            }
-                            lastSentAlerts[key] = now
-                            alertCount++
-                            details.add("Triggered flood alert for ${location.name} (${discharge} m3/s)")
-                        } else {
-                            details.add("Flood threshold exceeded at ${location.name} but on cooldown")
-                        }
-                    }
-                }
 
-                // 2. Soil Moisture landslide check
-                val soilMoisture = metrics.openMeteoSoilMoisture
-                if (soilMoisture != null) {
-                    if (soilMoisture > 0.40) {
-                        val key = "${location.name}:landslide"
-                        val lastSent = lastSentAlerts[key] ?: 0L
-                        if (force || (now - lastSent > COOLDOWN_MS)) {
-                            val title = "แจ้งเตือนความเสี่ยงดินสไลด์"
-                            val message = "ตรวจพบปริมาณความชื้นในดินที่ ${location.name} สูงถึง ${String.format("%.2f", soilMoisture)} m³/m³ บ่งชี้ความเสี่ยงดินสไลด์สูง"
-                            
-                            val targets = deviceRegistry.resolveTargets(NotificationSendRequest(title, message, "landslide", broadcast = true))
-                            if (targets.isNotEmpty() && sender.isConfigured) {
-                                targets.forEach { token ->
-                                    sender.send(token, NotificationSendRequest(title, message, "landslide", token = token))
-                                }
-                                notificationCount += targets.size
-                            }
-                            lastSentAlerts[key] = now
-                            alertCount++
-                            details.add("Triggered landslide alert for ${location.name} (${soilMoisture} m3/m3)")
-                        } else {
-                            details.add("Landslide threshold exceeded at ${location.name} but on cooldown")
-                        }
-                    }
-                }
 
                 // 3. PM2.5 check
                 val pm25 = metrics.openMeteoPm25 ?: metrics.pm25

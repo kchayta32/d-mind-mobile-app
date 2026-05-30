@@ -14,10 +14,12 @@ import java.util.Map;
  * Handles Firebase data-only messages and escalates critical disaster alerts to
  * local emergency notifications/full-screen alerts.
  */
+// คลาสสำหรับให้บริการรับข่าวสารและข้อความแจ้งเตือนจาก Firebase Cloud Messaging (FCM)
 public class FCMFirebaseService extends FirebaseMessagingService {
 
     private static final String TAG = "FCMFirebaseService";
 
+    // เรียกใช้งานเมื่อได้รับข้อความส่งมาจากเซิร์ฟเวอร์ Firebase และทำการประมวลผลข้อมูลการแจ้งเตือนภัยพิบัติ
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         Map<String, String> data = remoteMessage.getData();
@@ -42,12 +44,14 @@ public class FCMFirebaseService extends FirebaseMessagingService {
         );
     }
 
+    // เรียกใช้งานเมื่ออุปกรณ์ได้รับ FCM Token ใหม่หรือเมื่อเกิดการรีเฟรช และทำการส่งไปลงทะเบียนที่ backend
     @Override
     public void onNewToken(String token) {
         Log.d(TAG, "FCM token refreshed");
         new Thread(() -> FCMTokenRegistrar.registerTokenIfConfigured(this, token)).start();
     }
 
+    // ฟังก์ชันสำหรับเรียกใช้งานเพื่อส่งการแจ้งเตือนจำลองในระดับท้องถิ่น (สำหรับทดสอบ)
     public void triggerLocalTestAlert(String alertType, String title, String message) {
         EmergencyNotificationManager emergencyManager = new EmergencyNotificationManager(this);
         emergencyManager.triggerEmergencyAlert(title, message, alertType);

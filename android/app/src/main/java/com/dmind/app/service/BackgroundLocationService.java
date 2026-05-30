@@ -43,6 +43,7 @@ import java.util.List;
  * 3. Continuously monitors user location against danger zones
  * 4. Triggers emergency alerts when entering geofenced danger areas
  */
+// คลาสหลักสำหรับบริการเบื้องหลังเพื่อติดตามตำแหน่งที่ตั้งของผู้ใช้อย่างต่อเนื่อง
 public class BackgroundLocationService extends Service {
     
     public static final String ACTION_START = "com.dmind.app.START_BACKGROUND_SERVICE";
@@ -64,6 +65,7 @@ public class BackgroundLocationService extends Service {
     private Location lastLocation;
     private boolean isServiceRunning = false;
     
+    // เริ่มต้นสร้าง Service และตั้งค่าคอมโพเนนต์ที่จำเป็น เช่น การจัดการแจ้งเตือน และการระบุตำแหน่ง
     @Override
     public void onCreate() {
         super.onCreate();
@@ -73,6 +75,7 @@ public class BackgroundLocationService extends Service {
         notificationHelper.createBackgroundChannel();
     }
     
+    // จัดการคำสั่งที่ส่งมายัง Service (เช่น เริ่มบริการ หยุดบริการ หรือตรวจสอบระยะห่าง)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
@@ -90,6 +93,7 @@ public class BackgroundLocationService extends Service {
         return START_STICKY;
     }
     
+    // เรียกใช้งานเมื่อ Service ถูกทำลาย เพื่อหยุดการทำงานและเคลียร์ทรัพยากร
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -97,6 +101,7 @@ public class BackgroundLocationService extends Service {
         // Stop location tracking
     }
     
+    // เชื่อมต่อบิงดิงกับ Service (ในที่นี้ไม่ได้ใช้งานจึงส่งคืนค่า null)
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -104,12 +109,13 @@ public class BackgroundLocationService extends Service {
     }
     
     // ============================================================
-    // Service Management
+    // การจัดการ Service (Service Management)
     // ============================================================
     
     /**
      * Start the foreground service
      */
+    // เริ่มทำงานแบบ Foreground Service เพื่อให้ระบบไม่สั่งปิด และเริ่มติดตามตำแหน่ง
     private void startForegroundService() {
         if (isServiceRunning) {
             return;
@@ -131,6 +137,7 @@ public class BackgroundLocationService extends Service {
     /**
      * Stop the background service
      */
+    // หยุดการทำงานของ Service และหยุดการติดตามตำแหน่งทั้งหมด
     private void stopService() {
         isServiceRunning = false;
         markRunning(false);
@@ -142,6 +149,7 @@ public class BackgroundLocationService extends Service {
     /**
      * Create persistent notification for foreground service
      */
+    // สร้างการแจ้งเตือนแบบติดค้าง (Persistent Notification) สำหรับ Foreground Service
     private Notification createPersistentNotification() {
         Intent stopIntent = new Intent(this, BackgroundLocationService.class);
         stopIntent.setAction(ACTION_STOP);
@@ -171,12 +179,13 @@ public class BackgroundLocationService extends Service {
     }
     
     // ============================================================
-    // Location Tracking
+    // การติดตามตำแหน่ง (Location Tracking)
     // ============================================================
     
     /**
      * Start active location tracking through Google Play Services.
      */
+    // เริ่มต้นระบบติดตามตำแหน่งความแม่นยำสูงผ่าน Fused Location Provider Client
     private void startLocationTracking() {
         if (!hasLocationPermission()) {
             Log.w(TAG, "Location tracking skipped because location permission is missing");
@@ -216,6 +225,7 @@ public class BackgroundLocationService extends Service {
     /**
      * Stop location tracking
      */
+    // หยุดรับข้อมูลอัปเดตตำแหน่งเพื่อประหยัดพลังงาน
     private void stopLocationTracking() {
         if (fusedLocationClient != null && locationCallback != null) {
             fusedLocationClient.removeLocationUpdates(locationCallback);
@@ -224,13 +234,14 @@ public class BackgroundLocationService extends Service {
     }
     
     // ============================================================
-    // Danger Zone Monitoring
+    // การตรวจสอบพื้นที่อันตราย (Danger Zone Monitoring)
     // ============================================================
     
     /**
      * Check current location against danger zones
      * This is the core logic for geofencing disaster alerts
      */
+    // ตรวจสอบว่าพิกัดปัจจุบันอยู่ในพื้นที่อันตราย (Danger Zone) หรือไม่ และส่งการแจ้งเตือนฉุกเฉินถ้าอยู่ข้างใน
     private void checkLocationWithDangerZones() {
         GeoPoint currentUserLocation = getLastKnownGeoPoint();
         if (currentUserLocation == null) {
@@ -255,17 +266,19 @@ public class BackgroundLocationService extends Service {
         }
     }
 
+    // แปลงตำแหน่ง Android Location ล่าสุดให้เป็นออบเจ็กต์ GeoPoint
     private GeoPoint getLastKnownGeoPoint() {
         return lastLocation != null ? GeoPoint.fromAndroidLocation(lastLocation) : null;
     }
     
     // ============================================================
-    // Location Update Handling
+    // การจัดการเมื่อได้รับตำแหน่งใหม่ (Location Update Handling)
     // ============================================================
     
     /**
      * Handle location updates from BackgroundGeolocation plugin
      */
+    // ประมวลผลเมื่อได้รับพิกัดพิกัดใหม่ บันทึกลงฐานข้อมูลแคช และตรวจสอบกับเขตพื้นที่อันตราย
     private void onLocationReceived(Location location) {
         if (location != null) {
             lastLocation = location;
@@ -283,6 +296,7 @@ public class BackgroundLocationService extends Service {
     /**
      * Handle battery optimization for the service
      */
+    // จัดการการประหยัดพลังงานโดยใช้ WakeLock เพื่อให้แน่ใจว่าการประมวลผลพิกัดทำงานเสร็จสมบูรณ์
     private void handleBatteryOptimization() {
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wakeLock = powerManager.newWakeLock(
@@ -301,26 +315,30 @@ public class BackgroundLocationService extends Service {
     }
     
     // ============================================================
-    // Utility Methods
+    // เมธอดช่วยเหลือทั่วไป (Utility Methods)
     // ============================================================
     
     /**
      * Check if service is running
      */
+    // ตรวจสอบสถานะว่า Service กำลังทำงานอยู่หรือไม่
     public boolean isServiceRunning() {
         return isServiceRunning;
     }
 
+    // ตรวจสอบว่าแอปได้รับสิทธิ์การเข้าถึงตำแหน่งพิกัด (Location Permission) หรือไม่
     private boolean hasLocationPermission() {
         return ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
                ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
 
+    // บันทึกสถานะการเปิด/ปิดติดตามตำแหน่งลงใน SharedPreferences
     private void markRunning(boolean running) {
         SharedPreferences prefs = getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         prefs.edit().putBoolean(KEY_MONITORING, running).apply();
     }
 
+    // ดึงสถานะการทำงานของบริการระบุตำแหน่งจาก SharedPreferences
     public static boolean isMarkedRunning(Context context) {
         SharedPreferences prefs = context.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         return prefs.getBoolean(KEY_MONITORING, false);
@@ -329,6 +347,7 @@ public class BackgroundLocationService extends Service {
     /**
      * Restart the service (called from BootCompleteReceiver)
      */
+    // ฟังก์ชันสำหรับสั่งเริ่มต้นหรือรีสตาร์ท Service ใหม่
     public static void restartService(Context context) {
         Intent serviceIntent = new Intent(context, BackgroundLocationService.class);
         serviceIntent.setAction(ACTION_START);

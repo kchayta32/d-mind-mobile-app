@@ -21,6 +21,7 @@ import com.dmind.app.activity.EmergencyAlertActivity;
  * NotificationHelper - Manages emergency notification channels, DND bypass, 
  * and full-screen intent functionality for D-MIND disaster alerts.
  */
+// คลาสช่วยเหลือสำหรับสร้างช่องการแจ้งเตือน (Notification Channels) และจัดองค์ประกอบหน้าจอแจ้งเตือนประเภทต่างๆ
 public class NotificationHelper {
     
     public static final String CHANNEL_ID_EMERGENCY = "emergency_alerts";
@@ -34,19 +35,21 @@ public class NotificationHelper {
     private Context context;
     private NotificationManager notificationManager;
     
+    // คอนสตรักเตอร์สำหรับกำหนดค่าเริ่มต้นให้กับตัวช่วยจัดการแจ้งเตือน
     public NotificationHelper(Context context) {
         this.context = context;
         this.notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
     }
     
     // ============================================================
-    // Notification Channel Creation (Android 8.0+)
+    // การสร้างช่องการแจ้งเตือน (Android 8.0+) (Notification Channel Creation)
     // ============================================================
     
     /**
      * Create emergency alert channel with importance HIGH
      * This bypasses Do Not Disturb and lights up the screen
      */
+    // สร้างช่องทางแจ้งเตือนระดับภัยพิบัติฉุกเฉิน (ตั้งค่าความสำคัญสูงพิเศษ ละเว้นโหมดห้ามรบกวน เปิดไฟแฟลชและระบบสั่นสะเทือน)
     public void createEmergencyNotificationChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             return;
@@ -76,6 +79,7 @@ public class NotificationHelper {
     /**
      * Create background operations channel (lower priority for notifications)
      */
+    // สร้างช่องทางแจ้งเตือนแบบทำงานเบื้องหลัง (ความสำคัญระดับต่ำ ปิดระบบสั่นเตือน)
     public void createBackgroundChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             return;
@@ -100,6 +104,7 @@ public class NotificationHelper {
     /**
      * Create SOS message channel
      */
+    // สร้างช่องทางแจ้งเตือนระบบส่งสัญญาณช่วยเหลือฉุกเฉิน (SOS) (ความสำคัญสูง ปลุกโหมดห้ามรบกวน)
     public void createSOSChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             return;
@@ -125,12 +130,13 @@ public class NotificationHelper {
     }
     
     // ============================================================
-    // DND (Do Not Disturb) Bypass
+    // การหลีกเลี่ยงโหมดห้ามรบกวน (DND Bypass)
     // ============================================================
     
     /**
      * Check if notification policy access is granted (for DND bypass)
      */
+    // ตรวจสอบว่าแอปได้รับสิทธิ์การละเว้นโหมดห้ามรบกวน (Do Not Disturb Bypass) หรือมีสิทธิ์แล้วหรือไม่
     public boolean isNotificationPolicyAccessGranted() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             return notificationManager.isNotificationPolicyAccessGranted();
@@ -141,6 +147,7 @@ public class NotificationHelper {
     /**
      * Request notification policy access (for DND bypass)
      */
+    // ขอสิทธิ์การละเว้นโหมดห้ามรบกวน เพื่อนำทางผู้ใช้ไปยังการตั้งค่าของ Android
     public void requestNotificationPolicyAccess(int requestCode) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Intent intent = new Intent(
@@ -154,6 +161,7 @@ public class NotificationHelper {
     /**
      * Request notification access settings
      */
+    // เปิดหน้าการตั้งค่าเพื่อให้สิทธิ์การฟัง/เข้าถึงการแจ้งเตือน (Notification Listener Settings)
     public void requestNotificationAccess() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
             Intent intent = new Intent(
@@ -165,13 +173,14 @@ public class NotificationHelper {
     }
     
     // ============================================================
-    // Notification Building
+    // การประกอบการแจ้งเตือน (Notification Building)
     // ============================================================
     
     /**
      * Build emergency notification with full-screen intent
      * This will wake the screen and show over lock screen
      */
+    // ประกอบการแจ้งเตือนภัยพิบัติ (ปรับไอคอนตามประเภทภัยพิบัติ เล่นเสียงสัญญาณเตือน และตั้งพารามิเตอร์แบบเต็มหน้าจอ)
     public NotificationCompat.Builder buildEmergencyNotification(
         String title,
         String message,
@@ -256,6 +265,7 @@ public class NotificationHelper {
     /**
      * Build background service notification (persistent in status bar)
      */
+    // ประกอบการแจ้งเตือนสำหรับบริการเบื้องหลังแบบทำงานค้าง (Persistent Service Notification)
     public NotificationCompat.Builder buildBackgroundNotification(String title, String subtitle) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_BACKGROUND)
             .setContentTitle(title)
@@ -272,6 +282,7 @@ public class NotificationHelper {
     /**
      * Build SOS pending notification
      */
+    // ประกอบการแจ้งเตือนสัญญาณ SOS ที่ค้างอยู่ในคิวเตรียมพร้อมรอการส่งออก
     public NotificationCompat.Builder buildSOSNotification(String title, String message) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID_SOS)
             .setContentTitle(title)
@@ -294,6 +305,7 @@ public class NotificationHelper {
     /**
      * Show emergency notification (with full-screen intent)
      */
+    // สั่งให้ระบบแสดงผลการแจ้งเตือนภัยพิบัติฉุกเฉินออกไปยังหน้าจอ (รวมการส่งเสียงไซเรนและตัวสั่น)
     public void showEmergencyNotification(
         String title,
         String message,
@@ -322,6 +334,7 @@ public class NotificationHelper {
     /**
      * Show background service notification
      */
+    // แสดงผลการแจ้งเตือนการทำงานเบื้องหลังบนแถบแจ้งเตือน
     public void showBackgroundNotification(String title, String subtitle) {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
@@ -336,6 +349,7 @@ public class NotificationHelper {
     /**
      * Cancel background notification
      */
+    // ยกเลิกและซ่อนแถบการแจ้งเตือนการทำงานเบื้องหลัง
     public void cancelBackgroundNotification() {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
         notificationManager.cancel(NOTIFICATION_ID_BACKGROUND);
@@ -344,6 +358,7 @@ public class NotificationHelper {
     /**
      * Show SOS pending notification
      */
+    // แสดงผลการแจ้งเตือนระบบ SOS พิกัดฉุกเฉิน
     public void showSOSNotification(String title, String message) {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
@@ -358,6 +373,7 @@ public class NotificationHelper {
     /**
      * Cancel all notifications
      */
+    // สั่งล้างหรือยกเลิกการแสดงผลการแจ้งเตือนทั้งหมดของแอปนี้
     public void cancelAllNotifications() {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
         notificationManager.cancelAll();
@@ -370,6 +386,7 @@ public class NotificationHelper {
     /**
      * Play siren sound (5 seconds looped)
      */
+    // เล่นเสียงไซเรนแจ้งเตือนภัยพิบัติฉุกเฉิน
     public void playSirenSound() {
         // Implementation will be handled by AudioAttributes if needed
         // For now, relies on notification sound configuration
@@ -378,6 +395,7 @@ public class NotificationHelper {
     /**
      * Trigger emergency-level vibration pattern
      */
+    // เปิดระบบสั่นเตือนภัยฉุกเฉิน
     public void triggerEmergencyVibration() {
         // Implementation will be handled by Haptics plugin if needed
         // Vibration pattern: 0ms delay, 100ms, 200ms, 300ms
@@ -391,6 +409,7 @@ public class NotificationHelper {
     /**
      * Check if device has notification access
      */
+    // ตรวจสอบความถูกต้องว่าแอปได้รับสิทธิ์ในการโพสต์/แสดงการแจ้งเตือน (Notification Access) แล้วหรือยัง
     public boolean hasNotificationAccess() {
         // This is checked via Settings.Secure.getEnabledNotificationListeners
         // For now, assume true if POST_NOTIFICATIONS permission is granted

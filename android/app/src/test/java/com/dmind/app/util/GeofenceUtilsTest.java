@@ -10,8 +10,10 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 
+// คลาสทดสอบการทำงานของฟังก์ชันทางภูมิศาสตร์ใน GeofenceUtils
 public class GeofenceUtilsTest {
 
+    // ทดสอบการตรวจสอบจุดพิกัดว่าอยู่ภายในหรือภายนอกพื้นที่โพลีกอน
     @Test
     public void pointInPolygon_detectsInsideAndOutsidePoints() {
         List<GeoPoint> square = Arrays.asList(
@@ -25,6 +27,7 @@ public class GeofenceUtilsTest {
         assertFalse(GeofenceUtils.isPointInPolygon(new GeoPoint(12.5, 100.5), square));
     }
 
+    // ทดสอบคำนวณระยะทางระหว่างจุดพิกัดสองจุดว่าได้ระยะทางที่ถูกต้องและไม่เป็นศูนย์
     @Test
     public void distanceCalculation_isNonZeroForDifferentPoints() {
         double distance = GeofenceUtils.calculateDistance(
@@ -35,6 +38,7 @@ public class GeofenceUtilsTest {
         assertTrue(distance > 3000);
     }
 
+    // ทดสอบการปรับค่าโพลีกอนแบบเปิดที่มีการวนตามเข็มนาฬิกา (CW) ให้ปิดล้อมรอบและเปลี่ยนเป็นทวนเข็มนาฬิกา (CCW)
     @Test
     public void normalizePolygon_closesAndNormalizesWindingOrder() {
         // Create an open polygon with CW winding order: A -> B -> C (which closes to CW: A -> B -> C -> A)
@@ -67,6 +71,7 @@ public class GeofenceUtilsTest {
         org.junit.Assert.assertEquals(100.0, polygon.get(3).getLongitude(), 0.000001);
     }
 
+    // ทดสอบกรณีโพลีกอนที่มีทิศทางทวนเข็มนาฬิกาอยู่แล้ว ให้ทำการปิดปลายอย่างเดียว
     @Test
     public void normalizePolygon_alreadyCCW_onlyCloses() {
         List<GeoPoint> polygon = new java.util.ArrayList<>(Arrays.asList(
@@ -87,6 +92,7 @@ public class GeofenceUtilsTest {
         org.junit.Assert.assertEquals(13.0, polygon.get(3).getLatitude(), 0.000001);
     }
 
+    // ทดสอบกรณีโพลีกอนที่มีการปิดปลายและมีทิศทางทวนเข็มนาฬิกาอยู่แล้ว ซึ่งระบบไม่ควรเปลี่ยนแปลงค่าใดๆ
     @Test
     public void normalizePolygon_alreadyClosedAndCCW_doesNothing() {
         List<GeoPoint> polygon = new java.util.ArrayList<>(Arrays.asList(
@@ -107,6 +113,7 @@ public class GeofenceUtilsTest {
         org.junit.Assert.assertEquals(13.0, polygon.get(3).getLatitude(), 0.000001);
     }
 
+    // ทดสอบกรณีโพลีกอนที่ปิดปลายแล้วแต่เรียงแบบตามเข็มนาฬิกา (CW) ให้กลับทิศทางลำดับจุดเป็นทวนเข็มนาฬิกา (CCW)
     @Test
     public void normalizePolygon_alreadyClosedAndCW_reversesWinding() {
         List<GeoPoint> polygon = new java.util.ArrayList<>(Arrays.asList(
@@ -127,6 +134,7 @@ public class GeofenceUtilsTest {
         org.junit.Assert.assertEquals(13.0, polygon.get(3).getLatitude(), 0.000001);
     }
 
+    // ทดสอบการจัดการกรณีพารามิเตอร์ขอบเขตพิเศษ (Edge Cases) เช่น ค่า null, อาเรย์ว่าง หรือจำนวนจุดไม่เพียงพอ
     @Test
     public void normalizePolygon_handlesEdgeCasesGracefully() {
         // null list - should not crash

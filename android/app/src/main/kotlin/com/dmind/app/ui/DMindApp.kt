@@ -72,6 +72,7 @@ import com.dmind.app.util.LocalLanguage
 import com.dmind.app.util.LocaleManager
 import com.dmind.app.util.LocaleProvider
 
+// คอมโพสเซเบิลหลักที่เป็นจุดเริ่มต้นของแอปพลิเคชัน จัดการ Navigation และ ViewModel ต่างๆ
 @Composable
 fun DMindApp() {
     val context = LocalContext.current
@@ -80,6 +81,7 @@ fun DMindApp() {
         AppContainer(context.applicationContext)
     }
 
+    // กำหนดและเริ่มต้นใช้งาน DisasterMapViewModel ด้วย Factory
     val disasterViewModel: DisasterMapViewModel = viewModel(
         factory = viewModelFactory {
             DisasterMapViewModel(
@@ -93,28 +95,36 @@ fun DMindApp() {
             )
         },
     )
+    // กำหนดและเริ่มต้นใช้งาน AlertsViewModel
     val alertsViewModel: AlertsViewModel = viewModel(
         factory = viewModelFactory { AlertsViewModel(container.supabaseRepository) },
     )
+    // กำหนดและเริ่มต้นใช้งาน ReportViewModel
     val reportViewModel: ReportViewModel = viewModel(
         factory = viewModelFactory { ReportViewModel(container.supabaseRepository) },
     )
+    // กำหนดและเริ่มต้นใช้งาน ChatbotViewModel
     val chatbotViewModel: ChatbotViewModel = viewModel(
         factory = viewModelFactory { ChatbotViewModel(container.supabaseRepository) },
     )
+    // กำหนดและเริ่มต้นใช้งาน DamageAssessmentViewModel
     val damageViewModel: DamageAssessmentViewModel = viewModel(
         factory = viewModelFactory { DamageAssessmentViewModel(container.supabaseRepository) },
     )
+    // กำหนดและเริ่มต้นใช้งาน VictimReportsViewModel
     val victimViewModel: VictimReportsViewModel = viewModel(
         factory = viewModelFactory { VictimReportsViewModel(container.supabaseRepository) },
     )
+    // กำหนดและเริ่มต้นใช้งาน SatisfactionSurveyViewModel
     val surveyViewModel: SatisfactionSurveyViewModel = viewModel(
         factory = viewModelFactory { SatisfactionSurveyViewModel(container.supabaseRepository) },
     )
+    // กำหนดและเริ่มต้นใช้งาน AnalyticsDashboardViewModel
     val analyticsViewModel: AnalyticsDashboardViewModel = viewModel(
         factory = viewModelFactory { AnalyticsDashboardViewModel(AnalyticsRepository()) },
     )
 
+    // ดึงค่าสถานะ (State) จาก ViewModels ต่างๆ
     val mapState by disasterViewModel.state.collectAsStateWithLifecycle()
     val alertsState by alertsViewModel.state.collectAsStateWithLifecycle()
     val reportState by reportViewModel.state.collectAsStateWithLifecycle()
@@ -124,6 +134,7 @@ fun DMindApp() {
     val surveyState by surveyViewModel.state.collectAsStateWithLifecycle()
     val analyticsState by analyticsViewModel.state.collectAsStateWithLifecycle()
 
+    // ตั้งค่าสถานะสำหรับ Theme และการนำทาง (Navigation)
     val systemDarkTheme = isSystemInDarkTheme()
     var currentRouteName by rememberSaveable { mutableStateOf(AppRoute.Dashboard.name) }
     var backStack by rememberSaveable { mutableStateOf(emptyList<String>()) }
@@ -132,16 +143,19 @@ fun DMindApp() {
 
     fun currentRoute(): AppRoute = AppRoute.valueOf(currentRouteName)
 
+    // ฟังก์ชันสำหรับรีเฟรชสถานะความน่าเชื่อถือและการขอสิทธิ์จากระบบปฏิบัติการ
     fun refreshNativeStatus() {
         reliabilityStatus = container.nativeStatusRepository.refreshStatus()
     }
 
+    // ฟังก์ชันนำทางไปยังหน้าจอต่าง ๆ
     fun navigateTo(route: AppRoute) {
         if (route.name == currentRouteName) return
         backStack = backStack + currentRouteName
         currentRouteName = route.name
     }
 
+    // ฟังก์ชันนำทางย้อนกลับ
     fun navigateBack() {
         if (backStack.isNotEmpty()) {
             currentRouteName = backStack.last()
@@ -155,11 +169,13 @@ fun DMindApp() {
         navigateBack()
     }
 
+    // ตัวจัดการการขอสิทธิ์พิกัดตำแหน่งของผู้ใช้
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) {
         refreshNativeStatus()
     }
+    // ตัวจัดการการขอสิทธิ์การแจ้งเตือน
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) {
@@ -170,22 +186,27 @@ fun DMindApp() {
         refreshNativeStatus()
     }
 
+    // ให้บริการข้อมูลภาษาปัจจุบันแก่ UI
     LocaleProvider {
         val currentLanguage = LocalLanguage.current
 
+        // กำหนดรูปแบบธีมของแอป
         DMindTheme(darkTheme = darkTheme) {
         val route = currentRoute()
 
+        // แยกการแสดงผลสำหรับหน้าจอแผนที่ภัยพิบัติ
         if (route == AppRoute.Map) {
             DisasterMapScreen(
                 state = mapState,
                 viewModel = disasterViewModel,
+                darkTheme = darkTheme,
                 onBack = ::navigateBack,
                 onOpenStations = { navigateTo(AppRoute.Stations) },
             )
             return@DMindTheme
         }
 
+        // โครงสร้างหน้าจอหลักพร้อมแถบนำทางด้านล่าง
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background,
             bottomBar = {
@@ -199,6 +220,7 @@ fun DMindApp() {
                 modifier = androidx.compose.ui.Modifier
                     .padding(bottom = padding.calculateBottomPadding()),
             ) {
+                // แสดงผลหน้าจอตามเส้นทางนำทางปัจจุบัน
                 when (route) {
                     AppRoute.Dashboard -> DashboardScreen(
                         mapState = mapState,
@@ -233,6 +255,7 @@ fun DMindApp() {
                     AppRoute.Chatbot -> ChatbotScreen(
                         state = chatState,
                         onSend = chatbotViewModel::send,
+                        viewModel = chatbotViewModel,
                     )
 
                     AppRoute.Contacts -> EmergencyContactsScreen()
@@ -335,6 +358,7 @@ fun DMindApp() {
     }
 }
 
+// คอมโพสเซเบิลสำหรับแถบเมนูนำทางด้านล่าง
 @Composable
 private fun DmindBottomNavigation(
     currentRoute: AppRoute,
@@ -361,12 +385,14 @@ private fun DmindBottomNavigation(
     }
 }
 
+// คลาสข้อมูลสำหรับไอเทมแถบนำทาง
 private data class BottomNavItem(
     val route: AppRoute,
     val labelResId: Int,
     val icon: ImageVector,
 )
 
+// รายการเมนูบนแถบนำทางด้านล่าง
 private val bottomNavItems = listOf(
     BottomNavItem(AppRoute.Dashboard, AppRoute.Dashboard.labelResId, Icons.Filled.Home),
     BottomNavItem(AppRoute.Map, AppRoute.Map.labelResId, Icons.Filled.Map),

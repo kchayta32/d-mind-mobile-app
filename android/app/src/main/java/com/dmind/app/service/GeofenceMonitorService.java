@@ -30,6 +30,7 @@ import java.util.List;
  * 3. Trigger emergency alerts when entering danger zones
  * 4. Handle offline map rendering (using Maplibre)
  */
+// คลาสสำหรับให้บริการตรวจสอบพิกัด Geofence ของเขตอันตราย เพื่อความแม่นยำและการเตือนภัยเบื้องหลัง
 public class GeofenceMonitorService extends Service {
     
     public static final String ACTION_START_MONITORING = "com.dmind.app.START_GEOFENCE_MONITORING";
@@ -42,12 +43,14 @@ public class GeofenceMonitorService extends Service {
     private List<DangerZone> dangerZones = new ArrayList<>();
     private EmergencyNotificationManager emergencyNotificationManager;
     
+    // เรียกใช้งานเมื่อสร้าง Service เพื่อสร้างตัวจัดการเตือนภัยฉุกเฉิน
     @Override
     public void onCreate() {
         super.onCreate();
         emergencyNotificationManager = new EmergencyNotificationManager(this);
     }
     
+    // จัดการคำสั่งควบคุมการทำงานของ Geofence Monitor (เริ่มหยุดการทำงาน หรือตรวจขอบเขต)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
@@ -72,12 +75,14 @@ public class GeofenceMonitorService extends Service {
         return START_STICKY;
     }
     
+    // เชื่อมต่อบิงดิงกับ Service (ในที่นี้ไม่ได้ใช้งานจึงส่งคืนค่า null)
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return null; // Not using bound service
     }
     
+    // เรียกใช้งานเมื่อทำลาย Service เพื่อหยุดระบบ Geofence Monitor และเคลียร์ทรัพยากร
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -85,12 +90,13 @@ public class GeofenceMonitorService extends Service {
     }
     
     // ============================================================
-    // Monitoring Control
+    // การควบคุมการติดตาม Geofence (Monitoring Control)
     // ============================================================
     
     /**
      * Start geofence monitoring
      */
+    // เริ่มต้นกระบวนการตรวจสอบ Geofence และโหลดข้อมูลพื้นที่เสี่ยงภัย
     private void startMonitoring() {
         if (isMonitoring) {
             return;
@@ -108,6 +114,7 @@ public class GeofenceMonitorService extends Service {
     /**
      * Stop geofence monitoring
      */
+    // หยุดกระบวนการตรวจสอบ Geofence และยกเลิกการติดตามพิกัด
     private void stopMonitoring() {
         isMonitoring = false;
         
@@ -119,12 +126,13 @@ public class GeofenceMonitorService extends Service {
     }
     
     // ============================================================
-    // Location Tracking
+    // การติดตามตำแหน่งพิกัด (Location Tracking)
     // ============================================================
     
     /**
      * Start location tracking with high accuracy
      */
+    // เริ่มใช้งานการระบุพิกัดความแม่นยำสูงสำหรับการตรวจสอบขอบเขต Geofence
     private void startLocationTracking() {
         // Using BackgroundGeolocation plugin configuration
         
@@ -154,6 +162,7 @@ public class GeofenceMonitorService extends Service {
     /**
      * Stop location tracking
      */
+    // หยุดการระบุพิกัดและการติดตามตำแหน่งชั่วคราว
     private void stopLocationTracking() {
         // Stop BackgroundGeolocation plugin
         
@@ -167,12 +176,13 @@ public class GeofenceMonitorService extends Service {
     }
     
     // ============================================================
-    // Danger Zone Management
+    // การจัดการเขตพื้นที่เสี่ยงภัย (Danger Zone Management)
     // ============================================================
     
     /**
      * Load danger zones from database
      */
+    // โหลดข้อมูลพื้นที่อันตราย (Danger Zone) จากฐานข้อมูลภายในเครื่อง (SQLite)
     private void loadDangerZones() {
         AlertsCacheDAO dao = new AlertsCacheDAO(this);
         dangerZones = dao.getAllDangerZones();
@@ -182,18 +192,20 @@ public class GeofenceMonitorService extends Service {
     /**
      * Clear loaded danger zones
      */
+    // ล้างข้อมูลหน่วยความจำชั่วคราวสำหรับเขตพื้นที่อันตราย
     private void clearDangerZones() {
         dangerZones.clear();
         Log.d(TAG, "Cleared loaded danger zones");
     }
     
     // ============================================================
-    // Geofence Checking
+    // การตรวจเช็ค Geofence (Geofence Checking)
     // ============================================================
     
     /**
      * Check if user is inside any danger zone
      */
+    // คำนวณพิกัดปัจจุบันของผู้ใช้เทียบกับพิกัดรูปหลายเหลี่ยมของเขตพื้นที่อันตราย หากผู้ใช้อยู่ด้านในจะทำการเตือนภัยฉุกเฉิน
     private void checkGeofence() {
         GeoPoint currentUserLocation = getCurrentLocation();
         if (currentUserLocation == null) {
@@ -218,6 +230,7 @@ public class GeofenceMonitorService extends Service {
     /**
      * Get current location (wrapper for location provider)
      */
+    // ดึงข้อมูลตำแหน่งปัจจุบันของผู้ใช้จากตัวให้บริการระบุตำแหน่งที่ดีที่สุด (เช่น GPS หรือ Network)
     private GeoPoint getCurrentLocation() {
         if (!hasLocationPermissions()) {
             return null;
@@ -248,13 +261,14 @@ public class GeofenceMonitorService extends Service {
     }
     
     // ============================================================
-    // Offline Map Integration
+    // การผสานรวมแผนที่แบบออฟไลน์ (Offline Map Integration)
     // ============================================================
     
     /**
      * Prepare offline map tiles
      * This downloads map tiles for danger zones to ensure functionality offline
      */
+    // เตรียมข้อมูลแผนที่ออฟไลน์โดยดาวน์โหลดแผนที่ของเขตพื้นที่เสี่ยงภัยมาเก็บไว้ เพื่อให้ใช้งานได้โดยไม่มีอินเทอร์เน็ต
     private void prepareOfflineMaps() {
         // Using Maplibre GL Native Android SDK
         
@@ -293,12 +307,13 @@ public class GeofenceMonitorService extends Service {
     }
     
     // ============================================================
-    // Location Authorization
+    // สิทธิ์การเข้าถึงตำแหน่ง (Location Authorization)
     // ============================================================
     
     /**
      * Check if location permissions are granted
      */
+    // ตรวจสอบความถูกต้องว่าแอปได้รับสิทธิ์การใช้งานตำแหน่ง (Location Permissions) แล้วหรือยัง
     private boolean hasLocationPermissions() {
         return ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
                ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
@@ -307,18 +322,20 @@ public class GeofenceMonitorService extends Service {
     /**
      * Request location permissions if needed
      */
+    // เมธอดสำหรับจำลองการขอสิทธิ์เข้าถึงพิกัด (สิทธิ์นี้โดยปกติจะถูกขอที่ระดับ Activity)
     private void requestLocationPermissions() {
         // Request permission from system
         // This would be handled in an Activity, not Service
     }
     
     // ============================================================
-    // Utility Methods
+    // เมธอดช่วยเหลือทั่วไป (Utility Methods)
     // ============================================================
     
     /**
      * Check if service is monitoring
      */
+    // คืนค่าว่าระบบกำลังเริ่มติดตาม Geofence อยู่หรือไม่
     public boolean isMonitoring() {
         return isMonitoring;
     }
@@ -326,6 +343,7 @@ public class GeofenceMonitorService extends Service {
     /**
      * Restart monitoring service (called from BootCompleteReceiver)
      */
+    // เมธอดสำหรับสั่งเริ่มต้นหรือเปิดใช้งานบริการตรวจสอบ Geofence ใหม่
     public static void restartService(android.content.Context context) {
         Intent serviceIntent = new Intent(context, GeofenceMonitorService.class);
         serviceIntent.setAction(ACTION_START_MONITORING);

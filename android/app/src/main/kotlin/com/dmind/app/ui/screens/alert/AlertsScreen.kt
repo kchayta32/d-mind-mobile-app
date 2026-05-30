@@ -42,6 +42,7 @@ import com.dmind.app.ui.components.ScreenHeader
 import com.dmind.app.ui.components.StatusPill
 import com.dmind.app.ui.viewmodel.AlertsUiState
 
+// หน้าจอแสดงรายการแจ้งเตือนภัยพิบัติและประวัติการแจ้งเตือน
 @Composable
 fun AlertsScreen(
     state: AlertsUiState,
@@ -55,6 +56,7 @@ fun AlertsScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
+            // ส่วนหัวของหน้าจอพร้อมปุ่มกดรีเฟรชข้อมูล
             ScreenHeader(
                 title = stringResource(R.string.alerts_title),
                 subtitle = stringResource(R.string.alerts_subtitle),
@@ -67,6 +69,7 @@ fun AlertsScreen(
             )
         }
 
+        // แสดงตัวบ่งชี้การโหลดข้อมูลเมื่อกำลังดาวน์โหลดข้อมูลการแจ้งเตือน
         if (state.isLoading) {
             item {
                 Column(
@@ -81,6 +84,7 @@ fun AlertsScreen(
             }
         }
 
+        // แสดงข้อความผิดพลาดหากไม่สามารถโหลดข้อมูลได้
         state.errorMessage?.let { message ->
             item {
                 DmindCard(Modifier.padding(horizontal = 18.dp)) {
@@ -90,6 +94,7 @@ fun AlertsScreen(
             }
         }
 
+        // ส่วนการแสดงผลรายการแจ้งเตือนภัยพิบัติที่กำลังเกิดขึ้นในขณะนี้ (Active Alerts)
         item {
             Text(
                 stringResource(R.string.active_alerts),
@@ -112,6 +117,7 @@ fun AlertsScreen(
             }
         }
 
+        // ส่วนการแสดงผลประวัติการแจ้งเตือนย้อนหลัง (Notification History)
         item {
             Text(
                 stringResource(R.string.notification_history),
@@ -138,6 +144,7 @@ fun AlertsScreen(
     }
 }
 
+// คอมโพสเซเบิลการ์ดข้อมูลการแจ้งเตือนภัยพิบัติเดี่ยว
 @Composable
 private fun AlertCard(
     alert: RealtimeAlertRecord,
@@ -162,6 +169,7 @@ private fun AlertCard(
     }
 }
 
+// คอมโพสเซเบิลการ์ดประวัติข้อความแจ้งเตือนเดี่ยว
 @Composable
 private fun NotificationCard(
     notification: NotificationRecord,

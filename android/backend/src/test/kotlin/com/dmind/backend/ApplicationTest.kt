@@ -14,7 +14,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import java.nio.file.Files
 
+// คลาสสำหรับการเขียน Unit Test เพื่อทดสอบการทำงานของ Ktor Web Server และ Routing ต่างๆ ของระบบแบ็กเอนด์
 class ApplicationTest {
+    
+    // ทดสอบการเรียกใช้งาน Endpoint สำหรับเช็คสถานะการทำงาน (/health) ว่าต้องตอบกลับมาเป็นสถานะปกติ
     @Test
     fun healthReturnsOk() = testApplication {
         application { dmindModule() }
@@ -25,6 +28,7 @@ class ApplicationTest {
         assertTrue(response.contains("\"service\":\"d-mind-backend\""))
     }
 
+    // ทดสอบ Endpoint สำหรับลงทะเบียนโทเค็นอุปกรณ์ใหม่เพื่อพร้อมรับ Push Notification (FCM Register)
     @Test
     fun fcmRegisterAcceptsToken() {
         withGatewayProperties {
@@ -41,6 +45,7 @@ class ApplicationTest {
         }
     }
 
+    // ตรวจสอบระบบรักษาความปลอดภัยว่าการส่งการแจ้งเตือนออกไปจำเป็นต้องมีรหัสผู้ดูแลระบบ (Admin Token)
     @Test
     fun notificationSendRequiresAdminToken() {
         withGatewayProperties(adminToken = "test-admin") {
@@ -57,6 +62,7 @@ class ApplicationTest {
         }
     }
 
+    // ทดสอบว่าข้อมูลโทเค็นอุปกรณ์ที่ถูกลงทะเบียนจะคงอยู่และถูกอ่านขึ้นมาใหม่ได้หลังจากการรีสตาร์ตเซิร์ฟเวอร์
     @Test
     fun notificationSendUsesPersistedRegistryAfterRestart() {
         withGatewayProperties(adminToken = "test-admin") {
@@ -83,6 +89,7 @@ class ApplicationTest {
         }
     }
 
+    // ทดสอบว่าเมื่อยื่นคำขอรายงานเหตุการณ์ที่ไม่ถูกต้อง (เช่น ข้อมูลสั้นเกินไป) ระบบจะต้องแสดงข้อผิดพลาดพร้อมโครงสร้างที่ถูกต้อง
     @Test
     fun invalidReportReturnsStructuredBadRequest() {
         withGatewayProperties {
@@ -101,6 +108,7 @@ class ApplicationTest {
         }
     }
 
+    // ทดสอบว่าตัวอ่านข้อมูลสภาพแวดล้อมสามารถดึงค่า TMD API Token จาก System Properties ได้ถูกต้อง
     @Test
     fun testTmdApiTokenResolution() {
         val previousToken = System.getProperty("DMIND_TMD_API_TOKEN")
@@ -113,6 +121,7 @@ class ApplicationTest {
         }
     }
 
+    // ทดสอบกรณีไม่มีคีย์ใช้งาน TMD API ระบบจะสลับไปดึงข้อมูลสภาพอากาศพยากรณ์จาก Open-Meteo แบบอัตโนมัติ (Fallback)
     @Test
     fun weatherRouteFallsBackToOpenMeteoWhenTokenMissing() {
         val previousTmd = System.getProperty("DMIND_TMD_API_TOKEN")
@@ -155,6 +164,7 @@ class ApplicationTest {
         }
     }
 
+    // ทดสอบการเรียกดึงข้อมูลสรุปสิ่งแวดล้อม (Environmental Data) ว่าสามารถเรียกและทำงานได้อย่างถูกต้อง
     @Test
     fun environmentalAnalyticsRouteWorksWithTmdFallback() {
         val previousTmd = System.getProperty("DMIND_TMD_API_TOKEN")
@@ -199,6 +209,7 @@ class ApplicationTest {
         }
     }
 
+    // ตรวจสอบความปลอดภัยว่า Endpoint สำหรับประเมินและเตือนภัยด่วน (/alerts/evaluate) ต้องใช้สิทธิ์ผู้ดูแลระบบ
     @Test
     fun alertsEvaluateRequiresAdminToken() {
         withGatewayProperties(adminToken = "test-admin") {
@@ -215,6 +226,7 @@ class ApplicationTest {
         }
     }
 
+    // ทดสอบการเรียกสั่งประเมินสภาพอากาศและเตือนภัยฉุกเฉินสำเร็จเมื่อยืนยันสิทธิ์ด้วยโทเค็นแอดมินถูกต้อง
     @Test
     fun alertsEvaluateExecutesSuccessfullyWithAdminToken() {
         withGatewayProperties(adminToken = "test-admin") {
@@ -234,6 +246,7 @@ class ApplicationTest {
         }
     }
 
+    // ฟังก์ชันช่วยเหลือสำหรับจำลองและบันทึกค่าพิกัดโทเค็นอุปกรณ์ระหว่างทำ Unit Test
     private fun withGatewayProperties(
         adminToken: String? = null,
         block: () -> Unit,
@@ -255,6 +268,7 @@ class ApplicationTest {
         }
     }
 
+    // ฟังก์ชันช่วยเหลือสำหรับการคืนค่าคุณสมบัติ System Property เดิมหลังจบขั้นตอนทดสอบ
     private fun restoreProperty(name: String, value: String?) {
         if (value == null) {
             System.clearProperty(name)

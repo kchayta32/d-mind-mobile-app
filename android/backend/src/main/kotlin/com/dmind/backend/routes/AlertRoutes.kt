@@ -23,7 +23,10 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.util.UUID
 
+// กำหนดเส้นทาง URL (Routing) ทั้งหมดที่เกี่ยวข้องกับระบบแจ้งเตือนและระบบกู้ภัย
 internal fun Route.alertRoutes(config: GatewayConfig, supabase: SupabaseGateway) {
+    
+    // ดึงข้อมูลรายการแจ้งเตือนภัยพิบัติในปัจจุบัน
     get("/alerts") {
         call.handleSafely {
             if (!supabase.isConfigured) {
@@ -38,6 +41,7 @@ internal fun Route.alertRoutes(config: GatewayConfig, supabase: SupabaseGateway)
         }
     }
 
+    // รับคำขอแจ้งเหตุฉุกเฉินขอความช่วยเหลือ (SOS) ของผู้ใช้
     post("/sos") {
         call.handleSafely(rateLimited = true, config = config) {
             val request = call.receive<SosRequest>()
@@ -54,6 +58,7 @@ internal fun Route.alertRoutes(config: GatewayConfig, supabase: SupabaseGateway)
         }
     }
 
+    // รับรายงานข้อมูลภัยพิบัติหรือเหตุการณ์ด่วนที่ผู้ใช้เป็นผู้แจ้งเข้ามา
     post("/reports") {
         call.handleSafely(rateLimited = true, config = config) {
             val request = call.receive<IncidentReportRequest>()

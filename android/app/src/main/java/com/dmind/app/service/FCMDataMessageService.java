@@ -24,6 +24,7 @@ import com.dmind.app.worker.SOSQueueWorker;
  * NOTE: FCM data messages have size limit (~2KB total, ~1KB per key).
  * For larger payloads, use Firebase Storage or backend API.
  */
+// คลาสสำหรับประมวลผลข้อความ Firebase Cloud Messaging (FCM) ชนิดข้อมูลอย่างเดียว (Data-Only Message) ในเบื้องหลัง
 public class FCMDataMessageService extends IntentService {
     
     private static final String TAG = "FCMDataMessageService";
@@ -39,16 +40,19 @@ public class FCMDataMessageService extends IntentService {
     /**
      * Constructor
      */
+    // คอนสตรักเตอร์ของ Service เพื่อระบุชื่อสำหรับจัดการเธรดเบื้องหลัง
     public FCMDataMessageService() {
         super(TAG);
     }
     
+    // เรียกใช้งานเมื่อสร้าง Service เพื่อตั้งค่าเริ่มต้นและบันทึก Log
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "Service created");
     }
     
+    // จัดการอินเทนต์ที่ถูกส่งเข้ามาทำงานในคิวงาน (Background Thread ของ IntentService)
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
         if (intent != null) {
@@ -65,6 +69,7 @@ public class FCMDataMessageService extends IntentService {
         // FCM handles this automatically, but good practice to clean up
     }
     
+    // เรียกใช้งานเมื่อทำลาย Service เพื่อบันทึก Log และเคลียร์ทรัพยากร
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -72,12 +77,13 @@ public class FCMDataMessageService extends IntentService {
     }
     
     // ============================================================
-    // Message Handling
+    // การจัดการข้อความ (Message Handling)
     // ============================================================
     
     /**
      * Process FCM data message
      */
+    // แยกและตรวจสอบข้อมูลการแจ้งเตือนจาก FCM data message เพื่อนำไปประมวลผลต่อ
     private void handleFCMDataMessage(Intent intent) {
         try {
             // Get FCM data bundle
@@ -110,6 +116,7 @@ public class FCMDataMessageService extends IntentService {
     /**
      * Process disaster alert from FCM
      */
+    // ประมวลผลและตัดสินใจว่าจะส่งการแจ้งเตือนภัยพิบัติโดยอิงตามประเภท ขอบเขตพื้นที่ หรือพิกัดของผู้ใช้หรือไม่
     private void processAlert(String alertType, String message, double radius, String polygon) {
         Log.d(TAG, "Processing alert: " + alertType);
         
@@ -134,6 +141,7 @@ public class FCMDataMessageService extends IntentService {
         }
     }
 
+    // สั่งให้ WorkManager ทำการส่งสัญญาณ SOS ที่ค้างอยู่ในคิวออกไปทันที
     private void flushSOSQueue() {
         SOSQueueWorker.enqueue(this);
     }
@@ -141,6 +149,7 @@ public class FCMDataMessageService extends IntentService {
     /**
      * Get alert title based on type
      */
+    // คืนค่าหัวข้อข้อความแจ้งเตือนตามประเภทภัยพิบัติ (ไทย / อังกฤษ)
     private String getAlertTitle(String alertType) {
         switch (alertType.toLowerCase()) {
             case "flood":
@@ -162,6 +171,7 @@ public class FCMDataMessageService extends IntentService {
     /**
      * Get default alert message based on type
      */
+    // คืนค่าเนื้อหาข้อความแจ้งเตือนเริ่มต้นตามประเภทภัยพิบัติ (ไทย / อังกฤษ)
     private String getAlertMessage(String alertType) {
         switch (alertType.toLowerCase()) {
             case "flood":

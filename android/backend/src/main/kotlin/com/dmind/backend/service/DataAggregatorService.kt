@@ -44,6 +44,7 @@ import kotlinx.coroutines.coroutineScope
  * if an API is unreachable or unconfigured, the service returns 0 for that category
  * instead of throwing.
  */
+// บริการดึงข้อมูลจากแหล่งภายนอกต่างๆ (USGS, GISTDA, TMD, Air4Thai) มาวิเคราะห์ คำนวณ สรุปผลทางสถิติและแนวโน้มภัยพิบัติ
 class DataAggregatorService {
 
     private val bangkokZone = ZoneId.of("Asia/Bangkok")
@@ -52,17 +53,21 @@ class DataAggregatorService {
     // ─── Trend history ──────────────────────────────────────────
     // Stores daily snapshots (date → category counts) so getTrendData can return
     // actual historical values. Each call to getAnalyticsSummary() appends today's counts.
+    // แคชเก็บสถิติประวัติข้อมูลรายวันเพื่อใช้สำหรับแสดงกราฟแนวโน้ม
     private val trendHistory = ConcurrentHashMap<String, TrendPoint>()
 
     // ─── Config helpers ─────────────────────────────────────────
+    // อ่านค่าตัวแปรสภาพแวดล้อมของระบบ
     private fun env(name: String): String =
         System.getProperty(name)
             ?: System.getenv(name)
             ?: ""
 
+    // ค้นหาและดึง TMD Bearer Token
     private fun tmdToken(): String =
         env("TMD_API_TOKEN").ifBlank { env("VITE_TMD_API_TOKEN") }
 
+    // ค้นหาและดึง GISTDA API Key
     private fun gistdaApiKey(): String =
         env("GISTDA_API_KEY")
             .ifBlank { env("VITE_GISTDA_API_KEY") }
@@ -73,6 +78,7 @@ class DataAggregatorService {
     // ═════════════════════════════════════════════════════════════
     // 1) SUMMARY  — aggregate counts from USGS + GISTDA + TMD
     // ═════════════════════════════════════════════════════════════
+    // คำนวณรวบรวมข้อมูลสรุปสถิติภัยพิบัติทั้งหมดในปัจจุบัน (แผ่นดินไหว, น้ำท่วม, ไฟป่า, พายุ, ภัยแล้ง)
     suspend fun getAnalyticsSummary(): AnalyticsSummaryResponse {
         // Fetch all sources in parallel-safe manner (each wrapped independently)
         val earthquakeResult = fetchUsgsEarthquakes()
@@ -147,6 +153,7 @@ class DataAggregatorService {
     // ═════════════════════════════════════════════════════════════
     // 2) TRENDS  — historical data from snapshot cache
     // ═════════════════════════════════════════════════════════════
+    // ดึงประวัติข้อมูลแนวโน้มสถิติย้อนหลังตามช่วงเวลา เช่น 7 วัน, 30 วัน, 1 ปี
     suspend fun getTrendData(period: String): TrendDataResponse {
         val today = LocalDate.now(bangkokZone)
         val formatter = DateTimeFormatter.ISO_LOCAL_DATE
@@ -177,18 +184,15 @@ class DataAggregatorService {
     // ═════════════════════════════════════════════════════════════
     // 3) ENVIRONMENTAL — Air4Thai + TMD real data
     // ═════════════════════════════════════════════════════════════
+    // รวบรวมข้อมูลคุณภาพสิ่งแวดล้อม (คุณภาพอากาศ PM2.5 / AQI และข้อมูลภูมิอากาศจาก TMD/Open-Meteo) ณ พิกัดที่กำหนด
     suspend fun getEnvironmentalData(latitude: Double = 13.7563, longitude: Double = 100.5018): EnvironmentalResponse = coroutineScope {
         val airDataDeferred = async { fetchAir4ThaiData() }
         val weatherDataDeferred = async { fetchTmdWeatherForecast(latitude, longitude) }
-        val openMeteoWeatherDeferred = async { fetchOpenMeteoWeather(latitude, longitude) }
         val openMeteoAirQualityDeferred = async { fetchOpenMeteoAirQuality(latitude, longitude) }
-        val openMeteoRiverDeferred = async { fetchOpenMeteoRiverDischarge(latitude, longitude) }
 
         val airData = airDataDeferred.await()
         val weatherData = weatherDataDeferred.await()
-        val openMeteoWeather = openMeteoWeatherDeferred.await()
         val openMeteoAirQuality = openMeteoAirQualityDeferred.await()
-        val openMeteoRiver = openMeteoRiverDeferred.await()
 
         val pm25 = airData.pm25
         val aqi = airData.aqi
@@ -209,8 +213,6 @@ class DataAggregatorService {
             waterLevel = null, // Hydro-informatics API not yet integrated
             rainfall = weatherData.rainfall,
             updatedAt = Instant.now().toString(),
-            openMeteoRiverDischarge = openMeteoRiver,
-            openMeteoSoilMoisture = openMeteoWeather.soilMoisture,
             openMeteoPm25 = openMeteoAirQuality.pm25,
             openMeteoAqi = openMeteoAirQuality.aqi,
         )
@@ -221,6 +223,7 @@ class DataAggregatorService {
     // https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson
     // No API key required. Returns GeoJSON FeatureCollection.
     // ─────────────────────────────────────────────────────────────
+    // เรียกดึงข้อมูลแผ่นดินไหวล่าสุดย้อนหลัง 1 สัปดาห์จาก USGS และกรองข้อมูลเฉพาะโซนประเทศไทย
     private fun fetchUsgsEarthquakes(): ApiResult {
         return runCatching {
             val url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson"
@@ -275,6 +278,7 @@ class DataAggregatorService {
     // https://api-gateway.gistda.or.th/api/2.0/resources/features/viirs/1day
     // Requires API-Key header.
     // ─────────────────────────────────────────────────────────────
+    // ดึงข้อมูลจุดความร้อนสะสมย้อนหลัง 1 วันของประเทศจาก GISTDA (วิเคราะห์ภัยไฟป่า)
     private fun fetchGistdaWildfires(): ApiResult {
         val apiKey = gistdaApiKey()
         return runCatching {
@@ -336,6 +340,7 @@ class DataAggregatorService {
     // GISTDA Flood Features
     // https://api-gateway.gistda.or.th/api/2.0/resources/features/flood/1day
     // ─────────────────────────────────────────────────────────────
+    // ดึงข้อมูลวิเคราะห์พื้นที่น้ำท่วมล่าสุดรายวันจาก GISTDA
     private fun fetchGistdaFloods(): ApiResult {
         val apiKey = gistdaApiKey()
         return runCatching {
@@ -395,6 +400,7 @@ class DataAggregatorService {
     // ─────────────────────────────────────────────────────────────
     // GISTDA Drought (flood-freq as proxy for drought-risk areas)
     // ─────────────────────────────────────────────────────────────
+    // ดึงพื้นที่เฝ้าระวังภัยแล้ง/ภัยแล้งซ้ำซากจาก GISTDA
     private fun fetchGistdaDrought(): ApiResult {
         val apiKey = gistdaApiKey()
         return runCatching {
@@ -453,6 +459,7 @@ class DataAggregatorService {
     // https://data.tmd.go.th/nwpapi/v1/forecast/location/hourly/at
     // Uses condition codes 5-8 (rain/storm) to count storm-like events.
     // ─────────────────────────────────────────────────────────────
+    // ตรวจสอบและดึงข้อมูลรายงานการพยากรณ์พายุฝนระดับรุนแรงจากกรมอุตุนิยมวิทยา (TMD)
     private fun fetchTmdStormWarnings(): ApiResult {
         val token = tmdToken()
         if (token.isBlank()) {
@@ -517,6 +524,7 @@ class DataAggregatorService {
     // ─────────────────────────────────────────────────────────────
     // TMD Weather Forecast (temperature, humidity, rainfall)
     // ─────────────────────────────────────────────────────────────
+    // ดึงข้อมูลพยากรณ์สภาพอากาศจาก TMD ตามจุดพิกัด
     private fun fetchTmdWeatherForecast(lat: Double = 13.7563, lon: Double = 100.5018): WeatherInfo {
         val token = tmdToken()
         if (token.isBlank()) {
@@ -557,6 +565,7 @@ class DataAggregatorService {
         }
     }
 
+    // ดึงข้อมูลพยากรณ์อากาศพิกัดที่กำหนดผ่าน Open-Meteo API (ใช้เป็น Fallback)
     private fun fetchOpenMeteoWeatherForecast(lat: Double, lon: Double): WeatherInfo {
         return runCatching {
             val url = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,relative_humidity_2m,rain&timezone=Asia/Bangkok"
@@ -571,6 +580,7 @@ class DataAggregatorService {
         }.getOrElse { WeatherInfo() }
     }
 
+    // ตรวจหาคำแจ้งเตือนฝนตกหนักพายุรุนแรงผ่าน Open-Meteo API (ใช้เป็น Fallback)
     private fun fetchOpenMeteoStormWarnings(lat: Double, lon: Double): ApiResult {
         return runCatching {
             val url = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&hourly=rain,wind_speed_10m,weather_code&forecast_days=1&timezone=Asia/Bangkok"
@@ -620,6 +630,7 @@ class DataAggregatorService {
     // http://air4thai.pcd.go.th/forappV2/getAQI_JSON.php
     // Public API, no key required. Returns array of station readings.
     // ─────────────────────────────────────────────────────────────
+    // เรียกดึงข้อมูลคุณภาพอากาศแบบเรียลไทม์จากระบบกรมควบคุมมลพิษ (Air4Thai) เพื่อนำมาคำนวณฝุ่น PM2.5 และดัชนี AQI เฉลี่ยของเมือง
     private fun fetchAir4ThaiData(): AirQualityInfo {
         return runCatching {
             val url = "http://air4thai.pcd.go.th/forappV2/getAQI_JSON.php"
@@ -674,6 +685,7 @@ class DataAggregatorService {
     // ─────────────────────────────────────────────────────────────
     // HTTP helper  (reusable GET with timeout + User-Agent)
     // ─────────────────────────────────────────────────────────────
+    // ฟังก์ชันช่วยจัดการส่ง HTTP GET Request พร้อมกำหนด Header และดักจับความผิดพลาดพื้นฐาน
     private fun httpGet(
         url: String,
         headers: Map<String, String> = emptyMap(),
@@ -702,6 +714,7 @@ class DataAggregatorService {
     // ─────────────────────────────────────────────────────────────
     // Helpers
     // ─────────────────────────────────────────────────────────────
+    // แปลงข้อมูลระดับความน่าเชื่อถือ (Confidence) ของจุดความร้อน GISTDA ให้เป็นคะแนนตัวเลข
     private fun parseConfidence(raw: kotlinx.serialization.json.JsonElement?): Int {
         if (raw == null) return 50
         val content = raw.jsonPrimitive.contentOrNull ?: return 50
@@ -713,6 +726,7 @@ class DataAggregatorService {
         }
     }
 
+    // ฟังก์ชันคำนวณประเมินระดับดัชนีคุณภาพอากาศ (AQI) จากปริมาณฝุ่น PM2.5
     private fun estimateAqiFromPm25(pm25: Double): Int = when {
         pm25 <= 15.0 -> (pm25 / 15.0 * 25).roundToInt()
         pm25 <= 25.0 -> (25 + (pm25 - 15.0) / 10.0 * 25).roundToInt()
@@ -722,6 +736,7 @@ class DataAggregatorService {
     }
 
     // ─── Internal data classes ──────────────────────────────────
+    // โมเดลข้อมูลเหตุการณ์ภัยพิบัติภายในคลาส
     private data class EventInfo(
         val title: String,
         val type: String,
@@ -731,30 +746,27 @@ class DataAggregatorService {
         val areaKm2: Double,
     )
 
+    // ผลลัพธ์ข้อมูลภัยพิบัติที่ได้จาก API แต่ละแหล่ง
     private data class ApiResult(
         val count: Int,
         val events: List<EventInfo>,
         val areaKm2: Double,
     )
 
+    // ข้อมูลคุณภาพอากาศเบื้องต้น
     private data class AirQualityInfo(
         val pm25: Double = 0.0,
         val aqi: Int = 0,
     )
 
+    // ข้อมูลพยากรณ์อากาศเบื้องต้น
     private data class WeatherInfo(
         val temperature: Double = 0.0,
         val humidity: Int = 0,
         val rainfall: Double? = null,
     )
 
-    private data class OpenMeteoWeatherAndSoilInfo(
-        val temperature: Double = 0.0,
-        val humidity: Int = 0,
-        val rainfall: Double? = null,
-        val soilMoisture: Double? = null,
-    )
-
+    // โมเดลข้อมูลคุณภาพอากาศจาก Open-Meteo
     private data class OpenMeteoAirQualityInfo(
         val pm25: Double? = null,
         val aqi: Int? = null,
@@ -763,20 +775,7 @@ class DataAggregatorService {
     // ─────────────────────────────────────────────────────────────
     // Open-Meteo API Fetchers
     // ─────────────────────────────────────────────────────────────
-    private fun fetchOpenMeteoWeather(lat: Double, lon: Double): OpenMeteoWeatherAndSoilInfo {
-        return runCatching {
-            val url = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,relative_humidity_2m,rain,soil_moisture_0_to_7cm"
-            val body = httpGet(url)
-            val root = json.parseToJsonElement(body).jsonObject
-            val current = root["current"]?.jsonObject
-            val temp = current?.get("temperature_2m")?.jsonPrimitive?.doubleOrNull ?: 0.0
-            val humidity = current?.get("relative_humidity_2m")?.jsonPrimitive?.doubleOrNull?.roundToInt() ?: 0
-            val rain = current?.get("rain")?.jsonPrimitive?.doubleOrNull
-            val soilMoisture = current?.get("soil_moisture_0_to_7cm")?.jsonPrimitive?.doubleOrNull
-            OpenMeteoWeatherAndSoilInfo(temp, humidity, rain, soilMoisture)
-        }.getOrElse { OpenMeteoWeatherAndSoilInfo() }
-    }
-
+    // ดึงค่าคุณภาพอากาศจาก Open-Meteo (ใช้เป็นข้อมูลสำรอง)
     private fun fetchOpenMeteoAirQuality(lat: Double, lon: Double): OpenMeteoAirQualityInfo {
         return runCatching {
             val url = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=$lat&longitude=$lon&current=pm2_5,us_aqi"
@@ -789,17 +788,7 @@ class DataAggregatorService {
         }.getOrElse { OpenMeteoAirQualityInfo() }
     }
 
-    private fun fetchOpenMeteoRiverDischarge(lat: Double, lon: Double): Double? {
-        return runCatching {
-            val url = "https://flood-api.open-meteo.com/v1/flood?latitude=$lat&longitude=$lon&daily=river_discharge&forecast_days=1"
-            val body = httpGet(url)
-            val root = json.parseToJsonElement(body).jsonObject
-            val daily = root["daily"]?.jsonObject
-            val riverDischargeArr = daily?.get("river_discharge")?.jsonArray
-            riverDischargeArr?.getOrNull(0)?.jsonPrimitive?.doubleOrNull
-        }.getOrElse { null }
-    }
-
+    // ดึงพยากรณ์อากาศจาก Open-Meteo (ใช้เป็นข้อมูลสำรอง)
     private fun fetchOpenMeteoWeatherForecastInfo(lat: Double, lon: Double): WeatherInfo {
         return runCatching {
             val url = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,relative_humidity_2m,rain"

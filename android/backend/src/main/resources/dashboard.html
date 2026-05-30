@@ -397,6 +397,11 @@
         }
 
         /* Multi Chart Grid */
+        .row-grid-1 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
         .row-grid-3 {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -711,7 +716,7 @@
         </section>
 
         <!-- Environmental Trends & Forecasting Row -->
-        <section class="row-grid-3">
+        <section class="row-grid-1">
             
             <!-- Open-Meteo PM2.5 Forecast Trend -->
             <div class="glass-card card-info">
@@ -723,32 +728,6 @@
                 </div>
                 <div class="chart-container">
                     <canvas id="pm25ForecastChart"></canvas>
-                </div>
-            </div>
-
-            <!-- River Discharge Trend -->
-            <div class="glass-card card-success">
-                <div class="card-header">
-                    <div class="card-title">
-                        <span>🌊 Open-Meteo River Discharge</span>
-                    </div>
-                    <span class="card-subtitle">River flow rate forecast (m³/s)</span>
-                </div>
-                <div class="chart-container">
-                    <canvas id="riverDischargeChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Soil Moisture Trend -->
-            <div class="glass-card card-warning">
-                <div class="card-header">
-                    <div class="card-title">
-                        <span>🌱 Open-Meteo Soil Moisture</span>
-                    </div>
-                    <span class="card-subtitle">Soil moisture levels (0-7cm) m³/m³</span>
-                </div>
-                <div class="chart-container">
-                    <canvas id="soilMoistureChart"></canvas>
                 </div>
             </div>
 
@@ -834,8 +813,6 @@
         // Charts Instances
         let disasterChartInstance = null;
         let pm25ChartInstance = null;
-        let riverChartInstance = null;
-        let soilChartInstance = null;
 
         // Initialize Map
         function initMap() {
@@ -1115,28 +1092,7 @@
                 })
                 .catch(err => console.error("Open-Meteo PM2.5 failed", err));
 
-            // Fetch River Discharge (Floods API)
-            fetch(`https://flood-api.open-meteo.com/v1/flood?latitude=${lat}&longitude=${lon}&daily=river_discharge&forecast_days=7`)
-                .then(r => r.json())
-                .then(data => {
-                    const days = (data.daily.time || []).map(d => formatShortDate(d));
-                    const discharge = data.daily.river_discharge || [];
-                    renderRiverDischargeChart(days, discharge);
-                })
-                .catch(err => {
-                    console.warn("River discharge not available or failed for coordinates, using empty trend", err);
-                    renderRiverDischargeChart([], []);
-                });
 
-            // Fetch Soil Moisture (Forecast API)
-            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=soil_moisture_0_to_7cm&forecast_days=3`)
-                .then(r => r.json())
-                .then(data => {
-                    const times = (data.hourly.time || []).slice(0, 36).map(t => formatShortTime(t));
-                    const moisture = (data.hourly.soil_moisture_0_to_7cm || []).slice(0, 36);
-                    renderSoilMoistureChart(times, moisture);
-                })
-                .catch(err => console.error("Open-Meteo Soil moisture failed", err));
         }
 
         // ═════════════════════════════════════════════════════════════
@@ -1205,69 +1161,7 @@
             });
         }
 
-        function renderRiverDischargeChart(labels, values) {
-            const ctx = document.getElementById('riverDischargeChart').getContext('2d');
-            if (riverChartInstance) riverChartInstance.destroy();
 
-            if (labels.length === 0 || values.length === 0) {
-                // If coordinates don't support river discharge (e.g. ocean/mountain without grid)
-                labels = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'];
-                values = [0, 0, 0, 0, 0, 0, 0];
-            }
-
-            riverChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: 'River Flow Rate (m³/s)',
-                        data: values,
-                        backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                        borderColor: '#22c55e',
-                        borderWidth: 1.5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { color: '#a1a1aa' } },
-                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a1a1aa' } }
-                    }
-                }
-            });
-        }
-
-        function renderSoilMoistureChart(labels, values) {
-            const ctx = document.getElementById('soilMoistureChart').getContext('2d');
-            if (soilChartInstance) soilChartInstance.destroy();
-
-            soilChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: 'Soil Moisture 0-7cm (m³/m³)',
-                        data: values,
-                        borderColor: '#f59e0b',
-                        backgroundColor: 'rgba(245, 158, 11, 0.05)',
-                        borderWidth: 2,
-                        pointRadius: 1,
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { color: '#a1a1aa', maxTicksLimit: 6 } },
-                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a1a1aa' } }
-                    }
-                }
-            });
-        }
 
         // ═════════════════════════════════════════════════════════════
         // OFFLINE / MOCK GENERATORS (DEMO MODE)
@@ -1373,18 +1267,10 @@
             }
             renderDisasterTrendChart(points);
 
-            // Open-Meteo PM2.5, River discharge, and soil moisture simulated forecast trends
+            // Open-Meteo PM2.5 simulated forecast trend
             const hours48 = Array.from({length: 48}, (_, i) => `H+${i}`);
             const pm25Values = Array.from({length: 48}, (_, i) => Math.round(30 + Math.sin(i/5) * 15 + Math.random() * 10));
             renderPM25Chart(hours48, pm25Values);
-
-            const days7 = Array.from({length: 7}, (_, i) => `Day ${i+1}`);
-            const riverDischarge = Array.from({length: 7}, (_, i) => Math.round(150 + Math.sin(i/2) * 50 + Math.random() * 20));
-            renderRiverDischargeChart(days7, riverDischarge);
-
-            const hours36 = Array.from({length: 36}, (_, i) => `H+${i}`);
-            const soilMoisture = Array.from({length: 36}, (_, i) => 0.28 + Math.sin(i/8) * 0.05 + Math.random() * 0.01);
-            renderSoilMoistureChart(hours36, soilMoisture);
         }
 
         // ═════════════════════════════════════════════════════════════

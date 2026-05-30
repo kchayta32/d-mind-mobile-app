@@ -8,6 +8,7 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeParseException
 
+// คลาสข้อมูลเก็บผลรวมจำนวนภัยพิบัติแต่ละประเภทเพื่อแสดงบนหน้าจอแดชบอร์ด
 data class HomeHazardCounts(
     val earthquake: Int = 0,
     val flood: Int = 0,
@@ -23,6 +24,7 @@ data class HomeHazardCounts(
  * avoiding the previous bug where the "contains T" check matched
  * every ISO timestamp and returned all events unconditionally.
  */
+// ฟังก์ชันหลักสำหรับรวมผลสถิติภัยพิบัติที่อัปเดตล่าสุดในรอบ 24 ชั่วโมง
 fun aggregateHomeHazardCounts(events: List<DisasterEvent>): HomeHazardCounts {
     return aggregateHomeHazardCounts(events, Instant.now())
 }
@@ -52,6 +54,7 @@ internal fun aggregateHomeHazardCounts(
     )
 }
 
+// ฟังก์ชันพาร์สวันที่และเวลาจากรูปแบบ String เป็นวัตถุ Instant
 private fun parseEventInstant(value: String): Instant? {
     if (value.isBlank()) return null
     return parseOrNull { Instant.parse(value) }

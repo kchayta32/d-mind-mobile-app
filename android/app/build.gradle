@@ -1,8 +1,10 @@
+// นำเข้าปลั๊กอินสำหรับจัดการ Android Application, Kotlin, Compose และ Annotation Processing (KAPT)
 apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply plugin: 'kotlin-kapt'
 
+// ฟังก์ชันสำหรับอ่านค่าการตั้งค่าคอนฟิกูเรชัน (Config) จากตัวแปรระบบ, Gradle Properties หรือ local.properties
 def readDmindConfig = { String key ->
     def aliases = [key, "DMIND_${key}"]
     if (key.startsWith('VITE_')) {
@@ -56,13 +58,18 @@ def readDmindConfig = { String key ->
     return ''
 }
 
+// ฟังก์ชันแปลงข้อความ String ให้อยู่ในรูปแบบที่สามารถนำไปใช้ในโค้ด Java ได้อย่างปลอดภัย
 def javaStringLiteral = { String value ->
     return value.replace('\\', '\\\\').replace('"', '\\"')
 }
 
+// บล็อกหลักสำหรับกำหนดค่าคอนฟิกูเรชันของ Android
 android {
+    // กำหนด Namespace ของแอปพลิเคชัน
     namespace "com.dmind.app"
     compileSdk rootProject.ext.compileSdkVersion
+    
+    // การตั้งค่าเริ่มต้นสำหรับตัวแอปพลิเคชัน
     defaultConfig {
         applicationId "com.dmind.app"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -70,12 +77,16 @@ android {
         versionCode 2
         versionName "2.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        
+        // กำหนดค่าตัวแปรระดับระบบ (BuildConfig Fields) จากไฟล์คอนฟิกเพื่อนำไปใช้ในโค้ด Kotlin/Java
         def backendBaseUrl = readDmindConfig('BACKEND_BASE_URL').trim()
         buildConfigField "String", "BACKEND_BASE_URL", "\"${javaStringLiteral(backendBaseUrl ?: 'http://10.0.2.2:8080')}\""
         buildConfigField "String", "SUPABASE_URL", "\"${javaStringLiteral(readDmindConfig('VITE_SUPABASE_URL'))}\""
         buildConfigField "String", "SUPABASE_ANON_KEY", "\"${javaStringLiteral(readDmindConfig('VITE_SUPABASE_PUBLISHABLE_KEY'))}\""
         buildConfigField "String", "SUPABASE_PROJECT_ID", "\"${javaStringLiteral(readDmindConfig('VITE_SUPABASE_PROJECT_ID'))}\""
         buildConfigField "String", "TMD_API_TOKEN", "\"${javaStringLiteral(readDmindConfig('VITE_TMD_API_TOKEN'))}\""
+        
+        // การดึงและตรวจสอบคีย์ API ของ GISTDA รูปแบบต่างๆ
         def gistdaApiKey = readDmindConfig('DMIND_GISTDA_API_KEY').trim()
         if (!gistdaApiKey) {
             gistdaApiKey = readDmindConfig('VITE_GISTDA_API_KEY').trim()
@@ -99,6 +110,8 @@ android {
         buildConfigField "String", "GISTDA_DISASTER_API_KEY", "\"${javaStringLiteral(readDmindConfig('VITE_GISTDA_DISASTER_API_KEY').trim() ?: gistdaApiKey)}\""
         buildConfigField "String", "GISTDA_WMS_API_KEY", "\"${javaStringLiteral(readDmindConfig('VITE_GISTDA_WMS_API_KEY').trim() ?: gistdaApiKey)}\""
         buildConfigField "String", "GISTDA_FIRE_API_KEY", "\"${javaStringLiteral(readDmindConfig('VITE_GISTDA_FIRE_API_KEY').trim() ?: gistdaApiKey)}\""
+        
+        // การดึงค่าสำหรับเชื่อมต่อและใช้งานโมเดลภาษาขนาดใหญ่ (Thai LLM / Typhoon API)
         def thaiLlmApiKey = readDmindConfig('THAI_LLM_API_KEY').trim()
         if (!thaiLlmApiKey) {
             thaiLlmApiKey = readDmindConfig('TYPHOON_API_KEY').trim()
@@ -110,9 +123,11 @@ android {
         buildConfigField "String", "DMIND_THAI_LLM_MODEL", "\"${javaStringLiteral(thaiLlmModel ?: 'typhoon-s-thaillm-8b-instruct')}\""
 
         // Enable multidex for large apps
+        // เปิดใช้งาน multidex เพื่อรองรับแอปพลิเคชันที่มีขนาดใหญ่และมีจำนวนเมธอดเกินกำหนด
         multiDexEnabled true
     }
 
+    // ตั้งค่าสำหรับการลงชื่อดิจิทัลของแอป (Signing Config) ในแต่ละโหมด
     signingConfigs {
         release {
             def releaseStoreFile = readDmindConfig('DMIND_RELEASE_STORE_FILE')
@@ -125,6 +140,7 @@ android {
         }
     }
 
+    // กำหนดรูปแบบและวิธีการ build สำหรับประเภทต่างๆ เช่น debug และ release
     buildTypes {
         debug {
             debuggable true
@@ -143,22 +159,26 @@ android {
     }
 
     // Java compatibility
+    // กำหนดความเข้ากันได้ของระดับภาษา Java (Java 21) และการแปลงคุณสมบัติของ Java รุ่นใหม่เป็นรุ่นเก่า (Desugaring)
     compileOptions {
         coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
     }
 
+    // กำหนดเวอร์ชันของ Java SDK (JVM) ที่ปลั๊กอิน Kotlin จะใช้
     kotlin {
         jvmToolchain(21)
     }
 
+    // เปิดหรือปิดคุณสมบัติพิเศษสำหรับการ build (เช่น Jetpack Compose และ BuildConfig)
     buildFeatures {
         compose true
         buildConfig true
     }
 
     // Packaging options
+    // ตั้งค่าสำหรับข้ามไฟล์บางไฟล์ตอนรวมเป็นไฟล์ APK (Packaging) เพื่อลดความซ้ำซ้อนหรือปัญหาไฟล์ชนกัน
     packagingOptions {
         resources {
             excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/NOTICE']
@@ -166,6 +186,7 @@ android {
     }
 }
 
+// กำหนดไลบรารี Dependencies ที่แอปพลิเคชันต้องใช้ในขอบเขตการทำงานต่างๆ
 dependencies {
     def composeBom = platform('androidx.compose:compose-bom:2026.04.01')
 
@@ -201,6 +222,7 @@ dependencies {
     implementation "com.patrykandpatrick.vico:compose-m3:2.1.0"
 }
 
+// ตรวจสอบและนำปลั๊กอิน google-services มาประยุก้ต์ใช้หากพบไฟล์ google-services.json
 try {
     def servicesJSON = file('google-services.json')
     if (servicesJSON.text) {

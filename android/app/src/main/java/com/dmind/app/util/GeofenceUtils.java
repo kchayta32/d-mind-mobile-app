@@ -16,6 +16,7 @@ import java.util.List;
  * 2. Calculates distance between two GeoPoints (Haversine Formula)
  * 3. Determines if user is entering/exiting danger zones
  */
+// คลาสยูทิลิตี้สำหรับคำนวณทางเรขาคณิตและพิกัดแผนที่ (Geofence Utility) เช่น การตรวจสอบขอบเขตรูปหลายเหลี่ยม
 public class GeofenceUtils {
     
     /**
@@ -25,6 +26,7 @@ public class GeofenceUtils {
      * @param polygon - List of GeoPoints defining polygon vertices (must be closed)
      * @return true if inside polygon, false otherwise
      */
+    // ตรวจสอบว่าพิกัดพิกัดเดี่ยว (GeoPoint) อยู่ภายในขอบเขตรูปหลายเหลี่ยม (Polygon) หรือไม่ โดยใช้อัลกอริทึม Ray Casting
     public static boolean isPointInPolygon(GeoPoint point, List<GeoPoint> polygon) {
         int n = polygon.size();
         double x = point.getLongitude();
@@ -53,6 +55,7 @@ public class GeofenceUtils {
      * @param polygon - List of GeoPoints defining polygon vertices
      * @return true if ALL points are inside polygon
      */
+    // ตรวจสอบว่าพิกัดหลายจุด (Array of GeoPoints) ทั้งหมดอยู่ภายในรูปหลายเหลี่ยมหรือไม่
     public static boolean arePointsInPolygon(GeoPoint[] points, List<GeoPoint> polygon) {
         for (GeoPoint point : points) {
             if (!isPointInPolygon(point, polygon)) {
@@ -69,6 +72,7 @@ public class GeofenceUtils {
      * @param p2 - Second GeoPoint
      * @return distance in meters (double)
      */
+    // คำนวณระยะห่างระหว่างพิกัดสองจุดบนผิวโลก (หน่วยเป็นเมตร) โดยใช้สูตร Haversine
     public static double calculateDistance(GeoPoint p1, GeoPoint p2) {
         int R = 6371000; // Earth radius in meters
         
@@ -92,6 +96,7 @@ public class GeofenceUtils {
      * @param polygon - List of GeoPoints
      * @return distance in meters to closest polygon edge
      */
+    // คำนวณระยะห่างที่ใกล้ที่สุดจากพิกัดของผู้ใช้ไปยังเส้นขอบรูปหลายเหลี่ยม (Polygon Edge)
     public static double calculateDistanceToPolygonEdge(GeoPoint point, List<GeoPoint> polygon) {
         double minDistance = Double.MAX_VALUE;
         
@@ -117,6 +122,7 @@ public class GeofenceUtils {
     /**
      * Calculate distance from point to line segment
      */
+    // คำนวณระยะห่างที่ใกล้ที่สุดจากพิกัดไปยังส่วนของเส้นตรง (Line Segment)
     private static double calculateDistanceToLineSegment(GeoPoint point, GeoPoint p1, GeoPoint p2) {
         // Convert to Cartesian coordinates (simplified for small distances)
         double x = point.getLongitude();
@@ -164,6 +170,7 @@ public class GeofenceUtils {
      * @param bufferMeters - Buffer distance in meters
      * @return true if user is near danger zone
      */
+    // ตรวจสอบว่าผู้ใช้กำลังเคลื่อนที่เข้าใกล้เขตอันตราย (อยู่ในระยะกันชน Buffer) หรือไม่
     public static boolean isApproachingDangerZone(GeoPoint point, List<GeoPoint> polygon, double bufferMeters) {
         // If already inside, return true
         if (isPointInPolygon(point, polygon)) {
@@ -179,6 +186,7 @@ public class GeofenceUtils {
      * Calculate area of a polygon (for debugging/validation)
      * Uses Surveyor's Formula (Shoelace Theorem)
      */
+    // คำนวณพื้นที่ของรูปหลายเหลี่ยมโดยใช้สูตร Shoelace Theorem (สำหรับทดสอบหรือตรวจสอบความถูกต้อง)
     public static double calculatePolygonArea(List<GeoPoint> polygon) {
         int n = polygon.size();
         double area = 0.0;
@@ -199,6 +207,7 @@ public class GeofenceUtils {
     /**
      * Check if polygon is properly closed (first and last points should be same)
      */
+    // ตรวจสอบว่ารูปหลายเหลี่ยมปิดตัวสมบูรณ์หรือไม่ (จุดแรกและจุดสุดท้ายต้องเป็นจุดเดียวกัน)
     public static boolean isPolygonClosed(List<GeoPoint> polygon) {
         if (polygon.size() < 3) {
             return false;
@@ -214,6 +223,7 @@ public class GeofenceUtils {
     /**
      * Normalize polygon points (ensure proper order for Ray Casting)
      */
+    // ปรับรูปแบบของจุดพิกัดในรูปหลายเหลี่ยมให้ถูกต้อง (ตรวจสอบการปิดพิกัด และการเรียงลำดับจุดแบบทวนเข็มนาฬิกา)
     public static void normalizePolygon(List<GeoPoint> polygon) {
         if (polygon == null || polygon.size() < 3) {
             return;
@@ -238,6 +248,7 @@ public class GeofenceUtils {
      * Positive value indicates counter-clockwise (CCW) order,
      * negative indicates clockwise (CW) order.
      */
+    // คำนวณค่าพื้นที่แบบคิดเครื่องหมาย (Signed Area) เพื่อระบุทิศทางการเรียงจุด (ทวนเข็ม/ตามเข็มนาฬิกา)
     private static double calculateSignedArea(List<GeoPoint> polygon) {
         int n = polygon.size();
         double area = 0.0;
@@ -255,6 +266,7 @@ public class GeofenceUtils {
     /**
      * Get bounding box of a polygon
      */
+    // คำนวณหาขอบเขตสี่เหลี่ยม (Bounding Box - Min/Max Lat/Lon) ที่ครอบคลุมรูปหลายเหลี่ยมทั้งหมด
     public static GeoPoint[] getBoundingBox(List<GeoPoint> polygon) {
         if (polygon.isEmpty()) {
             return null;

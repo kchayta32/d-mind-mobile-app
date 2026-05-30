@@ -38,6 +38,7 @@ import com.dmind.app.ui.components.color
 import com.dmind.app.ui.components.localizedLabel
 import com.dmind.app.ui.viewmodel.DisasterMapUiState
 
+// หน้าจอแสดงรายการสถานีตรวจวัดคุณภาพสิ่งแวดล้อมและภัยพิบัติทั้งหมด
 @Composable
 fun StationScreen(
     mapState: DisasterMapUiState,
@@ -57,6 +58,7 @@ fun StationScreen(
             )
         }
 
+        // แสดงข้อความเมื่อไม่พบสถานีตรวจวัดในระบบ
         if (mapState.snapshot.stations.isEmpty()) {
             item {
                 EmptyState(
@@ -66,6 +68,7 @@ fun StationScreen(
                 )
             }
         } else {
+            // แสดงการ์ดข้อมูลและค่าที่วัดได้ของแต่ละสถานี
             items(mapState.snapshot.stations, key = { it.id }) { station ->
                 StationCard(station, Modifier.padding(horizontal = 18.dp))
             }
@@ -73,6 +76,7 @@ fun StationScreen(
     }
 }
 
+// คอมโพสเซเบิลการ์ดแสดงรายละเอียดของแต่ละสถานีตรวจวัด สัญญาณ และเวลาการอัปเดต
 @Composable
 private fun StationCard(
     station: MonitoringStation,

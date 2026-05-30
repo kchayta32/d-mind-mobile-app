@@ -30,6 +30,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+// คอมโพสเซเบิลสำหรับแผงควบคุมการเล่นภาพความเคลื่อนไหวเรดาร์ฝน (Radar Playback Control Dashboard)
 @Composable
 fun RadarTimelinePlayer(
     radarFrames: List<RainViewerFrame>,
@@ -51,7 +52,7 @@ fun RadarTimelinePlayer(
     val nowSecs = System.currentTimeMillis() / 1000
     val isForecast = currentFrame.time > nowSecs
 
-    // Pulsing animation for LIVE indicator
+    // อนิเมชั่นไฟสัญญาณกระพริบแสดงสถานะสด (Live indicator)
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val pulseScale by infiniteTransition.animateFloat(
         initialValue = 1.0f,
@@ -79,8 +80,8 @@ fun RadarTimelinePlayer(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFF1E293B).copy(alpha = 0.88f), // Frosted dark slate top
-                        Color(0xFF0F172A).copy(alpha = 0.96f)  // Frosted dark slate bottom
+                        Color(0xFF1E293B).copy(alpha = 0.88f),
+                        Color(0xFF0F172A).copy(alpha = 0.96f)
                     )
                 ),
                 shape = RoundedCornerShape(24.dp)
@@ -98,13 +99,12 @@ fun RadarTimelinePlayer(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Top row: Badge and formatted time display
+        // แถวบนแสดงสถานะและค่าเวลารายชั่วโมงภาษาไทย
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Active status badge
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -133,7 +133,6 @@ fun RadarTimelinePlayer(
                 )
             }
 
-            // Local Thai Time display (e.g. 16:30 น.)
             Text(
                 text = formatThaiTime(currentFrame.time),
                 color = Color.White,
@@ -142,13 +141,12 @@ fun RadarTimelinePlayer(
             )
         }
 
-        // Timeline Slider with NOW indicator
+        // ตัวสไลเดอร์แถบเวลาสำหรับเลือกดูเรดาร์ในแต่ละช่วงเวลา
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Back step
             IconButton(
                 onClick = onStepBackwardClick,
                 modifier = Modifier.size(36.dp)
@@ -160,19 +158,16 @@ fun RadarTimelinePlayer(
                 )
             }
 
-            // Slider container with NOW indicator drawn behind
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .height(42.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
-                // Find where NOW falls in frames list
                 val nowIndex = radarFrames.indexOfLast { it.time <= nowSecs }
                 if (nowIndex >= 0 && radarFrames.size > 1) {
                     val nowFraction = nowIndex.toFloat() / (radarFrames.size - 1)
                     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                        // Slider track has about 12.dp padding at start and end for thumb overhang
                         val trackPadding = 12.dp
                         val actualWidth = maxWidth - (trackPadding * 2)
                         val nowOffset = trackPadding + (actualWidth * nowFraction)
@@ -215,7 +210,6 @@ fun RadarTimelinePlayer(
                 )
             }
 
-            // Forward step
             IconButton(
                 onClick = onStepForwardClick,
                 modifier = Modifier.size(36.dp)
@@ -228,13 +222,13 @@ fun RadarTimelinePlayer(
             }
         }
 
-        // Bottom row: Play/Pause button, Speed Selector Pill, and Rainfall intensity legend bar
+        // ปุ่มเล่น/หยุด และการควบคุมความเร็ว
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Play/Pause button
+            // ปุ่มเล่นหรือหยุดแสดงภาพเคลื่อนไหว
             Button(
                 onClick = onPlayPauseClick,
                 colors = ButtonDefaults.buttonColors(
@@ -258,7 +252,7 @@ fun RadarTimelinePlayer(
                 )
             }
 
-            // Speed Selector Pill (1x, 2x, 4x)
+            // แผงสลับความเร็วในการเล่น (1 เท่า, 2 เท่า, 4 เท่า)
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(99.dp))
@@ -288,7 +282,7 @@ fun RadarTimelinePlayer(
             }
         }
 
-        // Color-coded Rainfall Intensity Legend Bar
+        // แถบไล่ระดับสีแสดงเกณฑ์ความรุนแรงของกลุ่มฝน
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -310,14 +304,14 @@ fun RadarTimelinePlayer(
                     .background(
                         brush = Brush.horizontalGradient(
                             colors = listOf(
-                                Color(0xFF60A5FA), // Light Blue
-                                Color(0xFF3B82F6), // Blue
-                                Color(0xFF10B981), // Green
-                                Color(0xFFFBBF24), // Yellow
-                                Color(0xFFF97316), // Orange
-                                Color(0xFFEF4444), // Red
-                                Color(0xFFEC4899), // Pink
-                                Color(0xFF8B5CF6)  // Purple
+                                Color(0xFF60A5FA),
+                                Color(0xFF3B82F6),
+                                Color(0xFF10B981),
+                                Color(0xFFFBBF24),
+                                Color(0xFFF97316),
+                                Color(0xFFEF4444),
+                                Color(0xFFEC4899),
+                                Color(0xFF8B5CF6)
                             )
                         )
                     )
@@ -326,6 +320,7 @@ fun RadarTimelinePlayer(
     }
 }
 
+// แปลงวินาที Epoch เป็นเวลาท้องถิ่นประเทศไทยในรูปแบบ "HH:mm น."
 private fun formatThaiTime(epochSeconds: Long): String {
     val instant = Instant.ofEpochSecond(epochSeconds)
     val formatter = DateTimeFormatter.ofPattern("HH:mm", Locale("th", "TH"))

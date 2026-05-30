@@ -37,6 +37,7 @@ import com.dmind.app.ui.components.WatchYellow
  * Trend chart showing event counts over time.
  * Uses a simple composable stacked bar chart for each date.
  */
+// คอมโพสเซเบิลหลักสำหรับแสดงแผนภูมิแนวโน้มความถี่ภัยพิบัติตามช่วงเวลาในรูปแบบแผนภูมิแท่งซ้อนกัน (Stacked Bar Chart)
 @Composable
 fun TrendCharts(
     trends: List<TrendDataPoint>,
@@ -64,7 +65,7 @@ fun TrendCharts(
 
             val maxTotal = remember(trends) { trends.maxOf { it.total }.toFloat().coerceAtLeast(1f) }
 
-            // Simple bar chart
+            // ส่วนประกอบหลักของตัวแผนภูมิแท่งเชิงเปรียบเทียบในแนวตั้ง
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -79,7 +80,7 @@ fun TrendCharts(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Bottom,
                     ) {
-                        // Stacked bar
+                        // โครงสร้างแท่งซ้อน (Stacked bar) สำหรับแต่ละคอลัมน์ข้อมูล
                         val segments = listOf(
                             point.wildfire to CriticalRed,
                             point.flood to DmindBlue,
@@ -113,7 +114,7 @@ fun TrendCharts(
                 }
             }
 
-            // Date labels (show first, middle, last)
+            // แสดงป้ายกำกับวันที่เริ่มต้น กึ่งกลาง และสิ้นสุด ใต้แผนภูมิ
             if (trends.size >= 3) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -137,7 +138,7 @@ fun TrendCharts(
                 }
             }
 
-            // Legend
+            // ส่วนอธิบายสีประจำประเภทภัยพิบัติของแผนภูมิ
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -150,6 +151,7 @@ fun TrendCharts(
     }
 }
 
+// คอมโพสเซเบิลจุดสีและชื่อประเภทสำหรับแสดงคำอธิบายสัญลักษณ์ (Legend)
 @Composable
 private fun LegendDot(
     label: String,

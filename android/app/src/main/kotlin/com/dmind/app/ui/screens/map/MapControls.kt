@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Remove
 import com.dmind.app.R
 import com.dmind.app.ui.components.DmindBlue
 
+// คอมโพสเซเบิลจัดกลุ่มปุ่มลอยควบคุมแผนที่ (ซูมเข้า/ออก, พิกัดผู้ใช้, แผ่นกรอง, ชั้นข้อมูล)
 @Composable
 internal fun MapControls(
     onLocate: () -> Unit,
@@ -44,6 +45,7 @@ internal fun MapControls(
     }
 }
 
+// คอมโพสเซเบิลย่อยปุ่มลอยควบคุมแผนที่แบบวงกลม (Floating Action Button)
 @Composable
 private fun FloatingMapButton(
     icon: ImageVector,

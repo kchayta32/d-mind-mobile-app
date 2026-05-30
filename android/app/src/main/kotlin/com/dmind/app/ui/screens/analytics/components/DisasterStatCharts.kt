@@ -38,6 +38,7 @@ import com.dmind.app.ui.components.WatchYellow
  * Uses a simple composable bar chart (no Vico dependency for this component)
  * since a simple horizontal bar is cleaner for type breakdown.
  */
+// คอมโพสเซเบิลหลักสำหรับแสดงแผนภูมิแท่งเชิงเปรียบเทียบสถิติภัยพิบัติแยกตามประเภท
 @Composable
 fun DisasterStatCharts(
     summary: AnalyticsSummary?,
@@ -62,6 +63,7 @@ fun DisasterStatCharts(
                 fontSize = 15.sp,
             )
             val maxValue = summary.byType.values.maxOrNull()?.toFloat()?.coerceAtLeast(1f) ?: 1f
+            // รายการประเภทภัยพิบัติพร้อมข้อมูลจำนวนและสีประจำประเภทสำหรับแสดงผลในแผนภูมิ
             val typeEntries = listOf(
                 TypeBarEntry(stringResource(R.string.stat_earthquake), summary.byType["earthquake"] ?: 0, WatchYellow),
                 TypeBarEntry(stringResource(R.string.stat_flood), summary.byType["flood"] ?: 0, DmindBlue),
@@ -82,6 +84,7 @@ fun DisasterStatCharts(
     }
 }
 
+// คอมโพสเซเบิลแถวข้อมูลแผนภูมิแท่งเดี่ยวพร้อมจุดสีข้อมูลและแถบเปอร์เซ็นต์
 @Composable
 private fun TypeBarRow(
     label: String,
@@ -132,6 +135,7 @@ private fun TypeBarRow(
     }
 }
 
+// คลาสข้อมูลสำหรับเก็บข้อมูลแต่ละประเภทภัยพิบัติที่จะนำไปแสดงในแผนภูมิ
 private data class TypeBarEntry(
     val label: String,
     val value: Int,

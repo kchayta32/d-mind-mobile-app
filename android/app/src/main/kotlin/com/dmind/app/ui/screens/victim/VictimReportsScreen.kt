@@ -78,6 +78,7 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.launch
 
+// หน้าจอการแจ้งขอความช่วยเหลือสำหรับผู้ประสบภัยพิบัติ
 @Composable
 fun VictimReportsScreen(
     state: VictimReportsUiState,
@@ -425,6 +426,7 @@ fun VictimReportsScreen(
     }
 }
 
+// การ์ดแสดงรายละเอียดการแจ้งขอความช่วยเหลือแต่ละรายการ
 @Composable
 private fun VictimReportCard(
     report: VictimReportRecord,
@@ -516,6 +518,7 @@ private fun VictimReportCard(
     }
 }
 
+// ฟังก์ชันดึงตำแหน่งที่ตั้งปัจจุบัน (พิกัด GPS) ของผู้ใช้
 @SuppressLint("MissingPermission")
 private fun getCurrentLocation(
     context: Context,

@@ -1,5 +1,6 @@
 package com.dmind.app.data.supabase
 
+// โมเดลแสดงข้อมูลประวัติรายงานอุบัติภัย/ภัยพิบัติที่บันทึกในฐานข้อมูล Supabase
 data class IncidentReportRecord(
     val id: String,
     val type: String,
@@ -12,6 +13,7 @@ data class IncidentReportRecord(
     val createdAt: String,
 )
 
+// โมเดลแบบร่างสำหรับส่งรายงานอุบัติภัย/ภัยพิบัติใหม่ไปยัง Supabase
 data class IncidentReportDraft(
     val type: String,
     val title: String,
@@ -24,6 +26,7 @@ data class IncidentReportDraft(
     val imageUrls: List<String> = emptyList(),
 )
 
+// โมเดลข้อมูลการแจ้งเตือนภัยพิบัติแบบเรียลไทม์จากฐานข้อมูล Supabase
 data class RealtimeAlertRecord(
     val id: String,
     val alertType: String,
@@ -35,6 +38,7 @@ data class RealtimeAlertRecord(
     val createdAt: String?,
 )
 
+// โมเดลบันทึกข้อมูลการแจ้งเตือนส่วนบุคคลในระบบ
 data class NotificationRecord(
     val id: String,
     val title: String,
@@ -45,6 +49,7 @@ data class NotificationRecord(
     val createdAt: String,
 )
 
+// โมเดลสำหรับแก้ไขตั้งค่าการรับข่าวสารแจ้งเตือนภัย
 data class NotificationSettingsDraft(
     val email: String?,
     val pushEnabled: Boolean,
@@ -54,6 +59,7 @@ data class NotificationSettingsDraft(
     val locationRadiusKm: Double = 25.0,
 )
 
+// โมเดลแบบร่างคำร้องขอความช่วยเหลือจากผู้ประสบภัยสำหรับส่งขึ้นฐานข้อมูล
 data class VictimReportDraft(
     val name: String,
     val contact: String?,
@@ -63,6 +69,7 @@ data class VictimReportDraft(
     val status: String = "pending",
 )
 
+// โมเดลแบบประเมินความพึงพอใจการใช้งานระบบของแอปพลิเคชัน
 data class SatisfactionSurveyDraft(
     val overallRating: Int,
     val userInterfaceRating: Int? = null,
@@ -75,12 +82,14 @@ data class SatisfactionSurveyDraft(
     val wouldRecommend: Int? = null,
 )
 
+// โมเดลแบบร่างส่งประเมินความเสียหายภัยพิบัติจากรูปถ่าย
 data class DamageAssessmentDraft(
     val imageUrl: String,
     val originalFilename: String? = null,
     val incidentId: String? = null,
 )
 
+// โมเดลสรุปผลการวิเคราะห์และประเมินระดับความเสียหายรวมถึงมูลค่าประเมินจากรูปภาพภัยพิบัติ
 data class DamageAssessmentRecord(
     val id: String,
     val incidentId: String?,
@@ -97,6 +106,7 @@ data class DamageAssessmentRecord(
     val createdAt: String,
 )
 
+// โมเดลข้อมูลประวัติคำขอความช่วยเหลือฉุกเฉินที่จัดเก็บในฐานข้อมูล Supabase
 data class VictimReportRecord(
     val id: String,
     val name: String,

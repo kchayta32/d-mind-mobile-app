@@ -1,7 +1,9 @@
 package com.dmind.app.data.map
 
+// ช่วงเวลาในการรีเฟรชข้อมูลแผนที่ภัยพิบัติ (5 นาที)
 const val MAP_REFRESH_INTERVAL_MS: Long = 5 * 60 * 1000L
 
+// ประเภทประเภทของข้อมูลภัยพิบัติ
 enum class DisasterDataType {
     Earthquake,
     Wildfire,
@@ -11,6 +13,7 @@ enum class DisasterDataType {
     Place,
 }
 
+// ระดับความรุนแรงของภัยพิบัติ
 enum class DisasterSeverity {
     Low,
     Medium,
@@ -18,6 +21,7 @@ enum class DisasterSeverity {
     VeryHigh,
 }
 
+// โมเดลพิกัดภัยพิบัติที่ใช้สำหรับแสดงหมุด (Marker) บนแผนที่
 data class DisasterPoint(
     val id: String,
     val type: DisasterDataType,
@@ -31,6 +35,7 @@ data class DisasterPoint(
     val updatedAt: String,
 )
 
+// โมเดลข้อมูลสรุปสภาพอากาศ ณ พิกัดปัจจุบัน
 data class WeatherSummary(
     val locationName: String,
     val temperatureCelsius: Double,
@@ -44,6 +49,7 @@ data class WeatherSummary(
     val longitude: Double = 100.5018,
 )
 
+// โมเดลเก็บสถานะการดึงข้อมูลจากแหล่งภายนอก เพื่อรายงานในแอปพลิเคชัน
 data class MapExternalSourceStatus(
     val name: String,
     val agency: String,
@@ -52,6 +58,7 @@ data class MapExternalSourceStatus(
     val detail: String,
 )
 
+// โมเดลข้อมูลผลลัพธ์การค้นหาสถานที่ในระเบียบการตั้งค่าพิกัดแผนที่
 data class PlaceSearchResult(
     val name: String,
     val latitude: Double,
@@ -60,6 +67,7 @@ data class PlaceSearchResult(
     val state: String?,
 )
 
+// คลาสเก็บข้อมูล Snapshot ของภัยพิบัติทุกประเภท ณ เวลาปัจจุบัน พร้อมฟังก์ชันกรองแบ่งตาม Layer บนแผนที่
 data class MapDataSnapshot(
     val weather: WeatherSummary? = null,
     val earthquakes: List<DisasterPoint> = emptyList(),
@@ -73,9 +81,11 @@ data class MapDataSnapshot(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
 ) {
+    // ดึงจุดภัยพิบัติทุกประเภทมารวมกันเป็นรายการเดียว
     val allPoints: List<DisasterPoint>
         get() = earthquakes + wildfires + floods + floodFrequency + waterHyacinths + droughts
 
+    // ฟังก์ชันกรองพิกัดภัยพิบัติตาม Layer ที่ผู้ใช้เลือกแสดงบนแผนที่
     fun pointsForLayer(layer: String): List<DisasterPoint> = when (layer) {
         "แผ่นดินไหว" -> earthquakes
         "ฝนตกหนัก" -> weather?.let {
@@ -122,12 +132,15 @@ data class MapDataSnapshot(
     }
 
     companion object {
+        // ค่าเริ่มต้นว่างเปล่าสำหรับสถานะการโหลดหรือข้อมูลแผนที่ไม่มีค่า
         val Empty = MapDataSnapshot()
     }
 }
 
+// ฟังก์ชันเสริมช่วยแปลง Double เป็น String ที่ระบุทศนิยม 1 ตำแหน่ง
 fun Double.formatOne(): String = "%,.1f".format(this)
 
+// โมเดลเก็บข้อมูลเชิงพื้นที่แบบเขตการปกครองของไทย (จังหวัด อำเภอ ตำบล)
 data class PlaceInfo(
     val province: String,
     val amphoe: String?,

@@ -3,7 +3,10 @@ package com.dmind.app.data.supabase
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+// คลาสทดสอบการทำงานในการสร้างข้อความและคำสั่ง (Prompt) สำหรับแชทบอทของระบบ Dr. Mind
 class DrMindPromptTest {
+    
+    // ทดสอบว่าคำสั่งระบบ (System Instruction) จำกัดให้บอทตอบคำถามโดยอิงตามบริบทข้อมูลจาก Supabase เท่านั้น
     @Test
     fun `dr mind system instruction restricts answers to supabase context`() {
         val messages = DrMindPrompt.buildMessages(

@@ -152,9 +152,11 @@
     <string name="map_tile_terrain">Terrain</string>
     <string name="map_tile_standard">Standard</string>
     <string name="map_tile_satellite">Satellite</string>
+    <string name="map_tile_dark">Dark Mode</string>
     <string name="map_tile_terrain_desc">Terrain map with clearer topography</string>
     <string name="map_tile_standard_desc">Road map from OpenStreetMap</string>
     <string name="map_tile_satellite_desc">Satellite imagery for inspecting field conditions</string>
+    <string name="map_tile_dark_desc">Dark-themed map suitable for night use</string>
     <string name="map_flood_freq_less_than_one_desc">Less than 1 time</string>
     <string name="map_flood_freq_one_to_three_desc">1 to 3 times</string>
     <string name="map_flood_freq_three_to_six_desc">3 to 6 times</string>

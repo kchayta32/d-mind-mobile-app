@@ -30,6 +30,7 @@ import kotlin.math.roundToInt
 
 // ─── Data classes ───────────────────────────────────────────
 
+// คลาสข้อมูลสำหรับเก็บข้อมูลแต่ละมาร์กเกอร์ที่จะวาดลงบนแผนที่ภัยพิบัติ
 internal data class MapMarkerItem(
     val id: String,
     val latitude: Double,
@@ -48,11 +49,13 @@ internal data class MapMarkerItem(
     val floodFrequencyBucket: FloodFrequencyBucket? = null,
 )
 
+// คลาสข้อมูลเก็บรหัสเหตุการณ์การซูมและควบคุมแผนที่
 internal data class MapCameraAction(
     val id: Long,
     val kind: MapCameraActionKind,
 )
 
+// คลาสข้อมูลรวบรวมทรัพยากรข้อความสำหรับมาร์กเกอร์เดี่ยวและกลุ่มการรวมหมุด (Cluster)
 internal data class MapMarkerText(
     val hazardLabels: Map<HazardType, String>,
     val clusterCountFormat: String,
@@ -81,12 +84,14 @@ internal data class SmapLegendBand(
 
 // ─── Enums ──────────────────────────────────────────────────
 
+// รายการคำสั่งการย้ายกล้องแผนที่
 internal enum class MapCameraActionKind {
     CenterThailand,
     ZoomIn,
     ZoomOut,
 }
 
+// รายการสไตล์สัญญะภาพพื้นหลังแผนที่ (Terrain, Satellite, Dark, Standard)
 internal enum class MapTileStyle(
     val label: String,
     val description: String,
@@ -111,12 +116,20 @@ internal enum class MapTileStyle(
         tileUrl = "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
         attribution = "Esri World Imagery",
     ),
+    Dark(
+        label = "Dark Mode",
+        description = "Dark-themed map suitable for night use",
+        tileUrl = "https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+        attribution = "CartoDB contributors",
+    ),
 }
 
 // ─── Extension functions ────────────────────────────────────
 
+// แปลงตัวเลขทศนิยมเป็นข้อความทศนิยม 1 ตำแหน่ง
 internal fun Double.formatOne(): String = String.format(Locale.US, "%,.1f", this)
 
+// แมปไอคอนประเภทชั้นข้อมูลสำหรับแสดงบนแผงควบคุม
 internal fun DisasterLayerType.icon(): ImageVector = when (this) {
     DisasterLayerType.Earthquake -> Icons.Filled.Warning
     DisasterLayerType.Flood -> Icons.Filled.WaterDrop
@@ -125,10 +138,9 @@ internal fun DisasterLayerType.icon(): ImageVector = when (this) {
     DisasterLayerType.Storm -> Icons.Filled.Thunderstorm
     DisasterLayerType.AirQuality -> Icons.Filled.Air
     DisasterLayerType.Stations -> Icons.Filled.Sensors
-    DisasterLayerType.RiverDischarge -> Icons.Filled.WaterDrop
-    DisasterLayerType.SoilMoistureHeatmap -> Icons.Filled.WaterDrop
 }
 
+// ข้อความป้ายกำกับของชั้นข้อมูลแต่ละประเภท
 @Composable
 internal fun DisasterLayerType.localizedLabel(): String = when (this) {
     DisasterLayerType.Earthquake -> stringResource(R.string.map_layer_earthquake)
@@ -138,8 +150,6 @@ internal fun DisasterLayerType.localizedLabel(): String = when (this) {
     DisasterLayerType.Storm -> stringResource(R.string.map_layer_storm)
     DisasterLayerType.AirQuality -> stringResource(R.string.map_layer_air_quality)
     DisasterLayerType.Stations -> stringResource(R.string.map_layer_stations)
-    DisasterLayerType.RiverDischarge -> "การไหลของแม่น้ำ"
-    DisasterLayerType.SoilMoistureHeatmap -> "ความชื้นในดิน"
 }
 
 @Composable
@@ -151,10 +161,9 @@ internal fun DisasterLayerType.localizedDescription(): String = when (this) {
     DisasterLayerType.Storm -> stringResource(R.string.map_layer_storm_desc)
     DisasterLayerType.AirQuality -> stringResource(R.string.map_layer_air_quality_desc)
     DisasterLayerType.Stations -> stringResource(R.string.map_layer_stations_desc)
-    DisasterLayerType.RiverDischarge -> "อัตราการไหลของน้ำในแม่น้ำสายหลัก"
-    DisasterLayerType.SoilMoistureHeatmap -> "ความชื้นสะสมในดินระดับ 0-7 ซม. แบบ Heatmap"
 }
 
+// ข้อความช่วงเวลาภาษาไทย
 @Composable
 internal fun GistdaTimeRange.localizedLabel(): String = when (this) {
     GistdaTimeRange.OneDay -> stringResource(R.string.map_range_one_day)
@@ -164,6 +173,7 @@ internal fun GistdaTimeRange.localizedLabel(): String = when (this) {
     GistdaTimeRange.FloodFrequency -> stringResource(R.string.map_range_flood_frequency)
 }
 
+// ข้อความป้ายกำกับสินค้าภัยแล้ง
 @Composable
 internal fun GistdaDroughtProduct.localizedLabel(): String = when (this) {
     GistdaDroughtProduct.Smap -> stringResource(R.string.map_drought_smap_label)
@@ -185,6 +195,7 @@ internal fun GistdaDroughtProduct.localizedLegendTitle(): String = when (this) {
     GistdaDroughtProduct.DriPlus -> stringResource(R.string.map_drought_driplus_legend)
 }
 
+// ข้อความระดับภัยพิบัติย่อย
 @Composable
 internal fun HazardType.localizedLabel(): String = when (this) {
     HazardType.Earthquake -> stringResource(R.string.hazard_earthquake)
@@ -209,6 +220,7 @@ internal fun FloodFrequencyBucket.localizedDescription(): String = when (this) {
     FloodFrequencyBucket.MoreThanTwelve -> stringResource(R.string.map_flood_freq_more_than_twelve_desc)
 }
 
+// กำหนดสีประจำช่วงเวลาของจุดความร้อนไฟป่า
 internal fun ViirsTimeBucket.color(): Color = when (this) {
     ViirsTimeBucket.LessThanOne -> Color(0xFFC40000)
     ViirsTimeBucket.OneToThree -> Color(0xFFFF3B3B)
@@ -218,6 +230,7 @@ internal fun ViirsTimeBucket.color(): Color = when (this) {
     ViirsTimeBucket.MoreThanTwentyFour -> Color(0xFFFFF3A6)
 }
 
+// กำหนดสีประจำระดับความถี่น้ำท่วมสะสม
 internal fun FloodFrequencyBucket.color(): Color = when (this) {
     FloodFrequencyBucket.LessThanOne -> Color(0xFF0B73D9)
     FloodFrequencyBucket.OneToThree -> Color(0xFF2396FF)
@@ -232,6 +245,7 @@ internal fun MapTileStyle.localizedLabel(): String = when (this) {
     MapTileStyle.Terrain -> stringResource(R.string.map_tile_terrain)
     MapTileStyle.Standard -> stringResource(R.string.map_tile_standard)
     MapTileStyle.Satellite -> stringResource(R.string.map_tile_satellite)
+    MapTileStyle.Dark -> stringResource(R.string.map_tile_dark)
 }
 
 @Composable
@@ -239,8 +253,10 @@ internal fun MapTileStyle.localizedDescription(): String = when (this) {
     MapTileStyle.Terrain -> stringResource(R.string.map_tile_terrain_desc)
     MapTileStyle.Standard -> stringResource(R.string.map_tile_standard_desc)
     MapTileStyle.Satellite -> stringResource(R.string.map_tile_satellite_desc)
+    MapTileStyle.Dark -> stringResource(R.string.map_tile_dark_desc)
 }
 
+// แปลงมิลลิวินาทีเป็นข้อความความเหมาะสมของเวลา เช่น "เมื่อ 5 นาทีที่แล้ว"
 @Composable
 internal fun Long.toRelativeTimeLabel(): String {
     if (this <= 0L) return stringResource(R.string.map_time_soon)
@@ -252,6 +268,7 @@ internal fun Long.toRelativeTimeLabel(): String {
     }
 }
 
+// จดจำข้อความป้ายกำกับมาร์กเกอร์ภัยพิบัติ
 @Composable
 internal fun rememberMapMarkerText(): MapMarkerText {
     return MapMarkerText(
@@ -277,6 +294,7 @@ internal fun rememberMapMarkerText(): MapMarkerText {
     )
 }
 
+// ฟังก์ชันกำหนดแถบช่วงระดับสีและคำอธิบายสัญญะภัยแล้ง
 @Composable
 internal fun droughtLegendBands(product: GistdaDroughtProduct): List<SmapLegendBand> = when (product) {
     GistdaDroughtProduct.Smap -> listOf(

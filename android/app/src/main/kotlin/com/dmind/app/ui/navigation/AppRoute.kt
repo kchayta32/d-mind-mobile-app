@@ -3,6 +3,7 @@ package com.dmind.app.ui.navigation
 import androidx.annotation.StringRes
 import com.dmind.app.R
 
+// เส้นทางการนำทางของแอปพลิเคชัน (Navigation Routes) พร้อมทรัพยากรข้อความเมนูหลัก
 enum class AppRoute(
     @StringRes val labelResId: Int,
 ) {

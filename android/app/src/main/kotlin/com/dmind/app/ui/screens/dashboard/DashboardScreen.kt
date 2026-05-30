@@ -66,6 +66,7 @@ import com.dmind.app.ui.viewmodel.DisasterMapUiState
 import com.dmind.app.util.LocaleManager
 import java.util.Calendar
 
+// หน้าจอแดชบอร์ดหลักของแอปพลิเคชัน แสดงปุ่มลัดและสถิติภาพรวม
 @Composable
 fun DashboardScreen(
     mapState: DisasterMapUiState,
@@ -85,6 +86,7 @@ fun DashboardScreen(
         contentPadding = PaddingValues(bottom = 84.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        // แถบด้านบนแสดงชื่อแอป ปุ่มสลับธีม และปุ่มเปลี่ยนภาษา
         item {
             HomeTopBar(
                 darkTheme = darkTheme,
@@ -94,23 +96,27 @@ fun DashboardScreen(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
             )
         }
+        // ส่วนต้อนรับผู้ใช้งานตามช่วงเวลาของวัน
         item {
             GreetingHeader(
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
+        // ปุ่มทางลัดนำทางไปยังระบบผู้ช่วยอัจฉริยะ AI Chatbot
         item {
             AiAssistantCard(
                 onClick = { onNavigate(AppRoute.Chatbot) },
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
+        // ปุ่มทางลัดนำทางไปยังแผนที่ภัยพิบัติ
         item {
             DisasterMapCard(
                 onClick = { onNavigate(AppRoute.Map) },
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
+        // ส่วนสรุปสถิติจำนวนภัยพิบัติแต่ละประเภทในรอบ 24 ชั่วโมง
         item {
             StatSummaryCard(
                 counts = counts,
@@ -118,6 +124,7 @@ fun DashboardScreen(
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
+        // ปุ่มทางลัดไปยังหน้าข้อมูลสภาพอากาศรายชั่วโมง
         item {
             WeatherShortcutCard(
                 title = stringResource(R.string.weather_hourly_title),
@@ -128,6 +135,7 @@ fun DashboardScreen(
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
+        // ปุ่มทางลัดไปยังข้อมูลพยากรณ์อากาศ 7 วันล่วงหน้า
         item {
             WeatherShortcutCard(
                 title = stringResource(R.string.weather_7day_title),
@@ -138,6 +146,7 @@ fun DashboardScreen(
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
+        // ปุ่มทางลัดระบบรายงานตัวของผู้ประสบภัย
         item {
             WeatherShortcutCard(
                 title = stringResource(R.string.nav_victim_reports),
@@ -149,6 +158,7 @@ fun DashboardScreen(
                 enabled = false,
             )
         }
+        // ปุ่มทางลัดระบบวิเคราะห์สถิติภัยพิบัติเชิงลึก
         item {
             WeatherShortcutCard(
                 title = stringResource(R.string.analytics_dashboard_card_title),
@@ -160,6 +170,7 @@ fun DashboardScreen(
                 enabled = false,
             )
         }
+        // ปุ่มทางลัดการประเมินมูลค่าความเสียหายภัยพิบัติ
         item {
             WeatherShortcutCard(
                 title = stringResource(R.string.nav_damage),
@@ -174,6 +185,7 @@ fun DashboardScreen(
     }
 }
 
+// คอมโพสเซเบิลแถบเครื่องมือด้านบนสุดบนหน้าจอแดชบอร์ด
 @Composable
 fun HomeTopBar(
     darkTheme: Boolean,
@@ -239,6 +251,7 @@ fun HomeTopBar(
     }
 }
 
+// คอมโพสเซเบิลส่วนหัวแสดงคำทักทายแบบไล่โทนสีตามช่วงเวลา
 @Composable
 fun GreetingHeader(
     modifier: Modifier = Modifier,
@@ -275,6 +288,7 @@ fun GreetingHeader(
     }
 }
 
+// คอมโพสเซเบิลการ์ดทางลัดสำหรับเข้าใช้งาน AI Chatbot
 @Composable
 fun AiAssistantCard(
     onClick: () -> Unit,
@@ -314,6 +328,7 @@ fun AiAssistantCard(
     }
 }
 
+// คอมโพสเซเบิลการ์ดทางลัดสำหรับเข้าหน้าจอแผนที่ภัยพิบัติ
 @Composable
 fun DisasterMapCard(
     onClick: () -> Unit,
@@ -337,6 +352,7 @@ fun DisasterMapCard(
     }
 }
 
+// คอมโพสเซเบิลการ์ดกลุ่มย่อยสรุปสถิติจำนวนภัยพิบัติ
 @Composable
 fun StatSummaryCard(
     counts: HomeHazardCounts,
@@ -357,6 +373,7 @@ fun StatSummaryCard(
     }
 }
 
+// คอมโพสเซเบิลการ์ดทางลัดอเนกประสงค์ มีตัวเลือกปิดการใช้งานชั่วคราว
 @Composable
 fun WeatherShortcutCard(
     title: String,
@@ -414,6 +431,7 @@ fun WeatherShortcutCard(
     }
 }
 
+// คอมโพสเซเบิลการ์ดแบบกำหนดสีพื้นหลังไล่ระดับและรองรับการกดคลิก
 @Composable
 fun FeatureCard(
     gradient: List<Color>,
@@ -442,6 +460,7 @@ fun FeatureCard(
     }
 }
 
+// คอมโพสเซเบิลการ์ดกรอบมนพื้นสีสว่างเพื่อความคมชัดของข้อมูล
 @Composable
 private fun ReferenceSurfaceCard(
     modifier: Modifier = Modifier,
@@ -463,6 +482,7 @@ private fun ReferenceSurfaceCard(
     }
 }
 
+// คอมโพสเซเบิลย่อยสำหรับแสดงตัวเลขสถิติและประเภทเดี่ยว
 @Composable
 private fun StatMiniCard(
     value: String,
@@ -486,6 +506,7 @@ private fun StatMiniCard(
     }
 }
 
+// คอมโพสเซเบิลรูปทรงสี่เหลี่ยมใส่ไอคอน
 @Composable
 private fun HomeIconBox(
     icon: ImageVector,
@@ -496,6 +517,7 @@ private fun HomeIconBox(
     }
 }
 
+// คอมโพสเซเบิลเม็ดยาสถานะขนาดเล็ก
 @Composable
 private fun StatusMiniPill(
     label: String,
@@ -511,6 +533,7 @@ private fun StatusMiniPill(
     }
 }
 
+// คอมโพสเซเบิลวาดไอคอนรูปหุ่นยนต์อย่างง่าย
 @Composable
 private fun RobotLineIcon() {
     Box(modifier = Modifier.size(width = 58.dp, height = 50.dp), contentAlignment = Alignment.Center) {
@@ -535,10 +558,12 @@ private fun RobotLineIcon() {
     }
 }
 
+// อ็อบเจกต์สีเฉพาะบนหน้าแดชบอร์ดหลัก
 private object HomeColors {
     fun background(isDark: Boolean): Color = if (isDark) Color(0xFF080E1D) else Color(0xFFF8FAFC)
 }
 
+// ส่วนการแสดงพรีวิวหน้าจอแดชบอร์ด
 @Preview(showBackground = true)
 @Composable
 private fun DashboardPreview() {
