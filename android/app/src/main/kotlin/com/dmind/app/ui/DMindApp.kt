@@ -180,6 +180,7 @@ fun DMindApp() {
             DisasterMapScreen(
                 state = mapState,
                 viewModel = disasterViewModel,
+                darkTheme = darkTheme,
                 onBack = ::navigateBack,
                 onOpenStations = { navigateTo(AppRoute.Stations) },
             )

@@ -47,6 +47,7 @@ import kotlinx.coroutines.launch
 fun DisasterMapScreen(
     state: DisasterMapUiState,
     viewModel: DisasterMapViewModel,
+    darkTheme: Boolean,
     onBack: () -> Unit,
     onOpenStations: () -> Unit,
 ) {
@@ -61,6 +62,14 @@ fun DisasterMapScreen(
     var legendOffsetY by rememberSaveable(state.activeLayer) { mutableStateOf(0f) }
     var mapStyle by rememberSaveable { mutableStateOf(MapTileStyle.Standard) }
     var cameraActionId by remember { mutableLongStateOf(0L) }
+
+    LaunchedEffect(darkTheme) {
+        if (darkTheme && mapStyle == MapTileStyle.Standard) {
+            mapStyle = MapTileStyle.Dark
+        } else if (!darkTheme && mapStyle == MapTileStyle.Dark) {
+            mapStyle = MapTileStyle.Standard
+        }
+    }
     var cameraActionKind by remember { mutableStateOf<MapCameraActionKind?>(null) }
     val activeWmtsLayer = state.activeWmtsLayer?.takeIf { it.isAvailable }
     val markerText = rememberMapMarkerText()

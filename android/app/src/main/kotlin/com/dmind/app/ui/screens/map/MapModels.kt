@@ -111,6 +111,12 @@ internal enum class MapTileStyle(
         tileUrl = "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
         attribution = "Esri World Imagery",
     ),
+    Dark(
+        label = "Dark Mode",
+        description = "Dark-themed map suitable for night use",
+        tileUrl = "https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+        attribution = "CartoDB contributors",
+    ),
 }
 
 // ─── Extension functions ────────────────────────────────────
@@ -232,6 +238,7 @@ internal fun MapTileStyle.localizedLabel(): String = when (this) {
     MapTileStyle.Terrain -> stringResource(R.string.map_tile_terrain)
     MapTileStyle.Standard -> stringResource(R.string.map_tile_standard)
     MapTileStyle.Satellite -> stringResource(R.string.map_tile_satellite)
+    MapTileStyle.Dark -> stringResource(R.string.map_tile_dark)
 }
 
 @Composable
@@ -239,6 +246,7 @@ internal fun MapTileStyle.localizedDescription(): String = when (this) {
     MapTileStyle.Terrain -> stringResource(R.string.map_tile_terrain_desc)
     MapTileStyle.Standard -> stringResource(R.string.map_tile_standard_desc)
     MapTileStyle.Satellite -> stringResource(R.string.map_tile_satellite_desc)
+    MapTileStyle.Dark -> stringResource(R.string.map_tile_dark_desc)
 }
 
 @Composable

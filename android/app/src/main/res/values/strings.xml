@@ -152,9 +152,11 @@
     <string name="map_tile_terrain">ภูมิประเทศ</string>
     <string name="map_tile_standard">มาตรฐาน</string>
     <string name="map_tile_satellite">ดาวเทียม</string>
+    <string name="map_tile_dark">โหมดมืด</string>
     <string name="map_tile_terrain_desc">แผนที่ภูมิประเทศ อ่านภูมิประเทศได้ชัด</string>
     <string name="map_tile_standard_desc">แผนที่ถนนจาก OpenStreetMap</string>
     <string name="map_tile_satellite_desc">ภาพถ่ายดาวเทียมสำหรับตรวจสภาพพื้นที่</string>
+    <string name="map_tile_dark_desc">แผนที่โทนสีเข้ม เหมาะสำหรับใช้งานเวลากลางคืน</string>
     <string name="map_flood_freq_less_than_one_desc">น้อยกว่า 1 ครั้ง</string>
     <string name="map_flood_freq_one_to_three_desc">1 ถึง 3 ครั้ง</string>
     <string name="map_flood_freq_three_to_six_desc">3 ถึง 6 ครั้ง</string>
