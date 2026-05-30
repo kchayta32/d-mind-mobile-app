@@ -1,172 +1,125 @@
 # D-MIND: Disaster Management & Information System
 
-D-MIND เป็นระบบเฝ้าระวังภัยพิบัติและแจ้งเตือนฉุกเฉินสำหรับประเทศไทย โปรเจกต์นี้ยังเก็บโค้ดเว็บ React/Vite เดิมไว้เป็น reference แต่แกนหลักสำหรับการพัฒนาปัจจุบันอยู่ที่ `android/` ซึ่งเป็น native Android app พร้อม Kotlin/Ktor backend gateway ใน workspace เดียวกัน
+D-MIND เป็นระบบเฝ้าระวังภัยพิบัติและแจ้งเตือนฉุกเฉินสำหรับประเทศไทย โปรเจกต์นี้ได้รับการเปลี่ยนผ่านเข้าสู่แอปพลิเคชันหลักบน **Native Android App (Kotlin/Jetpack Compose)** พร้อม **Kotlin/Ktor Backend Gateway** ภายใต้โครงสร้าง workspace เดียวกันที่โฟลเดอร์ [android/](file:///E:/2-2568/d-mind/d-mind-ai/android) โดยยังคงเก็บโค้ดเว็บ React/Vite/Capacitor เดิมไว้เป็นข้อมูลอ้างอิงสำหรับการตรวจสอบระบบเก่า
 
-อัปเดตล่าสุด: 25 พฤษภาคม 2026
+อัปเดตล่าสุด: 30 พฤษภาคม 2026
 
-## สถานะโปรเจกต์
+---
 
-- `android/` คือ workspace หลักสำหรับ mobile app, backend, Gradle build และเอกสาร Android
-- Android app เป็น native app ใช้ Kotlin, Jetpack Compose, Material 3 และ Java native services เดิมบางส่วน
-- Backend ใหม่อยู่ที่ `android/backend` ใช้ Kotlin/JVM + Ktor สำหรับ gateway, notification, media upload, weather และ analytics
-- ระบบแจ้งเตือนมือถือใช้ Firebase Cloud Messaging (FCM), native notification channels และ full-screen emergency alert
-- Root React/Vite/Capacitor ยังใช้เป็น legacy/reference code สำหรับดู logic, UI เดิม และ migration parity
-- Android build ไม่ควรต้องพึ่ง `npm`, `node_modules`, Vite, React หรือไฟล์ web นอก `android/`
+## 📊 สถานะโปรเจกต์และการอัปเดตล่าสุด
 
-## เริ่มต้นเร็ว
+ปัจจุบันการพัฒนาฟีเจอร์หลักเสร็จสมบูรณ์แล้วในส่วนของ Native App และ Backend API Gateway โดยมีการอัปเดตที่สำคัญดังนี้:
 
-พัฒนาและ build Android:
+### 1. ระบบวิเคราะห์และสังเคราะห์เสียงในตัว (Native Voice Integration)
+- พัฒนาคลาส [VoiceManager](file:///E:/2-2568/d-mind/d-mind-ai/android/app/src/main/kotlin/com/dmind/app/util/VoiceManager.kt) เพื่อห่อหุ้มคำสั่งการรู้จำเสียงพูดของ Android (Speech-to-Text) และการสังเคราะห์เสียงพูด (Text-to-Speech)
+- นำมาผสานรวมเข้ากับหน้าจอ [ChatbotScreen](file:///E:/2-2568/d-mind/d-mind-ai/android/app/src/main/kotlin/com/dmind/app/ui/screens/chatbot/ChatbotScreen.kt) ของระบบผู้ช่วยอัจฉริยะ **Dr.Mind** ทำให้ผู้ใช้งานสามารถพูดสอบถามรายละเอียดเหตุการณ์ภัยพิบัติและขอรับคำแนะนำการปฏิบัติตัวได้อย่างสะดวกรวดเร็ว รวมถึงได้รับการอ่านข้อความตอบกลับด้วยเสียงแบบ Native Thai/English
 
+### 2. การอัปเดตแผนที่ภัยพิบัติและการแสดงผลเชิงวิเคราะห์ (Disaster Map & Legends)
+- **การเพิ่มชั้นข้อมูล (Disaster Layers) ใหม่**: รวมข้อมูลการไหลของแม่น้ำ (`RiverDischarge`) และข้อมูลระดับความชื้นในดินสะสม (`SoilMoistureHeatmap`) จาก Open-Meteo API มาประมวลผลเป็นรูปแบบ GeoJSON เพื่อแสดงผลบนหน้าจอ [DisasterMapScreen](file:///E:/2-2568/d-mind/d-mind-ai/android/app/src/main/kotlin/com/dmind/app/ui/screens/map/DisasterMapScreen.kt)
+- **คำอธิบายสัญลักษณ์แผนที่แบบโต้ตอบได้**: พัฒนาคอมโพเนนต์ [MapLegendOverlay](file:///E:/2-2568/d-mind/d-mind-ai/android/app/src/main/kotlin/com/dmind/app/ui/screens/map/MapLegendOverlay.kt) ให้ผู้ใช้สามารถลากย้ายตำแหน่งบนหน้าจอแผนที่ (Interactive Draggable Overlay) เพื่อดูรายละเอียดความหมายของเฉดสีและระดับความรุนแรงของภัยพิบัติ เช่น ข้อมูลจุดความร้อนจาก VIIRS, พื้นที่น้ำท่วมซ้ำซาก, ปริมาณฝุ่น PM2.5, และความชื้นในดิน
+
+### 3. ระบบแจ้งเตือนฉุกเฉินระดับระบบปฏิบัติการ (Emergency Alert Routing)
+- ปรับปรุงการนำเส้นทางแจ้งเตือนของ Firebase Cloud Messaging (FCM) แบบ Data Messages และการแจ้งเตือนแบบ Full-screen Emergency Alert ใน Android ให้สามารถระบุระดับความสำคัญ ความรุนแรงของภัย พร้อมปรับปรุงไอคอนแจ้งเตือนเฉพาะกลุ่มภัยพิบัติแต่ละประเภท (เช่น อุทกภัย, วาตภัย, แผ่นดินไหว, อัคคีภัย)
+
+### 4. API ข้อมูลเชิงวิเคราะห์และสภาพแวดล้อมฝั่ง Backend
+- รองรับ API Endpoint เชิงวิเคราะห์ใหม่ใน [AnalyticsRoutes](file:///E:/2-2568/d-mind/d-mind-ai/android/backend/src/main/kotlin/com/dmind/backend/routes/AnalyticsRoutes.kt) เพื่อสรุปข้อมูลและดูแนวโน้มสถิติของดัชนีชี้วัดด้านสิ่งแวดล้อม (Environmental Data) เช่น ปริมาณฝุ่น PM2.5/AQI, ปริมาณฝนสะสม และอุณหภูมิความชื้นของสถานีต่างๆ ทั่วประเทศ
+
+---
+
+## 📂 โครงสร้าง Repository
+
+| โฟลเดอร์ / ไฟล์ | สถานะการใช้งาน | คำอธิบายและหน้าที่การทำงาน |
+| --- | --- | --- |
+| [android/](file:///E:/2-2568/d-mind/d-mind-ai/android) | **Active** | Workspace หลักสำหรับการพัฒนา Native App และ Backend Gateway |
+| [android/app/](file:///E:/2-2568/d-mind/d-mind-ai/android/app) | **Active** | ตัวแอปพลิเคชันหลัก Android Native App (Jetpack Compose UI) |
+| [android/backend/](file:///E:/2-2568/d-mind/d-mind-ai/android/backend) | **Active** | บริการเซิร์ฟเวอร์ Kotlin/Ktor Backend Gateway API |
+| [android/docs/](file:///E:/2-2568/d-mind/d-mind-ai/android/docs) | **Active** | เอกสารรายงานการพัฒนาระบบ แผนภาพสถาปัตยกรรม และคำอธิบาย API |
+| [api-from-sensor/](file:///E:/2-2568/d-mind/d-mind-ai/api-from-sensor) | Reference | ชุดโค้ด/ตัวอย่างไฟล์เพื่อเชื่อมต่อเซนเซอร์ตรวจวัดในพื้นที่ |
+| [src/](file:///E:/2-2568/d-mind/d-mind-ai/src) | Legacy | โค้ดของระบบเว็บแอพ React/Vite/Capacitor เดิม (Reference) |
+| [public/](file:///E:/2-2568/d-mind/d-mind-ai/public) | Legacy | ไฟล์สแตติกของระบบเว็บและแอสเซทของ PWA เดิม |
+| [supabase/](file:///E:/2-2568/d-mind/d-mind-ai/supabase) | Legacy/Reference | สคริปต์ Database Schema และ Edge Functions เดิม |
+| [dist/](file:///E:/2-2568/d-mind/d-mind-ai/dist) | Generated/Legacy | ผลลัพธ์ของการคอมไพล์เว็บแอพเดิม |
+
+---
+
+## ⚡ เริ่มต้นใช้งานอย่างรวดเร็ว
+
+### การตั้งค่าและ Build ตัวแอป Android (Debug APK)
+1. ติดตั้ง Android SDK และ JDK 21 (แนะนำ JBR ใน Android Studio)
+2. รันคำสั่งผ่าน Windows PowerShell:
 ```powershell
 cd E:\2-2568\d-mind\d-mind-ai\android
 $env:JAVA_HOME="C:\Program Files\Android\Android Studio\jbr"
 $env:Path="$env:JAVA_HOME\bin;$env:Path"
+# คอมไพล์และสร้างไฟล์ติดตั้ง debug APK
 .\gradlew.bat :app:assembleDebug
 ```
+3. ไฟล์ติดตั้งจะได้ที่พาธ: `android/app/build/outputs/apk/debug/app-debug.apk`
 
-รัน backend dev:
-
+### การเริ่มต้นรันบริการ Backend Gateway
+1. กำหนดตัวแปรสภาพแวดล้อมที่จำเป็นสำหรับเชื่อมโยงข้อมูล เช่น Supabase หรือ Firebase (FCM)
+2. รันคำสั่งดังต่อไปนี้:
 ```powershell
 cd E:\2-2568\d-mind\d-mind-ai\android
 .\gradlew.bat :backend:run
+# ตรวจสอบสถานะการเชื่อมต่อ
 Invoke-RestMethod http://localhost:8080/health
 ```
 
-รันเว็บ legacy ที่ root เมื่อจำเป็น:
+---
 
-```powershell
-npm install
-npm run dev
-```
+## 🔌 API Endpoints ฝั่ง Backend Gateway
 
-## โครงสร้าง Repository
+บริการ Ktor ทำหน้าที่เสมือน Gateway พอร์ตมาตรฐานคือ `8080` (เปลี่ยนได้โดยการตั้งค่าตัวแปร `PORT`)
 
-| Path | สถานะ | รายละเอียด |
+| Method | Path | หน้าที่และรายละเอียดการทำงาน |
 | --- | --- | --- |
-| `android/` | Active | Android-only workspace หลัก มี app, backend, docs และ Gradle wrapper |
-| `android/app/` | Active | Native Android app module, Compose UI, Android services, resources และ unit tests |
-| `android/backend/` | Active | Kotlin/Ktor backend gateway module |
-| `android/docs/` | Active | เอกสาร migration, folder map, system summary, endpoint และ notification |
-| `api-from-sensor/` | Reference | โค้ด/ข้อมูลสำหรับเชื่อมต่อ sensor หรือสถานีตรวจวัด |
-| `src/` | Legacy | React/Vite web source เดิม ใช้เป็น reference ได้ |
-| `public/` | Legacy | web static assets และ PWA assets เดิม |
-| `supabase/` | Legacy/Reference | Supabase functions และ migrations เดิม |
-| `dist/` | Generated/Legacy | web build output เดิม |
-| `node_modules/` | Local dependency cache | ใช้กับ legacy web เท่านั้น |
+| GET | `/health` | ตรวจสอบสถานะการทำงานของบริการเซิร์ฟเวอร์ |
+| GET | `/alerts` | ดึงข้อมูลเหตุการณ์แจ้งเตือนล่าสุดที่ยังคงมีผลอยู่จาก Supabase |
+| POST | `/sos` | บันทึกข้อมูลและจัดคิวขอความช่วยเหลือฉุกเฉิน (SOS) จากเครื่องผู้ใช้ |
+| POST | `/reports` | รับการแจ้งรายงานสถานการณ์ภัยพิบัติพร้อมข้อมูลตำแหน่งพิกัดและรูปภาพ |
+| GET | `/weather` | Proxy ดึงข้อมูลพยากรณ์อากาศรายชั่วโมงจากกรมอุตุนิยมวิทยา (TMD) |
+| POST | `/media/incident-images` | อัปโหลดรูปภาพสถานการณ์เหตุภัยพิบัติไปจัดเก็บยัง Supabase Storage |
+| POST | `/fcm/register` | ลงทะเบียนและอัปเดต Device FCM Token สำหรับใช้ส่งสัญญาณแจ้งเตือนรายเครื่อง |
+| POST | `/notifications/send` | ส่งสัญญาณแจ้งเตือนแบบ Push Notification ผ่าน FCM HTTP v1 |
+| GET | `/api/analytics/summary` | สรุปข้อมูลการตรวจพิจารณาภัยพิบัติรายวัน (USGS, GISTDA, TMD, Air4Thai) |
+| GET | `/api/analytics/trends?period=7d` | บริการวิเคราะห์เชิงแนวโน้ม รองรับช่วงเวลาย้อนหลัง `7d`, `30d`, `1y` |
+| GET | `/api/analytics/environmental` | สรุปดัชนีชี้วัดสิ่งแวดล้อมรายพื้นที่ เช่น PM2.5/AQI, ปริมาณน้ำฝน และสภาพอากาศ |
 
-## Android Build และ Test
+---
 
-คำสั่งทั้งหมดให้รันจาก `android/`
+## 🔒 การกำหนดค่า Configuration และ Secrets
 
-| งาน | คำสั่ง |
+ห้ามนำรหัสผ่านหรือ API Keys ระดับสิทธิ์สูงไปฝังในตัว Android App โดยเด็ดขาด การเรียกใช้ APIs ภายนอกควรส่งผ่าน Backend Gateway
+
+### ตัวแปรหลักที่ใช้กำหนดการตั้งค่า:
+- **`BACKEND_BASE_URL`**: พิกัด URL เซิร์ฟเวอร์ Gateway สำหรับแอป Android (Emulator ใช้เป็น `http://10.0.2.2:8080` เป็นหลัก)
+- **`DMIND_SUPABASE_URL` / `DMIND_SUPABASE_PUBLISHABLE_KEY`**: พารามิเตอร์สำหรับเชื่อมต่อไปยังฐานข้อมูล Supabase ระดับ Client
+- **`SUPABASE_SERVICE_ROLE_KEY`**: คีย์สิทธิ์สูงสุดสำหรับ Ktor Backend เพื่อบันทึกข้อมูลและอัปโหลดรูปภาพลงระบบคลาวด์
+- **`GOOGLE_APPLICATION_CREDENTIALS`**: ที่อยู่ไฟล์ Service Account JSON ของ Google Cloud สำหรับการส่งข้อความแจ้งเตือนผ่าน Firebase
+- **`DMIND_TMD_API_TOKEN` / `DMIND_GISTDA_API_KEY`**: โทเคนสำหรับขอเชื่อมต่อข้อมูลสภาพอากาศและชั้นข้อมูลภูมิสารสนเทศของไทย
+
+---
+
+## 📖 เอกสารอ่านประกอบและคู่มือพัฒนาระบบ
+
+| ไฟล์คู่มือการพัฒนา | รายละเอียดข้อมูลในเอกสาร |
 | --- | --- |
-| Build debug APK | `.\gradlew.bat :app:assembleDebug` |
-| ติดตั้งบน device/emulator | `.\gradlew.bat :app:installDebug` |
-| App unit tests | `.\gradlew.bat :app:testDebugUnitTest` |
-| Backend tests | `.\gradlew.bat :backend:test` |
-| ตรวจหลักทั้งหมด | `.\gradlew.bat :app:assembleDebug :app:testDebugUnitTest :backend:test` |
+| [android/README.md](file:///E:/2-2568/d-mind/d-mind-ai/android/README.md) | คู่มือการตั้งค่า รันคำสั่ง และสถาปัตยกรรมของโฟลเดอร์ Android Workspace หลัก |
+| [android/docs/CURRENT_ANDROID_STATUS.th.md](file:///E:/2-2568/d-mind/d-mind-ai/android/docs/CURRENT_ANDROID_STATUS.th.md) | สรุปสถานะความคืบหน้าของฟีเจอร์ใน Native App, ชั้นข้อมูลแผนที่ และการประมวลผล |
+| [android/docs/IMPLEMENTATION_REPORT.th.md](file:///E:/2-2568/d-mind/d-mind-ai/android/docs/IMPLEMENTATION_REPORT.th.md) | รายงานประเมินผลการสร้าง Compose UI, การย้าย Java legacy services และการปรับแต่งสถาปัตยกรรม |
+| [android/docs/SYSTEM_SUMMARY.th.md](file:///E:/2-2568/d-mind/d-mind-ai/android/docs/SYSTEM_SUMMARY.th.md) | รายละเอียดโครงสร้าง UI/UX, ลำดับการเรียกใช้ APIs และ endpoints ของระบบทั้งหมด |
+| [android/docs/NOTIFICATION_SYSTEM.th.md](file:///E:/2-2568/d-mind/d-mind-ai/android/docs/NOTIFICATION_SYSTEM.th.md) | สถาปัตยกรรมลูปการส่งและรับสัญญาณเตือนภัยฉุกเฉิน FCM ในระดับระบบปฏิบัติการ |
+| [android/IMPLEMENTATION_SUMMARY.md](file:///E:/2-2568/d-mind/d-mind-ai/android/IMPLEMENTATION_SUMMARY.md) | สรุปกระบวนการย้ายโค้ดจากระบบเว็บมาเป็น Native App และขั้นตอนตรวจสอบความถูกต้องเบื้องต้น |
+| [android/REAL_DEVICE_TEST_CHECKLIST.md](file:///E:/2-2568/d-mind/d-mind-ai/android/REAL_DEVICE_TEST_CHECKLIST.md) | รายการตรวจสอบและทดสอบระบบบนอุปกรณ์แอนดรอยด์จริง (สิทธิ์การเข้าถึง, แผนที่, การรับแจ้งเตือนขณะจอดับ) |
+| [BUILD_APK_GUIDE.md](file:///E:/2-2568/d-mind/d-mind-ai/BUILD_APK_GUIDE.md) | แนวทางการติดตั้งและจัดเตรียมเครื่องมือคอมไพล์ APK ของแอปพลิเคชันระบบเดิม |
+| [PLAY_STORE_GUIDE.md](file:///E:/2-2568/d-mind/d-mind-ai/PLAY_STORE_GUIDE.md) | เอกสารแนะนำการเตรียมข้อมูลความปลอดภัยและการเซ็นชื่อเพื่อเผยแพร่ผ่าน Google Play Store |
 
-APK หลัง build:
+---
 
-```text
-android/app/build/outputs/apk/debug/app-debug.apk
-```
+## 🎯 งานสำคัญและแผนงานพัฒนาขั้นถัดไป
 
-## Backend Gateway
-
-Backend default port คือ `8080` และเปลี่ยนได้ด้วย `PORT`
-
-```powershell
-$env:PORT="8081"
-.\gradlew.bat :backend:run
-```
-
-Endpoint หลัก:
-
-| Method | Path | รายละเอียด |
-| --- | --- | --- |
-| GET | `/health` | ตรวจสถานะ backend |
-| GET | `/alerts` | อ่าน active alerts จาก Supabase เมื่อ config พร้อม |
-| POST | `/sos` | รับ SOS payload จากมือถือ |
-| POST | `/reports` | รับ incident/victim reports และบันทึกลง Supabase |
-| GET | `/weather` | Proxy ข้อมูล TMD hourly forecast เมื่อมี `TMD_API_TOKEN` |
-| POST | `/media/incident-images` | Upload รูป incident เข้า Supabase Storage |
-| POST | `/fcm/register` | รับ FCM token จากแอป Android |
-| POST | `/notifications/send` | ส่ง push ผ่าน FCM HTTP v1 ต้องมี admin bearer token |
-| GET | `/api/analytics/summary` | สรุปเหตุการณ์จาก USGS, GISTDA, TMD และ Air4Thai |
-| GET | `/api/analytics/trends?period=7d` | Trend analytics รองรับ `7d`, `30d`, `1y` |
-| GET | `/api/analytics/environmental` | PM2.5/AQI, อุณหภูมิ, ความชื้น และฝน |
-
-`/chat` และ `/damage-assessment` มี route แล้ว แต่ฝั่ง backend ยังคืน `not_configured` จนกว่าจะต่อ production AI gateway/model endpoint จริง
-
-## Config และ Secret
-
-ห้าม commit secret จริงลง repository และอย่าใส่ service-role key หรือ private token ลง Android source โดยตรง
-
-Android app อ่านค่าจาก Gradle property, environment variable, `android/local.properties` หรือ `local.properties` ที่ root โดยมี alias แบบ `DMIND_*` สำหรับค่า `VITE_*` เดิม เช่น `VITE_SUPABASE_URL` ใช้ `DMIND_SUPABASE_URL` ได้
-
-ค่าที่ใช้บ่อย:
-
-| Key/File | ใช้ที่ | รายละเอียด |
-| --- | --- | --- |
-| `BACKEND_BASE_URL` หรือ `DMIND_BACKEND_BASE_URL` | Android | Backend URL ตอน build ค่า default คือ `http://10.0.2.2:8080` |
-| `DMIND_SUPABASE_URL` | Android | Supabase project URL สำหรับ client anon access |
-| `DMIND_SUPABASE_PUBLISHABLE_KEY` | Android | Supabase anon/publishable key |
-| `DMIND_SUPABASE_PROJECT_ID` | Android | Supabase project id |
-| `DMIND_TMD_API_TOKEN` | Android/Backend | TMD token; Android value จะถูกฝังใน APK จึงไม่ควรใช้ secret ระดับสูง |
-| `DMIND_GISTDA_API_KEY` | Android/Backend analytics | GISTDA API key สำหรับ disaster layers |
-| `DMIND_THAI_LLM_API_KEY` | Android | ThaiLLM/Dr.Mind client key; ควรย้ายผ่าน backend ถ้าต้องปกปิดจริง |
-| `android/app/google-services.json` | Android | Firebase Android config สำหรับรับ FCM token/message |
-| `DMIND_ADMIN_TOKEN` | Backend | Bearer token สำหรับ `/notifications/send` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Backend | ใช้ backend gateway เขียนข้อมูล/Storage/FCM token registry |
-| `FCM_PROJECT_ID` หรือ `FIREBASE_PROJECT_ID` | Backend | Firebase/Google Cloud project id สำหรับ FCM HTTP v1 |
-| `GOOGLE_APPLICATION_CREDENTIALS` | Backend | Path ไป service-account JSON สำหรับ FCM HTTP v1 |
-| `DMIND_TOKEN_STORE_PATH` | Backend | Local persistent FCM token registry fallback |
-
-ตัวอย่างรัน backend สำหรับ push notification จริง:
-
-```powershell
-$env:DMIND_ADMIN_TOKEN="use-a-long-random-admin-token"
-$env:FCM_PROJECT_ID="your-firebase-project-id"
-$env:GOOGLE_APPLICATION_CREDENTIALS="C:\secure\dmind-firebase-service-account.json"
-$env:SUPABASE_URL="https://your-project.supabase.co"
-$env:SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
-.\gradlew.bat :backend:run
-```
-
-## เอกสารที่ควรอ่านต่อ
-
-| ไฟล์ | รายละเอียด |
-| --- | --- |
-| `android/README.md` | คู่มือหลักของ Android workspace |
-| `android/IMPLEMENTATION_SUMMARY.md` | สรุป implementation ระดับ workspace |
-| `android/REAL_DEVICE_TEST_CHECKLIST.md` | Checklist สำหรับทดสอบบนเครื่อง Android จริง |
-| `android/docs/IMPLEMENTATION_REPORT.th.md` | รายงานการพัฒนา Android native และ backend |
-| `android/docs/FOLDER_MAP.th.md` | แผนผังโฟลเดอร์และประเภทไฟล์ |
-| `android/docs/SYSTEM_SUMMARY.th.md` | สรุป UI/UX, notification, API key และ endpoint |
-| `android/docs/NOTIFICATION_SYSTEM.th.md` | รายละเอียดระบบแจ้งเตือนมือถือ |
-| `BUILD_APK_GUIDE.md` | คู่มือ build APK เดิม |
-| `PLAY_STORE_GUIDE.md` | แนวทางเตรียมเผยแพร่ Play Store |
-
-## Legacy Web
-
-Root web app ยังมี script ตาม `package.json`
-
-| Script | คำสั่ง | รายละเอียด |
-| --- | --- | --- |
-| `dev` | `npm run dev` | เปิด Vite dev server |
-| `build` | `npm run build` | Build web production |
-| `build:dev` | `npm run build:dev` | Build web development mode |
-| `lint` | `npm run lint` | ESLint |
-| `preview` | `npm run preview` | Preview web build |
-
-ส่วนนี้เป็น legacy/reference path ไม่ใช่ทางหลักของ Android native build
-
-## งานที่ควรทำต่อ
-
-- ต่อ `/chat` และ `/damage-assessment` backend routes เข้ากับ production AI gateway/model endpoint
-- ตัดสินใจนโยบาย key ที่ฝังใน APK โดยเฉพาะ TMD, GISTDA และ ThaiLLM
-- ทดสอบ FCM บนเครื่อง Android จริงพร้อม Firebase project และ credentials
-- ขยาย native Compose UI ให้ครบ feature parity จาก web เดิม
-- เพิ่ม instrumented tests สำหรับ notification, geofence, background location และ report upload
-- เตรียม release signing, production backend URL และ Play Store release checklist
+1. **การเชื่อมต่อ AI Service ขั้นสมบูรณ์**: พัฒนาส่วนขยายพอร์ต Endpoint `/chat` และ `/damage-assessment` ของ Ktor Backend ให้เชื่อมต่อไปยัง AI Gateway และ LLM ขนาดใหญ่อย่างสมบูรณ์แทนข้อมูลจำลองเดิม
+2. **การปรับแต่งการระบุคีย์ฝังในแอป**: ปรับแนวทางการอ่าน Token ของ TMD, GISTDA, และ ThaiLLM ให้ส่งผ่าน Backend Proxy ทั้งหมดเพื่อความมั่นคงปลอดภัยขั้นสูง
+3. **ระบบรับส่งข้อมูลแบบ Realtime WebSockets**: พัฒนาระบบรับข้อความเหตุการณ์และการแจ้งเตือนบนแอป Android ให้เป็นแบบ Realtime (ผ่านช่องทาง Supabase Realtime หรือ WebSocket เชื่อม Backend Gateway) นอกเหนือจากระบบ FCM
+4. **ขยาย Native Compose UI ให้ครอบคลุม**: เพิ่มหน้าจอแสดงผลข้อมูลเชิงลึกแบบ Native เพิ่มเติม เช่น หน้าพยากรณ์อากาศ 7 วัน (7-day Weather Forecast) และหน้าจอประเมินมูลค่าความเสียหายตามโครงสร้างเว็บแอปพลิเคชันเดิม
