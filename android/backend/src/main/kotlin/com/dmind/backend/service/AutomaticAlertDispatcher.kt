@@ -7,7 +7,7 @@ import com.dmind.backend.NotificationSendRequest
 import kotlinx.coroutines.*
 import java.util.concurrent.ConcurrentHashMap
 
-object AutomaticAlertDispatcher {
+internal object AutomaticAlertDispatcher {
     private val lastSentAlerts = ConcurrentHashMap<String, Long>()
     private const val COOLDOWN_MS = 3600_000L // 1 hour cooldown for duplicate alerts
 

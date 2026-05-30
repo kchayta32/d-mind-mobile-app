@@ -191,6 +191,22 @@ internal fun Route.disasterDataRoutes(config: GatewayConfig) {
         }
     }
 
+    get("/usgs-earthquakes") {
+        call.handleSafely {
+            val data = httpRequest(
+                method = "GET",
+                url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson"
+            )
+            call.respond(
+                JsonDataResponse(
+                    status = "ok",
+                    detail = "live USGS earthquakes",
+                    data = data.json()
+                )
+            )
+        }
+    }
+
     post("/damage-assessment") {
         call.handleSafely(rateLimited = true, config = config) {
             val request = call.receive<DamageAssessmentRequest>()

@@ -4,6 +4,7 @@ import android.content.Context
 import com.dmind.app.DMindApplication
 import com.dmind.app.database.AlertsCacheDAO
 import com.dmind.app.BuildConfig
+import com.dmind.app.network.BackendConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -622,8 +623,20 @@ class DisasterMapRepository(private val context: Context? = null) {
 
     private suspend fun fetchUsgsEarthquakes(): SourceFetchResult = withContext(Dispatchers.IO) {
         runCatching {
-            val body = httpGet("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson")
-            val json = JSONObject(body)
+            val json = try {
+                val primaryBody = httpGet("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson")
+                JSONObject(primaryBody)
+            } catch (e: Exception) {
+                val fallbackUrl = "${BackendConfig.baseUrl}/usgs-earthquakes"
+                val proxyResponse = httpGet(fallbackUrl)
+                val proxyJson = JSONObject(proxyResponse)
+                val dataVal = proxyJson.opt("data")
+                when (dataVal) {
+                    is JSONObject -> dataVal
+                    is String -> JSONObject(dataVal)
+                    else -> throw e
+                }
+            }
             val features = json.optJSONArray("features") ?: JSONArray()
             val points = (0 until features.length()).mapNotNull { index ->
                 val feature = features.optJSONObject(index) ?: return@mapNotNull null
