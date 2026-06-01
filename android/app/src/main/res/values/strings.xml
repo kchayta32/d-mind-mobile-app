@@ -286,12 +286,12 @@
     <string name="manual_fire_guide">ออกจากพื้นที่มีควันโดยหมอบต่ำ และเคลียร์ทางออกให้โล่ง</string>
 
     <!-- Chatbot -->
-    <string name="chatbot_title">Dr.Mind AI</string>
-    <string name="chatbot_subtitle">ตอบจากข้อมูล D-MIND Supabase เท่านั้น</string>
-    <string name="chatbot_placeholder">ถามสถานการณ์หรือคำแนะนำจากข้อมูล D-MIND…</string>
+    <string name="chatbot_title">Dr.Mind - ผู้เชี่ยวชาญฉุกเฉิน</string>
+    <string name="chatbot_subtitle">ภัยธรรมชาติ &amp; แพทย์ฉุกเฉิน</string>
+    <string name="chatbot_placeholder">ถามคำถามเกี่ยวกับภัยพิบัติ...</string>
     <string name="chatbot_loading">Dr.Mind กำลังตรวจข้อมูล</string>
     <string name="chatbot_send">ส่ง</string>
-    <string name="chatbot_welcome">สวัสดีครับ ผมคือ Dr.Mind ผู้ช่วยภัยพิบัติของ D-MIND ผมจะตอบจากข้อมูลในฐานข้อมูล Supabase ของแอปเท่านั้น</string>
+    <string name="chatbot_welcome">สวัสดีครับ! ผม Dr.Mind ผู้เชี่ยวชาญด้านภัยธรรมชาติและแพทย์ฉุกเฉิน 🧑‍⚕️ วันนี้ผมมาช่วยให้คำแนะนำเรื่องความปลอดภัยและการรับมือกับเหตุฉุกเฉินครับ คุณมีคำถามอะไรให้ผมช่วยไหมครับ? 😊</string>
     <string name="chatbot_error">ยังไม่สามารถเชื่อมต่อ Dr.Mind AI ได้ในตอนนี้ หากมีผู้บาดเจ็บหรือมีอันตรายเร่งด่วน โทร 191, 1669, 1784 หรือ 199 ทันที</string>
 
     <!-- Station -->

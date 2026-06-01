@@ -263,6 +263,7 @@ fun DMindApp() {
                         state = chatState,
                         onSend = chatbotViewModel::send,
                         viewModel = chatbotViewModel,
+                        onBack = ::navigateBack,
                     )
 
                     AppRoute.Contacts -> EmergencyContactsScreen()
