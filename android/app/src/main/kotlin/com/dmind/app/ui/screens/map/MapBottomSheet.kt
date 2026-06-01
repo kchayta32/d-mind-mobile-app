@@ -923,7 +923,7 @@ private fun StationDetailCard(
             Spacer(Modifier.height(12.dp))
 
             Text(
-                text = "สภาพอากาศและสิ่งแวดล้อม (Open-Meteo)",
+                text = "สภาพอากาศและสิ่งแวดล้อม",
                 fontWeight = FontWeight.Bold,
                 fontSize = 13.sp,
                 color = MaterialTheme.colorScheme.primary
@@ -1282,7 +1282,7 @@ private fun WeatherDetailCard(
                     .padding(10.dp)
             ) {
                 Column {
-                    Text("PM2.5 (Open-Meteo)", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                    Text("PM2.5", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
                     Text(current.openMeteoPm25?.let { String.format(java.util.Locale.US, "%.1f", it) } ?: "-", fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
             }
@@ -1294,7 +1294,7 @@ private fun WeatherDetailCard(
                     .padding(10.dp)
             ) {
                 Column {
-                    Text("AQI (Open-Meteo)", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                    Text("AQI", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
                     Text(current.openMeteoAqi?.toString() ?: "-", fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
             }

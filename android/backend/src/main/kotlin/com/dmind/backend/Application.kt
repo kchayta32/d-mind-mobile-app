@@ -280,6 +280,8 @@ data class FcmRegistrationRequest(
     val platform: String = "android",
     val userId: String? = null,
     val installationId: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
 )
 
 // โมเดลคำขอส่งการแจ้งเตือนไปยังกลุ่มเป้าหมายหรือผู้ใช้งานรายคน
@@ -292,6 +294,12 @@ data class NotificationSendRequest(
     val installationId: String? = null,
     val token: String? = null,
     val broadcast: Boolean = false,
+    val recommendation: String? = null,
+    val leadTimeSeconds: String? = null,
+    val extraActionUrl: String? = null,
+    val extraIcon: String? = null,
+    val mmi: String? = null,
+    val severity: String? = null,
 )
 
 // ข้อมูลของอุปกรณ์ที่ถูกบันทึกไว้ในระบบส่งข้อความแจ้งเตือน
@@ -606,16 +614,25 @@ internal class FcmHttpV1Sender private constructor(
 internal data class SendResult(val success: Boolean, val message: String)
 
 // ฟังก์ชันส่วนขยายช่วยแปลง NotificationSendRequest เป็นโครงสร้าง FCM Message
-private fun NotificationSendRequest.toFcmMessage(token: String): FcmV1Message =
-    FcmV1Message(
+private fun NotificationSendRequest.toFcmMessage(token: String): FcmV1Message {
+    val dataMap = mutableMapOf(
+        "alert_type" to alertType,
+        "alert_title" to title,
+        "alert_message" to message
+    )
+    recommendation?.let { dataMap["recommendation"] = it }
+    leadTimeSeconds?.let { dataMap["lead_time_seconds"] = it }
+    extraActionUrl?.let { dataMap["extra_action_url"] = it }
+    extraIcon?.let { dataMap["extra_icon"] = it }
+    mmi?.let { dataMap["mmi"] = it }
+    severity?.let { dataMap["severity"] = it }
+
+    return FcmV1Message(
         token = token,
-        data = mapOf(
-            "alert_type" to alertType,
-            "alert_title" to title,
-            "alert_message" to message,
-        ),
+        data = dataMap,
         android = FcmAndroidConfig(priority = "HIGH"),
     )
+}
 
 // คลาสส่งคำขอของระบบ FCM V1
 @Serializable

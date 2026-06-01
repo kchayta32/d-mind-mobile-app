@@ -607,7 +607,7 @@ class DataAggregatorService {
                     }
                     stormEvents.add(
                         EventInfo(
-                            title = "พายุ/ฝนหนัก กรุงเทพฯ (Open-Meteo)",
+                            title = "พายุ/ฝนหนัก กรุงเทพฯ",
                             type = "storm",
                             severity = severity,
                             location = "กรุงเทพมหานคร",

@@ -22,4 +22,6 @@ enum class AppRoute(
     VictimReports(R.string.nav_victim_reports),
     SatisfactionSurvey(R.string.nav_satisfaction_survey),
     Analytics(R.string.nav_analytics),
+    Guide(R.string.nav_guide),
+    Shelter(R.string.nav_shelter),
 }

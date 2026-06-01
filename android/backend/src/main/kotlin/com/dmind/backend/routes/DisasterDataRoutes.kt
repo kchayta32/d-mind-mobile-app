@@ -72,9 +72,9 @@ internal fun Route.disasterDataRoutes(config: GatewayConfig) {
             } ?: (if (daily) 7 else 24)
 
             val defaultFields = if (daily) {
-                "tc_max,tc_min,rh,slp,rain,ws10m,wd10m,cloudlow,cloudmed,cloudhigh,cond"
+                "tc_max,tc_min,rh,slp,psfc,rain,ws10m,wd10m,ws925,wd925,ws850,wd850,ws700,wd700,ws500,wd500,ws200,wd200,cloudlow,cloudmed,cloudhigh,swdown,cond"
             } else {
-                "tc,rh,slp,rain,ws10m,wd10m,cloudlow,cloudmed,cloudhigh,cond"
+                "tc,rh,slp,rain,ws10m,wd10m,ws925,wd925,ws850,wd850,ws700,wd700,ws500,wd500,ws200,wd200,cloudlow,cloudmed,cloudhigh,cond"
             }
             val fields = call.request.queryParameters["fields"] ?: defaultFields
 
@@ -500,33 +500,114 @@ private fun extractSeverityScore(text: String): Int {
 
 // ดึงข้อมูลสภาพอากาศแบบสำรองจากบริการพับลิก Open-Meteo ในกรณีที่ TMD API ขัดข้องหรือไม่มี Token
 private fun fetchOpenMeteoFallback(lat: Double, lon: Double, daily: Boolean, duration: Int): JsonElement {
-    val apiType = if (daily) "daily" else "hourly"
-    val url = if (daily) {
-        "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&daily=temperature_2m_max,temperature_2m_min,relative_humidity_2m_max,rain_sum,wind_speed_10m_max,weather_code&forecast_days=$duration&timezone=Asia/Bangkok"
-    } else {
-        "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&hourly=temperature_2m,relative_humidity_2m,rain,wind_speed_10m,weather_code&forecast_days=2&timezone=Asia/Bangkok"
-    }
+    val days = if (daily) duration else ((duration + 23) / 24).coerceAtLeast(1)
+    val url = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon" +
+            "&hourly=temperature_2m,relative_humidity_2m,rain,wind_speed_10m,wind_direction_10m," +
+            "wind_speed_925hPa,wind_direction_925hPa,wind_speed_850hPa,wind_direction_850hPa," +
+            "wind_speed_700hPa,wind_direction_700hPa,wind_speed_500hPa,wind_direction_500hPa," +
+            "wind_speed_200hPa,wind_direction_200hPa,pressure_msl,surface_pressure," +
+            "cloud_cover_low,cloud_cover_mid,cloud_cover_high,shortwave_radiation,weather_code" +
+            "&forecast_days=$days&timezone=Asia/Bangkok"
 
     val raw = httpRequest("GET", url)
     val root = Json.parseToJsonElement(raw).jsonObject
+    val hourlyObj = root["hourly"]?.jsonObject ?: return buildJsonObject { }
+    val timeArr = hourlyObj["time"]?.jsonArray ?: return buildJsonObject { }
+
+    val tempArr = hourlyObj["temperature_2m"]?.jsonArray
+    val rhArr = hourlyObj["relative_humidity_2m"]?.jsonArray
+    val rainArr = hourlyObj["rain"]?.jsonArray
+    val ws10mArr = hourlyObj["wind_speed_10m"]?.jsonArray
+    val wd10mArr = hourlyObj["wind_direction_10m"]?.jsonArray
+    val ws925Arr = hourlyObj["wind_speed_925hPa"]?.jsonArray
+    val wd925Arr = hourlyObj["wind_direction_925hPa"]?.jsonArray
+    val ws850Arr = hourlyObj["wind_speed_850hPa"]?.jsonArray
+    val wd850Arr = hourlyObj["wind_direction_850hPa"]?.jsonArray
+    val ws700Arr = hourlyObj["wind_speed_700hPa"]?.jsonArray
+    val wd700Arr = hourlyObj["wind_direction_700hPa"]?.jsonArray
+    val ws500Arr = hourlyObj["wind_speed_500hPa"]?.jsonArray
+    val wd500Arr = hourlyObj["wind_direction_500hPa"]?.jsonArray
+    val ws200Arr = hourlyObj["wind_speed_200hPa"]?.jsonArray
+    val wd200Arr = hourlyObj["wind_direction_200hPa"]?.jsonArray
+    val slpArr = hourlyObj["pressure_msl"]?.jsonArray
+    val psfcArr = hourlyObj["surface_pressure"]?.jsonArray
+    val cloudlowArr = hourlyObj["cloud_cover_low"]?.jsonArray
+    val cloudmedArr = hourlyObj["cloud_cover_mid"]?.jsonArray
+    val cloudhighArr = hourlyObj["cloud_cover_high"]?.jsonArray
+    val swdownArr = hourlyObj["shortwave_radiation"]?.jsonArray
+    val codeArr = hourlyObj["weather_code"]?.jsonArray
 
     val forecastsArray = buildJsonArray {
         if (daily) {
-            val dailyObj = root["daily"]?.jsonObject ?: return@buildJsonArray
-            val timeArr = dailyObj["time"]?.jsonArray ?: return@buildJsonArray
-            val tempMaxArr = dailyObj["temperature_2m_max"]?.jsonArray
-            val tempMinArr = dailyObj["temperature_2m_min"]?.jsonArray
-            val rainArr = dailyObj["rain_sum"]?.jsonArray
-            val wsArr = dailyObj["wind_speed_10m_max"]?.jsonArray
-            val codeArr = dailyObj["weather_code"]?.jsonArray
-
+            val groupedIndices = mutableMapOf<String, MutableList<Int>>()
             for (i in 0 until timeArr.size) {
-                val time = timeArr[i].jsonPrimitive.content
-                val tcMax = tempMaxArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
-                val tcMin = tempMinArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
-                val rain = rainArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
-                val ws = (wsArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0) / 3.6
-                val code = codeArr?.getOrNull(i)?.jsonPrimitive?.intOrNull ?: 0
+                val t = timeArr[i].jsonPrimitive.content
+                if (t.length >= 10) {
+                    val date = t.substring(0, 10)
+                    groupedIndices.getOrPut(date) { mutableListOf() }.add(i)
+                }
+            }
+
+            val sortedDates = groupedIndices.keys.sorted().take(duration)
+            for (date in sortedDates) {
+                val indices = groupedIndices[date] ?: continue
+
+                val temps = indices.mapNotNull { tempArr?.getOrNull(it)?.jsonPrimitive?.doubleOrNull }
+                val tcMax = if (temps.isNotEmpty()) temps.maxOrNull() ?: 0.0 else 0.0
+                val tcMin = if (temps.isNotEmpty()) temps.minOrNull() ?: 0.0 else 0.0
+
+                val rhs = indices.mapNotNull { rhArr?.getOrNull(it)?.jsonPrimitive?.doubleOrNull }
+                val rh = if (rhs.isNotEmpty()) rhs.average() else 70.0
+
+                val slps = indices.mapNotNull { slpArr?.getOrNull(it)?.jsonPrimitive?.doubleOrNull }
+                val slp = if (slps.isNotEmpty()) slps.average() else 1013.25
+
+                val psfcs = indices.mapNotNull { psfcArr?.getOrNull(it)?.jsonPrimitive?.doubleOrNull }
+                val psfc = if (psfcs.isNotEmpty()) psfcs.average() else 1010.0
+
+                val rains = indices.mapNotNull { rainArr?.getOrNull(it)?.jsonPrimitive?.doubleOrNull }
+                val rain = rains.sum()
+
+                fun maxWindSpeed(arr: JsonArray?): Double {
+                    val values = indices.mapNotNull { arr?.getOrNull(it)?.jsonPrimitive?.doubleOrNull }
+                    return if (values.isNotEmpty()) (values.maxOrNull() ?: 0.0) / 3.6 else 0.0
+                }
+
+                fun avgWindDirection(arr: JsonArray?): Double {
+                    val values = indices.mapNotNull { arr?.getOrNull(it)?.jsonPrimitive?.doubleOrNull }
+                    return if (values.isNotEmpty()) values.average() else 0.0
+                }
+
+                val ws10m = maxWindSpeed(ws10mArr)
+                val wd10m = avgWindDirection(wd10mArr)
+                val ws925 = maxWindSpeed(ws925Arr)
+                val wd925 = avgWindDirection(wd925Arr)
+                val ws850 = maxWindSpeed(ws850Arr)
+                val wd850 = avgWindDirection(wd850Arr)
+                val ws700 = maxWindSpeed(ws700Arr)
+                val wd700 = avgWindDirection(wd700Arr)
+                val ws500 = maxWindSpeed(ws500Arr)
+                val wd500 = avgWindDirection(wd500Arr)
+                val ws200 = maxWindSpeed(ws200Arr)
+                val wd200 = avgWindDirection(wd200Arr)
+
+                val cloudlows = indices.mapNotNull { cloudlowArr?.getOrNull(it)?.jsonPrimitive?.doubleOrNull }
+                val cloudlow = if (cloudlows.isNotEmpty()) cloudlows.average() else 0.0
+
+                val cloudmeds = indices.mapNotNull { cloudmedArr?.getOrNull(it)?.jsonPrimitive?.doubleOrNull }
+                val cloudmed = if (cloudmeds.isNotEmpty()) cloudmeds.average() else 0.0
+
+                val cloudhighs = indices.mapNotNull { cloudhighArr?.getOrNull(it)?.jsonPrimitive?.doubleOrNull }
+                val cloudhigh = if (cloudhighs.isNotEmpty()) cloudhighs.average() else 0.0
+
+                val swdowns = indices.mapNotNull { swdownArr?.getOrNull(it)?.jsonPrimitive?.doubleOrNull }
+                val swdown = if (swdowns.isNotEmpty()) swdowns.average() else 0.0
+
+                val codes = indices.mapNotNull { codeArr?.getOrNull(it)?.jsonPrimitive?.intOrNull }
+                val code = if (codes.isNotEmpty()) {
+                    codes.groupBy { it }.maxByOrNull { it.value.size }?.key ?: 0
+                } else 0
+
                 val cond = when (code) {
                     0 -> 1
                     1, 2 -> 2
@@ -541,34 +622,66 @@ private fun fetchOpenMeteoFallback(lat: Double, lon: Double, daily: Boolean, dur
                     else -> 1
                 }
 
+                // Convert cloud cover % to TMD scale of eighths (0-8)
+                val cloudlowOctas = (cloudlow / 12.5).toInt().coerceIn(0, 8)
+                val cloudmedOctas = (cloudmed / 12.5).toInt().coerceIn(0, 8)
+                val cloudhighOctas = (cloudhigh / 12.5).toInt().coerceIn(0, 8)
+
                 add(buildJsonObject {
-                    put("time", time + "T00:00:00+07:00")
+                    put("time", date + "T00:00:00+07:00")
                     put("data", buildJsonObject {
                         put("tc_max", tcMax)
                         put("tc_min", tcMin)
+                        put("rh", rh)
+                        put("slp", slp)
+                        put("psfc", psfc)
                         put("rain", rain)
-                        put("ws10m", ws)
+                        put("ws10m", ws10m)
+                        put("wd10m", wd10m)
+                        put("ws925", ws925)
+                        put("wd925", wd925)
+                        put("ws850", ws850)
+                        put("wd850", wd850)
+                        put("ws700", ws700)
+                        put("wd700", wd700)
+                        put("ws500", ws500)
+                        put("wd500", wd500)
+                        put("ws200", ws200)
+                        put("wd200", wd200)
+                        put("cloudlow", cloudlowOctas)
+                        put("cloudmed", cloudmedOctas)
+                        put("cloudhigh", cloudhighOctas)
+                        put("swdown", swdown)
                         put("cond", cond)
-                        put("rh", 70.0)
                     })
                 })
             }
         } else {
-            val hourlyObj = root["hourly"]?.jsonObject ?: return@buildJsonArray
-            val timeArr = hourlyObj["time"]?.jsonArray ?: return@buildJsonArray
-            val tempArr = hourlyObj["temperature_2m"]?.jsonArray
-            val rhArr = hourlyObj["relative_humidity_2m"]?.jsonArray
-            val rainArr = hourlyObj["rain"]?.jsonArray
-            val wsArr = hourlyObj["wind_speed_10m"]?.jsonArray
-            val codeArr = hourlyObj["weather_code"]?.jsonArray
-
             val count = minOf(timeArr.size, duration)
             for (i in 0 until count) {
                 val time = timeArr[i].jsonPrimitive.content
                 val tc = tempArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
-                val rh = rhArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val rh = rhArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 70.0
                 val rain = rainArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
-                val ws = (wsArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0) / 3.6
+
+                val ws10m = (ws10mArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0) / 3.6
+                val wd10m = wd10mArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val ws925 = (ws925Arr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0) / 3.6
+                val wd925 = wd925Arr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val ws850 = (ws850Arr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0) / 3.6
+                val wd850 = wd850Arr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val ws700 = (ws700Arr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0) / 3.6
+                val wd700 = wd700Arr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val ws500 = (ws500Arr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0) / 3.6
+                val wd500 = wd500Arr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val ws200 = (ws200Arr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0) / 3.6
+                val wd200 = wd200Arr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
+
+                val slp = slpArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 1013.25
+                val cloudlow = cloudlowArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val cloudmed = cloudmedArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
+                val cloudhigh = cloudhighArr?.getOrNull(i)?.jsonPrimitive?.doubleOrNull ?: 0.0
+
                 val code = codeArr?.getOrNull(i)?.jsonPrimitive?.intOrNull ?: 0
                 val cond = when (code) {
                     0 -> 1
@@ -584,13 +697,39 @@ private fun fetchOpenMeteoFallback(lat: Double, lon: Double, daily: Boolean, dur
                     else -> 1
                 }
 
+                // Convert cloud cover % to TMD scale of eighths (0-8)
+                val cloudlowOctas = (cloudlow / 12.5).toInt().coerceIn(0, 8)
+                val cloudmedOctas = (cloudmed / 12.5).toInt().coerceIn(0, 8)
+                val cloudhighOctas = (cloudhigh / 12.5).toInt().coerceIn(0, 8)
+
+                val formattedTime = if (time.contains("T")) {
+                    if (time.length == 16) time + ":00+07:00" else time
+                } else {
+                    time + ":00+07:00"
+                }
+
                 add(buildJsonObject {
-                    put("time", time + ":00+07:00")
+                    put("time", formattedTime)
                     put("data", buildJsonObject {
                         put("tc", tc)
                         put("rh", rh)
+                        put("slp", slp)
                         put("rain", rain)
-                        put("ws10m", ws)
+                        put("ws10m", ws10m)
+                        put("wd10m", wd10m)
+                        put("ws925", ws925)
+                        put("wd925", wd925)
+                        put("ws850", ws850)
+                        put("wd850", wd850)
+                        put("ws700", ws700)
+                        put("wd700", wd700)
+                        put("ws500", ws500)
+                        put("wd500", wd500)
+                        put("ws200", ws200)
+                        put("wd200", wd200)
+                        put("cloudlow", cloudlowOctas)
+                        put("cloudmed", cloudmedOctas)
+                        put("cloudhigh", cloudhighOctas)
                         put("cond", cond)
                     })
                 })
@@ -604,7 +743,7 @@ private fun fetchOpenMeteoFallback(lat: Double, lon: Double, daily: Boolean, dur
                 put("location", buildJsonObject {
                     put("lat", lat)
                     put("lon", lon)
-                    put("province", "Bangkok (Open-Meteo)")
+                    put("province", "Bangkok")
                 })
                 put("forecasts", forecastsArray)
             })

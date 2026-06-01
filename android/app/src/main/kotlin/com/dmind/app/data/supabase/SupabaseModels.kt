@@ -117,3 +117,22 @@ data class VictimReportRecord(
     val status: String,
     val createdAt: String,
 )
+
+// โมเดลแสดงข้อมูลศูนย์พักพิงที่บันทึกในฐานข้อมูล Supabase หรือดึงข้อมูลจำลอง
+data class ShelterRecord(
+    val id: String,
+    val name: String,
+    val address: String,
+    val province: String,
+    val district: String?,
+    val latitude: Double,
+    val longitude: Double,
+    val capacity: Int,
+    val currentOccupancy: Int?,
+    val type: String, // 'temporary' | 'permanent' | 'evacuation' | 'medical'
+    val facilities: List<String>,
+    val contactPhone: String?,
+    val status: String, // 'open' | 'closed' | 'full'
+    val lastUpdated: String?,
+    val distanceKm: Double? = null,
+)

@@ -17,7 +17,10 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import io.ktor.server.routing.get
 import kotlinx.serialization.Serializable
+import com.dmind.backend.service.DisasterAlertBrokerService
+import com.dmind.backend.service.DisasterInputEvent
 
 // โมเดลรายงานผลการวิเคราะห์และประเมินระบบเตือนภัยฉุกเฉิน
 @Serializable
@@ -38,6 +41,12 @@ internal fun Route.notificationRoutes(
             val request = call.receive<FcmRegistrationRequest>()
             validate(request.token.isNotBlank(), "token is required")
             validate(request.platform.isNotBlank(), "platform is required")
+
+            // อัปเดตพิกัดพิกัด Geofence ใน Broker Simulator
+            val lat = request.latitude ?: 13.7563 // กรุงเทพฯ เป็นค่าเริ่มต้น
+            val lon = request.longitude ?: 100.5018
+            DisasterAlertBrokerService.updateDeviceLocation(request.token, lat, lon)
+
             val detail = deviceRegistry.register(request)
             call.respond(
                 GatewayResponse(
@@ -113,6 +122,33 @@ internal fun Route.notificationRoutes(
                     detail = result
                 )
             )
+        }
+    }
+
+    // จำลองเหตุการณ์ภัยพิบัติเพื่อทดสอบโบรคเกอร์คิวและ Subagents (Asynchronous Test Endpoint)
+    post("/alerts/simulate") {
+        call.handleSafely(rateLimited = true, config = config) {
+            if (!call.requireAdmin(config)) return@handleSafely
+            val event = call.receive<DisasterInputEvent>()
+            validate(event.eventId.isNotBlank(), "eventId is required")
+            validate(event.disasterType.isNotBlank(), "disasterType is required")
+
+            DisasterAlertBrokerService.ingestDisasterEvent(event)
+            call.respond(
+                HttpStatusCode.Accepted,
+                mapOf(
+                    "status" to "accepted",
+                    "detail" to "Disaster event queued to ${event.disasterType} subagent queue."
+                )
+            )
+        }
+    }
+
+    // เรียกดูสถิติการประมวลผลภายในตัวจำลองโบรคเกอร์คิวของ Subagents และ Primary Agent
+    get("/alerts/broker-status") {
+        call.handleSafely(rateLimited = true, config = config) {
+            val status = DisasterAlertBrokerService.getStatus()
+            call.respond(HttpStatusCode.OK, status)
         }
     }
 }

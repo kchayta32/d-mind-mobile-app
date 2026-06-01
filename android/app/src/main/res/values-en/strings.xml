@@ -18,6 +18,8 @@
     <string name="nav_weather_hourly">Hourly</string>
     <string name="nav_weather_weekly">7 days</string>
     <string name="nav_damage">Damage Assessment</string>
+    <string name="nav_guide">App Guide</string>
+    <string name="nav_shelter">Shelter Finder</string>
 
     <!-- Dashboard -->
     <string name="app_subtitle">Disaster Monitoring System</string>

@@ -18,6 +18,8 @@
     <string name="nav_weather_hourly">รายชั่วโมง</string>
     <string name="nav_weather_weekly">7 วัน</string>
     <string name="nav_damage">ประเมินความเสียหาย</string>
+    <string name="nav_guide">คำแนะนำการใช้งาน</string>
+    <string name="nav_shelter">ค้นหาศูนย์พักพิง</string>
 
     <!-- Dashboard -->
     <string name="app_subtitle">ระบบเฝ้าระวังภัยพิบัติ</string>

@@ -238,6 +238,159 @@ class SupabaseRepository(
         ).mapObjects { it.toVictimReportRecord() }
     }
 
+    // ดึงข้อมูลศูนย์พักพิงจากตาราง shelters หรือดึงข้อมูลจำลอง (Mock data) หากล้มเหลวหรือไม่มีข้อมูล
+    suspend fun fetchShelters(): Result<List<ShelterRecord>> = runCatching {
+        try {
+            val response = client.select(
+                table = "shelters",
+                query = "select=*&status=eq.open"
+            )
+            val list = response.mapObjects { it.toShelterRecord() }
+            if (list.isNotEmpty()) {
+                list
+            } else {
+                getMockShelters()
+            }
+        } catch (e: Exception) {
+            getMockShelters()
+        }
+    }
+
+    // ดึงข้อมูลศูนย์พักพิงแบบ Mock สำหรับกรณีฉุกเฉินหรือไม่มีการเชื่อมต่อกับ Supabase
+    fun getMockShelters(): List<ShelterRecord> {
+        return listOf(
+            ShelterRecord(
+                id = "shelter-1",
+                name = "ศูนย์พักพิงชั่วคราว วัดปากน้ำภาษีเจริญ",
+                address = "12 ถ.เพชรเกษม เขตภาษีเจริญ",
+                province = "กรุงเทพมหานคร",
+                district = "ภาษีเจริญ",
+                latitude = 13.7213,
+                longitude = 100.4367,
+                capacity = 500,
+                currentOccupancy = 120,
+                type = "temporary",
+                facilities = listOf("น้ำดื่ม", "ห้องน้ำ", "อาหาร", "เต็นท์"),
+                contactPhone = "02-xxx-xxxx",
+                status = "open",
+                lastUpdated = null
+            ),
+            ShelterRecord(
+                id = "shelter-2",
+                name = "ศูนย์อพยพ โรงเรียนวัดสังเวช",
+                address = "456 ถ.สามเสน เขตพระนคร",
+                province = "กรุงเทพมหานคร",
+                district = "พระนคร",
+                latitude = 13.7679,
+                longitude = 100.4989,
+                capacity = 300,
+                currentOccupancy = 85,
+                type = "evacuation",
+                facilities = listOf("น้ำดื่ม", "ห้องน้ำ", "อาหาร", "การแพทย์"),
+                contactPhone = "02-xxx-xxxx",
+                status = "open",
+                lastUpdated = null
+            ),
+            ShelterRecord(
+                id = "shelter-3",
+                name = "ศูนย์พักพิง อบต.แม่ริม",
+                address = "หมู่ 4 ต.แม่ริม อ.แม่ริม",
+                province = "เชียงใหม่",
+                district = null,
+                latitude = 18.9167,
+                longitude = 98.9583,
+                capacity = 200,
+                currentOccupancy = 45,
+                type = "temporary",
+                facilities = listOf("น้ำดื่ม", "ห้องน้ำ", "เต็นท์"),
+                contactPhone = null,
+                status = "open",
+                lastUpdated = null
+            ),
+            ShelterRecord(
+                id = "shelter-4",
+                name = "ศูนย์อพยพ โรงพยาบาลพระนครศรีอยุธยา",
+                address = "ถ.อู่ทอง อ.พระนครศรีอยุธยา",
+                province = "พระนครศรีอยุธยา",
+                district = null,
+                latitude = 14.3532,
+                longitude = 100.5687,
+                capacity = 150,
+                currentOccupancy = null,
+                type = "medical",
+                facilities = listOf("น้ำดื่ม", "ห้องน้ำ", "อาหาร", "การแพทย์", "ยา"),
+                contactPhone = null,
+                status = "open",
+                lastUpdated = null
+            ),
+            ShelterRecord(
+                id = "shelter-5",
+                name = "ศูนย์พักพิงชั่วคราว วัดชลประทานรังสฤษดิ์",
+                address = "ถ.ติวานนท์ อ.ปากเกร็ด",
+                province = "นนทบุรี",
+                district = null,
+                latitude = 13.9060,
+                longitude = 100.5035,
+                capacity = 400,
+                currentOccupancy = 180,
+                type = "temporary",
+                facilities = listOf("น้ำดื่ม", "ห้องน้ำ", "อาหาร", "เต็นท์", "ไฟฟ้า"),
+                contactPhone = null,
+                status = "open",
+                lastUpdated = null
+            ),
+            ShelterRecord(
+                id = "shelter-6",
+                name = "ศูนย์อพยพ มหาวิทยาลัยขอนแก่น",
+                address = "ถ.มิตรภาพ อ.เมืองขอนแก่น",
+                province = "ขอนแก่น",
+                district = null,
+                latitude = 16.4722,
+                longitude = 102.8225,
+                capacity = 800,
+                currentOccupancy = 200,
+                type = "evacuation",
+                facilities = listOf("น้ำดื่ม", "ห้องน้ำ", "อาหาร", "การแพทย์", "ไฟฟ้า", "อินเทอร์เน็ต"),
+                contactPhone = null,
+                status = "open",
+                lastUpdated = null
+            ),
+            ShelterRecord(
+                id = "shelter-7",
+                name = "ศูนย์พักพิง โรงเรียนภูเก็ตวิทยาลัย",
+                address = "ถ.เทพกระษัตรี อ.เมืองภูเก็ต",
+                province = "ภูเก็ต",
+                district = null,
+                latitude = 7.9070,
+                longitude = 98.3721,
+                capacity = 350,
+                currentOccupancy = null,
+                type = "evacuation",
+                facilities = listOf("น้ำดื่ม", "ห้องน้ำ", "อาหาร"),
+                contactPhone = null,
+                status = "open",
+                lastUpdated = null
+            ),
+            ShelterRecord(
+                id = "shelter-8",
+                name = "ศูนย์อพยพ สนามกีฬาเทศบาล นครราชสีมา",
+                address = "ถ.มิตรภาพ อ.เมืองนครราชสีมา",
+                province = "นครราชสีมา",
+                district = null,
+                latitude = 14.9707,
+                longitude = 102.0986,
+                capacity = 1000,
+                currentOccupancy = null,
+                type = "evacuation",
+                facilities = listOf("น้ำดื่ม", "ห้องน้ำ", "อาหาร", "การแพทย์", "ไฟฟ้า"),
+                contactPhone = null,
+                status = "open",
+                lastUpdated = null
+            )
+        )
+    }
+
+
     // อัปโหลดรูปภาพเหตุการณ์ไปยัง Bucket incident-images บน Supabase Storage
     suspend fun uploadIncidentImage(
         fileName: String,
@@ -494,3 +647,36 @@ private fun JSONObject.toVictimReportRecord(): VictimReportRecord {
         createdAt = optString("created_at"),
     )
 }
+
+// แปลง JSONObject เป็นโมเดลศูนย์พักพิง (ShelterRecord)
+private fun JSONObject.toShelterRecord(): ShelterRecord {
+    val coords = optJSONObject("coordinates")
+    val lat = coords?.optDouble("lat") ?: optDouble("latitude", 0.0)
+    val lng = coords?.optDouble("lng") ?: optDouble("longitude", 0.0)
+    
+    val facilitiesJson = optJSONArray("facilities")
+    val facilitiesList = mutableListOf<String>()
+    if (facilitiesJson != null) {
+        for (i in 0 until facilitiesJson.length()) {
+            facilitiesList.add(facilitiesJson.optString(i))
+        }
+    }
+    
+    return ShelterRecord(
+        id = optString("id"),
+        name = optString("name"),
+        address = optString("address"),
+        province = optString("province"),
+        district = optNullableString("district"),
+        latitude = lat,
+        longitude = lng,
+        capacity = optInt("capacity", 0),
+        currentOccupancy = if (has("current_occupancy") && !isNull("current_occupancy")) optInt("current_occupancy") else null,
+        type = optString("type", "temporary"),
+        facilities = facilitiesList,
+        contactPhone = optNullableString("contact_phone"),
+        status = optString("status", "open"),
+        lastUpdated = optNullableString("last_updated") ?: optNullableString("created_at")
+    )
+}
+

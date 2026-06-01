@@ -52,8 +52,11 @@ import com.dmind.app.ui.screens.station.StationScreen
 import com.dmind.app.ui.screens.tools.DamageAssessmentScreen
 import com.dmind.app.ui.screens.tools.EmergencyContactsScreen
 import com.dmind.app.ui.screens.tools.EmergencyManualScreen
-import com.dmind.app.ui.screens.tools.WeatherOverviewScreen
-import com.dmind.app.ui.screens.tools.WeeklyForecastScreen
+import com.dmind.app.ui.screens.tools.WeatherForecastScreen
+import com.dmind.app.ui.screens.tools.DailyWeatherForecastScreen
+import com.dmind.app.ui.screens.guide.AppGuideScreen
+import com.dmind.app.ui.screens.shelter.ShelterFinderScreen
+import com.dmind.app.ui.viewmodel.ShelterFinderViewModel
 import com.dmind.app.ui.screens.victim.VictimReportsScreen
 import com.dmind.app.ui.screens.survey.SatisfactionSurveyScreen
 import com.dmind.app.ui.screens.analytics.AnalyticsDashboardScreen
@@ -122,6 +125,10 @@ fun DMindApp() {
     // กำหนดและเริ่มต้นใช้งาน AnalyticsDashboardViewModel
     val analyticsViewModel: AnalyticsDashboardViewModel = viewModel(
         factory = viewModelFactory { AnalyticsDashboardViewModel(AnalyticsRepository()) },
+    )
+    // กำหนดและเริ่มต้นใช้งาน ShelterFinderViewModel
+    val shelterViewModel: ShelterFinderViewModel = viewModel(
+        factory = viewModelFactory { ShelterFinderViewModel(container.supabaseRepository) },
     )
 
     // ดึงค่าสถานะ (State) จาก ViewModels ต่างๆ
@@ -262,9 +269,16 @@ fun DMindApp() {
 
                     AppRoute.Manual -> EmergencyManualScreen()
 
-                    AppRoute.Weather -> WeatherOverviewScreen(mapState = mapState)
+                    AppRoute.Weather -> WeatherForecastScreen(mapState = mapState)
 
-                    AppRoute.WeeklyWeather -> WeeklyForecastScreen(mapState = mapState)
+                    AppRoute.WeeklyWeather -> DailyWeatherForecastScreen(mapState = mapState)
+
+                    AppRoute.Guide -> AppGuideScreen(onBackClick = ::navigateBack)
+
+                    AppRoute.Shelter -> ShelterFinderScreen(
+                        viewModel = shelterViewModel,
+                        onBackClick = ::navigateBack
+                    )
 
                     AppRoute.Damage -> DamageAssessmentScreen(
                         state = damageState,

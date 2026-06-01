@@ -89,6 +89,8 @@ class BackendRestClient(
         province: String,
         amphoe: String?,
         tambon: String?,
+        latitude: Double? = null,
+        longitude: Double? = null,
         duration: Int,
     ): String = withContext(Dispatchers.IO) {
         ensureConfigured()
@@ -99,6 +101,10 @@ class BackendRestClient(
         }
         if (!tambon.isNullOrBlank()) {
             params.add("tambon=${URLEncoder.encode(tambon, "UTF-8")}")
+        }
+        if (latitude != null && longitude != null) {
+            params.add("lat=$latitude")
+            params.add("lon=$longitude")
         }
         params.add("duration=$duration")
         val queryString = params.joinToString("&")
