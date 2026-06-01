@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap
 // โครงสร้างข้อมูลแคชสำหรับจัดเก็บสภาพอากาศพร้อมเวลาหมดอายุ
 private data class WeatherCacheEntry(
     val data: JsonElement,
+    val status: String,
     val expiryTimeMillis: Long
 )
 
@@ -33,17 +34,17 @@ private data class WeatherCacheEntry(
 private val weatherCache = ConcurrentHashMap<String, WeatherCacheEntry>()
 
 // ค้นหาและดึงข้อมูลสภาพอากาศจากแคช หากหมดอายุแล้วจะลบทิ้งและส่งค่ากลับเป็น null
-private fun getCachedWeather(key: String): JsonElement? {
+private fun getCachedWeather(key: String): WeatherCacheEntry? {
     val entry = weatherCache[key] ?: return null
     if (System.currentTimeMillis() > entry.expiryTimeMillis) {
         weatherCache.remove(key)
         return null
     }
-    return entry.data
+    return entry
 }
 
 // บันทึกข้อมูลสภาพอากาศลงแคช โดยตั้งค่าเวลาหมดอายุไว้ที่ 15 นาที
-private fun putCachedWeather(key: String, data: JsonElement) {
+private fun putCachedWeather(key: String, data: JsonElement, status: String) {
     if (weatherCache.size > 1000) {
         val now = System.currentTimeMillis()
         weatherCache.keys.removeIf { k ->
@@ -52,7 +53,7 @@ private fun putCachedWeather(key: String, data: JsonElement) {
         }
     }
     val expiry = System.currentTimeMillis() + (15 * 60 * 1000) // 15 minutes
-    weatherCache[key] = WeatherCacheEntry(data, expiry)
+    weatherCache[key] = WeatherCacheEntry(data, status, expiry)
 }
 
 // กำหนดเส้นทาง URL (Routing) ที่เกี่ยวกับข้อมูลพยากรณ์อากาศ ภัยพิบัติ และการประเมินวิเคราะห์ผลด้วย AI
@@ -102,8 +103,7 @@ internal fun Route.disasterDataRoutes(config: GatewayConfig) {
 
             val cached = getCachedWeather(cacheKey)
             if (cached != null) {
-                val cachedStatus = if (cached.toString().contains("Open-Meteo")) "fallback" else "ok"
-                call.respond(JsonDataResponse(status = cachedStatus, detail = "cached weather", data = cached))
+                call.respond(JsonDataResponse(status = cached.status, detail = "cached weather", data = cached.data))
                 return@handleSafely
             }
 
@@ -114,7 +114,7 @@ internal fun Route.disasterDataRoutes(config: GatewayConfig) {
                 // Fallback to Open-Meteo when TMD token is unconfigured
                 try {
                     val fallbackData = fetchOpenMeteoFallback(lat, lon, daily, duration)
-                    putCachedWeather(cacheKey, fallbackData)
+                    putCachedWeather(cacheKey, fallbackData, "fallback")
                     call.respond(JsonDataResponse(status = "fallback", detail = "fallback Open-Meteo weather", data = fallbackData))
                 } catch (e: Exception) {
                     call.respondError(
@@ -178,13 +178,13 @@ internal fun Route.disasterDataRoutes(config: GatewayConfig) {
                         "authorization" to "Bearer $token",
                     ),
                 ).json()
-                putCachedWeather(data = data, key = cacheKey)
+                putCachedWeather(cacheKey, data, "ok")
                 call.respond(JsonDataResponse(status = "ok", detail = "live TMD weather", data = data))
             } catch (e: Exception) {
                 // Fallback to Open-Meteo when TMD API call fails
                 try {
                     val fallbackData = fetchOpenMeteoFallback(lat, lon, daily, duration)
-                    putCachedWeather(cacheKey, fallbackData)
+                    putCachedWeather(cacheKey, fallbackData, "fallback")
                     call.respond(JsonDataResponse(status = "fallback", detail = "fallback Open-Meteo weather (TMD API failed)", data = fallbackData))
                 } catch (fallbackEx: Exception) {
                     val statusCode = (e as? UpstreamException)?.statusCode ?: 502

@@ -92,6 +92,7 @@ class BackendRestClient(
         latitude: Double? = null,
         longitude: Double? = null,
         duration: Int,
+        daily: Boolean = false,
     ): String = withContext(Dispatchers.IO) {
         ensureConfigured()
         val params = mutableListOf<String>()
@@ -107,6 +108,9 @@ class BackendRestClient(
             params.add("lon=$longitude")
         }
         params.add("duration=$duration")
+        if (daily) {
+            params.add("daily=true")
+        }
         val queryString = params.joinToString("&")
         request(
             method = "GET",

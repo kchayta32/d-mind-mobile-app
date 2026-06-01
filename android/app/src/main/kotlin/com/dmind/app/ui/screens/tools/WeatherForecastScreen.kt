@@ -261,7 +261,7 @@ fun GlassmorphicContainer(
 fun SourceBadge(status: String) {
     val isTmd = status.lowercase() == "ok"
     val badgeColor = if (isTmd) SafeGreen else AffectedOrange
-    val badgeText = if (isTmd) "TMD Live" else "Open-Meteo Backup"
+    val badgeText = if (isTmd) "TMD Live" else "TMD Backup"
     
     Row(
         verticalAlignment = Alignment.CenterVertically,
