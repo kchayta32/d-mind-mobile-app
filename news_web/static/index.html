@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ศูนย์ติดตามข่าวภัยพิบัติและภัยธรรมชาติ | Disaster & Natural Hazard Tracker</title>
+  <meta name="description" content="ระบบติดตามข่าวภัยพิบัติและภัยธรรมชาติในประเทศไทยและทั่วโลกแบบ Real-time พร้อมแผนที่พิกัดจุดเกิดเหตุ">
+
+  <!-- Google Fonts: Prompt & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+
+  <!-- App Custom CSS -->
+  <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body class="dark-theme">
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon pulse">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div class="brand-text">
+          <h1>DisasterWatch <span>TH & World</span></h1>
+          <p>ศูนย์เฝ้าระวังและติดตามข่าวภัยพิบัติ Real-time</p>
+        </div>
+      </div>
+
+      <!-- Stats Quick Bar -->
+      <div class="stats-bar" id="statsBar">
+        <div class="stat-card">
+          <span class="stat-value" id="statTotal">--</span>
+          <span class="stat-label">เหตุการณ์ทั้งหมด</span>
+        </div>
+        <div class="stat-card thai-highlight">
+          <span class="stat-value" id="statThai">--</span>
+          <span class="stat-label">🇹🇭 ประเทศไทย</span>
+        </div>
+        <div class="stat-card critical-highlight">
+          <span class="stat-value" id="statCritical">--</span>
+          <span class="stat-label">🚨 วิกฤต/รุนแรง</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value" id="statUpdated">--:--</span>
+          <span class="stat-label">อัปเดตล่าสุด</span>
+        </div>
+      </div>
+
+      <!-- Header Actions -->
+      <div class="header-actions">
+        <div class="auto-refresh-selector">
+          <i class="fa-solid fa-rotate-right"></i>
+          <select id="autoRefreshSelect">
+            <option value="0">Auto-refresh: ปิด</option>
+            <option value="60">ทุก 1 นาที</option>
+            <option value="300" selected>ทุก 5 นาที</option>
+            <option value="600">ทุก 10 นาที</option>
+          </select>
+        </div>
+
+        <button id="refreshBtn" class="btn-refresh" title="ดึงข้อมูลใหม่ทันที">
+          <i class="fa-solid fa-arrows-rotate"></i>
+          <span>รีเฟรช</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-layout">
+    <!-- Sidebar Control & Filters -->
+    <aside class="control-panel">
+      <!-- Search Input -->
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" id="searchInput" placeholder="ค้นหาภัยพิบัติ, สถานที่, ข่าว...">
+        <button id="clearSearchBtn" class="btn-clear hidden">&times;</button>
+      </div>
+
+      <!-- Region Filter Tabs -->
+      <div class="filter-section">
+        <label class="section-label"><i class="fa-solid fa-earth-asia"></i> ภูมิภาค (Region)</label>
+        <div class="tab-group" id="regionTabs">
+          <button class="tab-btn active" data-region="all">ทั้งหมด</button>
+          <button class="tab-btn" data-region="thailand">🇹🇭 ประเทศไทย</button>
+          <button class="tab-btn" data-region="international">🌐 ต่างประเทศ</button>
+        </div>
+      </div>
+
+      <!-- Hazard Category Filter Pills -->
+      <div class="filter-section">
+        <label class="section-label"><i class="fa-solid fa-layer-group"></i> ประเภทภัยพิบัติ (Hazard Category)</label>
+        <div class="pill-grid" id="categoryPills">
+          <button class="pill-btn active" data-cat="all"><i class="fa-solid fa-border-all"></i> ทั้งหมด</button>
+          <button class="pill-btn" data-cat="earthquake"><i class="fa-solid fa-house-crack"></i> แผ่นดินไหว</button>
+          <button class="pill-btn" data-cat="flood"><i class="fa-solid fa-water"></i> อุทกภัย/น้ำท่วม</button>
+          <button class="pill-btn" data-cat="storm"><i class="fa-solid fa-tornado"></i> พายุ/วาตภัย</button>
+          <button class="pill-btn" data-cat="wildfire"><i class="fa-solid fa-fire"></i> ไฟป่า</button>
+          <button class="pill-btn" data-cat="volcano"><i class="fa-solid fa-volcano"></i> ภูเขาไฟ</button>
+          <button class="pill-btn" data-cat="landslide"><i class="fa-solid fa-hill-rockslide"></i> ดินถล่ม</button>
+        </div>
+      </div>
+
+      <!-- Severity Filter -->
+      <div class="filter-section">
+        <label class="section-label"><i class="fa-solid fa-gauge-high"></i> ระดับความรุนแรง (Severity)</label>
+        <div class="severity-selector" id="severitySelector">
+          <button class="sev-btn active" data-sev="all">ทั้งหมด</button>
+          <button class="sev-btn sev-critical" data-sev="critical">วิกฤต</button>
+          <button class="sev-btn sev-high" data-sev="high">สูง</button>
+          <button class="sev-btn sev-medium" data-sev="medium">ปานกลาง</button>
+          <button class="sev-btn sev-low" data-sev="low">เฝ้าระวัง</button>
+        </div>
+      </div>
+
+      <!-- Sidebar News Feed -->
+      <div class="feed-container">
+        <div class="feed-header">
+          <h3><i class="fa-regular fa-newspaper"></i> รายการข่าวสารล่าสุด</h3>
+          <span class="feed-count" id="feedCount">0 ข่าว</span>
+        </div>
+        <div class="feed-list" id="newsFeedList">
+          <!-- Dynamically populated cards -->
+          <div class="loading-state">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            <p>กำลังโหลดข้อมูลภัยพิบัติล่าสุด...</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Center/Right Map Display -->
+    <section class="map-section">
+      <div class="map-controls">
+        <div class="map-title-tag">
+          <i class="fa-solid fa-location-dot"></i> แผนที่แสดงจุดเกิดเหตุภัยพิบัติ (Live Interactive Map)
+        </div>
+        <div class="map-view-actions">
+          <button id="btnFocusThai" class="map-btn"><i class="fa-solid fa-flag"></i> ซูมเข้าประเทศไทย</button>
+          <button id="btnFocusWorld" class="map-btn"><i class="fa-solid fa-globe"></i> มุมมองทั่วโลก</button>
+        </div>
+      </div>
+
+      <div id="disasterMap"></div>
+
+      <!-- Map Legend Overlay -->
+      <div class="map-legend">
+        <h4>สัญลักษณ์หมุด</h4>
+        <div class="legend-items">
+          <div class="legend-item"><span class="marker-dot dot-critical"></span> วิกฤต (Critical)</div>
+          <div class="legend-item"><span class="marker-dot dot-high"></span> เสี่ยงสูง (High)</div>
+          <div class="legend-item"><span class="marker-dot dot-medium"></span> ปานกลาง (Medium)</div>
+          <div class="legend-item"><span class="marker-dot dot-low"></span> เฝ้าระวัง (Low)</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- News Detail Modal -->
+  <div id="detailModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <button id="modalCloseBtn" class="modal-close-btn">&times;</button>
+      <div class="modal-header">
+        <div class="modal-badges">
+          <span id="modalCategoryBadge" class="badge">ประเภท</span>
+          <span id="modalSeverityBadge" class="badge">ความรุนแรง</span>
+          <span id="modalRegionBadge" class="badge">ภูมิภาค</span>
+        </div>
+        <h2 id="modalTitle">หัวข้อข่าวภัยพิบัติ</h2>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-info-grid">
+          <div class="info-item">
+            <i class="fa-solid fa-location-dot"></i>
+            <div>
+              <label>สถานที่เกิดเหตุ</label>
+              <p id="modalLocation">--</p>
+            </div>
+          </div>
+          <div class="info-item">
+            <i class="fa-regular fa-clock"></i>
+            <div>
+              <label>เวลาที่รายงาน</label>
+              <p id="modalTime">--</p>
+            </div>
+          </div>
+          <div class="info-item">
+            <i class="fa-solid fa-map-pin"></i>
+            <div>
+              <label>พิกัดละติจูด, ลองจิจูด</label>
+              <p id="modalCoords">--</p>
+            </div>
+          </div>
+          <div class="info-item">
+            <i class="fa-solid fa-rss"></i>
+            <div>
+              <label>แหล่งที่มาของข่าว</label>
+              <p id="modalSource">--</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-description-box">
+          <h3>รายละเอียดข่าว</h3>
+          <p id="modalDescription">--</p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="modalLocateMapBtn" class="btn-secondary">
+          <i class="fa-solid fa-crosshairs"></i> แสดงบนแผนที่
+        </button>
+        <a id="modalSourceLink" href="#" target="_blank" class="btn-primary">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> อ่านข่าวต้นฉบับ
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <!-- App JS -->
+  <script src="static/js/app.js"></script>
+</body>
+</html>
