@@ -1,7 +1,7 @@
 # 🗺️ D-MIND: Complete Database ER Diagram & Architecture Specification
 **ระบบฐานข้อมูลร่วมสำหรับ Android Native App, IoT Station และ Backend Gateway**  
-**เวอร์ชัน:** 2.0 (Production Master Schema)  
-**วันที่จัดทำ:** 1 กันยายน 2026  
+**เวอร์ชัน:** 2.1 (GitHub Optimized Production Schema)  
+**วันที่ปรับปรุง:** 1 กันยายน 2026  
 
 ---
 
@@ -26,8 +26,8 @@
 ```mermaid
 flowchart TD
     subgraph IoT_Hardware["📡 IoT Field Stations"]
-        ESP32["ESP32 Microcontroller\n(4 Sensors: Water, Dust, Motion, Env)"]
-        RPi["Raspberry Pi Gateway\n(FastAPI + MQTT Broker + Alert Engine)"]
+        ESP32["ESP32 Microcontroller<br/>(4 Sensors: Water, Dust, Motion, Env)"]
+        RPi["Raspberry Pi Gateway<br/>(FastAPI + MQTT Broker + Alert Engine)"]
     end
 
     subgraph Central_Cloud["☁️ Central Cloud Database (PostgreSQL / Supabase)"]
@@ -73,7 +73,10 @@ flowchart TD
     ESP32 -->|MQTT / JSON| RPi
     RPi -->|FastAPI Ingest / SQL| T_sensor_logs
     RPi -->|Alert Evaluation| T_iot_alerts
-    T_sensor_logs -.->|Trigger: sync_sensor_logs| T_water & T_pm & T_motion & T_env
+    T_sensor_logs -.->|Trigger: sync_sensor_logs| T_water
+    T_sensor_logs -.->|Trigger: sync_sensor_logs| T_pm
+    T_sensor_logs -.->|Trigger: sync_sensor_logs| T_motion
+    T_sensor_logs -.->|Trigger: sync_sensor_logs| T_env
 
     KtorServer <-->|PostgREST / Service Role| Central_Cloud
     AppClient <-->|REST API / Supabase SDK| Central_Cloud
@@ -88,7 +91,7 @@ flowchart TD
 
 ## 2. แผนภาพ ER Diagram รวมทั้งระบบ (System-Wide Master ER Diagram)
 
-ด้านล่างคือแผนภาพความสัมพันธ์ของเอนทิตี (ER Diagram) ฉบับสมบูรณ์ แสดงตารางทั้งหมดทั้งบน Central Supabase Cloud และ Android Room SQLite:
+ด้านล่างคือแผนภาพความสัมพันธ์ของเอนทิตี (ER Diagram) ฉบับสมบูรณ์ แสดงตารางทั้งหมดทั้งบน Central Supabase Cloud และ Android Room SQLite (ปรับแต่งไวยากรณ์ตามมาตรฐาน Mermaid สำหรับ GitHub):
 
 ```mermaid
 erDiagram
@@ -104,7 +107,7 @@ erDiagram
     USER_ROLES {
         uuid id PK "Unique Role Assignment ID"
         uuid user_id FK "References auth.users(id)"
-        enum role "admin | emergency_responder | user"
+        string role "admin / emergency_responder / user"
         timestamp assigned_at "Assignment timestamp"
         uuid assigned_by "Admin user who assigned role"
         boolean is_active "Active status"
@@ -123,7 +126,7 @@ erDiagram
     USER_NOTIFICATION_SETTINGS {
         uuid id PK "Settings ID"
         uuid user_id FK "References auth.users(id) [Nullable]"
-        string email UK "Notification Email"
+        string email "Unique Notification Email"
         boolean enabled "Global toggle"
         double latitude "Home/Work Latitude"
         double longitude "Home/Work Longitude"
@@ -147,8 +150,8 @@ erDiagram
 
     DEVICE_PUSH_TOKENS {
         uuid id PK "Token Record ID"
-        string token UK "FCM Device Push Token"
-        string platform "Platform: 'android'"
+        string token "Unique FCM Device Push Token"
+        string platform "Platform: android"
         uuid user_id FK "References auth.users(id) [Nullable]"
         string user_id_text "Fallback client ID"
         string installation_id "Unique app install ID"
@@ -164,7 +167,7 @@ erDiagram
         uuid id PK "Unique Key ID"
         string key_name "Friendly Name / Purpose"
         string key_prefix "Prefix for lookup (dmind_live_...)"
-        string hashed_key UK "SHA-256 Hash of raw API key"
+        string hashed_key "Unique SHA-256 Hash of raw API key"
         integer rate_limit_rpm "Rate limit per minute (Default 120)"
         boolean is_active "Soft revocation flag"
         text description "Usage description"
@@ -200,7 +203,7 @@ erDiagram
         timestamp timestamp "Measurement time"
         double water_level "Water level in cm"
         double distance_cm "Raw sensor head distance"
-        string status "NORMAL | WARNING | CRITICAL"
+        string status "NORMAL / WARNING / CRITICAL"
         string device_id "Hardware Station ID"
     }
 
@@ -210,7 +213,7 @@ erDiagram
         double pm1 "PM1.0 ug/m3"
         double pm25 "PM2.5 ug/m3"
         double pm10 "PM10 ug/m3"
-        string aqi_category "Good | Moderate | Unhealthy | Hazardous"
+        string aqi_category "Good / Moderate / Unhealthy / Hazardous"
         string device_id "Hardware Station ID"
     }
 
@@ -245,14 +248,14 @@ erDiagram
     DISASTER_ALERTS {
         integer id PK "Auto-increment Alert ID"
         timestamp timestamp "Triggered timestamp"
-        string alert_type "WATER_LEVEL_HIGH | PM25_HIGH | ABNORMAL_VIBRATION"
-        string severity "INFO | WARNING | CRITICAL"
+        string alert_type "WATER_LEVEL_HIGH / PM25_HIGH / ABNORMAL_VIBRATION"
+        string severity "INFO / WARNING / CRITICAL"
         string title "Alert Title"
         string message "Alert Message Body"
-        string sensor_name "Sensor Trigger: AJ-SR04M | PMS5003 | GY-521 | BME280"
+        string sensor_name "Sensor Trigger: AJ-SR04M / PMS5003 / GY-521 / BME280"
         double current_value "Measured trigger value"
         double threshold_value "Configured threshold"
-        string unit "cm | ug/m3 | g | C"
+        string unit "cm / ug_m3 / g / C"
         boolean is_resolved "Resolution flag"
         timestamp resolved_at "Resolution timestamp"
         string device_id "Origin Station ID"
@@ -264,8 +267,8 @@ erDiagram
     REALTIME_ALERTS {
         uuid id PK "Unique Alert UUID"
         string title "Emergency Title"
-        string message "Detailed instructions & alert"
-        string alert_type "flood | earthquake | wildfire | storm | air_quality"
+        string message "Detailed instructions and alert"
+        string alert_type "flood / earthquake / wildfire / storm / air_quality"
         integer severity_level "Severity 1 to 5"
         jsonb coordinates "{lat, lng}"
         double radius_km "Impact Radius in km"
@@ -284,8 +287,8 @@ erDiagram
         uuid id PK "Delivery ID"
         uuid alert_id FK "References realtime_alerts(id)"
         uuid user_id FK "References auth.users(id)"
-        string delivery_method "push | email | sms"
-        string delivery_status "pending | delivered | failed"
+        string delivery_method "push / email / sms"
+        string delivery_status "pending / delivered / failed"
         timestamp delivered_at "FCM delivery timestamp"
         timestamp read_at "User open/read timestamp"
         timestamp created_at "Creation timestamp"
@@ -296,7 +299,7 @@ erDiagram
     %% ==========================================
     INCIDENT_REPORTS {
         uuid id PK "Incident Report ID"
-        string type "flood | fire | landslide | road_block | storm"
+        string type "flood / fire / landslide / road_block / storm"
         string title "Report title"
         string description "Detailed description"
         string location "Address / Landmark text"
@@ -304,7 +307,7 @@ erDiagram
         integer severity_level "Severity 1 to 5"
         string contact_info "Reporter phone / contact (Protected)"
         string_array image_urls "Storage URLs in incident-images bucket"
-        string status "pending | verified | resolved | rejected"
+        string status "pending / verified / resolved / rejected"
         boolean is_verified "Responder verification"
         timestamp created_at "Reported time"
         timestamp updated_at "Last updated time"
@@ -316,11 +319,11 @@ erDiagram
         string image_url "Storage URL in damage-assessment-images"
         string original_filename "Uploaded image filename"
         jsonb assessment_result "AI Model JSON Detection Payload"
-        string damage_level "none | minor | moderate | severe | critical"
+        string damage_level "none / minor / moderate / severe / critical"
         decimal confidence_score "Model confidence 0.0000 - 1.0000"
-        string_array detected_categories "e.g. ['collapsed_roof', 'water_damage']"
+        string_array detected_categories "Damage category tags"
         decimal estimated_cost "Estimated structural repair cost (THB)"
-        string processing_status "pending | processing | completed | failed"
+        string processing_status "pending / processing / completed / failed"
         text error_message "Failure reason if failed"
         timestamp processed_at "Inference completed timestamp"
         timestamp created_at "Creation timestamp"
@@ -333,7 +336,7 @@ erDiagram
         string contact "Emergency contact number"
         string description "Condition / Medical need"
         jsonb coordinates "{lat, lng}"
-        string status "pending | in_progress | rescued | resolved"
+        string status "pending / in_progress / rescued / resolved"
         timestamp created_at "SOS Timestamp"
         timestamp updated_at "Status update timestamp"
     }
@@ -348,9 +351,9 @@ erDiagram
         string description "Short summary"
         string image_url "Cover photo URL"
         text content "Markdown / HTML content"
-        string type "emergency_article | academic_article | guide"
-        string layout_type "auto | manual"
-        string slug UK "URL Friendly slug"
+        string type "emergency_article / academic_article / guide"
+        string layout_type "auto / manual"
+        string slug "Unique URL Friendly slug"
         boolean published "Publication toggle"
         uuid author_id FK "References auth.users(id)"
         timestamp created_at "Created at"
@@ -359,9 +362,9 @@ erDiagram
 
     ANALYTICS_DATA {
         uuid id PK "Metric ID"
-        string metric_name "e.g. daily_flood_count"
+        string metric_name "Metric name"
         numeric metric_value "Numeric metric value"
-        string metric_type "disaster_count | severity_dist | station_metric"
+        string metric_type "disaster_count / severity_dist / station_metric"
         date date_recorded "Aggregation date"
         jsonb location_data "{province, district, station_id}"
         jsonb metadata "Extra calculation attributes"
@@ -386,9 +389,9 @@ erDiagram
         string userId "User ID or Guest UUID"
         double latitude "GPS Latitude"
         double longitude "GPS Longitude"
-        integer batteryLevel "Battery % at SOS time"
+        integer batteryLevel "Battery percent at SOS time"
         string message "SOS Message"
-        string status "'pending' | 'sent' | 'failed'"
+        string status "pending / sent / failed"
         bigint createdAt "Creation epoch millis"
         bigint sentAt "Sync epoch millis"
     }
@@ -421,7 +424,7 @@ erDiagram
     AUTH_USERS ||--o{ USER_NOTIFICATION_SETTINGS : "configures"
     AUTH_USERS ||--o{ USER_ALERT_SUBSCRIPTIONS : "subscribes"
     AUTH_USERS ||--o{ DEVICE_PUSH_TOKENS : "registers devices"
-    AUTH_USERS ||--o{ REALTIME_ALERTS : "creates/issues"
+    AUTH_USERS ||--o{ REALTIME_ALERTS : "creates or issues"
     AUTH_USERS ||--o{ ALERT_DELIVERIES : "receives"
     AUTH_USERS ||--o{ ARTICLES : "authors"
 
@@ -433,12 +436,12 @@ erDiagram
     SENSOR_LOGS ||--o| PM_LOGS : "triggers sync"
     SENSOR_LOGS ||--o| MOTION_LOGS : "triggers sync"
     SENSOR_LOGS ||--o| ENVIRONMENT_LOGS : "triggers sync"
-    SENSOR_LOGS ..> DISASTER_ALERTS : "evaluates thresholds"
+    SENSOR_LOGS ||--o{ DISASTER_ALERTS : "evaluates thresholds"
 
     %% Android Local Room Synchronization mapping
-    ROOM_SOS_QUEUE ..> VICTIM_REPORTS : "syncs when online"
-    REALTIME_ALERTS ..> ROOM_ALERTS : "cached into"
-    REALTIME_ALERTS ..> ROOM_DANGER_ZONES : "polygons cached into"
+    ROOM_SOS_QUEUE ||..o| VICTIM_REPORTS : "syncs when online"
+    REALTIME_ALERTS ||..o{ ROOM_ALERTS : "cached into"
+    REALTIME_ALERTS ||..o{ ROOM_DANGER_ZONES : "polygons cached into"
 ```
 
 ---
@@ -451,108 +454,108 @@ erDiagram
 ```mermaid
 erDiagram
     API_KEYS {
-        uuid id PK
-        string key_name
-        string key_prefix
-        string hashed_key UK
-        integer rate_limit_rpm
-        boolean is_active
-        text description
-        timestamp expires_at
-        timestamp last_used_at
-        bigint total_requests
-        timestamp created_at
+        uuid id PK "Unique Key ID"
+        string key_name "Client Name"
+        string key_prefix "Lookup Prefix"
+        string hashed_key "Unique SHA-256 Hash"
+        integer rate_limit_rpm "Rate limit"
+        boolean is_active "Active toggle"
+        text description "Description"
+        timestamp expires_at "Expiry"
+        timestamp last_used_at "Last used"
+        bigint total_requests "Total requests"
+        timestamp created_at "Created at"
     }
 
     SENSOR_LOGS {
-        integer id PK
-        timestamp timestamp
-        double water_level "AJ-SR04M Ultrasonic"
-        double pm1 "PMS5003 Laser"
-        double pm25 "PMS5003 Laser"
-        double pm10 "PMS5003 Laser"
-        double pitch "GY-521 Tilt"
-        double roll "GY-521 Tilt"
-        double yaw "GY-521 Yaw"
-        double acc_x "GY-521 Acc X"
-        double acc_y "GY-521 Acc Y"
-        double acc_z "GY-521 Acc Z"
-        double gyro_x "GY-521 Gyro X"
-        double gyro_y "GY-521 Gyro Y"
-        double gyro_z "GY-521 Gyro Z"
-        double temperature "BME280 Temp"
-        double humidity "BME280 Humidity"
-        double pressure "BME280 Pressure"
+        integer id PK "Log ID"
+        timestamp timestamp "Measurement time"
+        double water_level "AJ-SR04M Ultrasonic (cm)"
+        double pm1 "PMS5003 Laser (ug/m3)"
+        double pm25 "PMS5003 Laser (ug/m3)"
+        double pm10 "PMS5003 Laser (ug/m3)"
+        double pitch "GY-521 Tilt Pitch (deg)"
+        double roll "GY-521 Tilt Roll (deg)"
+        double yaw "GY-521 Yaw (deg)"
+        double acc_x "GY-521 Acc X (g)"
+        double acc_y "GY-521 Acc Y (g)"
+        double acc_z "GY-521 Acc Z (g)"
+        double gyro_x "GY-521 Gyro X (deg/s)"
+        double gyro_y "GY-521 Gyro Y (deg/s)"
+        double gyro_z "GY-521 Gyro Z (deg/s)"
+        double temperature "BME280 Temp (C)"
+        double humidity "BME280 Humidity (%)"
+        double pressure "BME280 Pressure (hPa)"
     }
 
     WATER_LEVEL_LOGS {
-        integer id PK
-        timestamp timestamp
-        double water_level
-        double distance_cm
-        string status "NORMAL|WARNING|CRITICAL"
-        string device_id
+        integer id PK "Log ID"
+        timestamp timestamp "Measurement time"
+        double water_level "Water Level (cm)"
+        double distance_cm "Distance (cm)"
+        string status "NORMAL / WARNING / CRITICAL"
+        string device_id "Station ID"
     }
 
     PM_LOGS {
-        integer id PK
-        timestamp timestamp
-        double pm1
-        double pm25
-        double pm10
-        string aqi_category
-        string device_id
+        integer id PK "Log ID"
+        timestamp timestamp "Measurement time"
+        double pm1 "PM 1.0"
+        double pm25 "PM 2.5"
+        double pm10 "PM 10"
+        string aqi_category "AQI Level"
+        string device_id "Station ID"
     }
 
     MOTION_LOGS {
-        integer id PK
-        timestamp timestamp
-        double pitch
-        double roll
-        double yaw
-        double acc_x
-        double acc_y
-        double acc_z
-        double gyro_x
-        double gyro_y
-        double gyro_z
-        double vibration_delta
-        boolean is_anomaly
-        string device_id
+        integer id PK "Log ID"
+        timestamp timestamp "Measurement time"
+        double pitch "Pitch angle"
+        double roll "Roll angle"
+        double yaw "Yaw angle"
+        double acc_x "Acc X"
+        double acc_y "Acc Y"
+        double acc_z "Acc Z"
+        double gyro_x "Gyro X"
+        double gyro_y "Gyro Y"
+        double gyro_z "Gyro Z"
+        double vibration_delta "|Acc - 1.0g|"
+        boolean is_anomaly "Anomaly flag"
+        string device_id "Station ID"
     }
 
     ENVIRONMENT_LOGS {
-        integer id PK
-        timestamp timestamp
-        double temperature
-        double humidity
-        double pressure
-        double heat_index
-        double dew_point
-        string device_id
+        integer id PK "Log ID"
+        timestamp timestamp "Measurement time"
+        double temperature "Temperature (C)"
+        double humidity "Humidity (%)"
+        double pressure "Pressure (hPa)"
+        double heat_index "Heat Index (C)"
+        double dew_point "Dew Point (C)"
+        string device_id "Station ID"
     }
 
     DISASTER_ALERTS {
-        integer id PK
-        timestamp timestamp
-        string alert_type
-        string severity
-        string title
-        string message
-        string sensor_name
-        double current_value
-        double threshold_value
-        string unit
-        boolean is_resolved
-        timestamp resolved_at
-        string device_id
+        integer id PK "Alert ID"
+        timestamp timestamp "Alert time"
+        string alert_type "Anomaly Type"
+        string severity "INFO / WARNING / CRITICAL"
+        string title "Alert Title"
+        string message "Alert Message"
+        string sensor_name "Trigger Sensor"
+        double current_value "Value"
+        double threshold_value "Threshold"
+        string unit "Unit"
+        boolean is_resolved "Resolved flag"
+        timestamp resolved_at "Resolved time"
+        string device_id "Station ID"
     }
 
     SENSOR_LOGS ||--o| WATER_LEVEL_LOGS : "Auto-split via Trigger"
     SENSOR_LOGS ||--o| PM_LOGS : "Auto-split via Trigger"
     SENSOR_LOGS ||--o| MOTION_LOGS : "Auto-split via Trigger"
     SENSOR_LOGS ||--o| ENVIRONMENT_LOGS : "Auto-split via Trigger"
-    SENSOR_LOGS ..> DISASTER_ALERTS : "Threshold Alert Rule Evaluation"
+    SENSOR_LOGS ||--o{ DISASTER_ALERTS : "evaluates alerts"
 ```
 
 ---
@@ -563,77 +566,77 @@ erDiagram
 ```mermaid
 erDiagram
     REALTIME_ALERTS {
-        uuid id PK
-        string title
-        string message
-        string alert_type
-        integer severity_level
-        jsonb coordinates
-        double radius_km
-        string_array affected_provinces
-        boolean is_active
-        uuid created_by FK
-        uuid verified_by
-        timestamp verified_at
-        timestamp expires_at
-        jsonb metadata
-        timestamp created_at
-        timestamp updated_at
+        uuid id PK "Alert ID"
+        string title "Title"
+        string message "Message"
+        string alert_type "Type"
+        integer severity_level "Level 1 to 5"
+        jsonb coordinates "Geo Coordinates"
+        double radius_km "Radius in km"
+        string_array affected_provinces "Provinces"
+        boolean is_active "Active flag"
+        uuid created_by FK "Created by user"
+        uuid verified_by "Verified by user"
+        timestamp verified_at "Verified time"
+        timestamp expires_at "Expires at"
+        jsonb metadata "Metadata"
+        timestamp created_at "Created at"
+        timestamp updated_at "Updated at"
     }
 
     ALERT_DELIVERIES {
-        uuid id PK
-        uuid alert_id FK
-        uuid user_id FK
-        string delivery_method
-        string delivery_status
-        timestamp delivered_at
-        timestamp read_at
-        timestamp created_at
+        uuid id PK "Delivery ID"
+        uuid alert_id FK "Alert reference"
+        uuid user_id FK "User reference"
+        string delivery_method "push / email / sms"
+        string delivery_status "pending / delivered / failed"
+        timestamp delivered_at "Delivered time"
+        timestamp read_at "Read time"
+        timestamp created_at "Created at"
     }
 
     INCIDENT_REPORTS {
-        uuid id PK
-        string type
-        string title
-        string description
-        string location
-        jsonb coordinates
-        integer severity_level
-        string contact_info
-        string_array image_urls
-        string status
-        boolean is_verified
-        timestamp created_at
-        timestamp updated_at
+        uuid id PK "Report ID"
+        string type "Disaster type"
+        string title "Title"
+        string description "Description"
+        string location "Location text"
+        jsonb coordinates "GPS Coordinates"
+        integer severity_level "Severity 1 to 5"
+        string contact_info "Reporter phone"
+        string_array image_urls "Storage image URLs"
+        string status "pending / verified / resolved"
+        boolean is_verified "Verified status"
+        timestamp created_at "Created at"
+        timestamp updated_at "Updated at"
     }
 
     DAMAGE_ASSESSMENTS {
-        uuid id PK
-        uuid incident_id FK
-        string image_url
-        string original_filename
-        jsonb assessment_result
-        string damage_level
-        decimal confidence_score
-        string_array detected_categories
-        decimal estimated_cost
-        string processing_status
-        text error_message
-        timestamp processed_at
-        timestamp created_at
-        timestamp updated_at
+        uuid id PK "Assessment ID"
+        uuid incident_id FK "Incident reference"
+        string image_url "Image URL"
+        string original_filename "Filename"
+        jsonb assessment_result "AI Inference Result"
+        string damage_level "none / minor / moderate / severe / critical"
+        decimal confidence_score "Confidence"
+        string_array detected_categories "Damage categories"
+        decimal estimated_cost "Estimated repair cost"
+        string processing_status "pending / processing / completed"
+        text error_message "Error message"
+        timestamp processed_at "Processed time"
+        timestamp created_at "Created at"
+        timestamp updated_at "Updated at"
     }
 
     VICTIM_REPORTS {
-        uuid id PK
-        string name
-        string contact
-        string description
-        jsonb coordinates
-        string status
-        timestamp created_at
-        timestamp updated_at
+        uuid id PK "SOS ID"
+        string name "Victim Name"
+        string contact "Emergency Contact"
+        string description "Medical / rescue needs"
+        jsonb coordinates "GPS Coordinates"
+        string status "pending / in_progress / rescued / resolved"
+        timestamp created_at "Created at"
+        timestamp updated_at "Updated at"
     }
 
     REALTIME_ALERTS ||--o{ ALERT_DELIVERIES : "Tracks push status"
@@ -648,65 +651,65 @@ erDiagram
 ```mermaid
 erDiagram
     AUTH_USERS {
-        uuid id PK
-        string email
-        timestamp created_at
+        uuid id PK "User ID"
+        string email "Email"
+        timestamp created_at "Registered at"
     }
 
     USER_ROLES {
-        uuid id PK
-        uuid user_id FK
-        enum role "admin | emergency_responder | user"
-        timestamp assigned_at
-        uuid assigned_by
-        boolean is_active
+        uuid id PK "Role ID"
+        uuid user_id FK "User reference"
+        string role "admin / emergency_responder / user"
+        timestamp assigned_at "Assigned time"
+        uuid assigned_by "Assigned by"
+        boolean is_active "Active status"
     }
 
     DEVICE_PUSH_TOKENS {
-        uuid id PK
-        string token UK
+        uuid id PK "Token ID"
+        string token "Unique FCM Device Push Token"
         string platform "android"
-        uuid user_id FK
-        string user_id_text
-        string installation_id
-        boolean is_active
-        timestamp created_at
-        timestamp updated_at
+        uuid user_id FK "User reference"
+        string user_id_text "Guest ID"
+        string installation_id "Unique app instance ID"
+        boolean is_active "Active status"
+        timestamp created_at "Created at"
+        timestamp updated_at "Updated at"
     }
 
     USER_NOTIFICATION_SETTINGS {
-        uuid id PK
-        uuid user_id FK
-        string email UK
-        boolean enabled
-        double latitude
-        double longitude
-        integer radius_km
-        timestamp created_at
-        timestamp updated_at
+        uuid id PK "Settings ID"
+        uuid user_id FK "User reference"
+        string email "Unique Notification Email"
+        boolean enabled "Push toggle"
+        double latitude "Latitude"
+        double longitude "Longitude"
+        integer radius_km "Radius km"
+        timestamp created_at "Created at"
+        timestamp updated_at "Updated at"
     }
 
     USER_ALERT_SUBSCRIPTIONS {
-        uuid id PK
-        uuid user_id FK
-        string_array alert_types
-        jsonb location_preferences
-        integer min_severity_level
-        double radius_km
-        jsonb notification_methods
-        boolean is_active
-        timestamp created_at
-        timestamp updated_at
+        uuid id PK "Subscription ID"
+        uuid user_id FK "User reference"
+        string_array alert_types "Subscribed types"
+        jsonb location_preferences "Location preference"
+        integer min_severity_level "Min severity"
+        double radius_km "Radius"
+        jsonb notification_methods "Methods"
+        boolean is_active "Active toggle"
+        timestamp created_at "Created at"
+        timestamp updated_at "Updated at"
     }
 
     USER_LOCATIONS {
-        uuid id PK
-        uuid user_id FK
-        jsonb coordinates
-        string location_name
-        boolean is_active
-        timestamp created_at
-        timestamp updated_at
+        uuid id PK "Location ID"
+        uuid user_id FK "User reference"
+        jsonb coordinates "Coordinates"
+        string location_name "Location Name"
+        boolean is_active "Active flag"
+        timestamp created_at "Created at"
+        timestamp updated_at "Updated at"
     }
 
     AUTH_USERS ||--o{ USER_ROLES : "assigned roles"
@@ -726,7 +729,7 @@ erDiagram
     ROOM_ALERTS {
         integer id PK "Primary Key (Auto-generate)"
         string type "Disaster category"
-        string level "CRITICAL | WARNING | INFO"
+        string level "CRITICAL / WARNING / INFO"
         string title "Headline"
         string message "Body of warning"
         bigint timestamp "Epoch millis"
@@ -740,7 +743,7 @@ erDiagram
         double longitude "GPS Longitude"
         integer batteryLevel "Battery level percentage"
         string message "Emergency note"
-        string status "pending | sent | failed"
+        string status "pending / sent / failed"
         bigint createdAt "Recorded epoch timestamp"
         bigint sentAt "Successful upload epoch timestamp"
     }
@@ -766,7 +769,7 @@ erDiagram
     }
 
     ROOM_DANGER_ZONES ||--o{ ROOM_LOCATION_HISTORY : "Location evaluated against zone"
-    ROOM_SOS_QUEUE ..> ROOM_LOCATION_HISTORY : "Captures latest fix"
+    ROOM_SOS_QUEUE ||--o{ ROOM_LOCATION_HISTORY : "Captures latest fix"
 ```
 
 ---
@@ -1084,19 +1087,19 @@ sequenceDiagram
     participant CloudDB as Supabase (victim_reports)
     participant Responder as Dashboard เจ้าหน้าที่กู้ภัย
 
-    User->>LocalDB: 1. กดปุ่ม SOS ฉุกเฉิน (บันทึก status='pending', batteryLevel, GPS)
-    LocalDB-->>User: 2. ยืนยันการบันทึกลงเครื่องทันที (ทำงานได้แม้ไม่มีเน็ต)
+    User->>LocalDB: กดปุ่ม SOS ฉุกเฉิน (บันทึก status=pending, batteryLevel, GPS)
+    LocalDB-->>User: ยืนยันการบันทึกลงเครื่องทันที (ทำงานได้แม้ไม่มีเน็ต)
     
     alt เมื่อมีสัญญาณอินเทอร์เน็ต (Network Connected)
-        Worker->>LocalDB: 3. ดึงรายการ status='pending' จาก sos_queue
-        Worker->>Backend: 4. POST /sos (ส่ง Payload พิกัดและข้อความ)
-        Backend->>CloudDB: 5. INSERT เข้าตาราง victim_reports (status='pending')
-        CloudDB-->>Backend: 6. Response 201 Created (UUID)
-        Backend-->>Worker: 7. Response 200 OK (Status Accepted)
-        Worker->>LocalDB: 8. อัปเดต sos_queue (status='sent', sentAt=now())
-        CloudDB->>Responder: 9. Supabase Realtime Stream แจ้งเตือนพิกัดผู้ประสบภัยบนแผนที่กู้ภัย
+        Worker->>LocalDB: ดึงรายการ status=pending จาก sos_queue
+        Worker->>Backend: POST /sos (ส่ง Payload พิกัดและข้อความ)
+        Backend->>CloudDB: INSERT เข้าตาราง victim_reports (status=pending)
+        CloudDB-->>Backend: Response 201 Created (UUID)
+        Backend-->>Worker: Response 200 OK (Status Accepted)
+        Worker->>LocalDB: อัปเดต sos_queue (status=sent, sentAt=now)
+        CloudDB->>Responder: Supabase Realtime Stream แจ้งเตือนพิกัดผู้ประสบภัยบนแผนที่กู้ภัย
     else อยู่ในสภาวะออฟไลน์ (Offline)
-        Worker->>Worker: 10. รอรับสัญญาณ Event NetworkCapabilities ทาง BroadcastReceiver
+        Worker->>Worker: รอรับสัญญาณ Event NetworkCapabilities ทาง BroadcastReceiver
     end
 ```
 
@@ -1111,15 +1114,15 @@ sequenceDiagram
     participant FCM as Firebase Cloud Messaging
     participant Android as D-MIND Android App
 
-    ESP32->>RPi: 1. ส่งค่าเซนเซอร์ผ่าน MQTT (Water, PM2.5, Motion, Env)
-    RPi->>Cloud: 2. บันทึกลง sensor_logs (Trigger แยก 4 ตารางย่อยอัตโนมัติ)
-    RPi->>Cloud: 3. ประเมินเกณฑ์ผิดปกติ -> บันทึกลง disaster_alerts
-    Dispatcher->>Cloud: 4. ตรวจพบ Alert ใหม่ หรือภัยพิบัติภายนอก (USGS/TMD/GISTDA)
-    Dispatcher->>Cloud: 5. สร้างระเบียนใน realtime_alerts
-    Dispatcher->>Cloud: 6. คัดกรอง device_push_tokens ตามพิกัดรัศมี (get_nearby_users)
-    Dispatcher->>FCM: 7. ส่ง High-Priority FCM Data Message
-    FCM->>Android: 8. ปลุกระบบเบื้องหลัง (Background Wakeup / DND Bypass)
-    Android->>Android: 9. ส่งเสียงไซเรนฉุกเฉิน + บันทึกลง Room Database (alerts)
+    ESP32->>RPi: ส่งค่าเซนเซอร์ผ่าน MQTT (Water, PM2.5, Motion, Env)
+    RPi->>Cloud: บันทึกลง sensor_logs (Trigger แยก 4 ตารางย่อยอัตโนมัติ)
+    RPi->>Cloud: ประเมินเกณฑ์ผิดปกติ -> บันทึกลง disaster_alerts
+    Dispatcher->>Cloud: ตรวจพบ Alert ใหม่ หรือภัยพิบัติภายนอก (USGS/TMD/GISTDA)
+    Dispatcher->>Cloud: สร้างระเบียนใน realtime_alerts
+    Dispatcher->>Cloud: คัดกรอง device_push_tokens ตามพิกัดรัศมี (get_nearby_users)
+    Dispatcher->>FCM: ส่ง High-Priority FCM Data Message
+    FCM->>Android: ปลุกระบบเบื้องหลัง (Background Wakeup / DND Bypass)
+    Android->>Android: ส่งเสียงไซเรนฉุกเฉิน + บันทึกลง Room Database (alerts)
 ```
 
 ---
