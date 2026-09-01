@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # 1. Mosquitto MQTT Broker
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: dmind-mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    command: >
+      sh -c '
+      echo "listener 1883 0.0.0.0" > /mosquitto/config/mosquitto.conf &&
+      echo "allow_anonymous true" >> /mosquitto/config/mosquitto.conf &&
+      /usr/sbin/mosquitto -c /mosquitto/config/mosquitto.conf
+      '
+
+  # 2. FastAPI Gateway & MQTT Subscriber
+  gateway-api:
+    build: .
+    container_name: dmind-gateway-api
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+    ports:
+      - "8000:8000"
+    environment:
+      - MQTT_BROKER_HOST=mosquitto
+      - MQTT_BROKER_PORT=1883
+      - HOST=0.0.0.0
+      - PORT=8000
+    env_file:
+      - .env
+
+volumes:
+  mosquitto_data:
+  mosquitto_log:

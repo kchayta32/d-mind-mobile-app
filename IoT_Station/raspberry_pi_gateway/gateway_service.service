@@ -1,0 +1,15 @@
+[Unit]
+Description=D-MIND Raspberry Pi Gateway & FastAPI Daemon
+After=network.target mosquitto.service
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/IoT_Station/raspberry_pi_gateway
+ExecStart=/home/pi/IoT_Station/raspberry_pi_gateway/venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=5
+EnvironmentFile=/home/pi/IoT_Station/raspberry_pi_gateway/.env
+
+[Install]
+WantedBy=multi-user.target
