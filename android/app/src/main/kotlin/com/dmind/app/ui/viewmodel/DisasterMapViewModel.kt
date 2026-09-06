@@ -504,7 +504,8 @@ class DisasterMapViewModel(
         playbackJob?.cancel()
         playbackJob = viewModelScope.launch {
             while (isActive) {
-                val speed = _state.value.radarPlaybackSpeed
+                // ป้องกันหารด้วยศูนย์หากได้รับค่าความเร็วที่ไม่ถูกต้อง
+                val speed = _state.value.radarPlaybackSpeed.coerceAtLeast(1)
                 delay(1500L / speed)
                 stepRadarFrame(1)
             }
@@ -519,7 +520,7 @@ class DisasterMapViewModel(
 
     // ปรับเปลี่ยนความเร็วของการเล่นแอนิเมชันเรดาร์น้ำฝน
     fun setRadarPlaybackSpeed(speed: Int) {
-        _state.update { it.copy(radarPlaybackSpeed = speed) }
+        _state.update { it.copy(radarPlaybackSpeed = speed.coerceAtLeast(1)) }
         if (_state.value.isRadarPlaying) {
             startPlayback()
         }

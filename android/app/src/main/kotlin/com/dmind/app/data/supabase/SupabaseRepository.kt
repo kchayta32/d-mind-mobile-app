@@ -634,8 +634,9 @@ private fun JSONObject.toDamageAssessmentRecord(): DamageAssessmentRecord {
 // แปลง JSONObject เป็นโมเดลรายการคำร้องขอความช่วยเหลือจากผู้ประสบภัย
 private fun JSONObject.toVictimReportRecord(): VictimReportRecord {
     val coords = optJSONObject("coordinates")
-    val lat = coords?.optDouble("lat") ?: 0.0
-    val lng = coords?.optDouble("lng") ?: 0.0
+    // optDouble คืน NaN เมื่อไม่มีคีย์ จึงต้องแปลงเป็น null และไม่ใช้ 0,0 แทนพิกัดที่ไม่มีข้อมูล
+    val lat = coords?.optDouble("lat")?.takeIf { !it.isNaN() }
+    val lng = coords?.optDouble("lng")?.takeIf { !it.isNaN() }
     return VictimReportRecord(
         id = optString("id"),
         name = optString("name"),

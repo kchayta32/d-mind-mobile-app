@@ -1,5 +1,7 @@
 package com.dmind.app.model;
 
+import java.util.Locale;
+
 /**
  * GeoPoint - Represents a geographic coordinate point.
  * 
@@ -73,15 +75,16 @@ public class GeoPoint {
     // แปลงจุดพิกัดเป็นข้อความทศนิยมสำหรับใช้แสดงผลหรือบันทึกข้อมูล
     @Override
     public String toString() {
-        return String.format("%.6f,%.6f", latitude, longitude);
+        // ใช้ Locale.US เพื่อให้ตัวคั่นทศนิยมเป็น '.' เสมอ (parse กลับด้วย GeoPoint(String) ได้)
+        return String.format(Locale.US, "%.6f,%.6f", latitude, longitude);
     }
     
     /**
      * Convert to JSON-like string for API communication
      */
-    // แปลงจุดพิกัดให้เป็นข้อความรูปแบบ JSON เพื่อส่งผ่าน API
+    // แปลงจุดพิกัดให้เป็นข้อความรูปแบบ JSON เพื่อส่งผ่าน API (Locale.US เพื่อให้เป็น JSON ที่ถูกต้องเสมอ)
     public String toJson() {
-        return String.format("{\"lat\":%.6f,\"lng\":%.6f}", latitude, longitude);
+        return String.format(Locale.US, "{\"lat\":%.6f,\"lng\":%.6f}", latitude, longitude);
     }
     
     // ============================================================

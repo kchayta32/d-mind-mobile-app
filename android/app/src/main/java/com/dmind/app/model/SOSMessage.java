@@ -1,7 +1,9 @@
 package com.dmind.app.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Locale;
 
 /**
  * SOSMessage - Represents a SOS (Save Our Souls) emergency message.
@@ -60,15 +62,23 @@ public class SOSMessage {
      * Get SOS as JSON string for API communication
      */
     // แปลงโมเดลข้อมูลข้อความ SOS เป็นข้อความรูปแบบโครงสร้าง JSON สำหรับส่งไปยังเซิร์ฟเวอร์หลังบ้าน
+    // ชื่อฟิลด์ต้องตรงกับ SosRequest ของ backend (userId, latitude, longitude, batteryLevel, message)
+    // และใช้ JSONObject เพื่อให้ escape ถูกต้องและไม่ขึ้นกับ Locale ของเครื่อง (เช่น ทศนิยมเป็น ',')
     public String toJson() {
-        return String.format(
-            "{\"user_id\":\"%s\",\"lat\":%.6f,\"lng\":%.6f,\"battery\":%d,\"message\":\"%s\",\"status\":\"%s\",\"created\":%d}",
-            userId != null ? userId : "",
-            latitude, longitude, batteryLevel,
-            message != null ? message.replace("\"", "\\\"") : "",
-            status != null ? status : "pending",
-            createdAt
-        );
+        try {
+            JSONObject json = new JSONObject();
+            json.put("id", id > 0 ? String.valueOf(id) : JSONObject.NULL);
+            json.put("userId", userId != null && !userId.isEmpty() ? userId : "anonymous");
+            json.put("latitude", latitude);
+            json.put("longitude", longitude);
+            json.put("batteryLevel", batteryLevel);
+            json.put("message", message != null ? message : "");
+            json.put("status", status != null ? status : "pending");
+            json.put("createdAt", createdAt);
+            return json.toString();
+        } catch (JSONException e) {
+            throw new IllegalStateException("Unable to serialize SOS message", e);
+        }
     }
     
     /**
@@ -77,21 +87,39 @@ public class SOSMessage {
     // แปลงข้อมูลการขอความช่วยเหลือเป็นข้อความที่มนุษย์อ่านเข้าใจง่ายเพื่อใช้ทำ Log หรือตรวจสอบ
     @Override
     public String toString() {
-        return String.format("SOS[id=%d, user=%s, location=%.6f,%.6f, battery=%d%%, msg=%s, status=%s]",
+        return String.format(Locale.US, "SOS[id=%d, user=%s, location=%.6f,%.6f, battery=%d%%, msg=%s, status=%s]",
             id, userId, latitude, longitude, batteryLevel, message, status);
     }
     
     /**
      * Create SOS from JSON string
      */
-    // แปลงข้อความ JSON ให้กลับมาเป็นอ็อบเจกต์ SOSMessage
+    // แปลงข้อความ JSON ให้กลับมาเป็นอ็อบเจกต์ SOSMessage (รองรับทั้งชื่อฟิลด์ใหม่และชื่อฟิลด์เดิม)
     public static SOSMessage fromJson(String json) {
-        // การทำงานแบบย่อชั่วคราว สามารถเพิ่มการแปลงโดยใช้ Gson หรือ JSONObject ได้ในอนาคต
         SOSMessage msg = new SOSMessage();
-        
-        // Parse JSON manually or use Gson/JSONObject
-        // This is a simplified implementation
-        
+        if (json == null || json.trim().isEmpty()) {
+            return msg;
+        }
+        try {
+            JSONObject obj = new JSONObject(json);
+            String rawId = obj.optString("id", "");
+            if (!rawId.isEmpty()) {
+                try {
+                    msg.id = Integer.parseInt(rawId);
+                } catch (NumberFormatException ignored) {
+                    // id ที่ไม่ใช่ตัวเลข (เช่น UUID จากเซิร์ฟเวอร์) จะถูกละไว้
+                }
+            }
+            msg.userId = obj.optString("userId", obj.optString("user_id", null));
+            msg.latitude = obj.optDouble("latitude", obj.optDouble("lat", 0.0));
+            msg.longitude = obj.optDouble("longitude", obj.optDouble("lng", 0.0));
+            msg.batteryLevel = obj.optInt("batteryLevel", obj.optInt("battery", -1));
+            msg.message = obj.optString("message", null);
+            msg.status = obj.optString("status", "pending");
+            msg.createdAt = obj.optLong("createdAt", obj.optLong("created", 0L));
+        } catch (JSONException ignored) {
+            // คืนค่าออบเจกต์ว่างหากรูปแบบ JSON ไม่ถูกต้อง
+        }
         return msg;
     }
 }

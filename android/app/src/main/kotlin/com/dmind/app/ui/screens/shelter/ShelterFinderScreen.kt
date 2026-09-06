@@ -1,7 +1,6 @@
 package com.dmind.app.ui.screens.shelter
 
-import android.content.Intent
-import android.net.Uri
+import com.dmind.app.util.ExternalIntents
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -315,10 +314,10 @@ fun ShelterFinderScreen(
                         ShelterCard(
                             shelter = shelter,
                             onCallClick = { phone ->
-                                context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone")))
+                                ExternalIntents.dial(context, phone)
                             },
                             onNavigateClick = { lat, lon ->
-                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("google.navigation:q=$lat,$lon")))
+                                ExternalIntents.navigateTo(context, lat, lon)
                             }
                         )
                     }

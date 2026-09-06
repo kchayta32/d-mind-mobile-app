@@ -154,7 +154,7 @@ public class FCMDataMessageService extends IntentService {
         switch (alertType.toLowerCase()) {
             case "flood":
             case "flooding":
-                return "น้ำท่วมฉุกเฉิน! / EmergencyFlooding!";
+                return "น้ำท่วมฉุกเฉิน! / Emergency Flooding!";
             case "tsunami":
                 return "สึนามิ! / Tsunami!";
             case "earthquake":
@@ -176,15 +176,15 @@ public class FCMDataMessageService extends IntentService {
         switch (alertType.toLowerCase()) {
             case "flood":
             case "flooding":
-                return "น้ำท่วมกำลังapproachพื้นที่ของคุณ! 抓紧เวลาอพยพ! / Flooding approaching your area! Evacuate immediately!";
+                return "น้ำท่วมกำลังเข้าใกล้พื้นที่ของคุณ! อพยพทันที! / Flooding approaching your area! Evacuate immediately!";
             case "tsunami":
-                return "สึนามิถูกตรวจจับ! ทันทีหลบหนีไปยังพื้นที่สูง! / Tsunami detected! Move to high ground immediately!";
+                return "ตรวจพบสึนามิ! รีบขึ้นที่สูงทันที! / Tsunami detected! Move to high ground immediately!";
             case "earthquake":
-                return "แผ่นดินไหว! หาที่กำบังและอยู่ในปลอดภัย! / Earthquake! Find cover and stay safe!";
+                return "แผ่นดินไหว! หาที่กำบังและอยู่ในที่ปลอดภัย! / Earthquake! Find cover and stay safe!";
             case "landslide":
-                return "ดินถล่มใกล้พื้นที่ของคุณ! หลบหนีทันที! / Landslide near your area! Evacuate immediately!";
+                return "ดินถล่มใกล้พื้นที่ของคุณ! อพยพทันที! / Landslide near your area! Evacuate immediately!";
             case "storm":
-                return "พายุรุนแรงกำลังapproach! หาที่กำบัง! / Severe storm approaching! Seek shelter!";
+                return "พายุรุนแรงกำลังเข้าใกล้! หาที่กำบัง! / Severe storm approaching! Seek shelter!";
             default:
                 return "ภัยพิบัติใกล้พื้นที่ของคุณ! เตรียมพร้อมรับมือ! / Disaster approaching your area! Prepare for impact!";
         }

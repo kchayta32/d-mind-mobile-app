@@ -47,7 +47,8 @@ public final class FCMTokenRegistrar {
             Log.i(TAG, "FCM token endpoint is not configured; token saved locally only");
             return false;
         }
-        String endpoint = BuildConfig.BACKEND_BASE_URL.trim() + "/fcm/register";
+        // ตัด '/' ท้าย base URL ออกเพื่อไม่ให้ได้พาธ "//fcm/register"
+        String endpoint = BuildConfig.BACKEND_BASE_URL.trim().replaceAll("/+$", "") + "/fcm/register";
 
         HttpURLConnection connection = null;
         try {

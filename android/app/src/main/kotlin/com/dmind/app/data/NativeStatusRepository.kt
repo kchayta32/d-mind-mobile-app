@@ -8,8 +8,11 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.BatteryManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
+import android.util.Log
 import androidx.core.content.ContextCompat
 import com.dmind.app.R
 import com.dmind.app.activity.BatteryOptimizationSettingsActivity
@@ -25,6 +28,10 @@ import com.google.firebase.messaging.FirebaseMessaging
 // คลาส Repository สำหรับจัดการและตรวจสอบสถานะการทำงานของฟังก์ชันพื้นฐานในระดับ Native (เช่น สิทธิ์การเข้าถึงข้อมูล, สถานะการติดตามตำแหน่ง)
 class NativeStatusRepository(private val context: Context) {
     private val appContext = context.applicationContext
+
+    private companion object {
+        const val TAG = "NativeStatusRepository"
+    }
 
     // ดึงและอัปเดตสถานะความน่าเชื่อถือและความพร้อมของระบบ (เช่น สิทธิ์การเข้าถึงตำแหน่งและการแจ้งเตือน)
     fun refreshStatus(): ReliabilityStatus {
@@ -90,20 +97,33 @@ class NativeStatusRepository(private val context: Context) {
     }
 
     // ดึง FCM Token ล่าสุดจาก Firebase และส่งไปลงทะเบียนกับเซิร์ฟเวอร์
+    // หมายเหตุ: ต้องตรวจ isSuccessful ก่อนเรียก task.result เพราะ result จะโยน RuntimeExecutionException เมื่อ task ล้มเหลว
+    // และ onComplete จะถูกเรียกบน main thread เสมอ เพื่อให้ผู้เรียกอัปเดต UI state ได้อย่างปลอดภัย
     fun refreshFcmToken(onComplete: (Boolean) -> Unit) {
-        FirebaseMessaging.getInstance().token
-            .addOnCompleteListener { task ->
-                val token = task.result
-                val ok = task.isSuccessful && !token.isNullOrBlank()
-                if (ok) {
-                    Thread {
-                        FCMTokenRegistrar.registerTokenIfConfigured(appContext, token)
-                        onComplete(true)
-                    }.start()
-                } else {
-                    onComplete(false)
+        val mainHandler = Handler(Looper.getMainLooper())
+        fun finish(ok: Boolean) {
+            if (Looper.myLooper() == Looper.getMainLooper()) onComplete(ok) else mainHandler.post { onComplete(ok) }
+        }
+
+        try {
+            FirebaseMessaging.getInstance().token
+                .addOnCompleteListener { task ->
+                    val token = if (task.isSuccessful) task.result else null
+                    if (!token.isNullOrBlank()) {
+                        Thread {
+                            FCMTokenRegistrar.registerTokenIfConfigured(appContext, token)
+                            finish(true)
+                        }.start()
+                    } else {
+                        Log.w(TAG, "Unable to fetch FCM token", task.exception)
+                        finish(false)
+                    }
                 }
-            }
+        } catch (e: IllegalStateException) {
+            // Firebase ยังไม่ได้ตั้งค่า (ไม่มี google-services.json)
+            Log.w(TAG, "Firebase is not configured; cannot refresh FCM token", e)
+            finish(false)
+        }
     }
 
     // เปิดหน้าการตั้งค่าแบตเตอรี่ของแอปพลิเคชัน

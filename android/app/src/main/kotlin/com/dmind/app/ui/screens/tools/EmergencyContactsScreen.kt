@@ -1,7 +1,5 @@
 package com.dmind.app.ui.screens.tools
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,6 +30,7 @@ import com.dmind.app.ui.components.DmindCard
 import com.dmind.app.ui.components.IconBubble
 import com.dmind.app.ui.components.ScreenHeader
 import com.dmind.app.ui.components.StatusPill
+import com.dmind.app.util.ExternalIntents
 
 // หน้าจอแสดงเบอร์โทรศัพท์ฉุกเฉินและการโทรติดต่อหน่วยงานต่างๆ
 @Composable
@@ -63,7 +62,7 @@ fun EmergencyContactsScreen() {
                 modifier = Modifier
                     .padding(horizontal = 18.dp)
                     .clickable {
-                        context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${contact.phone}")))
+                        ExternalIntents.dial(context, contact.phone)
                     },
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {

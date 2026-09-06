@@ -163,20 +163,34 @@ internal fun MapLibreTerrainView(
     }
 
     DisposableEffect(lifecycle, mapView) {
+        var destroyed = false
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_START -> mapView.onStart()
                 Lifecycle.Event.ON_RESUME -> mapView.onResume()
                 Lifecycle.Event.ON_PAUSE -> mapView.onPause()
                 Lifecycle.Event.ON_STOP -> mapView.onStop()
-                Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
+                Lifecycle.Event.ON_DESTROY -> {
+                    if (!destroyed) {
+                        destroyed = true
+                        mapView.onDestroy()
+                    }
+                }
                 else -> Unit
             }
         }
         lifecycle.addObserver(observer)
         onDispose {
             lifecycle.removeObserver(observer)
-            mapView.onDestroy()
+            // เมื่อออกจากหน้าแผนที่ขณะ Activity ยังทำงานอยู่ ต้องไล่สถานะ MapView ลงตามลำดับ
+            // (pause -> stop -> destroy) เพื่อหยุด render thread ก่อนทำลาย และไม่เรียก onDestroy ซ้ำ
+            if (!destroyed) {
+                val state = lifecycle.currentState
+                if (state.isAtLeast(Lifecycle.State.RESUMED)) mapView.onPause()
+                if (state.isAtLeast(Lifecycle.State.STARTED)) mapView.onStop()
+                destroyed = true
+                mapView.onDestroy()
+            }
         }
     }
 

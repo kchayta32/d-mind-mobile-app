@@ -1,9 +1,13 @@
 package com.dmind.app.ui.screens.tools
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.LruCache
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.core.content.ContextCompat
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -114,6 +118,25 @@ fun DamageAssessmentScreen(
         }
     }
 
+    // แอปประกาศสิทธิ์ CAMERA ใน Manifest ดังนั้นต้องได้รับสิทธิ์ก่อนเรียก ACTION_IMAGE_CAPTURE
+    // มิฉะนั้นระบบจะโยน SecurityException ทันที
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            takePhotoLauncher.launch(null)
+        }
+    }
+    val launchCamera: () -> Unit = {
+        val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED
+        if (granted) {
+            takePhotoLauncher.launch(null)
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
     LaunchedEffect(Unit) {
         onRefresh()
     }
@@ -170,7 +193,7 @@ fun DamageAssessmentScreen(
                         Text(stringResource(R.string.btn_gallery))
                     }
                     Button(
-                        onClick = { takePhotoLauncher.launch(null) },
+                        onClick = launchCamera,
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -426,7 +449,16 @@ private fun DamageAssessmentCard(
     }
 }
 
-private val imageCache = java.util.concurrent.ConcurrentHashMap<String, Bitmap>()
+// แคชรูปภาพจากเครือข่ายแบบจำกัดขนาด (ประมาณ 1/8 ของหน่วยความจำสูงสุด) เพื่อป้องกัน OutOfMemoryError
+// จากการเก็บ Bitmap ขนาดเต็มไว้ไม่จำกัดในแมปแบบเดิม
+private val imageCache: LruCache<String, Bitmap> by lazy {
+    val maxKb = (Runtime.getRuntime().maxMemory() / 1024).toInt()
+    object : LruCache<String, Bitmap>(maxKb / 8) {
+        override fun sizeOf(key: String, value: Bitmap): Int = value.byteCount / 1024
+    }
+}
+
+private const val NETWORK_IMAGE_MAX_DIMENSION = 1024
 
 @Composable
 private fun NetworkImage(
@@ -435,7 +467,7 @@ private fun NetworkImage(
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop
 ) {
-    var bitmap by remember(url) { mutableStateOf<Bitmap?>(imageCache[url]) }
+    var bitmap by remember(url) { mutableStateOf<Bitmap?>(imageCache.get(url)) }
     var isLoading by remember(url) { mutableStateOf(bitmap == null) }
 
     LaunchedEffect(url) {
@@ -447,14 +479,31 @@ private fun NetworkImage(
         bitmap = try {
             withContext(Dispatchers.IO) {
                 val connection = java.net.URL(url).openConnection() as java.net.HttpURLConnection
-                connection.doInput = true
-                connection.connect()
-                val input = connection.inputStream
-                val bmp = BitmapFactory.decodeStream(input)
-                if (bmp != null) {
-                    imageCache[url] = bmp
+                try {
+                    connection.connectTimeout = 15_000
+                    connection.readTimeout = 30_000
+                    connection.doInput = true
+                    connection.connect()
+                    val bytes = connection.inputStream.use { it.readBytes() }
+                    // อ่านขนาดก่อนแล้วค่อย decode แบบย่อ เพื่อไม่โหลดภาพความละเอียดสูงเข้าหน่วยความจำทั้งก้อน
+                    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+                    var sampleSize = 1
+                    while (
+                        bounds.outWidth / sampleSize > NETWORK_IMAGE_MAX_DIMENSION ||
+                        bounds.outHeight / sampleSize > NETWORK_IMAGE_MAX_DIMENSION
+                    ) {
+                        sampleSize *= 2
+                    }
+                    val options = BitmapFactory.Options().apply { inSampleSize = sampleSize }
+                    val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+                    if (bmp != null) {
+                        imageCache.put(url, bmp)
+                    }
+                    bmp
+                } finally {
+                    connection.disconnect()
                 }
-                bmp
             }
         } catch (e: Exception) {
             null
@@ -485,11 +534,16 @@ private fun NetworkImage(
     }
 }
 
+// หมายเหตุ: ImageDecoder จะคืน HARDWARE bitmap โดยปริยาย ซึ่งใช้กับ createScaledBitmap/compress ไม่ได้
+// จึงต้องบังคับ ALLOCATOR_SOFTWARE เพื่อให้ย่อขนาดและบีบอัดเป็น JPEG ก่อนอัปโหลดได้
 private fun loadBitmapFromUri(context: android.content.Context, uri: android.net.Uri): android.graphics.Bitmap? {
     return try {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
             val source = android.graphics.ImageDecoder.createSource(context.contentResolver, uri)
-            android.graphics.ImageDecoder.decodeBitmap(source)
+            android.graphics.ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
+                decoder.allocator = android.graphics.ImageDecoder.ALLOCATOR_SOFTWARE
+                decoder.isMutableRequired = false
+            }
         } else {
             @Suppress("DEPRECATION")
             android.provider.MediaStore.Images.Media.getBitmap(context.contentResolver, uri)

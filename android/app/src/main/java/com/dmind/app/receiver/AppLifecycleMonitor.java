@@ -68,8 +68,8 @@ public class AppLifecycleMonitor implements DefaultLifecycleObserver {
         
         isBackground = true;
         
-        // ยกเลิกข้อความแจ้งเตือนด่วนบนแถบแจ้งเตือนเมื่อแอปถูกพักไว้ชั่วคราว
-        emergencyManager.cancelAllNotifications();
+        // หมายเหตุ: ห้ามยกเลิกการแจ้งเตือนทั้งหมดตรงนี้ เพราะจะทำให้การแจ้งเตือนภัยพิบัติ
+        // และการแจ้งเตือนของ Foreground Service หายไปทุกครั้งที่ผู้ใช้สลับออกจากแอป
     }
     
     @Override

@@ -50,8 +50,8 @@ class VictimReportsViewModel(
         name: String,
         contact: String?,
         description: String?,
-        latitude: Double,
-        longitude: Double,
+        latitude: Double?,
+        longitude: Double?,
     ) {
         if (name.isBlank()) {
             _state.update { it.copy(errorMessage = "กรุณากรอกชื่อผู้ประสบภัย") }

@@ -64,8 +64,9 @@ data class VictimReportDraft(
     val name: String,
     val contact: String?,
     val description: String?,
-    val latitude: Double,
-    val longitude: Double,
+    // พิกัดเป็น null ได้เมื่อผู้ใช้ยังไม่ได้ระบุตำแหน่ง (จะไม่ส่ง coordinates ขึ้นฐานข้อมูล)
+    val latitude: Double?,
+    val longitude: Double?,
     val status: String = "pending",
 )
 
@@ -112,8 +113,9 @@ data class VictimReportRecord(
     val name: String,
     val contact: String?,
     val description: String?,
-    val latitude: Double,
-    val longitude: Double,
+    // พิกัดเป็น null เมื่อรายการนั้นไม่มีข้อมูลตำแหน่ง
+    val latitude: Double?,
+    val longitude: Double?,
     val status: String,
     val createdAt: String,
 )

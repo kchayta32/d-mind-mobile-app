@@ -1,7 +1,6 @@
 package com.dmind.app.ui.screens.map
 
-import android.content.Intent
-import android.net.Uri
+import com.dmind.app.util.ExternalIntents
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -452,7 +451,7 @@ private fun ViirsDetailCard(
             StatusPill(hotspot.timeBucket.label, hotspot.timeBucket.color())
             TextButton(
                 onClick = {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(hotspot.googleMapsUrl)))
+                    ExternalIntents.openUrl(context, hotspot.googleMapsUrl)
                 },
                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                 modifier = Modifier.height(32.dp)

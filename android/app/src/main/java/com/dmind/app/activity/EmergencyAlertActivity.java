@@ -1,6 +1,5 @@
 package com.dmind.app.activity;
 
-import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
@@ -8,6 +7,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -66,6 +66,15 @@ public class EmergencyAlertActivity extends AppCompatActivity {
         
         // กำหนดสีพื้นหลังและสีอักษรตามประเภทของภัยพิบัติ
         setAlertColors(alertType);
+
+        // เมื่อกดปุ่มย้อนกลับให้บังคับให้รับทราบการแจ้งเตือนแทนการปิดหน้าจอ
+        // ใช้ OnBackPressedDispatcher เพราะ onBackPressed() จะไม่ถูกเรียกเมื่อเปิด enableOnBackInvokedCallback (Android 13+)
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                requestAcknowledgment();
+            }
+        });
         
         // เริ่มการนับเวลาถอยหลัง
         startCountdown();
@@ -174,12 +183,5 @@ public class EmergencyAlertActivity extends AppCompatActivity {
             countdownView.setText("Acknowledge immediately");
             countdownView.setTextColor(Color.YELLOW);
         });
-    }
-
-    @Override
-    @SuppressLint("MissingSuperCall")
-    public void onBackPressed() {
-        // เมื่อกดปุ่มย้อนกลับให้บังคับให้รับทราบการแจ้งเตือน
-        requestAcknowledgment();
     }
 }

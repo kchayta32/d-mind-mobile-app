@@ -14,6 +14,7 @@ import android.provider.Settings;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.dmind.app.MainActivity;
 import com.dmind.app.R;
 import com.dmind.app.activity.EmergencyAlertActivity;
 
@@ -229,17 +230,23 @@ public class NotificationHelper {
         }
         builder.setSound(alarmUri);
         
-        // Add action button
-        Intent acknowledgeIntent = new Intent(context, context.getClass());
-        acknowledgeIntent.setAction("ACKNOWLEDGE_ALERT");
-        acknowledgeIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        PendingIntent acknowledgePendingIntent = PendingIntent.getActivity(
+        // Tap on notification / "Acknowledge" action opens the main app screen.
+        // NOTE: context here is usually the Application context, so context.getClass()
+        // would point at DMindApplication (not an Activity) and the PendingIntent would silently fail.
+        Intent openAppIntent = new Intent(context, MainActivity.class);
+        openAppIntent.setAction("ACKNOWLEDGE_ALERT");
+        openAppIntent.putExtra("alert_title", title);
+        openAppIntent.putExtra("alert_message", message);
+        openAppIntent.putExtra("alert_type", actionType);
+        openAppIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent openAppPendingIntent = PendingIntent.getActivity(
             context,
             0,
-            acknowledgeIntent,
-            PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_CANCEL_CURRENT
+            openAppIntent,
+            PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
         );
-        builder.addAction(R.drawable.ic_stat_notification, "Acknowledge", acknowledgePendingIntent);
+        builder.setContentIntent(openAppPendingIntent);
+        builder.addAction(R.drawable.ic_stat_notification, "Acknowledge", openAppPendingIntent);
         
         // Full-screen intent for critical alerts
         if (showFullScreen) {

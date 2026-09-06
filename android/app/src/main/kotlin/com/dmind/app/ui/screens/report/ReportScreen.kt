@@ -47,9 +47,12 @@ import com.dmind.app.ui.components.AffectedOrange
 import com.dmind.app.ui.components.DmindBlue
 import com.dmind.app.ui.components.DmindCard
 import com.dmind.app.ui.components.EmptyState
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.graphics.Bitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.core.content.ContextCompat
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.compose.ui.platform.LocalContext
@@ -117,6 +120,25 @@ fun ReportScreen(
         if (bitmap != null) {
             imageBitmap = bitmap
             imageUri = null
+        }
+    }
+
+    // แอปประกาศสิทธิ์ CAMERA ใน Manifest ดังนั้นต้องได้รับสิทธิ์ก่อนเรียก ACTION_IMAGE_CAPTURE
+    // มิฉะนั้นระบบจะโยน SecurityException ทันที
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            takePhotoLauncher.launch(null)
+        }
+    }
+    val launchCamera: () -> Unit = {
+        val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED
+        if (granted) {
+            takePhotoLauncher.launch(null)
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
 
@@ -213,7 +235,7 @@ fun ReportScreen(
                         Text(stringResource(R.string.btn_gallery))
                     }
                     Button(
-                        onClick = { takePhotoLauncher.launch(null) },
+                        onClick = launchCamera,
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -382,11 +404,16 @@ private fun ReportMessage.localizedText(): String = when (this) {
 }
 
 // ฟังก์ชันโหลดไฟล์บิตแมปจากพิกัด URI
+// หมายเหตุ: ImageDecoder จะคืน HARDWARE bitmap โดยปริยาย ซึ่งใช้กับ createScaledBitmap/compress ไม่ได้
+// จึงต้องบังคับ ALLOCATOR_SOFTWARE เพื่อให้ย่อขนาดและบีบอัดเป็น JPEG ก่อนอัปโหลดได้
 private fun loadBitmapFromUri(context: android.content.Context, uri: android.net.Uri): android.graphics.Bitmap? {
     return try {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
             val source = android.graphics.ImageDecoder.createSource(context.contentResolver, uri)
-            android.graphics.ImageDecoder.decodeBitmap(source)
+            android.graphics.ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
+                decoder.allocator = android.graphics.ImageDecoder.ALLOCATOR_SOFTWARE
+                decoder.isMutableRequired = false
+            }
         } else {
             @Suppress("DEPRECATION")
             android.provider.MediaStore.Images.Media.getBitmap(context.contentResolver, uri)

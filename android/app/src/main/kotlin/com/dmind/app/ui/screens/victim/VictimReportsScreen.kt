@@ -86,8 +86,8 @@ fun VictimReportsScreen(
         name: String,
         contact: String?,
         description: String?,
-        latitude: Double,
-        longitude: Double,
+        latitude: Double?,
+        longitude: Double?,
     ) -> Unit,
     onRefresh: () -> Unit,
     onClearSuccess: () -> Unit,
@@ -324,12 +324,13 @@ fun VictimReportsScreen(
                             if (!details.isNullOrBlank()) append(details)
                         }.trim().takeIf { it.isNotEmpty() }
 
+                        // ส่ง null เมื่อยังไม่ได้ระบุตำแหน่ง แทนการส่งพิกัด 0,0 ที่ไม่ใช่ตำแหน่งจริง
                         onSubmit(
                             name,
                             contact,
                             additionalDetails,
-                            latitude ?: 0.0,
-                            longitude ?: 0.0
+                            latitude,
+                            longitude
                         )
                         // Clear fields if submit was triggered
                         if (name.isNotBlank()) {

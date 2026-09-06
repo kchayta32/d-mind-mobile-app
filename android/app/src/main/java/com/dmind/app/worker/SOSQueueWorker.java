@@ -49,10 +49,12 @@ public class SOSQueueWorker extends Worker {
             return Result.success();
         }
 
-        String endpoint = BuildConfig.BACKEND_BASE_URL.trim() + "/sos";
+        // ตัด '/' ท้าย base URL ออกเพื่อไม่ให้ได้พาธ "//sos" ซึ่ง backend จะไม่รู้จัก
+        String baseUrl = BuildConfig.BACKEND_BASE_URL.trim().replaceAll("/+$", "");
+        String endpoint = baseUrl + "/sos";
         EmergencyNotificationManager emergencyManager = new EmergencyNotificationManager(context);
 
-        if (BuildConfig.BACKEND_BASE_URL.trim().isEmpty()) {
+        if (baseUrl.isEmpty()) {
             Log.w(TAG, "SOS endpoint is not configured; keeping messages queued");
             emergencyManager.triggerSOSNotification(
                 "SOS pending",

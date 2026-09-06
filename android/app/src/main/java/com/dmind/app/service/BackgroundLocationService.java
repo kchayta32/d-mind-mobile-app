@@ -78,16 +78,25 @@ public class BackgroundLocationService extends Service {
     // จัดการคำสั่งที่ส่งมายัง Service (เช่น เริ่มบริการ หยุดบริการ หรือตรวจสอบระยะห่าง)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null) {
-            String action = intent.getAction();
-            if (ACTION_START.equals(action)) {
+        if (intent == null) {
+            // ระบบรีสตาร์ท Service ให้เอง (START_STICKY) หลังถูกฆ่า จะไม่มี Intent แนบมา
+            // หากผู้ใช้เคยเปิดการติดตามไว้ ให้กลับเข้าสู่ Foreground อีกครั้ง มิฉะนั้นให้หยุดตัวเอง
+            if (isMarkedRunning(this)) {
                 startForegroundService();
-            } else if (ACTION_STOP.equals(action)) {
-                stopService();
-            } else if (ACTION_CHECK_DISTANCE.equals(action)) {
-                // Trigger distance check (location update received)
-                checkLocationWithDangerZones();
+            } else {
+                stopSelf();
             }
+            return START_STICKY;
+        }
+
+        String action = intent.getAction();
+        if (ACTION_START.equals(action)) {
+            startForegroundService();
+        } else if (ACTION_STOP.equals(action)) {
+            stopService();
+        } else if (ACTION_CHECK_DISTANCE.equals(action)) {
+            // Trigger distance check (location update received)
+            checkLocationWithDangerZones();
         }
         
         return START_STICKY;
@@ -96,9 +105,10 @@ public class BackgroundLocationService extends Service {
     // เรียกใช้งานเมื่อ Service ถูกทำลาย เพื่อหยุดการทำงานและเคลียร์ทรัพยากร
     @Override
     public void onDestroy() {
-        super.onDestroy();
+        // ต้องยกเลิกการรับพิกัดเสมอ มิฉะนั้น FusedLocationProvider จะยังส่ง callback มายัง Service ที่ถูกทำลายแล้ว
+        stopLocationTracking();
         isServiceRunning = false;
-        // Stop location tracking
+        super.onDestroy();
     }
     
     // เชื่อมต่อบิงดิงกับ Service (ในที่นี้ไม่ได้ใช้งานจึงส่งคืนค่า null)
@@ -120,15 +130,32 @@ public class BackgroundLocationService extends Service {
         if (isServiceRunning) {
             return;
         }
-        
-        isServiceRunning = true;
-        markRunning(true);
+
+        // Android 14+ จะโยน SecurityException หากเริ่ม Foreground Service ประเภท "location"
+        // โดยที่ยังไม่ได้รับสิทธิ์ตำแหน่ง ดังนั้นต้องตรวจสอบก่อนและปิด Service อย่างปลอดภัย
+        if (!hasLocationPermission()) {
+            Log.w(TAG, "Cannot start location foreground service without location permission");
+            markRunning(false);
+            stopSelf();
+            return;
+        }
         
         // Create notification for foreground service
         Notification notification = createPersistentNotification();
         
         // Start as foreground service
-        startForeground(NOTIFICATION_ID, notification);
+        try {
+            startForeground(NOTIFICATION_ID, notification);
+        } catch (Exception e) {
+            // เช่น ForegroundServiceStartNotAllowedException / SecurityException ตามข้อจำกัดของระบบ
+            Log.e(TAG, "Unable to start foreground service", e);
+            markRunning(false);
+            stopSelf();
+            return;
+        }
+
+        isServiceRunning = true;
+        markRunning(true);
         
         // Start location tracking
         startLocationTracking();
