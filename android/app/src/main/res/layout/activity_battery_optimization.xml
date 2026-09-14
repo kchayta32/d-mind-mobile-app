@@ -14,7 +14,7 @@
         android:orientation="vertical"
         android:gravity="center"
         android:padding="24dp"
-        android:background="@android:color/white">
+        android:background="?android:attr/colorBackground">
 
         <!-- Icon -->
         <ImageView
@@ -30,7 +30,7 @@
             android:text="@string/title_battery_optimization"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:textColor="@android:color/black"
+            android:textColor="?android:attr/textColorPrimary"
             android:gravity="center"
             android:layout_marginTop="24dp" />
 
@@ -40,7 +40,7 @@
             android:layout_height="wrap_content"
             android:text="@string/description_battery_optimization"
             android:textSize="14sp"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="?android:attr/textColorSecondary"
             android:gravity="center"
             android:layout_marginTop="16dp"
             android:lineSpacingExtra="4dp" />
@@ -53,7 +53,7 @@
             android:gravity="center"
             android:layout_marginTop="32dp"
             android:padding="16dp"
-            android:background="@android:color/background_light"
+            android:background="?android:attr/selectableItemBackground"
             android:layout_gravity="center">
 
             <ImageView
@@ -70,7 +70,7 @@
                 android:text="@string/checking_status"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="@android:color/black"
+                android:textColor="?android:attr/textColorPrimary"
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp" />
 
@@ -97,14 +97,16 @@
 
         <!-- Alternative Action (if needed) -->
         <TextView
+            android:id="@+id/textViewAlternativeAction"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/text_alternative_action"
             android:textSize="12sp"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="?android:attr/textColorSecondary"
             android:gravity="center"
             android:layout_marginTop="16dp"
             android:clickable="true"
+            android:focusable="true"
             android:textColorHighlight="@android:color/transparent" />
 
     </LinearLayout>

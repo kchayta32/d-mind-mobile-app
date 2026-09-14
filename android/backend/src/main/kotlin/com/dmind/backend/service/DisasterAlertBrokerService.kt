@@ -8,6 +8,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.serialization.Serializable
 import java.time.Instant
+import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.*
 
@@ -247,7 +248,7 @@ object DisasterAlertBrokerService {
                     else -> "🟧 คุณภาพอากาศเริ่มมีผลกระทบต่อสุขภาพ (สีส้ม)"
                 }
                 
-                val msg = "ค่าฝุ่น PM2.5 ในพื้นที่ของท่านอยู่ที่ ${String.format("%.1f", pm25)} µg/m³ (เกินเกณฑ์มาตรฐาน 50 µg/m³)"
+                val msg = "ค่าฝุ่น PM2.5 ในพื้นที่ของท่านอยู่ที่ ${String.format(Locale.US, "%.1f", pm25)} µg/m³ (เกินเกณฑ์มาตรฐาน 50 µg/m³)"
                 val recommendation = when (severity) {
                     "RED" -> "มีผลกระทบต่อสุขภาพ: แนะนำผู้ใช้งานทุกคนสวมหน้ากาก N95 และจำกัดเวลาทำกิจกรรมกลางแจ้ง"
                     else -> "เริ่มมีผลกระทบต่อสุขภาพ: แนะนำผู้ป่วยระบบทางเดินหายใจ เด็ก และผู้สูงอายุ ให้หลีกเลี่ยงกิจกรรมกลางแจ้ง"
@@ -296,7 +297,7 @@ object DisasterAlertBrokerService {
                 
                 val msg = when (severity) {
                     "RED" -> "ประกาศย้ายออกจากพื้นที่ด่วน มีมวลน้ำวิกฤตเอ่อล้นตลิ่งแม่น้ำสายหลักและปล่อยน้ำจากเขื่อน"
-                    "ORANGE" -> "พบระดับน้ำล้นตลิ่งหรือฝนตกสะสมรุนแรงสูงถึง ${String.format("%.1f", rain24h)} มม. ในพื้นที่ใกล้เคียง"
+                    "ORANGE" -> "พบระดับน้ำล้นตลิ่งหรือฝนตกสะสมรุนแรงสูงถึง ${String.format(Locale.US, "%.1f", rain24h)} มม. ในพื้นที่ใกล้เคียง"
                     else -> "ปริมาณน้ำฝนสะสมสูงเกิน 50 มม. ใน 24 ชม. เสี่ยงท่วมขัง"
                 }
 
@@ -345,7 +346,7 @@ object DisasterAlertBrokerService {
                 val msg = when (severity) {
                     "RED" -> "มีประกาศเตือนภัยพายุกำลังแรงพาดผ่านจังหวัดของท่านใน 24-48 ชม. ข้างหน้า"
                     "ORANGE" -> "คาดว่าฝนจะตกหนักถึงหนักมากในพิกัดของท่าน ภายใน 1-2 ชั่วโมงนี้"
-                    else -> "เรดาร์พบกลุ่มเมฆฝนรุนแรงก่อตัวในพื้นที่ ห่างจากตำแหน่งคุณ ${String.format("%.1f", dist)} กม."
+                    else -> "เรดาร์พบกลุ่มเมฆฝนรุนแรงก่อตัวในพื้นที่ ห่างจากตำแหน่งคุณ ${String.format(Locale.US, "%.1f", dist)} กม."
                 }
 
                 val recommendation = "คำแนะนำ: เปิดแผนที่เรดาร์ฝนบนโมบายล์แอปเพื่อดูทิศทางการเคลื่อนตัวของลมพายุด้วยตัวเอง"

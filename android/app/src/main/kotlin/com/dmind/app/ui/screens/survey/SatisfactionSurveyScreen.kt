@@ -59,6 +59,7 @@ fun SatisfactionSurveyScreen(
     state: SatisfactionSurveyUiState,
     onSubmit: (rating: Int, comments: String?, userType: String) -> Unit,
     onClearSuccess: () -> Unit,
+    onBack: (() -> Unit)? = null,
 ) {
     var rating by rememberSaveable { mutableIntStateOf(5) }
     var comments by rememberSaveable { mutableStateOf("") }
@@ -115,6 +116,7 @@ fun SatisfactionSurveyScreen(
                         rating = 5
                         comments = ""
                         userType = "general"
+                        onBack?.invoke()
                     },
                     shape = RoundedCornerShape(14.dp)
                 ) {
@@ -131,7 +133,8 @@ fun SatisfactionSurveyScreen(
                     ScreenHeader(
                         title = stringResource(R.string.nav_satisfaction_survey),
                         subtitle = stringResource(R.string.survey_screen_subtitle),
-                        icon = Icons.Filled.RateReview
+                        icon = Icons.Filled.RateReview,
+                        onBack = onBack,
                     )
                 }
 

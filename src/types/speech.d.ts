@@ -30,11 +30,11 @@ interface SpeechRecognitionAlternative {
   confidence: number;
 }
 
-declare var webkitSpeechRecognition: {
+declare const webkitSpeechRecognition: {
   new (): SpeechRecognition;
 };
 
-declare var SpeechRecognition: {
+declare const SpeechRecognition: {
   new (): SpeechRecognition;
 };
 

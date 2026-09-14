@@ -11,80 +11,79 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 interface NavigationItem {
-  icon: React.ReactNode;
-  titleTh: string;
-  titleEn: string;
-  description: string;
-  route?: string; // เปลี่ยนเป็น Optional (มีหรือไม่มีก็ได้) สำหรับ Internal Link
-  href?: string; // เพิ่ม href สำหรับ External Link
-  color: string;
+  icon: React.ReactNode;
+  titleTh: string;
+  titleEn: string;
+  description: string;
+  route?: string; // สำหรับ Internal Link
+  href?: string; // สำหรับ External Link
+  color: string;
 }
+
+const NAVIGATION_ITEMS: NavigationItem[] = [
+  {
+    icon: <Home className="w-8 h-8" />,
+    titleTh: 'หน้าแรก',
+    titleEn: 'Home',
+    description: 'กลับสู่หน้าหลัก',
+    route: '/',
+    color: 'bg-blue-500'
+  },
+  {
+    icon: <Phone className="w-8 h-8" />,
+    titleTh: 'บริการฉุกเฉิน',
+    titleEn: 'Emergency Call',
+    description: 'ติดต่อหน่วยงานฉุกเฉิน',
+    route: '/contacts',
+    color: 'bg-red-500'
+  },
+  {
+    icon: <Star className="w-8 h-8" />,
+    titleTh: 'ประเมินความพึงพอใจ',
+    titleEn: 'Evaluate Satisfaction',
+    description: 'แบบสำรวจความพึงพอใจ',
+    route: '/satisfaction-survey',
+    color: 'bg-yellow-500'
+  },
+  {
+    icon: <BookOpen className="w-8 h-8" />,
+    titleTh: 'บทความ / งานวิจัย',
+    titleEn: 'Research',
+    description: 'ความรู้และงานวิจัย',
+    route: '/manual',
+    color: 'bg-green-500'
+  },
+  {
+    icon: <Info className="w-8 h-8" />,
+    titleTh: 'เกี่ยวกับเรา',
+    titleEn: 'About',
+    description: 'รายละเอียดโครงการ',
+    href: 'https://d-mind.my.canva.site/', 
+    color: 'bg-purple-500'
+  },
+  {
+    icon: <Mail className="w-8 h-8" />,
+    titleTh: 'ติดต่อเรา',
+    titleEn: 'Contact',
+    description: 'ช่องทางการติดต่อ',
+    route: '/contacts',
+    color: 'bg-indigo-500'
+  }
+];
 
 const NavigationCards: React.FC = () => {
   const navigate = useNavigate();
 
-  const navigationItems: NavigationItem[] = [
-    {
-      icon: <Home className="w-8 h-8" />,
-      titleTh: 'หน้าแรก',
-      titleEn: 'Home',
-      description: 'กลับสู่หน้าหลัก',
-      route: '/',
-      color: 'bg-blue-500'
-    },
-    {
-      icon: <Phone className="w-8 h-8" />,
-      titleTh: 'บริการฉุกเฉิน',
-      titleEn: 'Emergency Call',
-      description: 'ติดต่อหน่วยงานฉุกเฉิน',
-      route: '/contacts',
-      color: 'bg-red-500'
-    },
-    {
-      icon: <Star className="w-8 h-8" />,
-      titleTh: 'ประเมินความพึงพอใจ',
-      titleEn: 'Evaluate Satisfaction',
-      description: 'แบบสำรวจความพึงพอใจ',
-      route: '/satisfaction-survey',
-      color: 'bg-yellow-500'
-    },
-    {
-      icon: <BookOpen className="w-8 h-8" />,
-      titleTh: 'บทความ / งานวิจัย',
-      titleEn: 'Research',
-      description: 'ความรู้และงานวิจัย',
-      route: '/manual',
-      color: 'bg-green-500'
-    },
-    {
-      icon: <Info className="w-8 h-8" />,
-      titleTh: 'เกี่ยวกับเรา',
-      titleEn: 'About',
-      description: 'รายละเอียดโครงการ',
-      // แก้ไขการสะกดจาก 'herf' เป็น 'href' และใช้สำหรับ External Link
-      href: 'https://d-mind.my.canva.site/', 
-      color: 'bg-purple-500'
-    },
-    {
-      icon: <Mail className="w-8 h-8" />,
-      titleTh: 'ติดต่อเรา',
-      titleEn: 'Contact',
-      description: 'ช่องทางการติดต่อ',
-      route: '/contacts',
-      color: 'bg-indigo-500'
-    }
-  ];
-
   // ฟังก์ชันจัดการการคลิก
-  const handleNavigation = (item: NavigationItem) => {
-    if (item.href) {
-      // สำหรับ External Link (มี href) ให้เปิดหน้าใหม่
-      window.open(item.href, '_blank');
-    } else if (item.route) {
-      // สำหรับ Internal Link (มี route) ให้ใช้ navigate
-      navigate(item.route);
-    }
-  };
+  const handleNavigation = (item: NavigationItem) => {
+    if (item.href) {
+      // สำหรับ External Link (มี href) ให้เปิดหน้าใหม่แบบปลอดภัย
+      window.open(item.href, '_blank', 'noopener,noreferrer');
+    } else if (item.route) {
+      // สำหรับ Internal Link (มี route) ให้ใช้ navigate
+      navigate(item.route);
+    }
+  };
   
   return (
     <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
@@ -100,7 +99,7 @@ const NavigationCards: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {navigationItems.map((item, index) => (
+            {NAVIGATION_ITEMS.map((item, index) => (
               <Card
                 key={index}
                 className="group cursor-pointer hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-0 overflow-hidden"

@@ -34,7 +34,9 @@ import com.dmind.app.util.ExternalIntents
 
 // หน้าจอแสดงเบอร์โทรศัพท์ฉุกเฉินและการโทรติดต่อหน่วยงานต่างๆ
 @Composable
-fun EmergencyContactsScreen() {
+fun EmergencyContactsScreen(
+    onBack: (() -> Unit)? = null,
+) {
     val context = LocalContext.current
     val contacts = listOf(
         EmergencyContact(stringResource(R.string.contact_police), "191", stringResource(R.string.contact_police_desc)),
@@ -55,6 +57,7 @@ fun EmergencyContactsScreen() {
                 stringResource(R.string.emergency_contacts_title),
                 stringResource(R.string.emergency_contacts_subtitle),
                 Icons.Filled.Phone,
+                onBack = onBack,
             )
         }
         items(contacts) { contact ->

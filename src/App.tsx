@@ -27,6 +27,7 @@ import MobileLayout from "@/components/layout/MobileLayout";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { initializeNativeApp } from "@/utils/native";
+import { useBackButton } from "@/hooks/useBackButton";
 
 const queryClient = new QueryClient();
 
@@ -121,8 +122,6 @@ class AppErrorBoundary extends Component<
     return this.props.children;
   }
 }
-
-import { useBackButton } from "@/hooks/useBackButton";
 
 // Inner component that uses the back button hook (must be inside BrowserRouter)
 const AppRoutesWithBackButton = () => {

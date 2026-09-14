@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ปริมาณข้อมูลโทรมาตรและการกระจายงานในระบบ · D-MIND</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f8fafc;
+      --color-paper-2: #eef2f8;
+      --color-ink:     #1e293b;
+      --color-muted:   #475569;
+      --color-accent:  #007aff;
+      --font-sans:     'Geist', 'Prompt', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', 'Prompt', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .frame { max-width: 1200px; width: 100%; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2.1rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+
+    svg { width: 100%; min-width: 900px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">SANKEY · DATA THROUGHPUT &amp; INGESTION</p>
+    <h1>ปริมาณข้อมูลโทรมาตรและการกระจายงานในระบบ · Telemetry &amp; Workload Consumption</h1>
+
+    <svg viewBox="0 0 1000 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="sankey-telemetry-title sankey-telemetry-desc">
+      <title id="sankey-telemetry-title">ปริมาณข้อมูลโทรมาตรและการกระจายงานในระบบ</title>
+      <desc id="sankey-telemetry-desc">Sankey diagram showing 10,000 req/s of sensor and external API telemetry splitting between in-memory cache and persistent storage, then serving live map layers, voice AI, and analytics, highlighting real-time map cache throughput.</desc>
+
+      <rect width="100%" height="100%" fill="#f8fafc"/>
+
+      <!-- Column headers -->
+      <text x="126" y="76" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">INGESTION SOURCES</text>
+      <text x="506" y="76" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">PROCESSING &amp; STORAGE</text>
+      <text x="886" y="76" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">CONSUMER WORKLOADS</text>
+
+      <!-- Ordinary Ribbons: Col 1 -> Col 2 -->
+      <path d="M132,120 C316,120 316,120 500,120 L500,216 C316,216 316,216 132,216 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,216 C316,216 316,312 500,312 L500,336 C316,336 316,240 132,240 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,264 C316,264 316,216 500,216 L500,264 C316,264 316,312 132,312 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,312 C316,312 316,336 500,336 L500,372 C316,372 316,348 132,348 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,372 C316,372 316,264 500,264 L500,276 C316,276 316,384 132,384 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,384 C316,384 316,372 500,372 L500,396 C316,396 316,408 132,408 Z" fill="rgba(71,85,105,0.18)"/>
+
+      <!-- Ordinary Ribbons: Col 2 -> Col 3 -->
+      <path d="M512,228 C696,228 696,288 880,288 L880,324 C696,324 696,264 512,264 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M512,264 C696,264 696,372 880,372 L880,384 C696,384 696,276 512,276 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M512,312 C696,312 696,228 880,228 L880,264 C696,264 696,348 512,348 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M512,348 C696,348 696,324 880,324 L880,348 C696,348 696,372 512,372 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M512,372 C696,372 696,384 880,384 L880,408 C696,408 696,396 512,396 Z" fill="rgba(71,85,105,0.18)"/>
+
+      <!-- Focal Accent Ribbon: Col 2 -> Col 3 (Direct Map In-Memory Cache Pipeline) -->
+      <path d="M512,120 C696,120 696,120 880,120 L880,228 C696,228 696,228 512,228 Z" fill="rgba(0,122,255,0.28)"/>
+
+      <!-- Node Bars (width=12, solid ink) -->
+      <!-- Column 1 -->
+      <rect x="120" y="120" width="12" height="120" fill="#1e293b"/>
+      <rect x="120" y="264" width="12" height="84" fill="#1e293b"/>
+      <rect x="120" y="372" width="12" height="36" fill="#1e293b"/>
+
+      <!-- Column 2 -->
+      <rect x="500" y="120" width="12" height="156" fill="#1e293b"/>
+      <rect x="500" y="312" width="12" height="84" fill="#1e293b"/>
+
+      <!-- Column 3 -->
+      <rect x="880" y="120" width="12" height="144" fill="#1e293b"/>
+      <rect x="880" y="288" width="12" height="60" fill="#1e293b"/>
+      <rect x="880" y="372" width="12" height="36" fill="#1e293b"/>
+
+      <!-- Column 1 Labels (outside, text-anchor="end") -->
+      <text x="104" y="176" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="end">สถานีตรวจวัด IoT (ESP32)</text>
+      <text x="104" y="192" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">5,000 req/s (50.0%)</text>
+
+      <text x="104" y="300" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="end">APIs ภายนอก (TMD / GISTDA)</text>
+      <text x="104" y="316" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">3,500 req/s (35.0%)</text>
+
+      <text x="104" y="388" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="end">รายงานเหตุการณ์ประชาชน</text>
+      <text x="104" y="402" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">1,500 req/s (15.0%)</text>
+
+      <!-- Column 2 Labels (centred in gutter above each bar) -->
+      <text x="506" y="96" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="middle">In-Memory Cache (Ktor Gateway)</text>
+      <text x="506" y="112" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">6,500 req/s (65.0%)</text>
+
+      <text x="506" y="292" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="middle">Persistent Storage (Supabase PostgreSQL / S3)</text>
+      <text x="506" y="306" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">3,500 req/s (35.0%)</text>
+
+      <!-- Column 3 Labels (outside, text-anchor="start") -->
+      <text x="908" y="184" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="start">ชั้นข้อมูลแผนที่สด (MapLibre)</text>
+      <text x="908" y="200" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="start">6,000 req/s (60.0%)</text>
+
+      <text x="908" y="312" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="start">ผู้ช่วยเสียง Dr.Mind AI</text>
+      <text x="908" y="328" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="start">2,500 req/s (25.0%)</text>
+
+      <text x="908" y="388" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="start">ระบบวิเคราะห์สถิติ &amp; สรุปผล</text>
+      <text x="908" y="402" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="start">1,500 req/s (15.0%)</text>
+
+      <!-- Legend -->
+      <line x1="40" y1="492" x2="960" y2="492" stroke="rgba(30,41,59,0.12)" stroke-width="0.8"/>
+      <text x="40" y="508" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+
+      <rect x="40" y="520" width="16" height="8" fill="rgba(71,85,105,0.18)" stroke="#475569" stroke-width="1"/>
+      <text x="64" y="528" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif">Flow · อัตราการรับส่งข้อมูลตามสเตจ</text>
+
+      <rect x="250" y="520" width="16" height="8" fill="rgba(0,122,255,0.28)" stroke="#007aff" stroke-width="1"/>
+      <text x="274" y="528" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif">Cache-to-Map · เวิร์กโหลดความเร็วสูงแผนที่สด</text>
+
+      <rect x="520" y="520" width="16" height="8" fill="#1e293b"/>
+      <text x="544" y="528" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif">Node · ทราฟฟิกสะสมแต่ละส่วน</text>
+
+      <text x="720" y="528" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif" font-style="italic">ทราฟฟิกแผนที่สดกว่า 75% รับข้อมูลตรงจาก In-Memory Cache</text>
+    </svg>
+  </div>
+</body>
+</html>

@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import java.util.Locale
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -91,6 +92,7 @@ fun VictimReportsScreen(
     ) -> Unit,
     onRefresh: () -> Unit,
     onClearSuccess: () -> Unit,
+    onBack: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -135,6 +137,20 @@ fun VictimReportsScreen(
         onRefresh()
     }
 
+    LaunchedEffect(state.isSuccess) {
+        if (state.isSuccess) {
+            name = ""
+            ageStr = ""
+            contactNumber = ""
+            details = ""
+            latitude = null
+            longitude = null
+            locationMessage = ""
+            assistanceStatus = "pending"
+            onClearSuccess()
+        }
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -146,7 +162,8 @@ fun VictimReportsScreen(
             ScreenHeader(
                 title = stringResource(R.string.nav_victim_reports),
                 subtitle = stringResource(R.string.victim_reports_subtitle),
-                icon = Icons.Filled.HealthAndSafety
+                icon = Icons.Filled.HealthAndSafety,
+                onBack = onBack,
             )
         }
 
@@ -296,7 +313,7 @@ fun VictimReportsScreen(
                     }
                     Text(
                         text = if (latitude != null && longitude != null) {
-                            "%.4f, %.4f".format(latitude, longitude)
+                            String.format(Locale.US, "%.4f, %.4f", latitude, longitude)
                         } else {
                             locationMessage.ifEmpty { stringResource(R.string.location_not_set) }
                         },
@@ -321,6 +338,12 @@ fun VictimReportsScreen(
                                 }
                                 append("เพศ: $genderStr. ")
                             }
+                            val statusStr = when (assistanceStatus) {
+                                "assisting" -> "กำลังช่วยเหลือ"
+                                "assisted" -> "ช่วยเหลือแล้ว"
+                                else -> "รอความช่วยเหลือ"
+                            }
+                            append("สถานะ: $statusStr. ")
                             if (!details.isNullOrBlank()) append(details)
                         }.trim().takeIf { it.isNotEmpty() }
 
@@ -332,23 +355,18 @@ fun VictimReportsScreen(
                             latitude,
                             longitude
                         )
-                        // Clear fields if submit was triggered
-                        if (name.isNotBlank()) {
-                            name = ""
-                            ageStr = ""
-                            contactNumber = ""
-                            details = ""
-                            latitude = null
-                            longitude = null
-                            locationMessage = ""
-                        }
                     },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = name.isNotBlank() && !state.isSubmitting,
                     shape = RoundedCornerShape(14.dp)
                 ) {
                     if (state.isSubmitting) {
-                        CircularProgressIndicator(modifier = Modifier.padding(end = 10.dp), strokeWidth = 2.dp)
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                        Spacer(Modifier.width(8.dp))
                     } else {
                         Icon(Icons.Filled.Add, contentDescription = null)
                         Spacer(Modifier.width(8.dp))

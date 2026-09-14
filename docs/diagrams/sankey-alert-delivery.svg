@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1000 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="sankey-alert-title sankey-alert-desc">
+      <title id="sankey-alert-title">ประสิทธิภาพการกระจายข้อความแจ้งเตือนภัยพิบัติ</title>
+      <desc id="sankey-alert-desc">Sankey diagram showing 10,000 disaster alerts generated across flood, wildfire, and air quality threats, distributed via FCM high-priority push, in-app sync, and emergency SMS, achieving an 85% confirmed acknowledgment and action rate.</desc>
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Prompt:wght@400;500;600&amp;display=swap');
+    </style>
+  </defs>
+
+
+      <rect width="100%" height="100%" fill="#f8fafc"/>
+
+      <!-- Column headers -->
+      <text x="126" y="76" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">THREAT ORIGINS</text>
+      <text x="506" y="76" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">DELIVERY CHANNELS</text>
+      <text x="886" y="76" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">OUTCOME &amp; CITIZEN ACTION</text>
+
+      <!-- Ordinary Ribbons: Col 1 -> Col 2 -->
+      <path d="M132,120 C316,120 316,120 500,120 L500,204 C316,204 316,204 132,204 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,204 C316,204 316,284 500,284 L500,308 C316,308 316,228 132,228 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,252 C316,252 316,204 500,204 L500,252 C316,252 316,300 132,300 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,300 C316,300 316,376 500,376 L500,412 C316,412 316,336 132,336 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,360 C316,360 316,308 500,308 L500,344 C316,344 316,396 132,396 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,396 C316,396 316,412 500,412 L500,424 C316,424 316,408 132,408 Z" fill="rgba(71,85,105,0.18)"/>
+
+      <!-- Ordinary Ribbons: Col 2 -> Col 3 -->
+      <path d="M512,244 C696,244 696,360 880,360 L880,368 C696,368 696,252 512,252 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M512,284 C696,284 696,244 880,244 L880,292 C696,292 696,332 512,332 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M512,332 C696,332 696,368 880,368 L880,380 C696,380 696,344 512,344 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M512,376 C696,376 696,292 880,292 L880,324 C696,324 696,408 512,408 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M512,408 C696,408 696,380 880,380 L880,396 C696,396 696,424 512,424 Z" fill="rgba(71,85,105,0.18)"/>
+
+      <!-- Focal Accent Ribbon: Col 2 -> Col 3 (High-Priority FCM Guaranteed Delivery) -->
+      <path d="M512,120 C696,120 696,120 880,120 L880,244 C696,244 696,244 512,244 Z" fill="rgba(0,122,255,0.28)"/>
+
+      <!-- Node Bars (width=12, solid ink) -->
+      <!-- Column 1 -->
+      <rect x="120" y="120" width="12" height="108" fill="#1e293b"/>
+      <rect x="120" y="252" width="12" height="84" fill="#1e293b"/>
+      <rect x="120" y="360" width="12" height="48" fill="#1e293b"/>
+
+      <!-- Column 2 -->
+      <rect x="500" y="120" width="12" height="132" fill="#1e293b"/>
+      <rect x="500" y="284" width="12" height="60" fill="#1e293b"/>
+      <rect x="500" y="376" width="12" height="48" fill="#1e293b"/>
+
+      <!-- Column 3 -->
+      <rect x="880" y="120" width="12" height="204" fill="#1e293b"/>
+      <rect x="880" y="360" width="12" height="36" fill="#1e293b"/>
+
+      <!-- Column 1 Labels (outside, text-anchor="end") -->
+      <text x="104" y="168" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="end">อุทกภัยและดินถล่ม</text>
+      <text x="104" y="184" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">4,500 ข้อความ (45.0%)</text>
+
+      <text x="104" y="288" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="end">ไฟป่าและจุดความร้อน</text>
+      <text x="104" y="304" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">3,500 ข้อความ (35.0%)</text>
+
+      <text x="104" y="380" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="end">มลพิษอากาศ / PM2.5</text>
+      <text x="104" y="396" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">2,000 ข้อความ (20.0%)</text>
+
+      <!-- Column 2 Labels (centred in gutter above each bar) -->
+      <text x="506" y="96" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="middle">FCM High-Priority Push (Full-screen)</text>
+      <text x="506" y="112" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">5,500 ข้อความ (55.0%)</text>
+
+      <text x="506" y="264" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="middle">In-App Alerts (Active Notification Sync)</text>
+      <text x="506" y="278" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">2,500 ข้อความ (25.0%)</text>
+
+      <text x="506" y="356" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="middle">Emergency SMS / Cell Broadcast</text>
+      <text x="506" y="370" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">2,000 ข้อความ (20.0%)</text>
+
+      <!-- Column 3 Labels (outside, text-anchor="start") -->
+      <text x="908" y="216" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="start">รับทราบและตอบสนองทันที</text>
+      <text x="908" y="232" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="start">8,500 ข้อความ (85.0%)</text>
+
+      <text x="908" y="372" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="start">ยังไม่ได้เปิดอ่าน / หมดเวลา</text>
+      <text x="908" y="388" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="start">1,500 ข้อความ (15.0%)</text>
+
+      <!-- Legend -->
+      <line x1="40" y1="492" x2="960" y2="492" stroke="rgba(30,41,59,0.12)" stroke-width="0.8"/>
+      <text x="40" y="508" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+
+      <rect x="40" y="520" width="16" height="8" fill="rgba(71,85,105,0.18)" stroke="#475569" stroke-width="1"/>
+      <text x="64" y="528" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif">Flow · ช่องทางกระจายข้อความ</text>
+
+      <rect x="230" y="520" width="16" height="8" fill="rgba(0,122,255,0.28)" stroke="#007aff" stroke-width="1"/>
+      <text x="254" y="528" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif">FCM Delivery · การแจ้งเตือนด่วนระดับ OS สำเร็จสูง</text>
+
+      <rect x="520" y="520" width="16" height="8" fill="#1e293b"/>
+      <text x="544" y="528" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif">Node · ยอดสะสมแต่ละช่องทาง</text>
+
+      <text x="730" y="528" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif" font-style="italic">ระบบ FCM Push มีอัตราการเปิดอ่านและปฏิบัติตามสูงถึง 93.8%</text>
+    </svg>

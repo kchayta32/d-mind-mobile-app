@@ -42,6 +42,7 @@ import com.dmind.app.ui.viewmodel.DisasterMapUiState
 @Composable
 fun StationScreen(
     mapState: DisasterMapUiState,
+    onBack: (() -> Unit)? = null,
 ) {
     LazyColumn(
         modifier = Modifier
@@ -55,6 +56,7 @@ fun StationScreen(
                 title = stringResource(R.string.stations_title),
                 subtitle = stringResource(R.string.stations_subtitle),
                 icon = Icons.Filled.Sensors,
+                onBack = onBack,
             )
         }
 

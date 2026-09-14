@@ -262,8 +262,10 @@ fun DisasterMapScreen(
                 )
             }
 
+            val isRadarMode = state.showRadarOverlay && (state.activeLayer == DisasterLayerType.Storm || state.activeLayer.name == "Weather")
+
             // แถบเครื่องมือเล่นเฟรมความเคลื่อนไหวของพายุฝน (Radar Timeline)
-            if (state.showRadarOverlay && (state.activeLayer == DisasterLayerType.Storm || state.activeLayer.name == "Weather")) {
+            if (isRadarMode) {
                 RadarTimelinePlayer(
                     radarFrames = state.radarFrames,
                     currentRadarFrameIndex = state.currentRadarFrameIndex,
@@ -280,7 +282,7 @@ fun DisasterMapScreen(
                 )
             }
 
-            // การ์ดพรีวิวข้อมูลขนาดย่อเมื่อแตะมาร์กเกอร์
+            // การ์ดพรีวิวข้อมูลขนาดย่อเมื่อแตะมาร์กเกอร์ (ยกตำแหน่งขึ้นหากแถบควบคุมเรดาร์กำลังแสดงผลอยู่ เพื่อป้องกันการทับซ้อน)
             if (showMarkerPreview && clickedMarkerItem != null) {
                 MarkerPreviewCard(
                     marker = clickedMarkerItem!!,
@@ -294,7 +296,11 @@ fun DisasterMapScreen(
                     },
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 128.dp, start = 16.dp, end = 16.dp),
+                        .padding(
+                            bottom = if (isRadarMode) 228.dp else 128.dp,
+                            start = 16.dp,
+                            end = 16.dp
+                        ),
                 )
             }
 

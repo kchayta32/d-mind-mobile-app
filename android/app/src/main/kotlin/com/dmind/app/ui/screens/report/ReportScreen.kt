@@ -28,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -102,6 +103,16 @@ fun ReportScreen(
     val context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+    LaunchedEffect(state.message) {
+        if (state.message == ReportMessage.Submitted) {
+            title = ""
+            description = ""
+            location = ""
+            imageUri = null
+            imageBitmap = null
+        }
+    }
 
     // ตัวเลือกเลือกรูปภาพจากคลังสื่อของเครื่อง
     val pickMediaLauncher = rememberLauncherForActivityResult(
@@ -318,13 +329,6 @@ fun ReportScreen(
                         }
 
                         onSubmit(type, title, description, location, severity, finalBytes, finalName, finalType)
-                        if (title.isNotBlank() && description.isNotBlank()) {
-                            title = ""
-                            description = ""
-                            location = ""
-                            imageUri = null
-                            imageBitmap = null
-                        }
                     },
                     enabled = !state.isSubmitting,
                     modifier = Modifier.fillMaxWidth(),

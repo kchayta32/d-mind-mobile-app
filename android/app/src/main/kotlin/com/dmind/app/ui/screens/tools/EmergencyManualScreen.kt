@@ -37,7 +37,9 @@ import com.dmind.app.ui.components.ScreenHeader
 
 // หน้าจอแสดงคู่มือการรับมือภัยพิบัติฉุกเฉินประเภทต่างๆ
 @Composable
-fun EmergencyManualScreen() {
+fun EmergencyManualScreen(
+    onBack: (() -> Unit)? = null,
+) {
     val guides = listOf(
         GuideCard(stringResource(R.string.manual_earthquake), Icons.Filled.Warning, stringResource(R.string.manual_earthquake_guide), CriticalRed),
         GuideCard(stringResource(R.string.manual_flood), Icons.Filled.WaterDrop, stringResource(R.string.manual_flood_guide), DmindBlue),
@@ -57,6 +59,7 @@ fun EmergencyManualScreen() {
                 stringResource(R.string.manual_title),
                 stringResource(R.string.manual_subtitle),
                 Icons.Filled.Shield,
+                onBack = onBack,
             )
         }
         items(guides) { guide ->
@@ -64,7 +67,7 @@ fun EmergencyManualScreen() {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconBubble(guide.icon, guide.color)
                     Spacer(Modifier.width(12.dp))
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(guide.title, fontWeight = FontWeight.Bold)
                         Text(guide.body, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
                     }

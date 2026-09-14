@@ -28,7 +28,7 @@ export const ArticleTimeline: React.FC<TimelineFilterProps> = ({ onDateRangeChan
       max: now,
       dates: mockDates.sort((a, b) => a.getTime() - b.getTime())
     };
-  }, [articles]);
+  }, []);
 
   const [selectedRange, setSelectedRange] = useState([0, 100]);
 

@@ -195,7 +195,7 @@ export const useHistoricalData = () => {
 
         // Create time series data
         const timeSeriesData: { date: string; incidents: number; alerts: number }[] = [];
-        let currentDate = new Date(startDate);
+        const currentDate = new Date(startDate);
         while (currentDate <= endDate) {
             const dateStr = format(currentDate, 'yyyy-MM-dd');
             timeSeriesData.push({

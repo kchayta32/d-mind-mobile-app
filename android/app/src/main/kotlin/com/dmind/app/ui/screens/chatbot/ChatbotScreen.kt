@@ -42,7 +42,7 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Assistant
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicNone
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -75,6 +75,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.dmind.app.R
 import com.dmind.app.ui.components.DmindBlue
+import com.dmind.app.ui.components.SafeGreen
 import com.dmind.app.ui.viewmodel.ChatMessage
 import com.dmind.app.ui.viewmodel.ChatUiState
 import com.dmind.app.ui.viewmodel.ChatbotViewModel
@@ -180,7 +181,7 @@ fun ChatbotScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8FAFC)) // สีพื้นหลังหน้าจอโทนสว่างพรีเมียม
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .imePadding(),
     ) {
@@ -188,7 +189,7 @@ fun ChatbotScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(horizontal = 8.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -196,7 +197,7 @@ fun ChatbotScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "กลับ",
-                    tint = Color(0xFF2563EB)
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
             Box(
@@ -223,12 +224,12 @@ fun ChatbotScreen(
                     text = "Dr.Mind - ผู้เชี่ยวชาญฉุกเฉิน",
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
-                    color = Color(0xFF0F172A)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = "ภัยธรรมชาติ & แพทย์ฉุกเฉิน",
                     fontSize = 11.sp,
-                    color = Color(0xFF64748B)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Row(
@@ -238,13 +239,13 @@ fun ChatbotScreen(
                 Box(
                     modifier = Modifier
                         .size(6.dp)
-                        .background(Color(0xFF16A34A), shape = CircleShape)
+                        .background(SafeGreen, shape = CircleShape)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "ออนไลน์",
                     fontSize = 11.sp,
-                    color = Color(0xFF16A34A),
+                    color = SafeGreen,
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -255,7 +256,7 @@ fun ChatbotScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
-                .background(Color(0xFFE2E8F0))
+                .background(MaterialTheme.colorScheme.outlineVariant)
         )
 
         // ส่วนแสดงการตอบโต้สนทนา
@@ -342,7 +343,7 @@ fun ChatbotScreen(
 
         // แถบควบคุมและกรอกข้อความสนทนาด้านล่างสุด
         Surface(
-            color = Color.White,
+            color = MaterialTheme.colorScheme.surface,
             shadowElevation = 8.dp,
         ) {
             Row(
@@ -362,7 +363,7 @@ fun ChatbotScreen(
                         Text(
                             text = if (state.isRecording) "กำลังฟังอยู่..." 
                             else "ถามคำถามเกี่ยวกับภัยพิบัติ...",
-                            color = Color(0xFF94A3B8),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             fontSize = 14.sp
                         ) 
                     },
@@ -373,9 +374,11 @@ fun ChatbotScreen(
                         focusedBorderColor = Color.Transparent,
                         unfocusedBorderColor = Color.Transparent,
                         disabledBorderColor = Color.Transparent,
-                        focusedContainerColor = Color(0xFFF1F5F9),
-                        unfocusedContainerColor = Color(0xFFF1F5F9),
-                        disabledContainerColor = Color(0xFFF1F5F9)
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                     ),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                     keyboardActions = KeyboardActions(
@@ -392,8 +395,8 @@ fun ChatbotScreen(
                 Box(
                     modifier = Modifier
                         .size(44.dp)
-                        .background(Color.White, shape = CircleShape)
-                        .border(1.dp, Color(0xFFE2E8F0), shape = CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant, shape = CircleShape)
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape = CircleShape)
                         .clickable {
                             val hasRecordPermission = ContextCompat.checkSelfPermission(
                                 context,
@@ -433,7 +436,7 @@ fun ChatbotScreen(
                         Icon(
                             imageVector = Icons.Filled.MicNone,
                             contentDescription = "พูด",
-                            tint = Color(0xFF64748B),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -451,7 +454,10 @@ fun ChatbotScreen(
                                 )
                             } else {
                                 Brush.linearGradient(
-                                    colors = listOf(Color(0xFFCBD5E1), Color(0xFFE2E8F0))
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.surfaceVariant,
+                                        MaterialTheme.colorScheme.outlineVariant
+                                    )
                                 )
                             },
                             shape = CircleShape
@@ -465,7 +471,7 @@ fun ChatbotScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Send,
                         contentDescription = stringResource(R.string.chatbot_send),
-                        tint = if (isSendEnabled) Color.White else Color(0xFF94A3B8),
+                        tint = if (isSendEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -528,7 +534,7 @@ private fun GradientHeaderCard(
                         Box(
                             modifier = Modifier
                                 .size(5.dp)
-                                .background(Color(0xFF4ADE80), shape = CircleShape)
+                                .background(SafeGreen, shape = CircleShape)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
@@ -549,7 +555,7 @@ private fun GradientHeaderCard(
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Filled.VolumeUp,
+                    imageVector = Icons.AutoMirrored.Filled.VolumeUp,
                     contentDescription = "เสียง",
                     tint = Color.White,
                     modifier = Modifier.size(16.dp)
@@ -579,12 +585,12 @@ private fun QuickQuestionsHeader() {
             text = "คำถามที่พบบ่อย",
             fontWeight = FontWeight.Bold,
             fontSize = 14.sp,
-            color = Color(0xFF334155)
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
 
-// คอมโพสเซเบิลฟองสบู่แสดงคำถามแนะนำ (Suggestion bubble) แบบขอบสีน้ำเงิน พื้นหลังขาว
+// คอมโพสเซเบิลฟองสบู่แสดงคำถามแนะนำ (Suggestion bubble) แบบขอบสีน้ำเงิน พื้นหลังปรับตามธีม
 @Composable
 private fun SuggestionBubble(
     text: String,
@@ -592,15 +598,15 @@ private fun SuggestionBubble(
 ) {
     Surface(
         shape = RoundedCornerShape(20.dp),
-        color = Color.White,
-        border = BorderStroke(1.dp, Color(0xFF2563EB)),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
         modifier = Modifier.clickable { onClick() }
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
             fontSize = 13.sp,
-            color = Color(0xFF2563EB),
+            color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.SemiBold
         )
     }
@@ -658,8 +664,8 @@ private fun ChatBubble(
             Card(
                 modifier = Modifier.fillMaxWidth(0.88f),
                 shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                border = BorderStroke(1.dp, Color(0xFFF1F5F9)),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -683,7 +689,7 @@ private fun ChatBubble(
                                 text = "Dr.Mind",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp,
-                                color = Color(0xFF2563EB)
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                         
@@ -693,9 +699,9 @@ private fun ChatBubble(
                                 modifier = Modifier.size(24.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.VolumeUp,
+                                    imageVector = Icons.AutoMirrored.Filled.VolumeUp,
                                     contentDescription = "ฟังเสียง",
-                                    tint = Color(0xFF64748B),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
@@ -709,7 +715,7 @@ private fun ChatBubble(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(1.dp)
-                            .background(Color(0xFFF1F5F9))
+                            .background(MaterialTheme.colorScheme.outlineVariant)
                     )
                     
                     Spacer(modifier = Modifier.height(10.dp))
@@ -723,16 +729,16 @@ private fun ChatBubble(
                             CircularProgressIndicator(
                                 modifier = Modifier.size(16.dp),
                                 strokeWidth = 2.dp,
-                                color = Color(0xFF2563EB)
+                                color = MaterialTheme.colorScheme.primary
                             )
                             Text(
                                 text = "กำลังพิมพ์...",
-                                color = Color(0xFF64748B),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 13.sp
                             )
                             Text(
                                 text = "•••",
-                                color = Color(0xFF2563EB),
+                                color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp
                             )
@@ -741,7 +747,7 @@ private fun ChatBubble(
                         // ข้อความคำแนะนำปกติ พร้อมรองรับการแสดงหัวข้อหนา (**คำหนา**)
                         AnnotatedMarkdownText(
                             text = message.text,
-                            textColor = Color(0xFF334155)
+                            textColor = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }

@@ -199,6 +199,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-runtime-compose:$lifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-process:$lifecycleVersion"
     implementation "androidx.datastore:datastore-preferences:$dataStoreVersion"
     implementation "androidx.work:work-runtime:$androidxWorkVersion"
     implementation "androidx.room:room-runtime:$roomVersion"
@@ -220,6 +221,11 @@ dependencies {
     implementation "com.google.firebase:firebase-messaging:$firebaseMessagingVersion"
     implementation "com.google.android.gms:play-services-location:$playServicesLocationVersion"
     implementation "com.patrykandpatrick.vico:compose-m3:2.1.0"
+}
+
+// Unit tests do not use Room/Kapt annotations; disable unit test kapt tasks to avoid AGP 8.13 artifact transform issues
+tasks.matching { it.name.startsWith("kaptGenerateStubsDebugUnitTest") || it.name.startsWith("kaptDebugUnitTest") }.configureEach {
+    enabled = false
 }
 
 // ตรวจสอบและนำปลั๊กอิน google-services มาประยุก้ต์ใช้หากพบไฟล์ google-services.json

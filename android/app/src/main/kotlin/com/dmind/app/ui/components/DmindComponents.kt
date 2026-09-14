@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Air
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Cloud
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -84,6 +86,7 @@ fun ScreenHeader(
     subtitle: String,
     icon: ImageVector,
     trailing: @Composable (() -> Unit)? = null,
+    onBack: (() -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier
@@ -92,6 +95,14 @@ fun ScreenHeader(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        if (onBack != null) {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "ย้อนกลับ",
+                )
+            }
+        }
         IconBubble(icon = icon, color = DmindBlue)
         Column(Modifier.weight(1f)) {
             Text(

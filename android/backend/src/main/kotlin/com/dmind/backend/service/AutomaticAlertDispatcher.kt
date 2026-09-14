@@ -5,6 +5,7 @@ import com.dmind.backend.DeviceTokenRegistry
 import com.dmind.backend.FcmHttpV1Sender
 import com.dmind.backend.NotificationSendRequest
 import kotlinx.coroutines.*
+import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 
 // ออบเจกต์ระบบตรวจสอบเฝ้าระวังภัยและแจ้งเตือนภัยพิบัติอัตโนมัติ (เช่น แจ้งเตือนฝุ่นละออง PM2.5)
@@ -80,7 +81,7 @@ internal object AutomaticAlertDispatcher {
                     val lastSent = lastSentAlerts[key] ?: 0L
                     if (force || (now - lastSent > COOLDOWN_MS)) {
                         val title = "แจ้งเตือนคุณภาพอากาศเกินมาตรฐาน"
-                        val message = "ดัชนีฝุ่นละออง PM2.5 ที่ ${location.name} สูงถึง ${String.format("%.1f", pm25)} µg/m³ ซึ่งเกินค่ามาตรฐานความปลอดภัย"
+                        val message = "ดัชนีฝุ่นละออง PM2.5 ที่ ${location.name} สูงถึง ${String.format(Locale.US, "%.1f", pm25)} µg/m³ ซึ่งเกินค่ามาตรฐานความปลอดภัย"
                         
                         val targets = deviceRegistry.resolveTargets(NotificationSendRequest(title, message, "pm25", broadcast = true))
                         if (targets.isNotEmpty() && sender.isConfigured) {

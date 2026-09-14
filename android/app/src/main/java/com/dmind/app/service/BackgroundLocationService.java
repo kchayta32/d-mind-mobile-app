@@ -7,7 +7,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.pm.ServiceInfo;
 import android.location.Location;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.PowerManager;
@@ -15,6 +17,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.core.app.ServiceCompat;
 import androidx.core.content.ContextCompat;
 
 import com.dmind.app.R;
@@ -131,11 +134,22 @@ public class BackgroundLocationService extends Service {
             return;
         }
 
-        // Android 14+ จะโยน SecurityException หากเริ่ม Foreground Service ประเภท "location"
-        // โดยที่ยังไม่ได้รับสิทธิ์ตำแหน่ง ดังนั้นต้องตรวจสอบก่อนและปิด Service อย่างปลอดภัย
+        // Android 14+ requires location permission before starting location foreground service.
+        // If started via startForegroundService, we must call startForeground then stopForeground before stopSelf
+        // to avoid RemoteServiceException: Context.startForegroundService() did not then call Service.startForeground().
         if (!hasLocationPermission()) {
             Log.w(TAG, "Cannot start location foreground service without location permission");
             markRunning(false);
+            try {
+                Notification notification = createPersistentNotification();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, 0);
+                } else {
+                    startForeground(NOTIFICATION_ID, notification);
+                }
+                ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
+            } catch (Exception ignored) {
+            }
             stopSelf();
             return;
         }
@@ -143,9 +157,18 @@ public class BackgroundLocationService extends Service {
         // Create notification for foreground service
         Notification notification = createPersistentNotification();
         
-        // Start as foreground service
+        // Start as foreground service with proper foreground service type for Android 14+ (API 34+)
         try {
-            startForeground(NOTIFICATION_ID, notification);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ServiceCompat.startForeground(
+                    this,
+                    NOTIFICATION_ID,
+                    notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+                );
+            } else {
+                startForeground(NOTIFICATION_ID, notification);
+            }
         } catch (Exception e) {
             // เช่น ForegroundServiceStartNotAllowedException / SecurityException ตามข้อจำกัดของระบบ
             Log.e(TAG, "Unable to start foreground service", e);
@@ -169,7 +192,7 @@ public class BackgroundLocationService extends Service {
         isServiceRunning = false;
         markRunning(false);
         stopLocationTracking();
-        stopForeground(true);
+        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
         stopSelf();
     }
     
@@ -309,7 +332,7 @@ public class BackgroundLocationService extends Service {
     private void onLocationReceived(Location location) {
         if (location != null) {
             lastLocation = location;
-            AlertsCacheDAO dao = new AlertsCacheDAO(this);
+            AlertsCacheDAO dao = AlertsCacheDAO.getInstance(this);
             dao.addLocation(location.getLatitude(), location.getLongitude(), location.getAccuracy());
             
             // Check if user is entering/leaving danger zones
@@ -323,22 +346,9 @@ public class BackgroundLocationService extends Service {
     /**
      * Handle battery optimization for the service
      */
-    // จัดการการประหยัดพลังงานโดยใช้ WakeLock เพื่อให้แน่ใจว่าการประมวลผลพิกัดทำงานเสร็จสมบูรณ์
+    // จัดการการประหยัดพลังงานโดยไม่ต้องสร้าง WakeLock ซ้ำซ้อน เนื่องจากระบบรันอยู่ภายใต้ Foreground Service แล้ว
     private void handleBatteryOptimization() {
-        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(
-            PowerManager.PARTIAL_WAKE_LOCK,
-            "D-MIND:BackgroundLocation"
-        );
-        
-        // Acquire wake lock for 10 seconds
-        wakeLock.acquire(10 * 1000L);
-        
-        // Release immediately after processing (not in this simple example)
-        // For production, use LocationUpdater to manage wake locks properly
-        if (wakeLock.isHeld()) {
-            wakeLock.release();
-        }
+        Log.d(TAG, "Location processed under active foreground service");
     }
     
     // ============================================================

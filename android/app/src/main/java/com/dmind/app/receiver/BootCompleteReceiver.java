@@ -1,9 +1,13 @@
 package com.dmind.app.receiver;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.util.Log;
+
+import androidx.core.content.ContextCompat;
 
 import com.dmind.app.service.BackgroundLocationService;
 import com.dmind.app.worker.SOSQueueWorker;
@@ -32,6 +36,15 @@ public class BootCompleteReceiver extends BroadcastReceiver {
             // หากสถานะเดิมก่อนปิดเครื่องไม่ได้บันทึกว่าเปิดทำงานเบื้องหลัง ให้ข้ามการเริ่มบริการเบื้องหลังและเรียกตัวส่ง SOS ที่ค้างไว้
             if (!BackgroundLocationService.isMarkedRunning(context)) {
                 Log.d(TAG, "Background monitoring was not enabled before reboot; skipping service restart");
+                SOSQueueWorker.enqueue(context);
+                return;
+            }
+
+            // ตรวจสอบสิทธิ์การเข้าถึงตำแหน่งก่อนเริ่ม Foreground Service เพื่อป้องกัน RemoteServiceException หรือ SecurityException
+            boolean hasLocationPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+            if (!hasLocationPermission) {
+                Log.w(TAG, "Location permission not granted upon reboot; skipping foreground service restart");
                 SOSQueueWorker.enqueue(context);
                 return;
             }

@@ -56,6 +56,144 @@ private fun putCachedWeather(key: String, data: JsonElement, status: String) {
     weatherCache[key] = WeatherCacheEntry(data, status, expiry)
 }
 
+// ตารางพิกัดศูนย์กลางประจำจังหวัดหลักของประเทศไทย (สำหรับกรณีเรียกพยากรณ์อากาศด้วยชื่อจังหวัดแต่ไม่ได้ส่งพิกัดมา)
+private val PROVINCE_COORDINATES: Map<String, Pair<Double, Double>> = mapOf(
+    // กรุงเทพมหานครและปริมณฑล / ภาคกลาง
+    "กรุงเทพมหานคร" to (13.7563 to 100.5018),
+    "กรุงเทพฯ" to (13.7563 to 100.5018),
+    "bangkok" to (13.7563 to 100.5018),
+    "นนทบุรี" to (13.8621 to 100.5144),
+    "nonthaburi" to (13.8621 to 100.5144),
+    "ปทุมธานี" to (14.0208 to 100.5250),
+    "pathum thani" to (14.0208 to 100.5250),
+    "สมุทรปราการ" to (13.5991 to 100.5998),
+    "samut prakan" to (13.5991 to 100.5998),
+    "สมุทรสาคร" to (13.5475 to 100.2744),
+    "สมุทรสงคราม" to (13.4098 to 99.9976),
+    "นครปฐม" to (13.8196 to 100.0601),
+    "พระนครศรีอยุธยา" to (14.3532 to 100.5684),
+    "อยุธยา" to (14.3532 to 100.5684),
+    "สระบุรี" to (14.5289 to 100.9101),
+    "ลพบุรี" to (14.7995 to 100.6534),
+    "สิงห์บุรี" to (14.8863 to 100.4005),
+    "อ่างทอง" to (14.5896 to 100.4550),
+    "ชัยนาท" to (15.1852 to 100.1251),
+    "นครนายก" to (14.2069 to 101.2131),
+    // ภาคเหนือ
+    "เชียงใหม่" to (18.7883 to 98.9853),
+    "chiang mai" to (18.7883 to 98.9853),
+    "เชียงราย" to (19.9105 to 99.8406),
+    "chiang rai" to (19.9105 to 99.8406),
+    "ลำปาง" to (18.2888 to 99.4928),
+    "ลำพูน" to (18.5745 to 99.0087),
+    "แม่ฮ่องสอน" to (19.3021 to 97.9654),
+    "น่าน" to (18.7830 to 100.7782),
+    "พะเยา" to (19.1664 to 99.9022),
+    "แพร่" to (18.1446 to 100.1411),
+    "อุตรดิตถ์" to (17.6256 to 100.0993),
+    "พิษณุโลก" to (16.8211 to 100.2659),
+    "สุโขทัย" to (17.0078 to 99.8230),
+    "ตาก" to (16.8839 to 99.1258),
+    "กำแพงเพชร" to (16.4828 to 99.5227),
+    "พิจิตร" to (16.4429 to 100.3488),
+    "เพชรบูรณ์" to (16.4193 to 101.1609),
+    "นครสวรรค์" to (15.7029 to 100.1370),
+    "อุทัยธานี" to (15.3835 to 100.0245),
+    // ภาคตะวันออกเฉียงเหนือ (อีสาน)
+    "ขอนแก่น" to (16.4419 to 102.8359),
+    "khon kaen" to (16.4419 to 102.8359),
+    "นครราชสีมา" to (14.9799 to 102.0977),
+    "โคราช" to (14.9799 to 102.0977),
+    "nakhon ratchasima" to (14.9799 to 102.0977),
+    "อุดรธานี" to (17.4138 to 102.7877),
+    "อุบลราชธานี" to (15.2448 to 104.8471),
+    "หนองคาย" to (17.8783 to 102.7420),
+    "บึงกาฬ" to (18.3633 to 103.6528),
+    "เลย" to (17.4860 to 101.7223),
+    "สกลนคร" to (17.1546 to 104.1486),
+    "นครพนม" to (17.4042 to 104.7803),
+    "มุกดาหาร" to (16.5436 to 104.7235),
+    "กาฬสินธุ์" to (16.4322 to 103.5057),
+    "ร้อยเอ็ด" to (16.0538 to 103.6520),
+    "มหาสารคาม" to (16.1852 to 103.3007),
+    "ชัยภูมิ" to (15.8070 to 102.0322),
+    "บุรีรัมย์" to (14.9930 to 103.1029),
+    "สุรินทร์" to (14.8818 to 103.4937),
+    "ศรีสะเกษ" to (15.1186 to 104.3220),
+    "ยโสธร" to (15.7926 to 104.1451),
+    "อำนาจเจริญ" to (15.8585 to 104.6258),
+    "หนองบัวลำภู" to (17.2034 to 102.4407),
+    // ภาคตะวันออก
+    "ชลบุรี" to (13.3611 to 100.9847),
+    "chonburi" to (13.3611 to 100.9847),
+    "ระยอง" to (12.6814 to 101.2816),
+    "rayong" to (12.6814 to 101.2816),
+    "จันทบุรี" to (12.6114 to 102.1039),
+    "ตราด" to (12.2428 to 102.5175),
+    "ฉะเชิงเทรา" to (13.6904 to 101.0779),
+    "ปราจีนบุรี" to (14.0509 to 101.3716),
+    "สระแก้ว" to (13.8140 to 102.0583),
+    // ภาคตะวันตก
+    "ราชบุรี" to (13.5283 to 99.8134),
+    "กาญจนบุรี" to (14.0228 to 99.5328),
+    "สุพรรณบุรี" to (14.4745 to 100.1177),
+    "เพชรบุรี" to (13.1114 to 99.9397),
+    "ประจวบคีรีขันธ์" to (11.8124 to 99.7972),
+    // ภาคใต้
+    "ภูเก็ต" to (7.8804 to 98.3923),
+    "phuket" to (7.8804 to 98.3923),
+    "สงขลา" to (7.1756 to 100.6143),
+    "หาดใหญ่" to (7.0087 to 100.4747),
+    "สุราษฎร์ธานี" to (9.1400 to 99.3333),
+    "surat thani" to (9.1400 to 99.3333),
+    "นครศรีธรรมราช" to (8.4304 to 99.9631),
+    "กระบี่" to (8.0863 to 98.9063),
+    "krabi" to (8.0863 to 98.9063),
+    "พังงา" to (8.4501 to 98.5255),
+    "ระนอง" to (9.9658 to 98.6348),
+    "ชุมพร" to (10.4930 to 99.1800),
+    "ตรัง" to (7.5594 to 99.6114),
+    "พัทลุง" to (7.6167 to 100.0833),
+    "สตูล" to (6.6238 to 100.0674),
+    "ปัตตานี" to (6.8696 to 101.2501),
+    "ยะลา" to (6.5411 to 101.2813),
+    "นราธิวาส" to (6.4255 to 101.8253)
+)
+
+// พิกัดศูนย์กลางประจำภูมิภาคหลัก (ตามรหัสภูมิภาคของกรมอุตุนิยมวิทยา TMD: C, N, NE, E, S, W)
+private val REGION_COORDINATES: Map<String, Pair<Double, Double>> = mapOf(
+    "C" to (13.7563 to 100.5018),   // ภาคกลาง (กรุงเทพฯ)
+    "N" to (18.7883 to 98.9853),    // ภาคเหนือ (เชียงใหม่)
+    "NE" to (16.4419 to 102.8359),  // ภาคตะวันออกเฉียงเหนือ (ขอนแก่น)
+    "E" to (13.3611 to 100.9847),   // ภาคตะวันออก (ชลบุรี)
+    "S" to (8.4304 to 99.9631),     // ภาคใต้ (นครศรีธรรมราช)
+    "W" to (14.0228 to 99.5328)     // ภาคตะวันตก (กาญจนบุรี)
+)
+
+// ตัวแปลงค้นหาพิกัดศูนย์กลางตามชื่อจังหวัดหรือรหัสภูมิภาค เมื่อไม่มีการระบุพิกัดละติจูด/ลองจิจูดเข้ามาโดยตรง
+private fun resolveCoordinates(
+    province: String?,
+    region: String?,
+    rawLat: Double?,
+    rawLon: Double?
+): Pair<Double, Double> {
+    if (rawLat != null && rawLon != null) {
+        return rawLat to rawLon
+    }
+    if (province != null) {
+        val cleanProvince = province.trim().lowercase()
+        val match = PROVINCE_COORDINATES[cleanProvince] 
+            ?: PROVINCE_COORDINATES.entries.firstOrNull { cleanProvince.contains(it.key) || it.key.contains(cleanProvince) }?.value
+        if (match != null) return match
+    }
+    if (region != null) {
+        val cleanRegion = region.trim().uppercase()
+        val match = REGION_COORDINATES[cleanRegion]
+        if (match != null) return match
+    }
+    return (rawLat ?: 13.7563) to (rawLon ?: 100.5018)
+}
+
 // กำหนดเส้นทาง URL (Routing) ที่เกี่ยวกับข้อมูลพยากรณ์อากาศ ภัยพิบัติ และการประเมินวิเคราะห์ผลด้วย AI
 internal fun Route.disasterDataRoutes(config: GatewayConfig) {
     
@@ -79,6 +217,13 @@ internal fun Route.disasterDataRoutes(config: GatewayConfig) {
             }
             val fields = call.request.queryParameters["fields"] ?: defaultFields
 
+            val rawLat = call.request.queryParameters["lat"]?.toDoubleOrNull()
+            val rawLon = call.request.queryParameters["lon"]?.toDoubleOrNull()
+            val (resolvedLat, resolvedLon) = resolveCoordinates(province, region, rawLat, rawLon)
+            val lat = rawLat ?: resolvedLat
+            val lon = rawLon ?: resolvedLon
+            val provinceLabel = province ?: region
+
             // Determine cache key
             val cacheKey = when {
                 region != null -> "region:$region:$daily:$duration:$fields"
@@ -91,8 +236,6 @@ internal fun Route.disasterDataRoutes(config: GatewayConfig) {
                     "place:$province:$amphoe:$tambon:$subarea:$date:$daily:$duration:$fields"
                 }
                 else -> {
-                    val lat = call.request.queryParameters["lat"]?.toDoubleOrNull() ?: 13.7563
-                    val lon = call.request.queryParameters["lon"]?.toDoubleOrNull() ?: 100.5018
                     val roundedLat = String.format(java.util.Locale.US, "%.3f", lat)
                     val roundedLon = String.format(java.util.Locale.US, "%.3f", lon)
                     val date = call.request.queryParameters["date"]
@@ -107,13 +250,10 @@ internal fun Route.disasterDataRoutes(config: GatewayConfig) {
                 return@handleSafely
             }
 
-            val lat = call.request.queryParameters["lat"]?.toDoubleOrNull() ?: 13.7563
-            val lon = call.request.queryParameters["lon"]?.toDoubleOrNull() ?: 100.5018
-
             if (token.isBlank()) {
                 // Fallback to Open-Meteo when TMD token is unconfigured
                 try {
-                    val fallbackData = fetchOpenMeteoFallback(lat, lon, daily, duration)
+                    val fallbackData = fetchOpenMeteoFallback(lat, lon, daily, duration, provinceLabel)
                     putCachedWeather(cacheKey, fallbackData, "fallback")
                     call.respond(JsonDataResponse(status = "fallback", detail = "fallback Open-Meteo weather", data = fallbackData))
                 } catch (e: Exception) {
@@ -183,7 +323,7 @@ internal fun Route.disasterDataRoutes(config: GatewayConfig) {
             } catch (e: Exception) {
                 // Fallback to Open-Meteo when TMD API call fails
                 try {
-                    val fallbackData = fetchOpenMeteoFallback(lat, lon, daily, duration)
+                    val fallbackData = fetchOpenMeteoFallback(lat, lon, daily, duration, provinceLabel)
                     putCachedWeather(cacheKey, fallbackData, "fallback")
                     call.respond(JsonDataResponse(status = "fallback", detail = "fallback Open-Meteo weather (TMD API failed)", data = fallbackData))
                 } catch (fallbackEx: Exception) {
@@ -499,7 +639,13 @@ private fun extractSeverityScore(text: String): Int {
 }
 
 // ดึงข้อมูลสภาพอากาศแบบสำรองจากบริการพับลิก Open-Meteo ในกรณีที่ TMD API ขัดข้องหรือไม่มี Token
-private fun fetchOpenMeteoFallback(lat: Double, lon: Double, daily: Boolean, duration: Int): JsonElement {
+private fun fetchOpenMeteoFallback(
+    lat: Double,
+    lon: Double,
+    daily: Boolean,
+    duration: Int,
+    provinceName: String? = null
+): JsonElement {
     val days = if (daily) duration else ((duration + 23) / 24).coerceAtLeast(1)
     val url = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon" +
             "&hourly=temperature_2m,relative_humidity_2m,rain,wind_speed_10m,wind_direction_10m," +
@@ -743,7 +889,7 @@ private fun fetchOpenMeteoFallback(lat: Double, lon: Double, daily: Boolean, dur
                 put("location", buildJsonObject {
                     put("lat", lat)
                     put("lon", lon)
-                    put("province", "Bangkok")
+                    put("province", provinceName ?: "Bangkok")
                 })
                 put("forecasts", forecastsArray)
             })

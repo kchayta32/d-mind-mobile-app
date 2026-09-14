@@ -77,10 +77,19 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
     public static final String COLUMN_LOC_ZONE_ID = "zone_id";
     
     private static final String TAG = "AlertsCacheDAO";
-    
+    private static volatile AlertsCacheDAO sInstance;
+
+    // Singleton instance provider for thread-safe shared database helper
+    public static synchronized AlertsCacheDAO getInstance(Context context) {
+        if (sInstance == null) {
+            sInstance = new AlertsCacheDAO(context.getApplicationContext());
+        }
+        return sInstance;
+    }
+
     // คอนสตรักเตอร์สำหรับสร้างและเตรียมการเชื่อมต่อฐานข้อมูล
     public AlertsCacheDAO(Context context) {
-        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        super(context != null ? context.getApplicationContext() : null, DATABASE_NAME, null, DATABASE_VERSION);
     }
     
     @Override
@@ -176,7 +185,6 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
         values.put(COLUMN_ZONE_ENABLED, zone.isEnabled() ? 1 : 0);
         
         long id = db.insert(TABLE_DANGER_ZONES, null, values);
-        db.close();
         
         Log.d(TAG, "Danger zone added with ID: " + id);
         return id;
@@ -193,27 +201,24 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
                       " ORDER BY " + COLUMN_ZONE_EXPIRY + " ASC";
         
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(query, null);
-        
-        if (cursor.moveToFirst()) {
-            do {
-                DangerZone zone = new DangerZone();
-                zone.setId(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ZONE_ID)));
-                zone.setName(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ZONE_NAME)));
-                zone.setType(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ZONE_TYPE)));
-                zone.setAlertTitle(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ZONE_ALERT_TITLE)));
-                zone.setAlertMessage(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ZONE_ALERT_MESSAGE)));
-                zone.setPolygon(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ZONE_POLYGON)));
-                zone.setCreatedAt(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ZONE_CREATED)));
-                zone.setExpiryTime(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ZONE_EXPIRY)));
-                zone.setEnabled(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ZONE_ENABLED)) == 1);
-                
-                zones.add(zone);
-            } while (cursor.moveToNext());
+        try (Cursor cursor = db.rawQuery(query, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    DangerZone zone = new DangerZone();
+                    zone.setId(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ZONE_ID)));
+                    zone.setName(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ZONE_NAME)));
+                    zone.setType(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ZONE_TYPE)));
+                    zone.setAlertTitle(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ZONE_ALERT_TITLE)));
+                    zone.setAlertMessage(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ZONE_ALERT_MESSAGE)));
+                    zone.setPolygon(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ZONE_POLYGON)));
+                    zone.setCreatedAt(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ZONE_CREATED)));
+                    zone.setExpiryTime(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ZONE_EXPIRY)));
+                    zone.setEnabled(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ZONE_ENABLED)) == 1);
+                    
+                    zones.add(zone);
+                } while (cursor.moveToNext());
+            }
         }
-        
-        cursor.close();
-        db.close();
         
         Log.d(TAG, "Loaded " + zones.size() + " danger zones");
         return zones;
@@ -241,7 +246,6 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
         values.put(COLUMN_SOS_CREATED, System.currentTimeMillis());
         
         long id = db.insert(TABLE_SOS_QUEUE, null, values);
-        db.close();
         
         Log.d(TAG, "SOS message enqueued with ID: " + id);
         return id;
@@ -254,32 +258,29 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
     public List<SOSMessage> getPendingSOSMessages() {
         List<SOSMessage> messages = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(
+        try (Cursor cursor = db.query(
             TABLE_SOS_QUEUE,
             null,
             COLUMN_SOS_STATUS + " = ?",
             new String[]{"pending"},
             null, null,
             COLUMN_SOS_CREATED + " ASC"
-        );
-        
-        if (cursor.moveToFirst()) {
-            do {
-                SOSMessage msg = new SOSMessage();
-                msg.setId(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SOS_ID)));
-                msg.setUserId(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SOS_USER_ID)));
-                msg.setLatitude(cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_SOS_LATITUDE)));
-                msg.setLongitude(cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_SOS_LONGITUDE)));
-                msg.setBatteryLevel(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SOS_BATTERY)));
-                msg.setMessage(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SOS_MESSAGE)));
-                msg.setCreatedAt(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_SOS_CREATED)));
-                
-                messages.add(msg);
-            } while (cursor.moveToNext());
+        )) {
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    SOSMessage msg = new SOSMessage();
+                    msg.setId(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SOS_ID)));
+                    msg.setUserId(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SOS_USER_ID)));
+                    msg.setLatitude(cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_SOS_LATITUDE)));
+                    msg.setLongitude(cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_SOS_LONGITUDE)));
+                    msg.setBatteryLevel(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SOS_BATTERY)));
+                    msg.setMessage(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SOS_MESSAGE)));
+                    msg.setCreatedAt(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_SOS_CREATED)));
+                    
+                    messages.add(msg);
+                } while (cursor.moveToNext());
+            }
         }
-        
-        cursor.close();
-        db.close();
         return messages;
     }
 
@@ -300,7 +301,6 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
             COLUMN_SOS_ID + " = ?",
             new String[]{String.valueOf(sosId)}
         );
-        db.close();
         return rows;
     }
 
@@ -320,7 +320,6 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
             COLUMN_SOS_ID + " = ?",
             new String[]{String.valueOf(sosId)}
         );
-        db.close();
         return rows;
     }
     
@@ -344,8 +343,6 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
         values.put(COLUMN_ALERT_TIMESTAMP, System.currentTimeMillis());
         
         long id = db.insert(TABLE_ALERTS_CACHE, null, values);
-        db.close();
-        
         return id;
     }
     
@@ -356,30 +353,27 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
     public List<Alert> getUnreadAlerts() {
         List<Alert> alerts = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(
+        try (Cursor cursor = db.query(
             TABLE_ALERTS_CACHE,
             null,
             COLUMN_ALERT_READ + " = 0",
             null, null, null,
             COLUMN_ALERT_TIMESTAMP + " DESC"
-        );
-        
-        if (cursor.moveToFirst()) {
-            do {
-                Alert alert = new Alert();
-                alert.setId(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ALERT_ID)));
-                alert.setType(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALERT_TYPE)));
-                alert.setLevel(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALERT_LEVEL)));
-                alert.setMessage(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALERT_MESSAGE)));
-                alert.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALERT_TITLE)));
-                alert.setTimestamp(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ALERT_TIMESTAMP)));
-                
-                alerts.add(alert);
-            } while (cursor.moveToNext());
+        )) {
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    Alert alert = new Alert();
+                    alert.setId(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ALERT_ID)));
+                    alert.setType(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALERT_TYPE)));
+                    alert.setLevel(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALERT_LEVEL)));
+                    alert.setMessage(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALERT_MESSAGE)));
+                    alert.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALERT_TITLE)));
+                    alert.setTimestamp(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ALERT_TIMESTAMP)));
+                    
+                    alerts.add(alert);
+                } while (cursor.moveToNext());
+            }
         }
-        
-        cursor.close();
-        db.close();
         return alerts;
     }
     
@@ -401,8 +395,6 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
         values.put(COLUMN_LOC_ACCURACY, accuracy);
         
         long id = db.insert(TABLE_LOCATION_HISTORY, null, values);
-        db.close();
-        
         return id;
     }
 
@@ -415,9 +407,8 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
         LocationRecord record = null;
         String query = "SELECT * FROM " + TABLE_LOCATION_HISTORY +
                        " ORDER BY " + COLUMN_LOC_TIMESTAMP + " DESC LIMIT 1";
-        Cursor cursor = db.rawQuery(query, null);
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
+        try (Cursor cursor = db.rawQuery(query, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
                 record = new LocationRecord();
                 record.setId(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_LOC_ID)));
                 record.setLatitude(cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_LOC_LATITUDE)));
@@ -426,9 +417,7 @@ public class AlertsCacheDAO extends SQLiteOpenHelper {
                 record.setAccuracy(cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_LOC_ACCURACY)));
                 record.setZoneId(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_LOC_ZONE_ID)));
             }
-            cursor.close();
         }
-        db.close();
         return record;
     }
 }

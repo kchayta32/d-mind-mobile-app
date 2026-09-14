@@ -2,6 +2,8 @@ package com.dmind.app
 
 import android.app.Application
 import android.util.Log
+import androidx.lifecycle.ProcessLifecycleOwner
+import com.dmind.app.receiver.AppLifecycleMonitor
 import com.dmind.app.util.EmergencyNotificationManager
 import com.dmind.app.util.FCMTokenRegistrar
 import com.google.firebase.messaging.FirebaseMessaging
@@ -17,10 +19,16 @@ class DMindApplication : Application() {
             private set
     }
 
+    // ตัวจัดการตรวจจับวงจรชีวิตแอปพลิเคชันสำหรับควบคุมการแจ้งเตือนฉุกเฉิน
+    lateinit var lifecycleMonitor: AppLifecycleMonitor
+        private set
+
     // ฟังก์ชันที่ทำงานเมื่อเริ่มต้นแอปพลิเคชัน
     override fun onCreate() {
         instance = this
         super.onCreate()
+        lifecycleMonitor = AppLifecycleMonitor(this)
+        ProcessLifecycleOwner.get().lifecycle.addObserver(lifecycleMonitor)
         // สร้างช่องทางสำหรับการแจ้งเตือนต่างๆ
         createNotificationChannels()
         // อัปเดตและลงทะเบียน FCM Token

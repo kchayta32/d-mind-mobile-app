@@ -41,29 +41,30 @@ export const useServiceWorker = () => {
     }
   }, [toast]);
 
-  const installPrompt = () => {
-    if ('beforeinstallprompt' in window) {
-      window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        toast({
-          title: "ติดตั้งแอป D-MIND",
-          description: "เพิ่มไปยังหน้าจอหลักเพื่อเข้าถึงได้ง่ายขึ้น",
-          action: (
-            <button 
-              onClick={() => {
-                (e as any).prompt();
-              }}
-              className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-            >
-              ติดตั้ง
-            </button>
-          )
-        });
-      });
-    }
-  };
-
   useEffect(() => {
-    installPrompt();
-  }, []);
+    if (!('beforeinstallprompt' in window)) return;
+
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      toast({
+        title: "ติดตั้งแอป D-MIND",
+        description: "เพิ่มไปยังหน้าจอหลักเพื่อเข้าถึงได้ง่ายขึ้น",
+        action: (
+          <button 
+            onClick={() => {
+              (e as any).prompt?.();
+            }}
+            className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+          >
+            ติดตั้ง
+          </button>
+        )
+      });
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, [toast]);
 };

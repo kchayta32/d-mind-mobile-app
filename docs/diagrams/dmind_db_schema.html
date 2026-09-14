@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D-MIND Mobile App · Physical Database Schema</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:        #f8fafc;
+      --color-paper-2:      #eef2f8;
+      --color-ink:          #1e293b;
+      --color-muted:        #475569;
+      --color-soft:         #64748b;
+      --color-rule:         rgba(30, 41, 59, 0.12);
+      --color-rule-solid:   #cbd5e1;
+      --color-accent:       #007aff;
+      --color-accent-tint:  rgba(0, 122, 255, 0.08);
+      --color-link:         #005bb5;
+      --font-sans:          'Geist', 'Prompt', system-ui, sans-serif;
+      --font-serif:         'Instrument Serif', 'Prompt', serif;
+      --font-mono:          'Geist Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      padding: 3rem 2rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .header {
+      margin-bottom: 2rem;
+    }
+
+    .header-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.85rem, 3vw + 1rem, 2.65rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 0.5rem;
+    }
+
+    .header-sub {
+      font-size: 0.95rem;
+      color: var(--color-muted);
+      max-width: 820px;
+      line-height: 1.5;
+    }
+
+    .diagram-frame {
+      background: #ffffff;
+      border: 1px solid var(--color-rule);
+      border-radius: 8px;
+      padding: 1.5rem;
+      overflow-x: auto;
+      margin-bottom: 2.5rem;
+    }
+
+    svg {
+      width: 100%;
+      min-width: 1100px;
+      height: auto;
+      display: block;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 0.9fr;
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid var(--color-rule);
+      border-radius: 6px;
+      padding: 1.25rem;
+    }
+
+    .card-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    .card-dot.accent { background: var(--color-accent); }
+    .card-dot.ink { background: var(--color-ink); }
+    .card-dot.muted { background: var(--color-muted); }
+
+    .card h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--color-ink);
+    }
+
+    .card ul {
+      list-style: none;
+      font-size: 0.82rem;
+      color: var(--color-muted);
+      line-height: 1.6;
+    }
+
+    .card ul li {
+      position: relative;
+      padding-left: 1.1rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .card ul li::before {
+      content: "•";
+      position: absolute;
+      left: 0.25rem;
+      color: var(--color-accent);
+    }
+
+    .card code {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      background: var(--color-paper-2);
+      padding: 0.15rem 0.35rem;
+      border-radius: 3px;
+      color: var(--color-ink);
+    }
+
+    .footer {
+      border-top: 1px solid var(--color-rule);
+      padding-top: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--color-muted);
+    }
+
+    @media (max-width: 900px) {
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <p class="header-eyebrow">Database Schema · D-MIND System Architecture</p>
+      <h1>D-MIND Mobile App · Physical Tables &amp; Foreign Keys</h1>
+      <p class="header-sub">
+        ภาพรวมโครงสร้างตารางกายภาพ (Physical Schema) ของระบบ D-MIND Mobile App บน PostgreSQL / Supabase
+        ครอบคลุมระบบศูนย์เตือนภัยเรียลไทม์ (Real-time Alerts), บันทึกการส่งแจ้งเตือนรายบุคคล (FCM Deliveries),
+        รายงานเหตุฉุกเฉินจากประชาชน (Incident Reports) และการวิเคราะห์ภาพความเสียหายด้วย AI (Damage Assessments)
+      </p>
+    </div>
+
+    <div class="diagram-frame">
+      <svg viewBox="0 0 1160 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="dmind-db-schema-title dmind-db-schema-desc">
+        <title id="dmind-db-schema-title">D-MIND Mobile App Database Schema · Physical Tables &amp; Foreign Keys</title>
+        <desc id="dmind-db-schema-desc">Physical database schema diagram showing the core tables of D-MIND Mobile App backend: auth.users, realtime_alerts, alert_deliveries, incident_reports, and damage_assessments with column-level foreign keys, SQL types, and constraints.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#475569"/>
+          </marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#007aff"/>
+          </marker>
+        </defs>
+
+        <!-- Canvas Background -->
+        <rect width="100%" height="100%" fill="#f8fafc"/>
+
+        <!-- AUTH Schema Group (drawn first so tables paint over it) -->
+        <rect x="428" y="64" width="304" height="152" rx="8" fill="rgba(30,41,59,0.02)" stroke="rgba(30,41,59,0.20)" stroke-width="0.8" stroke-dasharray="4,4"/>
+        <text x="440" y="80" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">AUTH SCHEMA</text>
+
+        <!-- ========================================== -->
+        <!-- FOREIGN KEY CONNECTORS (Drawn before boxes) -->
+        <!-- ========================================== -->
+
+        <!-- FK1 (Focal Destructive): alert_deliveries.alert_id -> realtime_alerts.id · ON DELETE CASCADE -->
+        <path d="M 800,128 H 760 Q 752,128 752,120 V 44 Q 752,36 744,36 H 400 Q 392,36 392,44 V 96 Q 392,104 384,104 H 360" fill="none" stroke="#007aff" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+
+        <!-- FK2: alert_deliveries.user_id -> auth.users.id · ON DELETE CASCADE -->
+        <path d="M 800,152 H 768 Q 760,152 760,144 V 144 Q 760,136 752,136 H 720" fill="none" stroke="#475569" stroke-width="1" marker-end="url(#arrow)"/>
+
+        <!-- FK3: realtime_alerts.created_by -> auth.users.id · ON DELETE SET NULL -->
+        <path d="M 360,224 H 392 Q 400,224 400,216 V 144 Q 400,136 408,136 H 440" fill="none" stroke="#475569" stroke-width="1" marker-end="url(#arrow)"/>
+
+        <!-- FK4: damage_assessments.incident_id -> incident_reports.id · ON DELETE CASCADE -->
+        <path d="M 660,424 H 588 Q 580,424 580,416 V 408 Q 580,400 572,400 H 500" fill="none" stroke="#475569" stroke-width="1" marker-end="url(#arrow)"/>
+
+        <!-- ========================================== -->
+        <!-- FK LABELS (Masked with 6-10px gap) -->
+        <!-- ========================================== -->
+
+        <!-- FK1 Label (Focal): ON DELETE CASCADE -->
+        <rect x="524" y="16" width="96" height="12" rx="2" fill="#f8fafc"/>
+        <text x="572" y="25" fill="#007aff" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">ON DELETE CASCADE</text>
+
+        <!-- FK2 Label: ON DELETE CASCADE -->
+        <rect x="722" y="114" width="76" height="12" rx="2" fill="#f8fafc"/>
+        <text x="760" y="123" fill="#475569" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle">CASCADE</text>
+
+        <!-- FK3 Label: ON DELETE SET NULL -->
+        <rect x="362" y="114" width="76" height="12" rx="2" fill="#f8fafc"/>
+        <text x="400" y="123" fill="#475569" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle">SET NULL</text>
+
+        <!-- FK4 Label: ON DELETE CASCADE -->
+        <rect x="532" y="378" width="96" height="12" rx="2" fill="#f8fafc"/>
+        <text x="580" y="387" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">ON DELETE CASCADE</text>
+
+        <!-- ========================================== -->
+        <!-- TABLE 1: auth.users (Inside AUTH Schema) -->
+        <!-- ========================================== -->
+        <rect x="440" y="96" width="280" height="100" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="1"/>
+        <rect x="440" y="96" width="280" height="28" rx="6" fill="rgba(30,41,59,0.04)" stroke="none"/>
+        <rect x="440" y="116" width="280" height="8" fill="rgba(30,41,59,0.04)"/>
+        <line x1="440" y1="124" x2="720" y2="124" stroke="rgba(30,41,59,0.22)" stroke-width="1"/>
+        <text x="452" y="114" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif">auth.users</text>
+        <rect x="672" y="104" width="36" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.40)" stroke-width="0.8"/>
+        <text x="690" y="113" fill="#1e293b" opacity="0.8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+
+        <!-- Row 1: id (PK, NN) -->
+        <rect x="440" y="124" width="280" height="24" fill="rgba(30,41,59,0.02)"/>
+        <text x="452" y="140" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">id</text>
+        <rect x="552" y="132" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="562" y="141" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">PK</text>
+        <rect x="576" y="132" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="586" y="141" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="708" y="140" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+
+        <!-- Row 2: email (UQ, NN) -->
+        <text x="452" y="164" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">email</text>
+        <rect x="552" y="156" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="562" y="165" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">UQ</text>
+        <rect x="576" y="156" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="586" y="165" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="708" y="164" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">text</text>
+
+        <!-- Row 3: created_at (NN) -->
+        <rect x="440" y="172" width="280" height="24" fill="rgba(30,41,59,0.02)"/>
+        <text x="452" y="188" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">created_at</text>
+        <rect x="552" y="180" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="562" y="189" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="708" y="188" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">timestamptz</text>
+
+        <!-- ========================================== -->
+        <!-- TABLE 2: public.realtime_alerts -->
+        <!-- ========================================== -->
+        <rect x="48" y="64" width="312" height="240" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="1"/>
+        <rect x="48" y="64" width="312" height="28" rx="6" fill="rgba(30,41,59,0.04)" stroke="none"/>
+        <rect x="48" y="84" width="312" height="8" fill="rgba(30,41,59,0.04)"/>
+        <line x1="48" y1="92" x2="360" y2="92" stroke="rgba(30,41,59,0.22)" stroke-width="1"/>
+        <text x="60" y="82" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif">public.realtime_alerts</text>
+        <rect x="312" y="72" width="36" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.40)" stroke-width="0.8"/>
+        <text x="330" y="81" fill="#1e293b" opacity="0.8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+
+        <!-- Row 1: id (PK, NN) -->
+        <rect x="48" y="92" width="312" height="24" fill="rgba(30,41,59,0.02)"/>
+        <text x="60" y="108" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">id</text>
+        <rect x="212" y="100" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="222" y="109" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">PK</text>
+        <rect x="236" y="100" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="246" y="109" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="348" y="108" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+
+        <!-- Row 2: title (NN) -->
+        <text x="60" y="132" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">title</text>
+        <rect x="236" y="124" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="246" y="133" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="348" y="132" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">text</text>
+
+        <!-- Row 3: alert_type (NN) -->
+        <rect x="48" y="140" width="312" height="24" fill="rgba(30,41,59,0.02)"/>
+        <text x="60" y="156" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">alert_type</text>
+        <rect x="236" y="148" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="246" y="157" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="348" y="156" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">text</text>
+
+        <!-- Row 4: severity_level (NN) -->
+        <text x="60" y="180" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">severity_level</text>
+        <rect x="236" y="172" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="246" y="181" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="348" y="180" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">integer</text>
+
+        <!-- Row 5: coordinates (NN) -->
+        <rect x="48" y="188" width="312" height="24" fill="rgba(30,41,59,0.02)"/>
+        <text x="60" y="204" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">coordinates</text>
+        <rect x="236" y="196" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="246" y="205" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="348" y="204" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">jsonb</text>
+
+        <!-- Row 6: created_by (FK) -->
+        <text x="60" y="228" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">created_by</text>
+        <rect x="212" y="220" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="222" y="229" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">FK</text>
+        <text x="348" y="228" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+
+        <!-- Row 7: Overflow row -->
+        <rect x="48" y="236" width="312" height="24" fill="rgba(30,41,59,0.02)"/>
+        <text x="60" y="252" fill="#475569" font-size="9" font-family="'Geist Mono', monospace">+ 8 more columns (radius_km, is_active, ...)</text>
+
+        <!-- Index compartment -->
+        <line x1="48" y1="260" x2="360" y2="260" stroke="rgba(30,41,59,0.12)" stroke-width="0.8"/>
+        <text x="60" y="274" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">INDEXES</text>
+        <text x="60" y="292" fill="#475569" font-size="9" font-family="'Geist Mono', monospace">idx_alerts_is_active</text>
+
+        <!-- ========================================== -->
+        <!-- TABLE 3: public.alert_deliveries (Focal) -->
+        <!-- ========================================== -->
+        <rect x="800" y="64" width="312" height="216" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="1"/>
+        <rect x="800" y="64" width="312" height="28" rx="6" fill="rgba(0,122,255,0.08)" stroke="none"/>
+        <rect x="800" y="84" width="312" height="8" fill="rgba(0,122,255,0.08)"/>
+        <line x1="800" y1="92" x2="1112" y2="92" stroke="rgba(0,122,255,0.22)" stroke-width="1"/>
+        <text x="812" y="82" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif">public.alert_deliveries</text>
+        <rect x="1064" y="72" width="36" height="12" rx="2" fill="none" stroke="rgba(0,122,255,0.40)" stroke-width="0.8"/>
+        <text x="1082" y="81" fill="#007aff" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+
+        <!-- Row 1: id (PK, NN) -->
+        <rect x="800" y="92" width="312" height="24" fill="rgba(30,41,59,0.02)"/>
+        <text x="812" y="108" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">id</text>
+        <rect x="964" y="100" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="974" y="109" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">PK</text>
+        <rect x="988" y="100" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="998" y="109" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="1100" y="108" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+
+        <!-- Row 2: alert_id (FK, NN) -->
+        <text x="812" y="132" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">alert_id</text>
+        <rect x="964" y="124" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="974" y="133" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">FK</text>
+        <rect x="988" y="124" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="998" y="133" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="1100" y="132" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+
+        <!-- Row 3: user_id (FK, NN) -->
+        <rect x="800" y="140" width="312" height="24" fill="rgba(30,41,59,0.02)"/>
+        <text x="812" y="156" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">user_id</text>
+        <rect x="964" y="148" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="974" y="157" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">FK</text>
+        <rect x="988" y="148" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="998" y="157" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="1100" y="156" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+
+        <!-- Row 4: delivery_method (NN) -->
+        <text x="812" y="180" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">delivery_method</text>
+        <rect x="988" y="172" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="998" y="181" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="1100" y="180" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">text</text>
+
+        <!-- Row 5: delivery_status (NN) -->
+        <rect x="800" y="188" width="312" height="24" fill="rgba(30,41,59,0.02)"/>
+        <text x="812" y="204" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">delivery_status</text>
+        <rect x="988" y="196" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="998" y="205" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="1100" y="204" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">text</text>
+
+        <!-- Row 6: delivered_at -->
+        <text x="812" y="228" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">delivered_at</text>
+        <text x="1100" y="228" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">timestamptz</text>
+
+        <!-- Index compartment -->
+        <line x1="800" y1="236" x2="1112" y2="236" stroke="rgba(30,41,59,0.12)" stroke-width="0.8"/>
+        <text x="812" y="250" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">INDEXES</text>
+        <text x="812" y="268" fill="#475569" font-size="9" font-family="'Geist Mono', monospace">idx_deliveries_alert_user</text>
+
+        <!-- ========================================== -->
+        <!-- TABLE 4: public.incident_reports -->
+        <!-- ========================================== -->
+        <rect x="160" y="360" width="340" height="240" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="1"/>
+        <rect x="160" y="360" width="340" height="28" rx="6" fill="rgba(30,41,59,0.04)" stroke="none"/>
+        <rect x="160" y="380" width="340" height="8" fill="rgba(30,41,59,0.04)"/>
+        <line x1="160" y1="388" x2="500" y2="388" stroke="rgba(30,41,59,0.22)" stroke-width="1"/>
+        <text x="172" y="378" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif">public.incident_reports</text>
+        <rect x="452" y="368" width="36" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.40)" stroke-width="0.8"/>
+        <text x="470" y="377" fill="#1e293b" opacity="0.8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+
+        <!-- Row 1: id (PK, NN) -->
+        <rect x="160" y="388" width="340" height="24" fill="rgba(30,41,59,0.02)"/>
+        <text x="172" y="404" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">id</text>
+        <rect x="340" y="396" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="350" y="405" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">PK</text>
+        <rect x="364" y="396" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="374" y="405" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="488" y="404" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+
+        <!-- Row 2: title (NN) -->
+        <text x="172" y="428" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">title</text>
+        <rect x="364" y="420" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="374" y="429" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="488" y="428" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">text</text>
+
+        <!-- Row 3: type (NN) -->
+        <rect x="160" y="436" width="340" height="24" fill="rgba(30,41,59,0.02)"/>
+        <text x="172" y="452" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">type</text>
+        <rect x="364" y="444" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="374" y="453" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="488" y="452" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">text</text>
+
+        <!-- Row 4: severity_level (NN) -->
+        <text x="172" y="476" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">severity_level</text>
+        <rect x="364" y="468" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="374" y="477" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="488" y="476" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">integer</text>
+
+        <!-- Row 5: status (NN) -->
+        <rect x="160" y="484" width="340" height="24" fill="rgba(30,41,59,0.02)"/>
+        <text x="172" y="500" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">status</text>
+        <rect x="364" y="492" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="374" y="501" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="488" y="500" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">text</text>
+
+        <!-- Row 6: coordinates -->
+        <text x="172" y="524" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">coordinates</text>
+        <text x="488" y="524" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">jsonb</text>
+
+        <!-- Row 7: Overflow row -->
+        <rect x="160" y="532" width="340" height="24" fill="rgba(30,41,59,0.02)"/>
+        <text x="172" y="548" fill="#475569" font-size="9" font-family="'Geist Mono', monospace">+ 6 more columns (is_verified, image_urls, ...)</text>
+
+        <!-- Index compartment -->
+        <line x1="160" y1="556" x2="500" y2="556" stroke="rgba(30,41,59,0.12)" stroke-width="0.8"/>
+        <text x="172" y="570" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">INDEXES</text>
+        <text x="172" y="588" fill="#475569" font-size="9" font-family="'Geist Mono', monospace">idx_incidents_status</text>
+
+        <!-- ========================================== -->
+        <!-- TABLE 5: public.damage_assessments -->
+        <!-- ========================================== -->
+        <rect x="660" y="360" width="340" height="240" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="1"/>
+        <rect x="660" y="360" width="340" height="28" rx="6" fill="rgba(30,41,59,0.04)" stroke="none"/>
+        <rect x="660" y="380" width="340" height="8" fill="rgba(30,41,59,0.04)"/>
+        <line x1="660" y1="388" x2="1000" y2="388" stroke="rgba(30,41,59,0.22)" stroke-width="1"/>
+        <text x="672" y="378" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif">public.damage_assessments</text>
+        <rect x="952" y="368" width="36" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.40)" stroke-width="0.8"/>
+        <text x="970" y="377" fill="#1e293b" opacity="0.8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+
+        <!-- Row 1: id (PK, NN) -->
+        <rect x="660" y="388" width="340" height="24" fill="rgba(30,41,59,0.02)"/>
+        <text x="672" y="404" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">id</text>
+        <rect x="840" y="396" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="850" y="405" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">PK</text>
+        <rect x="864" y="396" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="874" y="405" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="988" y="404" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+
+        <!-- Row 2: incident_id (FK) -->
+        <text x="672" y="428" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">incident_id</text>
+        <rect x="840" y="420" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="850" y="429" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">FK</text>
+        <text x="988" y="428" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+
+        <!-- Row 3: damage_level (NN) -->
+        <rect x="660" y="436" width="340" height="24" fill="rgba(30,41,59,0.02)"/>
+        <text x="672" y="452" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">damage_level</text>
+        <rect x="864" y="444" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="874" y="453" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="988" y="452" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">text</text>
+
+        <!-- Row 4: confidence_score -->
+        <text x="672" y="476" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">confidence_score</text>
+        <text x="988" y="476" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">numeric(5,4)</text>
+
+        <!-- Row 5: estimated_cost -->
+        <rect x="660" y="484" width="340" height="24" fill="rgba(30,41,59,0.02)"/>
+        <text x="672" y="500" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">estimated_cost</text>
+        <text x="988" y="500" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">numeric(15,2)</text>
+
+        <!-- Row 6: processing_status (NN) -->
+        <text x="672" y="524" fill="#1e293b" font-size="12" font-family="'Geist', sans-serif">processing_status</text>
+        <rect x="864" y="516" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="874" y="525" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">NN</text>
+        <text x="988" y="524" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">text</text>
+
+        <!-- Row 7: Overflow row -->
+        <rect x="660" y="532" width="340" height="24" fill="rgba(30,41,59,0.02)"/>
+        <text x="672" y="548" fill="#475569" font-size="9" font-family="'Geist Mono', monospace">+ 5 more columns (image_url, assessment_result, ...)</text>
+
+        <!-- Index compartment -->
+        <line x1="660" y1="556" x2="1000" y2="556" stroke="rgba(30,41,59,0.12)" stroke-width="0.8"/>
+        <text x="672" y="570" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">INDEXES</text>
+        <text x="672" y="588" fill="#475569" font-size="9" font-family="'Geist Mono', monospace">idx_damage_incident_id</text>
+
+        <!-- ========================================== -->
+        <!-- LEGEND (Horizontal Strip at Bottom) -->
+        <!-- ========================================== -->
+        <line x1="48" y1="644" x2="1112" y2="644" stroke="rgba(30,41,59,0.10)" stroke-width="0.8"/>
+        <text x="48" y="660" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+
+        <!-- Legend Items -->
+        <rect x="48" y="674" width="20" height="12" rx="2" fill="#ffffff" stroke="#1e293b" stroke-width="1"/>
+        <text x="76" y="683" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif">Table (Physical)</text>
+
+        <rect x="180" y="674" width="20" height="12" rx="2" fill="rgba(30,41,59,0.02)" stroke="rgba(30,41,59,0.35)" stroke-width="0.8" stroke-dasharray="3,3"/>
+        <text x="208" y="683" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif">Schema group (AUTH)</text>
+
+        <rect x="360" y="674" width="20" height="12" rx="2" fill="none" stroke="rgba(30,41,59,0.35)" stroke-width="0.8"/>
+        <text x="370" y="683" fill="#1e293b" opacity="0.75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">PK</text>
+        <text x="388" y="683" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif">Constraint chip (PK, FK, UQ, NN)</text>
+
+        <line x1="600" y1="680" x2="624" y2="680" stroke="#475569" stroke-width="1"/>
+        <text x="632" y="683" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif">Foreign key (Column FK)</text>
+
+        <line x1="820" y1="680" x2="844" y2="680" stroke="#007aff" stroke-width="1.2"/>
+        <text x="852" y="683" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif">Destructive delete (CASCADE focal)</text>
+      </svg>
+    </div>
+
+    <!-- Editorial Summary Cards -->
+    <div class="cards-grid">
+      <div class="card">
+        <p class="card-eyebrow">CORE ALERT SUBSYSTEM</p>
+        <div class="card-header">
+          <span class="card-dot accent"></span>
+          <h3>Alerting &amp; Notification Dispatch</h3>
+        </div>
+        <ul>
+          <li><code>realtime_alerts</code> เป็นตารางศูนย์กลางในการกระจายข้อมูลเตือนภัย รองรับการผูกรัศมีพื้นที่ <code>coordinates</code>, <code>radius_km</code> และ <code>severity_level</code></li>
+          <li><code>alert_deliveries</code> เก็บสถานะการส่ง Push Notification (FCM) ระดับบุคคล โดยมีความสัมพันธ์แบบ <code>ON DELETE CASCADE</code> กับตารางเตือนภัยหลัก</li>
+          <li>รองรับการบันทึกผู้สร้างข้อมูลเตือนภัยผ่าน <code>created_by</code> เชื่อมโยง <code>auth.users</code> แบบ <code>ON DELETE SET NULL</code></li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <p class="card-eyebrow">CITIZEN &amp; AI INTEGRATION</p>
+        <div class="card-header">
+          <span class="card-dot ink"></span>
+          <h3>Incident Reporting &amp; Damage AI</h3>
+        </div>
+        <ul>
+          <li><code>incident_reports</code> รองรับการแจ้งเหตุฉุกเฉินจากประชาชนผ่าน Mobile App โดยมีสถานะตรวจสอบ <code>is_verified</code> และพิกัด <code>coordinates</code></li>
+          <li><code>damage_assessments</code> เชื่อมโยงผลวิเคราะห์รูปภาพด้วย AI สู่เหตุการณ์จริง พร้อมค่าคะแนน <code>confidence_score</code> และประเมินมูลค่า <code>estimated_cost</code></li>
+          <li>ความสัมพันธ์เชื่อมโยงผ่าน <code>incident_id</code> เมื่อลบรายงานเหตุการณ์ ข้อมูลผลวิเคราะห์ AI จะถูกลบตามแบบ <code>CASCADE</code></li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <p class="card-eyebrow">SECURITY &amp; COMPLIANCE</p>
+        <div class="card-header">
+          <span class="card-dot muted"></span>
+          <h3>Identity &amp; Schema Isolation</h3>
+        </div>
+        <ul>
+          <li>แยกโมดูลยืนยันตัวตนไว้ภายใต้ <code>auth</code> schema ของ Supabase พร้อมมาตรการควบคุมความปลอดภัยผ่าน Row Level Security (RLS)</li>
+          <li>คุ้มครองข้อมูลติดต่อผู้รายงานผ่านวิวสาธารณะ <code>incident_reports_public</code> เพื่อป้องกันข้อมูลส่วนบุคคลรั่วไหล</li>
+          <li>ดัชนีคีย์หลัก <code>idx_alerts_is_active</code> และ <code>idx_deliveries_alert_user</code> รองรับการประมวลผลคำขอปริมาณสูงได้อย่างรวดเร็ว</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>D-MIND Disaster Management System · Database Schema v2.1</span>
+      <span>PostgreSQL 15 / Supabase · Physical Model</span>
+    </div>
+  </div>
+</body>
+</html>

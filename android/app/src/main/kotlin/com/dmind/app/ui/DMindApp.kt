@@ -257,7 +257,10 @@ fun DMindApp() {
                         onSubmit = reportViewModel::submitReport,
                     )
 
-                    AppRoute.Stations -> StationScreen(mapState = mapState)
+                    AppRoute.Stations -> StationScreen(
+                        mapState = mapState,
+                        onBack = ::navigateBack,
+                    )
 
                     AppRoute.Chatbot -> ChatbotScreen(
                         state = chatState,
@@ -266,13 +269,23 @@ fun DMindApp() {
                         onBack = ::navigateBack,
                     )
 
-                    AppRoute.Contacts -> EmergencyContactsScreen()
+                    AppRoute.Contacts -> EmergencyContactsScreen(
+                        onBack = ::navigateBack,
+                    )
 
-                    AppRoute.Manual -> EmergencyManualScreen()
+                    AppRoute.Manual -> EmergencyManualScreen(
+                        onBack = ::navigateBack,
+                    )
 
-                    AppRoute.Weather -> WeatherForecastScreen(mapState = mapState)
+                    AppRoute.Weather -> WeatherForecastScreen(
+                        mapState = mapState,
+                        onBack = ::navigateBack,
+                    )
 
-                    AppRoute.WeeklyWeather -> DailyWeatherForecastScreen(mapState = mapState)
+                    AppRoute.WeeklyWeather -> DailyWeatherForecastScreen(
+                        mapState = mapState,
+                        onBack = ::navigateBack,
+                    )
 
                     AppRoute.Guide -> AppGuideScreen(onBackClick = ::navigateBack)
 
@@ -286,6 +299,7 @@ fun DMindApp() {
                         onUpload = damageViewModel::uploadAndAnalyze,
                         onDelete = damageViewModel::deleteAssessment,
                         onRefresh = damageViewModel::refresh,
+                        onBack = ::navigateBack,
                     )
 
                     AppRoute.VictimReports -> VictimReportsScreen(
@@ -293,6 +307,7 @@ fun DMindApp() {
                         onSubmit = victimViewModel::submitReport,
                         onRefresh = victimViewModel::refresh,
                         onClearSuccess = victimViewModel::clearSuccessState,
+                        onBack = ::navigateBack,
                     )
 
                     AppRoute.SatisfactionSurvey -> SatisfactionSurveyScreen(
@@ -311,6 +326,7 @@ fun DMindApp() {
                             )
                         },
                         onClearSuccess = surveyViewModel::clearSuccessState,
+                        onBack = ::navigateBack,
                     )
 
                     AppRoute.Settings -> SettingsScreen(

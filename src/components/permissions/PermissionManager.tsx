@@ -60,18 +60,7 @@ export const PermissionManager: React.FC<PermissionManagerProps> = ({
 
     const isNative = Capacitor.isNativePlatform();
 
-    useEffect(() => {
-        // Pre-load the plugin on mount for faster permission checks
-        const init = async () => {
-            if (isNative) {
-                await getLocalNotifications();
-            }
-            checkPermissions();
-        };
-        init();
-    }, []);
-
-    const checkPermissions = async () => {
+    const checkPermissions = useCallback(async () => {
         const newStatus: PermissionStatus = {
             location: 'prompt',
             notification: 'default'
@@ -124,7 +113,18 @@ export const PermissionManager: React.FC<PermissionManagerProps> = ({
         }
 
         setStatus(newStatus);
-    };
+    }, [isNative]);
+
+    useEffect(() => {
+        // Pre-load the plugin on mount for faster permission checks
+        const init = async () => {
+            if (isNative) {
+                await getLocalNotifications();
+            }
+            checkPermissions();
+        };
+        init();
+    }, [checkPermissions, isNative]);
 
     const requestLocation = async () => {
         setLoading('location');

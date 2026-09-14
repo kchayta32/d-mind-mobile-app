@@ -224,6 +224,52 @@ class ApplicationTest {
         }
     }
 
+    // ทดสอบว่าการค้นหาสภาพอากาศด้วยชื่อจังหวัด (เมื่อไม่มี TMD Token) จะแปลงเป็นพิกัดศูนย์กลางของจังหวัดนั้นๆ อย่างถูกต้อง
+    @Test
+    fun weatherRouteResolvesProvinceCoordinatesForFallback() {
+        val previousTmd = System.getProperty("DMIND_TMD_API_TOKEN")
+        val previousTmd2 = System.getProperty("TMD_API_TOKEN")
+        System.clearProperty("DMIND_TMD_API_TOKEN")
+        System.clearProperty("TMD_API_TOKEN")
+
+        val localProps = java.nio.file.Paths.get("local.properties")
+        val parentLocalProps = java.nio.file.Paths.get("../local.properties")
+        val localPropsBackup = java.nio.file.Paths.get("local.properties.bak")
+        val parentLocalPropsBackup = java.nio.file.Paths.get("../local.properties.bak")
+
+        val renamedLocal = if (java.nio.file.Files.exists(localProps)) {
+            java.nio.file.Files.move(localProps, localPropsBackup, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+            true
+        } else false
+        val renamedParent = if (java.nio.file.Files.exists(parentLocalProps)) {
+            java.nio.file.Files.move(parentLocalProps, parentLocalPropsBackup, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+            true
+        } else false
+
+        try {
+            testApplication {
+                application { dmindModule() }
+
+                val encodedProvince = java.net.URLEncoder.encode("เชียงใหม่", "UTF-8")
+                val response = client.get("/weather?province=$encodedProvince&daily=false")
+                assertEquals(HttpStatusCode.OK, response.status)
+                val body = response.bodyAsText()
+                assertTrue(body.contains("\"status\":\"fallback\""))
+                assertTrue(body.contains("18.788") || body.contains("18.78") || body.contains("18.79"))
+                assertTrue(body.contains("เชียงใหม่"))
+            }
+        } finally {
+            restoreProperty("DMIND_TMD_API_TOKEN", previousTmd)
+            restoreProperty("TMD_API_TOKEN", previousTmd2)
+            if (renamedLocal) {
+                java.nio.file.Files.move(localPropsBackup, localProps, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+            }
+            if (renamedParent) {
+                java.nio.file.Files.move(parentLocalPropsBackup, parentLocalProps, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+            }
+        }
+    }
+
     // ทดสอบการเรียกดึงข้อมูลสรุปสิ่งแวดล้อม (Environmental Data) ว่าสามารถเรียกและทำงานได้อย่างถูกต้อง
     @Test
     fun environmentalAnalyticsRouteWorksWithTmdFallback() {

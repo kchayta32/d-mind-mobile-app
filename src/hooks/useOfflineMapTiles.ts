@@ -101,20 +101,6 @@ export const useOfflineMapTiles = () => {
         };
     }, []);
 
-    // Initialize database
-    useEffect(() => {
-        const initDB = async () => {
-            try {
-                dbRef.current = await openDatabase();
-                await updateCacheStats();
-                await loadCachedRegions();
-            } catch (e) {
-                console.error('Failed to initialize offline map database:', e);
-            }
-        };
-        initDB();
-    }, []);
-
     // Update cache statistics
     const updateCacheStats = useCallback(async () => {
         if (!dbRef.current) return;
@@ -156,6 +142,20 @@ export const useOfflineMapTiles = () => {
             console.error('Error loading cached regions:', e);
         }
     }, []);
+
+    // Initialize database
+    useEffect(() => {
+        const initDB = async () => {
+            try {
+                dbRef.current = await openDatabase();
+                await updateCacheStats();
+                await loadCachedRegions();
+            } catch (e) {
+                console.error('Failed to initialize offline map database:', e);
+            }
+        };
+        initDB();
+    }, [updateCacheStats, loadCachedRegions]);
 
     // Get a tile from cache
     const getCachedTile = useCallback(async (url: string): Promise<Blob | null> => {

@@ -28,6 +28,7 @@ public class BatteryOptimizationSettingsActivity extends AppCompatActivity {
     // ส่วนแสดงผลข้อความสถานะและปุ่มกดบนหน้าจอ UI
     private TextView statusTextView;
     private Button actionButton;
+    private TextView alternativeActionView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +39,12 @@ public class BatteryOptimizationSettingsActivity extends AppCompatActivity {
         statusTextView = findViewById(R.id.textViewBatteryStatus);
         actionButton = findViewById(R.id.buttonEnableBatteryOptimization);
         actionButton.setOnClickListener(v -> requestBatteryOptimizationBypass());
+
+        // ผูก Click Listener สำหรับข้อความ "ทางเลือกอื่น" ให้เปิดหน้าตั้งค่าแอปโดยตรง
+        alternativeActionView = findViewById(R.id.textViewAlternativeAction);
+        if (alternativeActionView != null) {
+            alternativeActionView.setOnClickListener(v -> openAppSettings());
+        }
 
         // ตรวจสอบสถานะการประหยัดแบตเตอรี่เมื่อสร้างหน้าจอ
         checkBatteryOptimizationStatus();
@@ -89,6 +96,17 @@ public class BatteryOptimizationSettingsActivity extends AppCompatActivity {
         } catch (Exception e) {
             Toast.makeText(this, "Open battery settings and allow background run for D-MIND.", Toast.LENGTH_LONG).show();
             openBatteryOptimizationSettings();
+        }
+    }
+
+    // ฟังก์ชันเปิดหน้าตั้งค่าแอปพลิเคชันเพื่อจัดการสิทธิ์และการใช้แบตเตอรี่โดยตรง
+    private void openAppSettings() {
+        try {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(android.net.Uri.parse("package:" + getPackageName()));
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "Unable to open app settings.", Toast.LENGTH_SHORT).show();
         }
     }
 

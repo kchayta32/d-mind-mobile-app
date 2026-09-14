@@ -17,6 +17,41 @@ import {
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+const NAV_ITEMS = [
+    { icon: <Home className="w-5 h-5" />, label: 'หน้าแรก', route: '/' },
+    { icon: <Phone className="w-5 h-5" />, label: 'เบอร์ฉุกเฉิน', route: '/contacts' },
+    { icon: <FileText className="w-5 h-5" />, label: 'รายงานเหตุการณ์', route: '/incident-reports' },
+    { icon: <BookOpen className="w-5 h-5" />, label: 'คู่มือเตรียมพร้อม', route: '/manual' },
+    { icon: <Settings className="w-5 h-5" />, label: 'ตั้งค่าการแจ้งเตือน', route: '/notifications' },
+    { icon: <Info className="w-5 h-5" />, label: 'เกี่ยวกับแอพ', route: '/app-guide' },
+];
+
+interface MapTabSwitcherProps {
+    activeTab: 'risk-zones' | 'realtime';
+    onTabChange: (tab: 'risk-zones' | 'realtime') => void;
+}
+
+const MapTabSwitcher: React.FC<MapTabSwitcherProps> = ({ activeTab, onTabChange }) => (
+    <Tabs value={activeTab} onValueChange={(v) => onTabChange(v as 'risk-zones' | 'realtime')} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 h-10 bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm">
+            <TabsTrigger
+                value="risk-zones"
+                className="text-xs sm:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm flex items-center gap-1.5"
+            >
+                <AlertTriangle className="h-3.5 w-3.5" />
+                <span>พื้นที่เสี่ยง</span>
+            </TabsTrigger>
+            <TabsTrigger
+                value="realtime"
+                className="text-xs sm:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm flex items-center gap-1.5"
+            >
+                <Map className="h-3.5 w-3.5" />
+                <span>ภัยต่างๆ</span>
+            </TabsTrigger>
+        </TabsList>
+    </Tabs>
+);
+
 const RiskZoneMap: React.FC = () => {
     const navigate = useNavigate();
     const isMobile = useIsMobile();
@@ -25,37 +60,6 @@ const RiskZoneMap: React.FC = () => {
     const handleBack = () => {
         navigate('/');
     };
-
-    const navItems = [
-        { icon: <Home className="w-5 h-5" />, label: 'หน้าแรก', route: '/' },
-        { icon: <Phone className="w-5 h-5" />, label: 'เบอร์ฉุกเฉิน', route: '/contacts' },
-        { icon: <FileText className="w-5 h-5" />, label: 'รายงานเหตุการณ์', route: '/incident-reports' },
-        { icon: <BookOpen className="w-5 h-5" />, label: 'คู่มือเตรียมพร้อม', route: '/manual' },
-        { icon: <Settings className="w-5 h-5" />, label: 'ตั้งค่าการแจ้งเตือน', route: '/notifications' },
-        { icon: <Info className="w-5 h-5" />, label: 'เกี่ยวกับแอพ', route: '/app-guide' },
-    ];
-
-    // Tab Switcher Component
-    const MapTabSwitcher = () => (
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'risk-zones' | 'realtime')} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 h-10 bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm">
-                <TabsTrigger
-                    value="risk-zones"
-                    className="text-xs sm:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm flex items-center gap-1.5"
-                >
-                    <AlertTriangle className="h-3.5 w-3.5" />
-                    <span>พื้นที่เสี่ยง</span>
-                </TabsTrigger>
-                <TabsTrigger
-                    value="realtime"
-                    className="text-xs sm:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm flex items-center gap-1.5"
-                >
-                    <Map className="h-3.5 w-3.5" />
-                    <span>ภัยต่างๆ</span>
-                </TabsTrigger>
-            </TabsList>
-        </Tabs>
-    );
 
     if (isMobile) {
         return (
@@ -105,7 +109,7 @@ const RiskZoneMap: React.FC = () => {
                                     </div>
                                 </SheetHeader>
                                 <div className="flex flex-col gap-2">
-                                    {navItems.map((item) => (
+                                    {NAV_ITEMS.map((item) => (
                                         <Button
                                             key={item.route}
                                             variant="ghost"
@@ -125,7 +129,7 @@ const RiskZoneMap: React.FC = () => {
                 {/* Tab Switcher - Fixed below header */}
                 <div className="absolute top-[72px] left-0 right-0 z-[40] px-4 pointer-events-auto">
                     <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-xl shadow-lg p-1 border border-gray-100 dark:border-gray-700">
-                        <MapTabSwitcher />
+                        <MapTabSwitcher activeTab={activeTab} onTabChange={setActiveTab} />
                     </div>
                 </div>
 
@@ -183,7 +187,7 @@ const RiskZoneMap: React.FC = () => {
 
                             {/* Tab Switcher for Desktop */}
                             <div className="w-[400px]">
-                                <MapTabSwitcher />
+                                <MapTabSwitcher activeTab={activeTab} onTabChange={setActiveTab} />
                             </div>
                         </div>
                     </div>

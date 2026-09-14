@@ -308,7 +308,7 @@ fun ShelterFinderScreen(
             } else {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(bottom = 24.dp)
+                    contentPadding = PaddingValues(bottom = 96.dp)
                 ) {
                     items(filteredShelters, key = { it.id }) { shelter ->
                         ShelterCard(
@@ -420,7 +420,7 @@ private fun ShelterCard(
                 )
             }
             LinearProgressIndicator(
-                progress = occupancyPercent,
+                progress = { occupancyPercent },
                 color = progressColor,
                 trackColor = MaterialTheme.colorScheme.outlineVariant,
                 modifier = Modifier

@@ -84,6 +84,7 @@ data class LoadedDailyWeatherResult(
 @Composable
 fun DailyWeatherForecastScreen(
     mapState: DisasterMapUiState,
+    onBack: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     var useGps by remember { mutableStateOf(true) }
@@ -138,6 +139,7 @@ fun DailyWeatherForecastScreen(
                     stringResource(R.string.weather_weekly_title),
                     stringResource(R.string.weather_weekly_subtitle),
                     Icons.Filled.CalendarMonth,
+                    onBack = onBack,
                 )
             }
 

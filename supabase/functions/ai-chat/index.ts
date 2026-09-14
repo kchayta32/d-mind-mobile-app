@@ -61,7 +61,7 @@ serve(async (req) => {
         // แบ่งคำค้นหาเป็นคำย่อยเพื่อป้องกันข้อผิดพลาด syntax error in tsquery
         const searchTerms = queryToSearch.split(/\s+/).filter(term => {
           // กรองคำที่มีแนวโน้มสร้างปัญหากับ tsquery
-          const invalidChars = /['"\\:&|!()[\]{}<>=@\-\+\*\?]/g;
+          const invalidChars = /['"\\:&|!()[\]{}<>=@\-+*?]/g;
           return term.length > 1 && !invalidChars.test(term);
         });
         

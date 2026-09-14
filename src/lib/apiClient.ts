@@ -43,12 +43,10 @@ class ApiClient {
     private activeRequests = 0;
     private cache = new Map<string, CacheEntry>();
     private paused = false;
+    private isProcessing = false;
 
     constructor(config: ApiClientConfig = {}) {
         this.config = { ...DEFAULT_CONFIG, ...config };
-
-        // Start queue processor
-        this.processQueue();
 
         // Monitor network status
         if (typeof window !== 'undefined') {
@@ -98,25 +96,43 @@ class ApiClient {
                     this.queue.splice(insertIndex, 0, request);
                 }
             }
+
+            this.triggerQueueProcessing();
         });
     }
 
-    // Process request queue
+    // Trigger queue processor if not already running
+    private triggerQueueProcessing() {
+        if (this.isProcessing || this.paused || this.queue.length === 0) {
+            return;
+        }
+        this.processQueue();
+    }
+
+    // Process request queue event-driven
     private async processQueue() {
-        while (true) {
-            if (this.paused || this.queue.length === 0 || this.activeRequests >= this.config.maxConcurrent) {
-                await this.sleep(100);
-                continue;
+        if (this.isProcessing) return;
+        this.isProcessing = true;
+
+        try {
+            while (!this.paused && this.queue.length > 0) {
+                if (this.activeRequests >= this.config.maxConcurrent) {
+                    await this.sleep(50);
+                    continue;
+                }
+
+                const request = this.queue.shift();
+                if (!request) continue;
+
+                this.activeRequests++;
+                this.executeRequest(request)
+                    .finally(() => {
+                        this.activeRequests--;
+                        this.triggerQueueProcessing();
+                    });
             }
-
-            const request = this.queue.shift();
-            if (!request) continue;
-
-            this.activeRequests++;
-            this.executeRequest(request)
-                .finally(() => {
-                    this.activeRequests--;
-                });
+        } finally {
+            this.isProcessing = false;
         }
     }
 
@@ -178,6 +194,7 @@ class ApiClient {
         await this.sleep(waitTime);
         request.retryCount++;
         this.queue.unshift(request);
+        this.triggerQueueProcessing();
     }
 
     // Retry request with exponential backoff
@@ -188,6 +205,7 @@ class ApiClient {
         await this.sleep(backoff);
         request.retryCount++;
         this.queue.unshift(request);
+        this.triggerQueueProcessing();
     }
 
     // Calculate exponential backoff
@@ -213,6 +231,7 @@ class ApiClient {
     resume() {
         this.paused = false;
         console.log('API client resumed (online)');
+        this.triggerQueueProcessing();
     }
 
     // Get from cache

@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1040 540" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="iot-arch-title iot-arch-desc">
+        <title id="iot-arch-title">D-MIND IoT Station Architecture</title>
+        <desc id="iot-arch-desc">Architecture diagram of the D-MIND IoT station showing field sensors, ESP32 controller, Raspberry Pi Gateway with Mosquitto and FastAPI, and Supabase cloud synchronization.</desc>
+
+        <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Prompt:wght@300;400;500;600&amp;display=swap');
+    </style>
+
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="0.8" fill="rgba(30,41,59,0.08)"/>
+          </pattern>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#475569"/>
+          </marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#007aff"/>
+          </marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#005bb5"/>
+          </marker>
+          <marker id="arrow-warning" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#e11d48"/>
+          </marker>
+        </defs>
+
+        <!-- Canvas Background -->
+        <rect width="100%" height="100%" fill="#ffffff"/>
+        <rect width="100%" height="100%" fill="url(#dots)" opacity="0.6"/>
+
+        <!-- ================= ZONES (Drawn before arrows & nodes) ================= -->
+        <!-- Zone 1: Field Sensing (IoT Edge) -->
+        <rect x="40" y="80" width="288" height="336" rx="8"
+              fill="rgba(30,41,59,0.02)" stroke="rgba(30,41,59,0.12)" stroke-width="0.8"/>
+        <rect x="80" y="84" width="168" height="16" rx="2" fill="#ffffff"/>
+        <text x="164" y="96" fill="rgba(30,41,59,0.55)" font-size="8" font-family="'Geist Mono', monospace"
+              text-anchor="middle" letter-spacing="0.14em">FIELD SENSING (IOT EDGE)</text>
+
+        <!-- Zone 2: Edge Gateway (Raspberry Pi 4) -->
+        <rect x="352" y="80" width="344" height="336" rx="8"
+              fill="rgba(30,41,59,0.02)" stroke="rgba(30,41,59,0.12)" stroke-width="0.8"/>
+        <rect x="420" y="84" width="208" height="16" rx="2" fill="#ffffff"/>
+        <text x="524" y="96" fill="rgba(30,41,59,0.55)" font-size="8" font-family="'Geist Mono', monospace"
+              text-anchor="middle" letter-spacing="0.14em">EDGE GATEWAY (RASPBERRY PI 4)</text>
+
+        <!-- Zone 3: Cloud & Consumer Tier -->
+        <rect x="720" y="80" width="280" height="336" rx="8"
+              fill="rgba(30,41,59,0.02)" stroke="rgba(30,41,59,0.12)" stroke-width="0.8"/>
+        <rect x="768" y="84" width="184" height="16" rx="2" fill="#ffffff"/>
+        <text x="860" y="96" fill="rgba(30,41,59,0.55)" font-size="8" font-family="'Geist Mono', monospace"
+              text-anchor="middle" letter-spacing="0.14em">CLOUD &amp; CONSUMER TIER</text>
+
+        <!-- ================= CONNECTORS (Drawn before nodes) ================= -->
+        <!-- 1. Sensors Hub -> ESP32 Station (Vertical straight line) -->
+        <line x1="184" y1="204" x2="184" y2="276" stroke="#475569" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- 2. ESP32 Station -> Mosquitto Broker (Right+up Orthogonal Elbow, all % 4 == 0) -->
+        <path d="M 256,308 H 304 Q 312,308 312,300 V 180 Q 312,172 320,172 H 368"
+              fill="none" stroke="#007aff" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+
+        <!-- 3. Mosquitto Broker -> FastAPI Gateway (Vertical straight line) -->
+        <line x1="436" y1="204" x2="436" y2="276" stroke="#475569" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- 4. FastAPI Gateway -> Alert Engine (Right+up L-turn, all % 4 == 0) -->
+        <path d="M 504,292 H 596 Q 604,292 604,284 V 272"
+              fill="none" stroke="#1e293b" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- 5. FastAPI Gateway -> Supabase Cloud (Around Alert Engine, all % 4 == 0) -->
+        <path d="M 504,324 H 676 Q 684,324 684,316 V 168 Q 684,160 692,160 H 740"
+              fill="none" stroke="#007aff" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+
+        <!-- 6. Alert Engine -> Supabase Cloud (Disaster Alerts Path, all % 4 == 0) -->
+        <path d="M 664,232 H 704 Q 712,232 712,224 V 196 Q 712,188 720,188 H 740"
+              fill="none" stroke="#e11d48" stroke-width="1.2" marker-end="url(#arrow-warning)"/>
+
+        <!-- 7. D-MIND Mobile -> FastAPI Gateway (Horizontal with Hop over vertical segment at x=684) -->
+        <!-- Bridge primitive: traveling left from x=740 to x=504, jumping over vertical line at x=684 -->
+        <path d="M 740,308 H 692 a 8,8 0 0,1 -16,0 H 504"
+              fill="none" stroke="#005bb5" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+
+        <!-- ================= ARROW LABELS (Opaque masks with 6-10px gap) ================= -->
+        <!-- Label 1: I2C · UART · GPIO (on Sensors->ESP32) -->
+        <rect x="196" y="232" width="76" height="16" rx="2" fill="#ffffff"/>
+        <text x="234" y="244" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">I2C · UART · GPIO</text>
+
+        <!-- Label 2: MQTT TELEMETRY (on ESP32->Mosquitto) -->
+        <rect x="320" y="232" width="80" height="16" rx="2" fill="#ffffff"/>
+        <text x="360" y="244" fill="#007aff" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">MQTT TELEMETRY</text>
+
+        <!-- Label 3: LOCAL SUB (on Mosquitto->FastAPI) -->
+        <rect x="376" y="232" width="52" height="16" rx="2" fill="#ffffff"/>
+        <text x="402" y="244" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">LOCAL SUB</text>
+
+        <!-- Label 4: ANOMALY (on FastAPI->Alert Engine) -->
+        <rect x="524" y="268" width="56" height="16" rx="2" fill="#ffffff"/>
+        <text x="552" y="280" fill="#1e293b" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">ANOMALY</text>
+
+        <!-- Label 5: HTTPS INGEST (on FastAPI->Supabase) -->
+        <rect x="564" y="300" width="88" height="16" rx="2" fill="#ffffff"/>
+        <text x="608" y="312" fill="#007aff" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">HTTPS INGEST</text>
+
+        <!-- Label 6: ALERTS (on Alert Engine->Supabase) -->
+        <rect x="656" y="200" width="48" height="16" rx="2" fill="#ffffff"/>
+        <text x="680" y="212" fill="#e11d48" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">ALERTS</text>
+
+        <!-- Label 7: REST / X-API-KEY (on Mobile->FastAPI) -->
+        <rect x="580" y="284" width="88" height="16" rx="2" fill="#ffffff"/>
+        <text x="624" y="296" fill="#005bb5" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">REST / X-API-KEY</text>
+
+        <!-- ================= NODES ================= -->
+        <!-- NODE 1: Multi-Sensor Array -->
+        <rect x="68" y="140" width="232" height="64" rx="6" fill="#ffffff"/>
+        <rect x="68" y="140" width="232" height="64" rx="6" fill="rgba(71,85,105,0.08)" stroke="#64748b" stroke-width="1"/>
+        <rect x="76" y="148" width="36" height="12" rx="2" fill="transparent" stroke="rgba(100,116,139,0.50)" stroke-width="0.8"/>
+        <text x="94" y="157" fill="#475569" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SENS</text>
+        <text x="184" y="172" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Multi-Sensor Array</text>
+        <text x="184" y="192" fill="#475569" font-size="8.5" font-family="'Geist Mono', monospace" text-anchor="middle">AJ-SR04M · PMS5003 · BME280 · GY-521</text>
+
+        <!-- NODE 2: ESP32 Edge Station -->
+        <rect x="68" y="276" width="188" height="64" rx="6" fill="#ffffff"/>
+        <rect x="68" y="276" width="188" height="64" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="1"/>
+        <rect x="76" y="284" width="32" height="12" rx="2" fill="transparent" stroke="rgba(30,41,59,0.40)" stroke-width="0.8"/>
+        <text x="92" y="293" fill="#1e293b" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">MCU</text>
+        <text x="162" y="308" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">ESP32 Station</text>
+        <text x="162" y="324" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">DevKit V1 · SensorManager</text>
+
+        <!-- NODE 3: Mosquitto MQTT Broker -->
+        <rect x="368" y="140" width="136" height="64" rx="6" fill="#ffffff"/>
+        <rect x="368" y="140" width="136" height="64" rx="6" fill="rgba(30,41,59,0.05)" stroke="#475569" stroke-width="1"/>
+        <rect x="376" y="148" width="36" height="12" rx="2" fill="transparent" stroke="rgba(71,85,105,0.40)" stroke-width="0.8"/>
+        <text x="394" y="157" fill="#475569" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">MQTT</text>
+        <text x="436" y="172" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Mosquitto Broker</text>
+        <text x="436" y="192" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">TCP :1883 · pub/sub</text>
+
+        <!-- NODE 4: FastAPI Gateway (Focal Node 1: Guardian Blue) -->
+        <rect x="368" y="276" width="136" height="64" rx="6" fill="#ffffff"/>
+        <rect x="368" y="276" width="136" height="64" rx="6" fill="rgba(0,122,255,0.08)" stroke="#007aff" stroke-width="1.2"/>
+        <rect x="376" y="284" width="32" height="12" rx="2" fill="transparent" stroke="rgba(0,122,255,0.50)" stroke-width="0.8"/>
+        <text x="392" y="293" fill="#007aff" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">CORE</text>
+        <text x="496" y="332" fill="rgba(0,122,255,0.09)" font-size="28" font-weight="600" font-family="'Geist Mono', monospace" text-anchor="end">01</text>
+        <text x="436" y="308" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">FastAPI Gateway</text>
+        <text x="436" y="324" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">:8000 · Ingest Daemon</text>
+
+        <!-- NODE 5: Alert Engine -->
+        <rect x="544" y="208" width="120" height="64" rx="6" fill="#ffffff"/>
+        <rect x="544" y="208" width="120" height="64" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="1"/>
+        <rect x="552" y="216" width="36" height="12" rx="2" fill="transparent" stroke="rgba(30,41,59,0.40)" stroke-width="0.8"/>
+        <text x="570" y="225" fill="#1e293b" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">EVAL</text>
+        <text x="604" y="240" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Alert Engine</text>
+        <text x="604" y="256" fill="#475569" font-size="8.5" font-family="'Geist Mono', monospace" text-anchor="middle">Threshold Evaluator</text>
+
+        <!-- NODE 6: Supabase Cloud (Focal Node 2: Guardian Blue) -->
+        <rect x="740" y="140" width="148" height="64" rx="6" fill="#ffffff"/>
+        <rect x="740" y="140" width="148" height="64" rx="6" fill="rgba(0,122,255,0.08)" stroke="#007aff" stroke-width="1.2"/>
+        <rect x="748" y="148" width="40" height="12" rx="2" fill="transparent" stroke="rgba(0,122,255,0.50)" stroke-width="0.8"/>
+        <text x="768" y="157" fill="#007aff" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">CLOUD</text>
+        <text x="880" y="196" fill="rgba(0,122,255,0.09)" font-size="28" font-weight="600" font-family="'Geist Mono', monospace" text-anchor="end">02</text>
+        <text x="814" y="172" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Supabase DB</text>
+        <text x="814" y="192" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">PostgreSQL · RLS</text>
+
+        <!-- NODE 7: D-MIND Mobile App -->
+        <rect x="740" y="276" width="148" height="64" rx="6" fill="#ffffff"/>
+        <rect x="740" y="276" width="148" height="64" rx="6" fill="rgba(71,85,105,0.08)" stroke="#64748b" stroke-width="1"/>
+        <rect x="748" y="284" width="32" height="12" rx="2" fill="transparent" stroke="rgba(100,116,139,0.50)" stroke-width="0.8"/>
+        <text x="764" y="293" fill="#64748b" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">APP</text>
+        <text x="814" y="308" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">D-MIND Mobile</text>
+        <text x="814" y="324" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Capacitor · UI Client</text>
+
+        <!-- ================= LEGEND STRIP ================= -->
+        <line x1="40" y1="440" x2="1000" y2="440" stroke="rgba(30,41,59,0.12)" stroke-width="0.8"/>
+        <text x="40" y="456" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+
+        <!-- Legend Items -->
+        <rect x="40" y="472" width="16" height="12" rx="2" fill="rgba(0,122,255,0.08)" stroke="#007aff" stroke-width="1.2"/>
+        <text x="64" y="482" fill="#475569" font-size="8.5" font-family="'Geist', sans-serif">Focal / Core Platform</text>
+
+        <rect x="204" y="472" width="16" height="12" rx="2" fill="#ffffff" stroke="#1e293b" stroke-width="1"/>
+        <text x="228" y="482" fill="#475569" font-size="8.5" font-family="'Geist', sans-serif">Processing Node</text>
+
+        <rect x="348" y="472" width="16" height="12" rx="2" fill="rgba(30,41,59,0.05)" stroke="#475569" stroke-width="1"/>
+        <text x="372" y="482" fill="#475569" font-size="8.5" font-family="'Geist', sans-serif">Message Broker</text>
+
+        <rect x="480" y="472" width="16" height="12" rx="2" fill="rgba(71,85,105,0.08)" stroke="#64748b" stroke-width="1"/>
+        <text x="504" y="482" fill="#475569" font-size="8.5" font-family="'Geist', sans-serif">Sensors / Mobile Client</text>
+
+        <line x1="648" y1="478" x2="676" y2="478" stroke="#007aff" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+        <text x="684" y="482" fill="#475569" font-size="8.5" font-family="'Geist', sans-serif">Telemetry Backbone</text>
+
+        <line x1="804" y1="478" x2="832" y2="478" stroke="#005bb5" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+        <text x="840" y="482" fill="#475569" font-size="8.5" font-family="'Geist', sans-serif">Client REST API</text>
+
+        <line x1="940" y1="478" x2="968" y2="478" stroke="#e11d48" stroke-width="1.2" marker-end="url(#arrow-warning)"/>
+        <text x="976" y="482" fill="#475569" font-size="8.5" font-family="'Geist', sans-serif">Disaster Alert</text>
+      </svg>

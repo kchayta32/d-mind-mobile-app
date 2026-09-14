@@ -795,6 +795,7 @@ fun LocationSelectorBar(
 @Composable
 fun WeatherForecastScreen(
     mapState: DisasterMapUiState,
+    onBack: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     var useGps by remember { mutableStateOf(true) }
@@ -849,6 +850,7 @@ fun WeatherForecastScreen(
                     stringResource(R.string.weather_title),
                     stringResource(R.string.weather_subtitle),
                     Icons.Filled.Cloud,
+                    onBack = onBack,
                 )
             }
 

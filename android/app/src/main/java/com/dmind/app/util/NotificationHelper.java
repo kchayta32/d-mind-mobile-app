@@ -13,6 +13,7 @@ import android.provider.Settings;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 
 import com.dmind.app.MainActivity;
 import com.dmind.app.R;
@@ -69,7 +70,7 @@ public class NotificationHelper {
         channel.setDescription("Critical disaster alerts that override DND mode");
         channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
         channel.enableLights(true);
-        channel.setLightColor(context.getResources().getColor(R.color.emergencyRed));
+        channel.setLightColor(ContextCompat.getColor(context, R.color.emergencyRed));
         channel.enableVibration(true);
         channel.setVibrationPattern(new long[]{0, 100, 200, 300});
         channel.setBypassDnd(true); // Bypass DND
@@ -123,7 +124,7 @@ public class NotificationHelper {
         
         channel.setDescription("Pending SOS messages awaiting transmission");
         channel.enableLights(true);
-        channel.setLightColor(context.getResources().getColor(R.color.warningOrange));
+        channel.setLightColor(ContextCompat.getColor(context, R.color.warningOrange));
         channel.enableVibration(true);
         channel.setBypassDnd(true);
         
@@ -215,7 +216,7 @@ public class NotificationHelper {
             .setContentTitle(title)
             .setContentText(message)
             .setSmallIcon(iconRes)
-            .setColor(context.getResources().getColor(colorRes))
+            .setColor(ContextCompat.getColor(context, colorRes))
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ERROR)
             .setAutoCancel(true)

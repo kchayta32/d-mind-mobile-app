@@ -202,7 +202,7 @@ export const useGeolocation = () => {
   // Initial load
   useEffect(() => {
     refreshLocation();
-  }, []);
+  }, [refreshLocation]);
 
   // Watch position for real-time updates
   const [isWatching, setIsWatching] = useState(false);

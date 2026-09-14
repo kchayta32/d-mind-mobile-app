@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>การคัดกรองจุดความร้อนดาวเทียมสู่มาตรการดับไฟป่า · D-MIND</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f8fafc;
+      --color-paper-2: #eef2f8;
+      --color-ink:     #1e293b;
+      --color-muted:   #475569;
+      --color-accent:  #007aff;
+      --font-sans:     'Geist', 'Prompt', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', 'Prompt', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .frame { max-width: 1200px; width: 100%; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2.1rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+
+    svg { width: 100%; min-width: 900px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">SANKEY · D-MIND FUTURE ROADMAP</p>
+    <h1>การคัดกรองจุดความร้อนดาวเทียมสู่มาตรการดับไฟป่า · Satellite Hotspot Filtration &amp; Response</h1>
+
+    <svg viewBox="0 0 1000 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="sankey-wildfire-title sankey-wildfire-desc">
+      <title id="sankey-wildfire-title">การคัดกรองจุดความร้อนดาวเทียมสู่มาตรการดับไฟป่า</title>
+      <desc id="sankey-wildfire-desc">Sankey diagram showing 1,200 daily satellite hotspots splitting by land classification and merging into response actions, highlighting critical forest wildfire response patrol dispatch.</desc>
+
+      <rect width="100%" height="100%" fill="#f8fafc"/>
+
+      <!-- Column headers -->
+      <text x="126" y="76" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">SATELLITE SENSORS</text>
+      <text x="506" y="76" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">LAND CLASSIFICATION</text>
+      <text x="886" y="76" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">RESPONSE ACTION</text>
+
+      <!-- Ordinary Ribbons: Col 1 -> Col 2 -->
+      <path d="M132,120 C316,120 316,120 500,120 L500,196 C316,196 316,196 132,196 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,196 C316,196 316,280 500,280 L500,336 C316,336 316,252 132,252 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,252 C316,252 316,400 500,400 L500,412 C316,412 316,264 132,264 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,288 C316,288 316,196 500,196 L500,248 C316,248 316,340 132,340 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,340 C316,340 316,336 500,336 L500,368 C316,368 316,372 132,372 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,372 C316,372 316,412 500,412 L500,424 C316,424 316,384 132,384 Z" fill="rgba(71,85,105,0.18)"/>
+
+      <!-- Ordinary Ribbons: Col 2 -> Col 3 -->
+      <path d="M512,224 C696,224 696,272 880,272 L880,296 C696,296 696,248 512,248 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M512,296 C696,296 696,296 880,296 L880,344 C696,344 696,344 512,344 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M512,344 C696,344 696,400 880,400 L880,424 C696,424 696,368 512,368 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M512,400 C696,400 696,344 880,344 L880,368 C696,368 696,424 512,424 Z" fill="rgba(71,85,105,0.18)"/>
+
+      <!-- Focal Accent Ribbons: Col 2 -> Col 3 (Priority Wildfire Ground Patrol) -->
+      <path d="M512,120 C696,120 696,120 880,120 L880,224 C696,224 696,224 512,224 Z" fill="rgba(0,122,255,0.28)"/>
+      <path d="M512,280 C696,280 696,224 880,224 L880,240 C696,240 696,296 512,296 Z" fill="rgba(0,122,255,0.28)"/>
+
+      <!-- Node Bars (width=12, solid ink) -->
+      <!-- Column 1 -->
+      <rect x="120" y="120" width="12" height="144" fill="#1e293b"/>
+      <rect x="120" y="288" width="12" height="96" fill="#1e293b"/>
+
+      <!-- Column 2 -->
+      <rect x="500" y="120" width="12" height="128" fill="#1e293b"/>
+      <rect x="500" y="280" width="12" height="88" fill="#1e293b"/>
+      <rect x="500" y="400" width="12" height="24" fill="#1e293b"/>
+
+      <!-- Column 3 -->
+      <rect x="880" y="120" width="12" height="120" fill="#1e293b"/>
+      <rect x="880" y="272" width="12" height="96" fill="#1e293b"/>
+      <rect x="880" y="400" width="12" height="24" fill="#1e293b"/>
+
+      <!-- Column 1 Labels (outside, text-anchor="end") -->
+      <text x="104" y="184" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="end">VIIRS Suomi-NPP</text>
+      <text x="104" y="200" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">720 จุด/วัน (60%)</text>
+
+      <text x="104" y="332" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="end">NOAA-20 VIIRS</text>
+      <text x="104" y="348" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">480 จุด/วัน (40%)</text>
+
+      <!-- Column 2 Labels (centred in gutter above each bar) -->
+      <text x="506" y="96" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="middle">ป่าอนุรักษ์และป่าสงวน</text>
+      <text x="506" y="112" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">640 จุด (53.3%)</text>
+
+      <text x="506" y="260" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="middle">พื้นที่เกษตรกรรม</text>
+      <text x="506" y="274" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">440 จุด (36.7%)</text>
+
+      <text x="506" y="380" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="middle">ชุมชนและแนวกันชน</text>
+      <text x="506" y="394" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">120 จุด (10.0%)</text>
+
+      <!-- Column 3 Labels (outside, text-anchor="start") -->
+      <text x="908" y="176" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="start">ชุดดับไฟป่าภาคพื้นดิน</text>
+      <text x="908" y="192" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="start">600 จุด (50.0%)</text>
+
+      <text x="908" y="316" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="start">เฝ้าระวังและเตือนชุมชน</text>
+      <text x="908" y="332" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="start">480 จุด (40.0%)</text>
+
+      <text x="908" y="408" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="start">เผาควบคุมตามแผน</text>
+      <text x="908" y="422" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="start">120 จุด (10.0%)</text>
+
+      <!-- Legend -->
+      <line x1="40" y1="492" x2="960" y2="492" stroke="rgba(30,41,59,0.12)" stroke-width="0.8"/>
+      <text x="40" y="508" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+
+      <rect x="40" y="520" width="16" height="8" fill="rgba(71,85,105,0.18)" stroke="#475569" stroke-width="1"/>
+      <text x="64" y="528" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif">Flow · การกระจายตามสเตจ</text>
+
+      <rect x="230" y="520" width="16" height="8" fill="rgba(0,122,255,0.28)" stroke="#007aff" stroke-width="1"/>
+      <text x="254" y="528" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif">Critical Wildfire · ภารกิจเร่งด่วนป่าอนุรักษ์</text>
+
+      <rect x="490" y="520" width="16" height="8" fill="#1e293b"/>
+      <text x="514" y="528" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif">Node · ยอดสะสมแต่ละระดับ</text>
+
+      <text x="680" y="528" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif" font-style="italic">จุดความร้อนในป่าสงวนกว่า 81% (520 จุด) ถูกส่งต่อชุดดับไฟป่าทันที</text>
+    </svg>
+  </div>
+</body>
+</html>

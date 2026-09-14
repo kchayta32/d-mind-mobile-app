@@ -85,6 +85,7 @@ fun DamageAssessmentScreen(
     onUpload: (fileName: String, contentType: String, bytes: ByteArray) -> Unit,
     onDelete: (id: String) -> Unit,
     onRefresh: () -> Unit,
+    onBack: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -153,6 +154,7 @@ fun DamageAssessmentScreen(
                 stringResource(R.string.damage_title),
                 stringResource(R.string.damage_subtitle),
                 Icons.Filled.CameraAlt,
+                onBack = onBack,
             )
         }
 

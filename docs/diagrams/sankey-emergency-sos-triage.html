@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>การไหลของเหตุฉุกเฉินและคำขอความช่วยเหลือ · D-MIND</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f8fafc;
+      --color-paper-2: #eef2f8;
+      --color-ink:     #1e293b;
+      --color-muted:   #475569;
+      --color-accent:  #007aff;
+      --font-sans:     'Geist', 'Prompt', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', 'Prompt', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .frame { max-width: 1200px; width: 100%; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2.1rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+
+    svg { width: 100%; min-width: 900px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">SANKEY · DISASTER RESPONSE ROADMAP</p>
+    <h1>การไหลของเหตุฉุกเฉินและคำขอความช่วยเหลือ · Emergency SOS &amp; Incident Triage</h1>
+
+    <svg viewBox="0 0 1000 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="sankey-sos-title sankey-sos-desc">
+      <title id="sankey-sos-title">การไหลของเหตุฉุกเฉินและคำขอความช่วยเหลือ</title>
+      <desc id="sankey-sos-desc">Sankey diagram showing 1,200 monthly distress requests splitting across incident sources, severity triage codes (Code Red, Orange, Green), and merging into downstream emergency responder and disaster command dispatch.</desc>
+
+      <rect width="100%" height="100%" fill="#f8fafc"/>
+
+      <!-- Column headers -->
+      <text x="126" y="76" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">INCIDENT INGESTION</text>
+      <text x="506" y="76" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">TRIAGE &amp; SEVERITY</text>
+      <text x="886" y="76" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">RESPONSE &amp; DISPATCH</text>
+
+      <!-- Ordinary Ribbons: Col 1 -> Col 2 -->
+      <path d="M132,120 C316,120 316,120 500,120 L500,180 C316,180 316,180 132,180 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,180 C316,180 316,232 500,232 L500,268 C316,268 316,216 132,216 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,240 C316,240 316,180 500,180 L500,200 C316,200 316,260 132,260 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,260 C316,260 316,268 500,268 L500,316 C316,316 316,308 132,308 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,308 C316,308 316,368 500,368 L500,388 C316,388 316,328 132,328 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,352 C316,352 316,316 500,316 L500,336 C316,336 316,372 132,372 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M132,372 C316,372 316,388 500,388 L500,424 C316,424 316,408 132,408 Z" fill="rgba(71,85,105,0.18)"/>
+
+      <!-- Ordinary Ribbons: Col 2 -> Col 3 -->
+      <path d="M512,232 C696,232 696,200 880,200 L880,272 C696,272 696,304 512,304 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M512,304 C696,304 696,308 880,308 L880,340 C696,340 696,336 512,336 Z" fill="rgba(71,85,105,0.18)"/>
+      <path d="M512,368 C696,368 696,340 880,340 L880,396 C696,396 696,424 512,424 Z" fill="rgba(71,85,105,0.18)"/>
+
+      <!-- Focal Accent Ribbon: Col 2 -> Col 3 (Code Red Direct EMS Dispatch) -->
+      <path d="M512,120 C696,120 696,120 880,120 L880,200 C696,200 696,200 512,200 Z" fill="rgba(0,122,255,0.28)"/>
+
+      <!-- Node Bars (width=12, solid ink) -->
+      <!-- Column 1 -->
+      <rect x="120" y="120" width="12" height="96" fill="#1e293b"/>
+      <rect x="120" y="240" width="12" height="88" fill="#1e293b"/>
+      <rect x="120" y="352" width="12" height="56" fill="#1e293b"/>
+
+      <!-- Column 2 -->
+      <rect x="500" y="120" width="12" height="80" fill="#1e293b"/>
+      <rect x="500" y="232" width="12" height="104" fill="#1e293b"/>
+      <rect x="500" y="368" width="12" height="56" fill="#1e293b"/>
+
+      <!-- Column 3 -->
+      <rect x="880" y="120" width="12" height="152" fill="#1e293b"/>
+      <rect x="880" y="308" width="12" height="88" fill="#1e293b"/>
+
+      <!-- Column 1 Labels (outside, text-anchor="end") -->
+      <text x="104" y="160" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="end">ปุ่มแจ้งขอความช่วยเหลือ SOS</text>
+      <text x="104" y="176" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">480 เคส (40.0%)</text>
+
+      <text x="104" y="276" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="end">รายงานเหตุการณ์จากประชาชน</text>
+      <text x="104" y="292" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">440 เคส (36.7%)</text>
+
+      <text x="104" y="372" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="end">ระบบเซนเซอร์แจ้งเตือนผิดปกติ</text>
+      <text x="104" y="388" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">280 เคส (23.3%)</text>
+
+      <!-- Column 2 Labels (centred in gutter above each bar) -->
+      <text x="506" y="96" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="middle">Code Red · วิกฤตฉุกเฉินระดับ 4-5</text>
+      <text x="506" y="112" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">400 เคส (33.3%)</text>
+
+      <text x="506" y="214" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="middle">Code Orange · เฝ้าระวังด่วนระดับ 2-3</text>
+      <text x="506" y="228" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">520 เคส (43.3%)</text>
+
+      <text x="506" y="350" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="middle">Code Green · ข้อมูลเหตุการณ์ระดับ 1</text>
+      <text x="506" y="364" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">280 เคส (23.3%)</text>
+
+      <!-- Column 3 Labels (outside, text-anchor="start") -->
+      <text x="908" y="190" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="start">สั่งการชุดกู้ภัย &amp; EMS ฉุกเฉิน</text>
+      <text x="908" y="206" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="start">760 เคส (63.3%)</text>
+
+      <text x="908" y="344" fill="#1e293b" font-size="12" font-weight="600" font-family="'Geist', 'Prompt', sans-serif" text-anchor="start">ศูนย์บัญชาการ ปภ. / ปิดเคสอัตโนมัติ</text>
+      <text x="908" y="360" fill="#475569" font-size="9" font-family="'Geist Mono', monospace" text-anchor="start">440 เคส (36.7%)</text>
+
+      <!-- Legend -->
+      <line x1="40" y1="492" x2="960" y2="492" stroke="rgba(30,41,59,0.12)" stroke-width="0.8"/>
+      <text x="40" y="508" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+
+      <rect x="40" y="520" width="16" height="8" fill="rgba(71,85,105,0.18)" stroke="#475569" stroke-width="1"/>
+      <text x="64" y="528" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif">Flow · การคัดแยกและส่งต่อเคส</text>
+
+      <rect x="230" y="520" width="16" height="8" fill="rgba(0,122,255,0.28)" stroke="#007aff" stroke-width="1"/>
+      <text x="254" y="528" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif">Code Red Dispatch · สั่งการกู้ภัยฉุกเฉินทันที</text>
+
+      <rect x="520" y="520" width="16" height="8" fill="#1e293b"/>
+      <text x="544" y="528" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif">Node · จำนวนเคสสะสมแต่ละระดับ</text>
+
+      <text x="730" y="528" fill="#475569" font-size="8.5" font-family="'Geist', 'Prompt', sans-serif" font-style="italic">เคส Code Red ทั้งหมด 100% (400 เคส) ได้รับการสั่งการกู้ภัยทันที</text>
+    </svg>
+  </div>
+</body>
+</html>
