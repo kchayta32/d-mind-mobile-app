@@ -79,6 +79,8 @@ async def root():
         "docs_url": "/docs",
         "endpoints": {
             "api_keys": "/api/v1/auth/keys",
+            "client_applications": "/api/v1/auth/clients",
+            "iot_stations": "/api/v1/sensors/stations",
             "latest_sensor": "/api/v1/sensors/latest",
             "sensor_history": "/api/v1/sensors/history",
             "sensor_summary": "/api/v1/sensors/summary",

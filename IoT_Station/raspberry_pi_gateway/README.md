@@ -67,8 +67,9 @@ curl -X POST http://<RASPBERRY_PI_IP>:8000/api/v1/auth/keys \
   -H "Content-Type: application/json" \
   -H "X-Admin-Secret: dmind_admin_secret_super_secure_key_2026" \
   -d '{
+    "client_id": "d1111111-1111-1111-1111-111111111111",
     "key_name": "D-Mind Mobile App Production",
-    "description": "API Key for React Native / Capacitor mobile client",
+    "description": "API Key for Flutter / Native Android mobile client",
     "expires_in_days": 365,
     "rate_limit_rpm": 120
   }'
@@ -78,6 +79,7 @@ curl -X POST http://<RASPBERRY_PI_IP>:8000/api/v1/auth/keys \
 ```json
 {
   "id": "7b3b6df8-6ef1-4cf1-8390-5cf73a5a7824",
+  "client_id": "d1111111-1111-1111-1111-111111111111",
   "key_name": "D-Mind Mobile App Production",
   "key_prefix": "dmind_live_8fK",
   "raw_api_key": "dmind_live_8fK2m9PqZx7vLn4wRt1sY3uIj6hGb5vC",
@@ -95,9 +97,17 @@ curl -X POST http://<RASPBERRY_PI_IP>:8000/api/v1/auth/keys \
 
 ใส่ Header `X-API-Key` หรือ `Authorization: Bearer <API_KEY>` ในทุก Request:
 
-### 1. ดึงข้อมูลเซนเซอร์ล่าสุด (Latest Telemetry)
+### 1. ดึงรายชื่อสถานีตรวจวัดทั้งหมด (Registered Stations)
 ```http
-GET /api/v1/sensors/latest HTTP/1.1
+GET /api/v1/sensors/stations HTTP/1.1
+Host: <RASPBERRY_PI_IP>:8000
+X-API-Key: dmind_live_8fK2m9PqZx7vLn4wRt1sY3uIj6hGb5vC
+```
+
+### 2. ดึงข้อมูลเซนเซอร์ล่าสุด (Latest Telemetry)
+รองรับการกรองตามสถานีด้วยพารามิเตอร์ `station_id` (เช่น `?station_id=ESP32_STATION_01`):
+```http
+GET /api/v1/sensors/latest?station_id=ESP32_STATION_01 HTTP/1.1
 Host: <RASPBERRY_PI_IP>:8000
 X-API-Key: dmind_live_8fK2m9PqZx7vLn4wRt1sY3uIj6hGb5vC
 ```
@@ -106,6 +116,7 @@ X-API-Key: dmind_live_8fK2m9PqZx7vLn4wRt1sY3uIj6hGb5vC
 ```json
 {
   "id": 1024,
+  "station_id": "ESP32_STATION_01",
   "timestamp": "2026-09-01T14:15:30",
   "water_level": 45.2,
   "pm1": 12.0,
@@ -126,16 +137,16 @@ X-API-Key: dmind_live_8fK2m9PqZx7vLn4wRt1sY3uIj6hGb5vC
 }
 ```
 
-### 2. ดึงประวัติข้อมูลย้อนหลัง (Historical Data)
+### 3. ดึงประวัติข้อมูลย้อนหลัง (Historical Data)
 ```http
-GET /api/v1/sensors/history?limit=20&offset=0 HTTP/1.1
+GET /api/v1/sensors/history?station_id=ESP32_STATION_01&limit=20&offset=0 HTTP/1.1
 Host: <RASPBERRY_PI_IP>:8000
 X-API-Key: dmind_live_8fK2m9PqZx7vLn4wRt1sY3uIj6hGb5vC
 ```
 
-### 3. ดึงการแจ้งเตือนภัยพิบัติ (Active Disaster Alerts)
+### 4. ดึงการแจ้งเตือนภัยพิบัติ (Active Disaster Alerts)
 ```http
-GET /api/v1/alerts HTTP/1.1
+GET /api/v1/alerts?station_id=ESP32_STATION_01 HTTP/1.1
 Host: <RASPBERRY_PI_IP>:8000
 X-API-Key: dmind_live_8fK2m9PqZx7vLn4wRt1sY3uIj6hGb5vC
 ```

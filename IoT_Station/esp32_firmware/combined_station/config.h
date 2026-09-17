@@ -17,6 +17,7 @@
 #define ENABLE_SUPABASE_DIRECT    false
 
 // --- Raspberry Pi MQTT Broker Settings ---
+#define STATION_ID       "ESP32_STATION_01" // Station Identifier (Foreign key to iot_stations)
 #define MQTT_BROKER_HOST "192.168.1.100" // Replace with Raspberry Pi local IP address
 #define MQTT_BROKER_PORT 1883
 #define MQTT_CLIENT_ID   "ESP32_DMIND_STATION_01"

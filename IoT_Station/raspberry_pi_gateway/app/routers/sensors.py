@@ -5,7 +5,8 @@ from datetime import datetime
 from ..models.sensor_models import (
     SensorTelemetryInput, 
     SensorTelemetryResponse, 
-    SensorSummaryStats
+    SensorSummaryStats,
+    IoTStationItem
 )
 from ..auth import verify_api_key
 from ..services.supabase_service import get_supabase_client, SupabaseService
@@ -14,20 +15,33 @@ from ..services.alert_engine import AlertEngine
 router = APIRouter(prefix="/api/v1/sensors", tags=["Sensors Telemetry"])
 
 @router.get(
+    "/stations",
+    response_model=List[IoTStationItem],
+    summary="List Registered IoT Stations",
+    description="Returns all registered IoT Station nodes from public.iot_stations."
+)
+async def get_registered_stations(
+    key_info: dict = Depends(verify_api_key),
+    db: SupabaseService = Depends(get_supabase_client)
+):
+    return db.get_stations()
+
+@router.get(
     "/latest",
     response_model=Optional[SensorTelemetryResponse],
     summary="Get Latest Sensor Telemetry",
     description="Returns the most recent reading across all 4 sensors for the mobile dashboard."
 )
 async def get_latest_sensor_data(
+    station_id: Optional[str] = Query(None, description="Optional Station ID filter (e.g. ESP32_STATION_01)"),
     key_info: dict = Depends(verify_api_key),
     db: SupabaseService = Depends(get_supabase_client)
 ):
-    latest = db.get_latest_sensor_log()
+    latest = db.get_latest_sensor_log(station_id=station_id)
     if not latest:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="No sensor telemetry records found in database."
+            detail=f"No sensor telemetry records found{' for station ' + station_id if station_id else ''}."
         )
     return latest
 
@@ -38,6 +52,7 @@ async def get_latest_sensor_data(
     description="Fetches time-series telemetry records with pagination and optional timestamp filtering."
 )
 async def get_sensor_history(
+    station_id: Optional[str] = Query(None, description="Optional Station ID filter (e.g. ESP32_STATION_01)"),
     limit: int = Query(50, ge=1, le=500, description="Max number of records"),
     offset: int = Query(0, ge=0, description="Offset index"),
     from_time: Optional[datetime] = Query(None, description="ISO timestamp start filter"),
@@ -49,7 +64,8 @@ async def get_sensor_history(
         limit=limit, 
         offset=offset, 
         from_time=from_time, 
-        to_time=to_time
+        to_time=to_time,
+        station_id=station_id
     )
     return history
 

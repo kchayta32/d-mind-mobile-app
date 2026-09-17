@@ -3,11 +3,28 @@ from typing import List, Optional
 from datetime import datetime, timezone, timedelta
 from uuid import UUID
 
-from ..models.api_key_models import CreateAPIKeyRequest, APIKeyResponse, APIKeyInfo
+from ..models.api_key_models import (
+    CreateAPIKeyRequest, 
+    APIKeyResponse, 
+    APIKeyInfo,
+    ClientApplicationItem
+)
 from ..auth import generate_new_api_key, verify_admin_secret, verify_api_key
 from ..services.supabase_service import get_supabase_client, SupabaseService
 
 router = APIRouter(prefix="/api/v1/auth", tags=["API Key Management"])
+
+@router.get(
+    "/clients",
+    response_model=List[ClientApplicationItem],
+    summary="List Registered Client Applications (Admin Protected)",
+    description="Lists registered mobile apps and systems authorized to request API keys."
+)
+async def list_client_applications(
+    is_admin: bool = Depends(verify_admin_secret),
+    db: SupabaseService = Depends(get_supabase_client)
+):
+    return db.get_client_applications()
 
 @router.post(
     "/keys",
@@ -28,6 +45,7 @@ async def create_api_key(
         expires_at = datetime.now(timezone.utc) + timedelta(days=payload.expires_in_days)
 
     key_record = {
+        "client_id": str(payload.client_id) if payload.client_id else None,
         "key_name": payload.key_name,
         "key_prefix": key_prefix,
         "hashed_key": hashed_key,
@@ -46,6 +64,7 @@ async def create_api_key(
 
     return APIKeyResponse(
         id=UUID(created["id"]),
+        client_id=UUID(created["client_id"]) if created.get("client_id") else None,
         key_name=created["key_name"],
         key_prefix=created["key_prefix"],
         raw_api_key=raw_key,

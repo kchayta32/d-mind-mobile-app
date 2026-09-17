@@ -1,6 +1,7 @@
 -- ============================================================================
 --  D-MIND IoT Station: 02_create_individual_sensor_tables.sql
 --  Description: Individual Separate Tables for each Sensor type + Auto-sync Trigger
+--  Updated: Includes station_id, safe ALTER TABLE statements & sync function
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
@@ -8,17 +9,40 @@
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.water_level_logs (
   id SERIAL PRIMARY KEY,
-  timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  station_id VARCHAR(50) DEFAULT 'ESP32_STATION_01',
+  device_id TEXT DEFAULT 'ESP32_STATION_01',
+  timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   water_level DOUBLE PRECISION NOT NULL,       -- Water level in cm or percentage
   distance_cm DOUBLE PRECISION NULL,          -- Raw distance from sensor head to water surface
-  status TEXT DEFAULT 'NORMAL',                -- 'NORMAL', 'WARNING', 'CRITICAL'
-  device_id TEXT DEFAULT 'ESP32_STATION_01'
+  status TEXT DEFAULT 'NORMAL'                 -- 'NORMAL', 'WARNING', 'CRITICAL'
 );
+
+-- Update existing table if already run in Supabase
+ALTER TABLE public.water_level_logs 
+ADD COLUMN IF NOT EXISTS station_id VARCHAR(50) DEFAULT 'ESP32_STATION_01';
+
+UPDATE public.water_level_logs 
+SET station_id = COALESCE(device_id, 'ESP32_STATION_01') 
+WHERE station_id IS NULL;
 
 CREATE INDEX IF NOT EXISTS idx_water_level_logs_timestamp 
 ON public.water_level_logs ("timestamp" DESC);
 
+CREATE INDEX IF NOT EXISTS idx_water_level_logs_station_id 
+ON public.water_level_logs (station_id);
+
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_water_level_station')
+     AND EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'iot_stations') THEN 
+    ALTER TABLE public.water_level_logs 
+    ADD CONSTRAINT fk_water_level_station 
+    FOREIGN KEY (station_id) REFERENCES public.iot_stations(station_id) ON DELETE SET NULL; 
+  END IF; 
+END $$;
+
 ALTER TABLE public.water_level_logs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow All on water_level_logs" ON public.water_level_logs;
 CREATE POLICY "Allow All on water_level_logs" ON public.water_level_logs FOR ALL USING (true);
 
 
@@ -27,18 +51,40 @@ CREATE POLICY "Allow All on water_level_logs" ON public.water_level_logs FOR ALL
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.pm_logs (
   id SERIAL PRIMARY KEY,
-  timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  station_id VARCHAR(50) DEFAULT 'ESP32_STATION_01',
+  device_id TEXT DEFAULT 'ESP32_STATION_01',
+  timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   pm1 DOUBLE PRECISION NULL,                  -- PM 1.0 (ug/m3)
   pm25 DOUBLE PRECISION NOT NULL,             -- PM 2.5 (ug/m3)
   pm10 DOUBLE PRECISION NULL,                 -- PM 10 (ug/m3)
-  aqi_category TEXT NULL,                     -- e.g. 'Good', 'Moderate', 'Unhealthy'
-  device_id TEXT DEFAULT 'ESP32_STATION_01'
+  aqi_category TEXT NULL                      -- e.g. 'Good', 'Moderate', 'Unhealthy'
 );
+
+ALTER TABLE public.pm_logs 
+ADD COLUMN IF NOT EXISTS station_id VARCHAR(50) DEFAULT 'ESP32_STATION_01';
+
+UPDATE public.pm_logs 
+SET station_id = COALESCE(device_id, 'ESP32_STATION_01') 
+WHERE station_id IS NULL;
 
 CREATE INDEX IF NOT EXISTS idx_pm_logs_timestamp 
 ON public.pm_logs ("timestamp" DESC);
 
+CREATE INDEX IF NOT EXISTS idx_pm_logs_station_id 
+ON public.pm_logs (station_id);
+
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_pm_logs_station')
+     AND EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'iot_stations') THEN 
+    ALTER TABLE public.pm_logs 
+    ADD CONSTRAINT fk_pm_logs_station 
+    FOREIGN KEY (station_id) REFERENCES public.iot_stations(station_id) ON DELETE SET NULL; 
+  END IF; 
+END $$;
+
 ALTER TABLE public.pm_logs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow All on pm_logs" ON public.pm_logs;
 CREATE POLICY "Allow All on pm_logs" ON public.pm_logs FOR ALL USING (true);
 
 
@@ -47,7 +93,9 @@ CREATE POLICY "Allow All on pm_logs" ON public.pm_logs FOR ALL USING (true);
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.motion_logs (
   id SERIAL PRIMARY KEY,
-  timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  station_id VARCHAR(50) DEFAULT 'ESP32_STATION_01',
+  device_id TEXT DEFAULT 'ESP32_STATION_01',
+  timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   pitch DOUBLE PRECISION NULL,                -- Tilt Pitch angle (deg)
   roll DOUBLE PRECISION NULL,                 -- Tilt Roll angle (deg)
   yaw DOUBLE PRECISION NULL,                  -- Orientation Yaw angle (deg)
@@ -58,14 +106,34 @@ CREATE TABLE IF NOT EXISTS public.motion_logs (
   gyro_y DOUBLE PRECISION NULL,               -- Y-axis angular velocity (deg/s)
   gyro_z DOUBLE PRECISION NULL,               -- Z-axis angular velocity (deg/s)
   vibration_delta DOUBLE PRECISION NULL,      -- Absolute deviation from 1.0g (|TotalAcc - 1.0|)
-  is_anomaly BOOLEAN DEFAULT FALSE,           -- Flagged if abnormal vibration / tilt detected
-  device_id TEXT DEFAULT 'ESP32_STATION_01'
+  is_anomaly BOOLEAN DEFAULT FALSE            -- Flagged if abnormal vibration / tilt detected
 );
+
+ALTER TABLE public.motion_logs 
+ADD COLUMN IF NOT EXISTS station_id VARCHAR(50) DEFAULT 'ESP32_STATION_01';
+
+UPDATE public.motion_logs 
+SET station_id = COALESCE(device_id, 'ESP32_STATION_01') 
+WHERE station_id IS NULL;
 
 CREATE INDEX IF NOT EXISTS idx_motion_logs_timestamp 
 ON public.motion_logs ("timestamp" DESC);
 
+CREATE INDEX IF NOT EXISTS idx_motion_logs_station_id 
+ON public.motion_logs (station_id);
+
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_motion_logs_station')
+     AND EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'iot_stations') THEN 
+    ALTER TABLE public.motion_logs 
+    ADD CONSTRAINT fk_motion_logs_station 
+    FOREIGN KEY (station_id) REFERENCES public.iot_stations(station_id) ON DELETE SET NULL; 
+  END IF; 
+END $$;
+
 ALTER TABLE public.motion_logs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow All on motion_logs" ON public.motion_logs;
 CREATE POLICY "Allow All on motion_logs" ON public.motion_logs FOR ALL USING (true);
 
 
@@ -74,33 +142,60 @@ CREATE POLICY "Allow All on motion_logs" ON public.motion_logs FOR ALL USING (tr
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.environment_logs (
   id SERIAL PRIMARY KEY,
-  timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  station_id VARCHAR(50) DEFAULT 'ESP32_STATION_01',
+  device_id TEXT DEFAULT 'ESP32_STATION_01',
+  timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   temperature DOUBLE PRECISION NOT NULL,      -- Ambient Temperature (°C)
   humidity DOUBLE PRECISION NOT NULL,         -- Relative Humidity (%)
   pressure DOUBLE PRECISION NOT NULL,         -- Barometric Pressure (hPa)
   heat_index DOUBLE PRECISION NULL,           -- Calculated Heat Index (°C)
-  dew_point DOUBLE PRECISION NULL,            -- Calculated Dew Point (°C)
-  device_id TEXT DEFAULT 'ESP32_STATION_01'
+  dew_point DOUBLE PRECISION NULL             -- Calculated Dew Point (°C)
 );
+
+ALTER TABLE public.environment_logs 
+ADD COLUMN IF NOT EXISTS station_id VARCHAR(50) DEFAULT 'ESP32_STATION_01';
+
+UPDATE public.environment_logs 
+SET station_id = COALESCE(device_id, 'ESP32_STATION_01') 
+WHERE station_id IS NULL;
 
 CREATE INDEX IF NOT EXISTS idx_environment_logs_timestamp 
 ON public.environment_logs ("timestamp" DESC);
 
+CREATE INDEX IF NOT EXISTS idx_environment_logs_station_id 
+ON public.environment_logs (station_id);
+
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_environment_logs_station')
+     AND EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'iot_stations') THEN 
+    ALTER TABLE public.environment_logs 
+    ADD CONSTRAINT fk_environment_logs_station 
+    FOREIGN KEY (station_id) REFERENCES public.iot_stations(station_id) ON DELETE SET NULL; 
+  END IF; 
+END $$;
+
 ALTER TABLE public.environment_logs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow All on environment_logs" ON public.environment_logs;
 CREATE POLICY "Allow All on environment_logs" ON public.environment_logs FOR ALL USING (true);
 
 
 -- ----------------------------------------------------------------------------
--- 5. Optional Auto-Sync Trigger: Synchronizes sensor_logs to individual tables
+-- 5. Auto-Sync Trigger: Synchronizes sensor_logs to individual tables
 -- ----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.sync_sensor_logs_to_individual_tables()
 RETURNS TRIGGER AS $$
 DECLARE
+  v_station_id VARCHAR(50);
   v_vibration DOUBLE PRECISION;
   v_is_anomaly BOOLEAN := FALSE;
   v_aqi_cat TEXT;
   v_water_status TEXT := 'NORMAL';
+  v_heat_index DOUBLE PRECISION;
+  v_dew_point DOUBLE PRECISION;
 BEGIN
+  v_station_id := COALESCE(NEW.station_id, 'ESP32_STATION_01');
+
   -- 1. Sync Water Level
   IF NEW.water_level IS NOT NULL THEN
     IF NEW.water_level >= 140.0 THEN
@@ -109,8 +204,8 @@ BEGIN
       v_water_status := 'WARNING';
     END IF;
 
-    INSERT INTO public.water_level_logs (timestamp, water_level, status)
-    VALUES (NEW.timestamp, NEW.water_level, v_water_status);
+    INSERT INTO public.water_level_logs (station_id, device_id, timestamp, water_level, status)
+    VALUES (v_station_id, v_station_id, NEW.timestamp, NEW.water_level, v_water_status);
   END IF;
 
   -- 2. Sync PM Logs
@@ -122,8 +217,8 @@ BEGIN
     ELSE v_aqi_cat := 'Hazardous';
     END IF;
 
-    INSERT INTO public.pm_logs (timestamp, pm1, pm25, pm10, aqi_category)
-    VALUES (NEW.timestamp, NEW.pm1, NEW.pm25, NEW.pm10, v_aqi_cat);
+    INSERT INTO public.pm_logs (station_id, device_id, timestamp, pm1, pm25, pm10, aqi_category)
+    VALUES (v_station_id, v_station_id, NEW.timestamp, NEW.pm1, NEW.pm25, NEW.pm10, v_aqi_cat);
   END IF;
 
   -- 3. Sync Motion Logs
@@ -134,12 +229,12 @@ BEGIN
     END IF;
 
     INSERT INTO public.motion_logs (
-      timestamp, pitch, roll, yaw, 
+      station_id, device_id, timestamp, pitch, roll, yaw, 
       acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z, 
       vibration_delta, is_anomaly
     )
     VALUES (
-      NEW.timestamp, NEW.pitch, NEW.roll, NEW.yaw, 
+      v_station_id, v_station_id, NEW.timestamp, NEW.pitch, NEW.roll, NEW.yaw, 
       NEW.acc_x, NEW.acc_y, NEW.acc_z, NEW.gyro_x, NEW.gyro_y, NEW.gyro_z, 
       v_vibration, v_is_anomaly
     );
@@ -147,8 +242,18 @@ BEGIN
 
   -- 4. Sync Environment Logs
   IF NEW.temperature IS NOT NULL AND NEW.humidity IS NOT NULL AND NEW.pressure IS NOT NULL THEN
-    INSERT INTO public.environment_logs (timestamp, temperature, humidity, pressure)
-    VALUES (NEW.timestamp, NEW.temperature, NEW.humidity, NEW.pressure);
+    -- Calculate Dew Point approx: T - ((100 - RH) / 5)
+    v_dew_point := NEW.temperature - ((100.0 - NEW.humidity) / 5.0);
+    v_heat_index := NEW.temperature; -- Simplified base
+
+    INSERT INTO public.environment_logs (
+      station_id, device_id, timestamp, 
+      temperature, humidity, pressure, heat_index, dew_point
+    )
+    VALUES (
+      v_station_id, v_station_id, NEW.timestamp, 
+      NEW.temperature, NEW.humidity, NEW.pressure, v_heat_index, v_dew_point
+    );
   END IF;
 
   RETURN NEW;

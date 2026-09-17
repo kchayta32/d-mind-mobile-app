@@ -1,0 +1,431 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1360 920" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="sensor-er-title sensor-er-desc">
+        <title id="sensor-er-title">D-MIND IoT Station Sensor Telemetry ER Model</title>
+        <desc id="sensor-er-desc">Entity-relationship diagram showing iot_stations transmitting to central aggregate root sensor_logs, which triggers into water_level_logs, pm_logs, motion_logs, environment_logs, and evaluates into disaster_alerts.</desc>
+
+        <defs>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Prompt:wght@300;400;500;600&amp;display=swap');
+          </style>
+
+          <pattern id="sensor-dots" width="22" height="22" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="0.8" fill="rgba(30,41,59,0.08)"/>
+          </pattern>
+
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#475569"/>
+          </marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#007aff"/>
+          </marker>
+        </defs>
+
+        <!-- Canvas Background -->
+        <rect width="100%" height="100%" fill="#ffffff"/>
+        <rect width="100%" height="100%" fill="url(#sensor-dots)" opacity="0.55"/>
+
+        <!-- ================= CONNECTORS (Drawn first behind boxes) ================= -->
+
+        <!-- 1. iot_stations to sensor_logs (Straight horizontal) -->
+        <line x1="336" y1="200" x2="424" y2="200" stroke="#475569" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- 2. sensor_logs to water_level_logs (Straight horizontal) -->
+        <line x1="760" y1="160" x2="864" y2="160" stroke="#475569" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- 3. sensor_logs to pm_logs (Straight horizontal) -->
+        <line x1="760" y1="360" x2="864" y2="360" stroke="#475569" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- 4. sensor_logs to motion_logs (Orthogonal elbow r=8) -->
+        <path d="M 424,460 H 208 Q 200,460 200,468 V 576" fill="none" stroke="#475569" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- 5. sensor_logs to environment_logs (Straight vertical) -->
+        <line x1="592" y1="536" x2="592" y2="576" stroke="#475569" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- 6. sensor_logs to disaster_alerts (Orthogonal S-bend r=8) -->
+        <path d="M 760,480 H 812 Q 820,480 820,488 V 648 Q 820,656 828,656 H 864" fill="none" stroke="#007aff" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+
+        <!-- ================= CARDINALITY BADGES ================= -->
+
+        <!-- 1. iot_stations (1) to sensor_logs (0..*) -->
+        <rect x="344" y="188" width="16" height="12" rx="2" fill="#ffffff" stroke="rgba(30,41,59,0.15)" stroke-width="0.8"/>
+        <text x="352" y="197" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">1</text>
+
+        <rect x="396" y="188" width="20" height="12" rx="2" fill="#ffffff" stroke="rgba(30,41,59,0.15)" stroke-width="0.8"/>
+        <text x="406" y="197" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">0..*</text>
+
+        <!-- 2. sensor_logs (1) to water_level_logs (0..1) -->
+        <rect x="768" y="148" width="16" height="12" rx="2" fill="#ffffff" stroke="rgba(30,41,59,0.15)" stroke-width="0.8"/>
+        <text x="776" y="157" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">1</text>
+
+        <rect x="836" y="148" width="20" height="12" rx="2" fill="#ffffff" stroke="rgba(30,41,59,0.15)" stroke-width="0.8"/>
+        <text x="846" y="157" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">0..1</text>
+
+        <!-- 3. sensor_logs (1) to pm_logs (0..1) -->
+        <rect x="768" y="348" width="16" height="12" rx="2" fill="#ffffff" stroke="rgba(30,41,59,0.15)" stroke-width="0.8"/>
+        <text x="776" y="357" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">1</text>
+
+        <rect x="836" y="348" width="20" height="12" rx="2" fill="#ffffff" stroke="rgba(30,41,59,0.15)" stroke-width="0.8"/>
+        <text x="846" y="357" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">0..1</text>
+
+        <!-- 4. sensor_logs (1) to motion_logs (0..1) -->
+        <rect x="396" y="448" width="16" height="12" rx="2" fill="#ffffff" stroke="rgba(30,41,59,0.15)" stroke-width="0.8"/>
+        <text x="404" y="457" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">1</text>
+
+        <rect x="208" y="556" width="20" height="12" rx="2" fill="#ffffff" stroke="rgba(30,41,59,0.15)" stroke-width="0.8"/>
+        <text x="218" y="565" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">0..1</text>
+
+        <!-- 5. sensor_logs (1) to environment_logs (0..1) -->
+        <rect x="600" y="540" width="16" height="12" rx="2" fill="#ffffff" stroke="rgba(30,41,59,0.15)" stroke-width="0.8"/>
+        <text x="608" y="549" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">1</text>
+
+        <rect x="600" y="560" width="20" height="12" rx="2" fill="#ffffff" stroke="rgba(30,41,59,0.15)" stroke-width="0.8"/>
+        <text x="610" y="569" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">0..1</text>
+
+        <!-- 6. sensor_logs (1) to disaster_alerts (0..*) -->
+        <rect x="768" y="468" width="16" height="12" rx="2" fill="#ffffff" stroke="rgba(0,122,255,0.25)" stroke-width="0.8"/>
+        <text x="776" y="477" fill="#007aff" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">1</text>
+
+        <rect x="836" y="644" width="20" height="12" rx="2" fill="#ffffff" stroke="rgba(0,122,255,0.25)" stroke-width="0.8"/>
+        <text x="846" y="653" fill="#007aff" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">0..*</text>
+
+        <!-- ================= RELATIONSHIP LABELS (With 6-10px visible gap) ================= -->
+
+        <!-- 1. TRANSMITS -->
+        <rect x="352" y="174" width="56" height="14" rx="2" fill="#ffffff" stroke="rgba(30,41,59,0.18)" stroke-width="0.8"/>
+        <text x="380" y="184" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600" letter-spacing="0.08em">TRANSMITS</text>
+
+        <!-- 2. TRIGGER SYNC (Water) -->
+        <rect x="784" y="136" width="68" height="14" rx="2" fill="#ffffff" stroke="rgba(30,41,59,0.18)" stroke-width="0.8"/>
+        <text x="818" y="146" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600" letter-spacing="0.08em">TRIGGER SYNC</text>
+
+        <!-- 3. TRIGGER SYNC (PM) -->
+        <rect x="784" y="336" width="68" height="14" rx="2" fill="#ffffff" stroke="rgba(30,41,59,0.18)" stroke-width="0.8"/>
+        <text x="818" y="346" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600" letter-spacing="0.08em">TRIGGER SYNC</text>
+
+        <!-- 4. TRIGGER SYNC (Motion) -->
+        <rect x="280" y="440" width="68" height="14" rx="2" fill="#ffffff" stroke="rgba(30,41,59,0.18)" stroke-width="0.8"/>
+        <text x="314" y="450" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600" letter-spacing="0.08em">TRIGGER SYNC</text>
+
+        <!-- 5. TRIGGER SYNC (Environment) -->
+        <rect x="524" y="546" width="64" height="14" rx="2" fill="#ffffff" stroke="rgba(30,41,59,0.18)" stroke-width="0.8"/>
+        <text x="556" y="556" fill="#475569" font-size="7.5" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600" letter-spacing="0.06em">TRIGGER SYNC</text>
+
+        <!-- 6. EVALUATES (Disaster Alerts) -->
+        <rect x="768" y="492" width="60" height="14" rx="2" fill="#ffffff" stroke="rgba(0,122,255,0.3)" stroke-width="0.8"/>
+        <text x="798" y="502" fill="#007aff" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600" letter-spacing="0.08em">EVALUATES</text>
+
+        <!-- ================= ENTITY BOXES ================= -->
+
+        <!-- == -->
+        <!-- ENTITY 1: IOT_STATIONS (Top Left) -->
+        <!-- == -->
+        <g id="entity-iot-stations">
+          <rect x="48" y="80" width="288" height="264" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="1"/>
+          <rect x="48" y="80" width="288" height="36" rx="6" fill="rgba(30,41,59,0.04)"/>
+          <rect x="48" y="108" width="288" height="8" fill="rgba(30,41,59,0.04)"/>
+          <line x1="48" y1="116" x2="336" y2="116" stroke="rgba(30,41,59,0.15)" stroke-width="1"/>
+
+          <text x="64" y="95" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">ENTITY · HARDWARE MASTER</text>
+          <text x="64" y="109" fill="#1e293b" font-size="13" font-weight="600" font-family="'Geist', sans-serif">iot_stations</text>
+          <text x="320" y="109" fill="#64748b" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">ESP32 / RPi</text>
+
+          <!-- Field Rows -->
+          <text x="64" y="136" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace"># station_id</text>
+          <text x="320" y="136" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">varchar(50) [PK]</text>
+
+          <text x="64" y="156" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">station_name</text>
+          <text x="320" y="156" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">varchar(100)</text>
+
+          <text x="64" y="176" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">location_name</text>
+          <text x="320" y="176" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">varchar(150)</text>
+
+          <text x="64" y="196" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">latitude</text>
+          <text x="320" y="196" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double precision</text>
+
+          <text x="64" y="216" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">longitude</text>
+          <text x="320" y="216" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double precision</text>
+
+          <text x="64" y="236" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">status</text>
+          <text x="320" y="236" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">varchar(20) [ONLINE]</text>
+
+          <text x="64" y="256" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">firmware_version</text>
+          <text x="320" y="256" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">varchar(20)</text>
+
+          <text x="64" y="276" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">battery_level</text>
+          <text x="320" y="276" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double precision (%)</text>
+
+          <text x="64" y="296" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">solar_voltage</text>
+          <text x="320" y="296" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double precision (V)</text>
+
+          <text x="64" y="316" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">last_ping</text>
+          <text x="320" y="316" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">timestamptz</text>
+        </g>
+
+        <!-- == -->
+        <!-- ENTITY 2: SENSOR_LOGS (Center - Focal Element) -->
+        <!-- == -->
+        <g id="entity-sensor-logs">
+          <rect x="424" y="80" width="336" height="456" rx="6" fill="#ffffff" stroke="#007aff" stroke-width="1.8"/>
+          <rect x="424" y="80" width="336" height="36" rx="6" fill="rgba(0,122,255,0.08)"/>
+          <rect x="424" y="108" width="336" height="8" fill="rgba(0,122,255,0.08)"/>
+          <line x1="424" y1="116" x2="760" y2="116" stroke="rgba(0,122,255,0.25)" stroke-width="1"/>
+
+          <text x="440" y="95" fill="#007aff" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em" font-weight="600">AGGREGATE ROOT · MASTER TELEMETRY</text>
+          <text x="440" y="109" fill="#1e293b" font-size="14" font-weight="600" font-family="'Geist', sans-serif">sensor_logs</text>
+          <text x="744" y="109" fill="#007aff" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end" font-weight="600">4 IN 1 HUB</text>
+
+          <!-- Fields -->
+          <text x="440" y="136" fill="#007aff" font-size="10" font-family="'Geist Mono', monospace" font-weight="600"># id</text>
+          <text x="744" y="136" fill="#007aff" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end" font-weight="600">bigserial [PK]</text>
+
+          <text x="440" y="154" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">→ station_id</text>
+          <text x="744" y="154" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">varchar(50) [FK]</text>
+
+          <text x="440" y="172" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">timestamp</text>
+          <text x="744" y="172" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">timestamptz [NOW]</text>
+
+          <text x="440" y="192" fill="#007aff" font-size="10" font-family="'Geist Mono', monospace">water_level</text>
+          <text x="744" y="192" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double (AJ-SR04M cm)</text>
+
+          <text x="440" y="212" fill="#007aff" font-size="10" font-family="'Geist Mono', monospace">pm1</text>
+          <text x="744" y="212" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double (PMS5003 ug/m3)</text>
+
+          <text x="440" y="230" fill="#007aff" font-size="10" font-family="'Geist Mono', monospace">pm25</text>
+          <text x="744" y="230" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double (PMS5003 ug/m3)</text>
+
+          <text x="440" y="248" fill="#007aff" font-size="10" font-family="'Geist Mono', monospace">pm10</text>
+          <text x="744" y="248" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double (PMS5003 ug/m3)</text>
+
+          <text x="440" y="268" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">pitch</text>
+          <text x="744" y="268" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double (GY-521 deg)</text>
+
+          <text x="440" y="286" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">roll</text>
+          <text x="744" y="286" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double (GY-521 deg)</text>
+
+          <text x="440" y="304" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">yaw</text>
+          <text x="744" y="304" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double (GY-521 deg)</text>
+
+          <text x="440" y="322" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">acc_x, acc_y, acc_z</text>
+          <text x="744" y="322" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double (GY-521 g)</text>
+
+          <text x="440" y="340" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">gyro_x, gyro_y, gyro_z</text>
+          <text x="744" y="340" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double (GY-521 deg/s)</text>
+
+          <text x="440" y="360" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">temperature</text>
+          <text x="744" y="360" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double (BME280 °C)</text>
+
+          <text x="440" y="378" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">humidity</text>
+          <text x="744" y="378" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double (BME280 %)</text>
+
+          <text x="440" y="396" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">pressure</text>
+          <text x="744" y="396" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double (BME280 hPa)</text>
+
+          <!-- Separation line for Indexes -->
+          <line x1="440" y1="412" x2="744" y2="412" stroke="rgba(0,122,255,0.18)" stroke-width="0.8"/>
+          <text x="440" y="426" fill="#64748b" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.10em">INDEXES</text>
+          <text x="440" y="442" fill="#475569" font-size="8.5" font-family="'Geist Mono', monospace">idx_sensor_logs_time (timestamp DESC)</text>
+        </g>
+
+        <!-- == -->
+        <!-- ENTITY 3: WATER_LEVEL_LOGS (Top Right) -->
+        <!-- == -->
+        <g id="entity-water-level-logs">
+          <rect x="864" y="80" width="296" height="192" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="1"/>
+          <rect x="864" y="80" width="296" height="36" rx="6" fill="rgba(30,41,59,0.04)"/>
+          <rect x="864" y="108" width="296" height="8" fill="rgba(30,41,59,0.04)"/>
+          <line x1="864" y1="116" x2="1160" y2="116" stroke="rgba(30,41,59,0.15)" stroke-width="1"/>
+
+          <text x="880" y="95" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">PARTITION SINK · SENSOR 1</text>
+          <text x="880" y="109" fill="#1e293b" font-size="13" font-weight="600" font-family="'Geist', sans-serif">water_level_logs</text>
+          <text x="1144" y="109" fill="#64748b" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">AJ-SR04M</text>
+
+          <text x="880" y="136" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+          <text x="1144" y="136" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">serial [PK]</text>
+
+          <text x="880" y="156" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">→ station_id</text>
+          <text x="1144" y="156" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">varchar(50) [FK]</text>
+
+          <text x="880" y="176" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">timestamp</text>
+          <text x="1144" y="176" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">timestamptz</text>
+
+          <text x="880" y="196" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">water_level</text>
+          <text x="1144" y="196" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double precision (cm)</text>
+
+          <text x="880" y="216" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">distance_cm</text>
+          <text x="1144" y="216" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double precision (raw)</text>
+
+          <text x="880" y="236" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">status</text>
+          <text x="1144" y="236" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">varchar(20) [NORMAL/WARN]</text>
+        </g>
+
+        <!-- == -->
+        <!-- ENTITY 4: PM_LOGS (Right Upper Mid) -->
+        <!-- == -->
+        <g id="entity-pm-logs">
+          <rect x="864" y="304" width="296" height="208" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="1"/>
+          <rect x="864" y="304" width="296" height="36" rx="6" fill="rgba(30,41,59,0.04)"/>
+          <rect x="864" y="332" width="296" height="8" fill="rgba(30,41,59,0.04)"/>
+          <line x1="864" y1="340" x2="1160" y2="340" stroke="rgba(30,41,59,0.15)" stroke-width="1"/>
+
+          <text x="880" y="319" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">PARTITION SINK · SENSOR 2</text>
+          <text x="880" y="333" fill="#1e293b" font-size="13" font-weight="600" font-family="'Geist', sans-serif">pm_logs</text>
+          <text x="1144" y="333" fill="#64748b" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">PMS5003</text>
+
+          <text x="880" y="360" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+          <text x="1144" y="360" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">serial [PK]</text>
+
+          <text x="880" y="380" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">→ station_id</text>
+          <text x="1144" y="380" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">varchar(50) [FK]</text>
+
+          <text x="880" y="400" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">timestamp</text>
+          <text x="1144" y="400" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">timestamptz</text>
+
+          <text x="880" y="420" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">pm1</text>
+          <text x="1144" y="420" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double precision (ug/m3)</text>
+
+          <text x="880" y="440" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">pm25</text>
+          <text x="1144" y="440" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double precision (ug/m3)</text>
+
+          <text x="880" y="460" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">pm10</text>
+          <text x="1144" y="460" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double precision (ug/m3)</text>
+
+          <text x="880" y="480" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">aqi_category</text>
+          <text x="1144" y="480" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">varchar(30) [US AQI]</text>
+        </g>
+
+        <!-- == -->
+        <!-- ENTITY 5: MOTION_LOGS (Bottom Left) -->
+        <!-- == -->
+        <g id="entity-motion-logs">
+          <rect x="48" y="576" width="288" height="248" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="1"/>
+          <rect x="48" y="576" width="288" height="36" rx="6" fill="rgba(30,41,59,0.04)"/>
+          <rect x="48" y="604" width="288" height="8" fill="rgba(30,41,59,0.04)"/>
+          <line x1="48" y1="612" x2="336" y2="612" stroke="rgba(30,41,59,0.15)" stroke-width="1"/>
+
+          <text x="64" y="591" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">PARTITION SINK · SENSOR 3</text>
+          <text x="64" y="605" fill="#1e293b" font-size="13" font-weight="600" font-family="'Geist', sans-serif">motion_logs</text>
+          <text x="320" y="605" fill="#64748b" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">GY-521 IMU</text>
+
+          <text x="64" y="632" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+          <text x="320" y="632" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">serial [PK]</text>
+
+          <text x="64" y="652" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">→ station_id</text>
+          <text x="320" y="652" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">varchar(50) [FK]</text>
+
+          <text x="64" y="672" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">timestamp</text>
+          <text x="320" y="672" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">timestamptz</text>
+
+          <text x="64" y="692" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">pitch, roll, yaw</text>
+          <text x="320" y="692" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double (degrees)</text>
+
+          <text x="64" y="712" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">acc_x, acc_y, acc_z</text>
+          <text x="320" y="712" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double precision (g)</text>
+
+          <text x="64" y="732" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">gyro_x, gyro_y, gyro_z</text>
+          <text x="320" y="732" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double (deg/s)</text>
+
+          <text x="64" y="752" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">vibration_delta</text>
+          <text x="320" y="752" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double (|1.0g - norm|)</text>
+
+          <text x="64" y="772" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">is_anomaly</text>
+          <text x="320" y="772" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">boolean [EARTHQUAKE]</text>
+        </g>
+
+        <!-- == -->
+        <!-- ENTITY 6: ENVIRONMENT_LOGS (Bottom Center) -->
+        <!-- == -->
+        <g id="entity-environment-logs">
+          <rect x="424" y="576" width="336" height="216" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="1"/>
+          <rect x="424" y="576" width="336" height="36" rx="6" fill="rgba(30,41,59,0.04)"/>
+          <rect x="424" y="604" width="336" height="8" fill="rgba(30,41,59,0.04)"/>
+          <line x1="424" y1="612" x2="760" y2="612" stroke="rgba(30,41,59,0.15)" stroke-width="1"/>
+
+          <text x="440" y="591" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">PARTITION SINK · SENSOR 4</text>
+          <text x="440" y="605" fill="#1e293b" font-size="13" font-weight="600" font-family="'Geist', sans-serif">environment_logs</text>
+          <text x="744" y="605" fill="#64748b" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">BME280</text>
+
+          <text x="440" y="632" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+          <text x="744" y="632" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">serial [PK]</text>
+
+          <text x="440" y="652" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">→ station_id</text>
+          <text x="744" y="652" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">varchar(50) [FK]</text>
+
+          <text x="440" y="672" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">timestamp</text>
+          <text x="744" y="672" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">timestamptz</text>
+
+          <text x="440" y="692" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">temperature</text>
+          <text x="744" y="692" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double precision (°C)</text>
+
+          <text x="440" y="712" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">humidity</text>
+          <text x="744" y="712" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double precision (%)</text>
+
+          <text x="440" y="732" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">pressure</text>
+          <text x="744" y="732" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double precision (hPa)</text>
+
+          <text x="440" y="752" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">heat_index, dew_point</text>
+          <text x="744" y="752" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double precision (°C)</text>
+        </g>
+
+        <!-- == -->
+        <!-- ENTITY 7: DISASTER_ALERTS (Bottom Right) -->
+        <!-- == -->
+        <g id="entity-disaster-alerts">
+          <rect x="864" y="544" width="312" height="280" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="1"/>
+          <rect x="864" y="544" width="312" height="36" rx="6" fill="rgba(30,41,59,0.04)"/>
+          <rect x="864" y="572" width="312" height="8" fill="rgba(30,41,59,0.04)"/>
+          <line x1="864" y1="580" x2="1176" y2="580" stroke="rgba(30,41,59,0.15)" stroke-width="1"/>
+
+          <text x="880" y="559" fill="#475569" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">AUTOMATED ENGINE · WARNING</text>
+          <text x="880" y="573" fill="#1e293b" font-size="13" font-weight="600" font-family="'Geist', sans-serif">disaster_alerts</text>
+          <text x="1160" y="573" fill="#64748b" font-size="9" font-family="'Geist Mono', monospace" text-anchor="end">Alarm Sink</text>
+
+          <text x="880" y="600" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+          <text x="1160" y="600" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">serial [PK]</text>
+
+          <text x="880" y="620" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">→ station_id</text>
+          <text x="1160" y="620" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">varchar(50) [FK]</text>
+
+          <text x="880" y="640" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">timestamp</text>
+          <text x="1160" y="640" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">timestamptz</text>
+
+          <text x="880" y="660" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">alert_type</text>
+          <text x="1160" y="660" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">varchar(40) [ENUM]</text>
+
+          <text x="880" y="680" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">severity</text>
+          <text x="1160" y="680" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">varchar(20) [INFO/WARN/CRIT]</text>
+
+          <text x="880" y="700" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">title, message</text>
+          <text x="1160" y="700" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">varchar(150), text</text>
+
+          <text x="880" y="720" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">sensor_name</text>
+          <text x="1160" y="720" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">varchar(30)</text>
+
+          <text x="880" y="740" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">current_value, threshold</text>
+          <text x="1160" y="740" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">double precision</text>
+
+          <text x="880" y="760" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">unit</text>
+          <text x="1160" y="760" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">varchar(15) [cm, ug/m3, g]</text>
+
+          <text x="880" y="780" fill="#1e293b" font-size="10" font-family="'Geist Mono', monospace">is_resolved, resolved_at</text>
+          <text x="1160" y="780" fill="#475569" font-size="9.5" font-family="'Geist Mono', monospace" text-anchor="end">boolean, timestamptz</text>
+        </g>
+
+        <!-- ================= LEGEND STRIP ================= -->
+        <line x1="48" y1="872" x2="1312" y2="872" stroke="rgba(30,41,59,0.12)" stroke-width="0.8"/>
+        <text x="48" y="890" fill="#64748b" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+
+        <!-- Legend Items -->
+        <rect x="130" y="882" width="12" height="10" rx="2" fill="rgba(0,122,255,0.08)" stroke="#007aff" stroke-width="1.2"/>
+        <text x="148" y="890" fill="#475569" font-size="8.5" font-family="'Geist Mono', monospace">Aggregate Root (sensor_logs)</text>
+
+        <rect x="360" y="882" width="12" height="10" rx="2" fill="#ffffff" stroke="#1e293b" stroke-width="1"/>
+        <text x="378" y="890" fill="#475569" font-size="8.5" font-family="'Geist Mono', monospace">Database Entity / Partition Table</text>
+
+        <line x1="610" y1="887" x2="636" y2="887" stroke="#475569" stroke-width="1.2"/>
+        <text x="644" y="890" fill="#475569" font-size="8.5" font-family="'Geist Mono', monospace">1 : 0..* / 1 : 0..1 Cardinality</text>
+
+        <line x1="840" y1="887" x2="866" y2="887" stroke="#007aff" stroke-width="1.2"/>
+        <text x="874" y="890" fill="#475569" font-size="8.5" font-family="'Geist Mono', monospace">Automated Trigger / Evaluation Flow</text>
+
+        <text x="1312" y="890" fill="#64748b" font-size="8" font-family="'Geist Mono', monospace" text-anchor="end">D-MIND SENSOR SCHEMA V2.1</text>
+      </svg>

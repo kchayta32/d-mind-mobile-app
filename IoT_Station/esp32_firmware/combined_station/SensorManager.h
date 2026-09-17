@@ -246,6 +246,7 @@ public:
     StaticJsonDocument<512> doc;
     
     // Schema aligns exactly with Supabase sensor_logs table
+    doc["station_id"]   = STATION_ID;
     doc["water_level"]  = serialized(String(data.water_level, 2));
     doc["pm1"]          = serialized(String(data.pm1, 1));
     doc["pm25"]         = serialized(String(data.pm25, 1));

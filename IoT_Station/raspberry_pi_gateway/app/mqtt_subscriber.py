@@ -2,6 +2,7 @@ import json
 import logging
 import threading
 import time
+from datetime import datetime, timezone
 from typing import Optional
 import paho.mqtt.client as mqtt
 from .config import get_settings
@@ -56,19 +57,32 @@ class MQTTTelemetrySubscriber:
 
             if topic == self.settings.MQTT_TOPIC_DATA:
                 data = json.loads(payload_str)
+                if "station_id" not in data or not data["station_id"]:
+                    data["station_id"] = "ESP32_STATION_01"
                 
                 # 1. Ingest into Supabase sensor_logs table
                 inserted = self.db.insert_sensor_log(data)
                 if inserted:
-                    logger.info(f"[DB INGEST] Sensor log saved (ID: {inserted.get('id')})")
+                    logger.info(f"[DB INGEST] Sensor log saved for station '{data['station_id']}' (ID: {inserted.get('id')})")
                 else:
-                    logger.warning("[DB INGEST] Failed to insert sensor log")
+                    logger.warning(f"[DB INGEST] Failed to insert sensor log for station '{data['station_id']}'")
 
                 # 2. Evaluate for disaster alerts & anomalies
                 self.alert_engine.evaluate_telemetry(data)
 
             elif topic == self.settings.MQTT_TOPIC_STATUS:
                 logger.info(f"[STATION STATUS] {payload_str}")
+                try:
+                    status_data = json.loads(payload_str)
+                    st_id = status_data.get("station_id")
+                    st_status = status_data.get("status", "ONLINE")
+                    if st_id:
+                        self.db.client.table("iot_stations").update({
+                            "status": st_status,
+                            "last_seen_at": datetime.now(timezone.utc).isoformat()
+                        }).eq("station_id", st_id).execute()
+                except Exception as ex:
+                    logger.debug(f"Status update to iot_stations skipped: {ex}")
 
         except json.JSONDecodeError as jde:
             logger.error(f"Failed to parse JSON payload from MQTT: {jde}")

@@ -85,7 +85,8 @@ void reconnectMQTT() {
       if (connected) {
         Serial.println(" CONNECTED!");
         // Publish online status
-        mqttClient.publish(MQTT_TOPIC_STATUS, "{\"station_id\":\"ESP32_01\",\"status\":\"ONLINE\"}", true);
+        String statusPayload = String("{\"station_id\":\"") + STATION_ID + "\",\"status\":\"ONLINE\"}";
+        mqttClient.publish(MQTT_TOPIC_STATUS, statusPayload.c_str(), true);
       } else {
         Serial.print(" FAILED, rc=");
         Serial.print(mqttClient.state());

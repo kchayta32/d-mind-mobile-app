@@ -27,10 +27,13 @@ IoT_Station/
 │   ├── PINOUT_TABLES.md                       # ตาราง Pinout ทั้งแบบแยกเซนเซอร์และแบบรวม
 │   └── WIRING_DIAGRAM.md                      # ไดอะแกรมวงจรไฟฟ้าและคำแนะนำด้านพลังงาน
 ├── database_sql/                              # สคริปต์ SQL Editor สำหรับ Supabase
-│   ├── 01_create_sensor_logs.sql              # ตารางรวม sensor_logs + ดัชนี + RLS
-│   ├── 02_create_individual_sensor_tables.sql # ตารางแยกเซนเซอร์ (water_level, pm, motion, env) + Trigger
-│   ├── 03_create_api_keys_and_alerts.sql      # ตาราง api_keys, disaster_alerts และ Views
-│   └── 04_sample_seed_data.sql                # ข้อมูลตัวอย่างสำหรับทดสอบ Dashboard
+│   ├── 00_create_iot_stations.sql             # ตารางหลัก iot_stations และดัชนี
+│   ├── 01_create_sensor_logs.sql              # ตารางรวม sensor_logs (มี station_id) + ดัชนี + RLS
+│   ├── 02_create_individual_sensor_tables.sql # ตารางแยกเซนเซอร์ (water_level, pm, motion, env) + Trigger ซิงค์
+│   ├── 03_create_api_keys_and_alerts.sql      # ตาราง api_keys (มี client_id), disaster_alerts และ Views
+│   ├── 04_sample_seed_data.sql                # ข้อมูลตัวอย่างสถานี, ลูกข่าย และการตรวจวัด
+│   ├── 05_upgrade_schema_v2.sql               # สคริปต์อัปเกรดฐานข้อมูลเดิมเป็นเวอร์ชัน 2.0 (Idempotent)
+│   └── README.md                              # คำอธิบายลำดับการรัน SQL บน Supabase
 └── raspberry_pi_gateway/                      # ระบบ Gateway บน Raspberry Pi (FastAPI + MQTT)
     ├── app/
     │   ├── main.py                            # FastAPI Entrypoint + Background MQTT Daemon
@@ -64,10 +67,14 @@ IoT_Station/
 ## 🗄️ การรัน SQL บน Supabase SQL Editor
 
 คัดลอกไฟล์ในโฟลเดอร์ `database_sql/` ไปวางและรันใน **Supabase SQL Editor**:
-1. รัน `01_create_sensor_logs.sql`: สร้างตาราง `sensor_logs` พร้อม Index และ RLS
-2. รัน `02_create_individual_sensor_tables.sql`: สร้างตารางแยกเซนเซอร์ (`water_level_logs`, `pm_logs`, `motion_logs`, `environment_logs`) พร้อม Trigger ซิงค์ข้อมูลอัตโนมัติ
-3. รัน `03_create_api_keys_and_alerts.sql`: สร้างตารางระบบ `api_keys` และ `disaster_alerts` สำหรับโมบายแอป
-4. *(ทางเลือก)* รัน `04_sample_seed_data.sql`: โหลดข้อมูลทดสอบ
+- **กรณีต้องการอัปเกรดฐานข้อมูลเดิม (แนะนำสำหรับระบบที่รันไปแล้ว):**
+  รันไฟล์ `05_upgrade_schema_v2.sql` เพียงไฟล์เดียว ซึ่งมีคำสั่ง `ADD COLUMN IF NOT EXISTS`, ฟังก์ชัน Trigger ปรับปรุงใหม่ และสร้างตารางเชื่อมโยงทั้งหมดแบบ Idempotent
+- **กรณีเริ่มต้นติดตั้งฐานข้อมูลใหม่ตั้งแต่ต้น (Fresh Install):**
+  1. รัน `00_create_iot_stations.sql`: สร้างตาราง `iot_stations`
+  2. รัน `01_create_sensor_logs.sql`: สร้างตาราง `sensor_logs` พร้อม Index และ RLS
+  3. รัน `02_create_individual_sensor_tables.sql`: สร้างตารางแยกเซนเซอร์พร้อม Trigger ซิงค์ข้อมูลอัตโนมัติ
+  4. รัน `03_create_api_keys_and_alerts.sql`: สร้างระบบ `client_applications`, `api_keys`, `api_key_scopes`, `api_request_logs`, `disaster_alerts`
+  5. *(ทางเลือก)* รัน `04_sample_seed_data.sql`: โหลดข้อมูลทดสอบสถานีและโทรมาตร
 
 ---
 

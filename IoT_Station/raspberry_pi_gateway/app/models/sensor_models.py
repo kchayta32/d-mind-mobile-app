@@ -3,6 +3,7 @@ from typing import Optional
 from datetime import datetime
 
 class SensorTelemetryInput(BaseModel):
+    station_id: Optional[str] = Field("ESP32_STATION_01", description="Station Identifier (Foreign key to iot_stations)")
     water_level: Optional[float] = Field(None, description="Water level in cm or percentage (AJ-SR04M)")
     pm1: Optional[float] = Field(None, description="Particulate Matter PM1.0 in ug/m3 (PMS5003)")
     pm25: Optional[float] = Field(None, description="Particulate Matter PM2.5 in ug/m3 (PMS5003)")
@@ -43,3 +44,19 @@ class SensorSummaryStats(BaseModel):
     temperature: MetricMinMaxAvg
     humidity: MetricMinMaxAvg
     pressure: MetricMinMaxAvg
+
+class IoTStationItem(BaseModel):
+    station_id: str = Field(..., description="Unique Station ID (e.g. ESP32_STATION_01)")
+    station_name: str = Field(..., description="Human readable station name")
+    location_name: Optional[str] = Field(None, description="Location / District name")
+    latitude: Optional[float] = Field(None, description="GPS Latitude")
+    longitude: Optional[float] = Field(None, description="GPS Longitude")
+    elevation_m: Optional[float] = Field(None, description="Elevation in meters")
+    status: Optional[str] = Field("ONLINE", description="Station health status (ONLINE, OFFLINE, MAINTENANCE)")
+    installed_at: Optional[datetime] = None
+    last_seen_at: Optional[datetime] = None
+    firmware_version: Optional[str] = None
+    description: Optional[str] = None
+
+    class Config:
+        from_attributes = True

@@ -20,6 +20,7 @@ class AlertEngine:
         - GY-521 Abnormal Vibration (การสั่นไหวผิดปกติ / แผ่นดินไหว)
         """
         generated_alerts = []
+        station_id = data.get("station_id") or "ESP32_STATION_01"
 
         # 1. Check Water Level (AJ-SR04M)
         water_level = data.get("water_level")
@@ -132,7 +133,9 @@ class AlertEngine:
 
         # Ingest alerts into Supabase
         for alert in generated_alerts:
-            logger.warning(f"[DISASTER ALERT TRIGGERED] {alert['title']} - {alert['message']}")
+            alert["station_id"] = station_id
+            alert["device_id"] = station_id
+            logger.warning(f"[DISASTER ALERT TRIGGERED] [{station_id}] {alert['title']} - {alert['message']}")
             self.db.insert_disaster_alert(alert)
 
         return generated_alerts
