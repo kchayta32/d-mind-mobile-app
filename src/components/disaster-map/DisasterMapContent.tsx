@@ -79,11 +79,66 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
 
   const { sinkholes, stats: sinkholeStats } = useSinkholeData();
 
+  // คำนวณจำนวนรายการที่ตรงตามตัวกรองปัจจุบันแบบไดนามิก
+  const currentMatchCount = React.useMemo(() => {
+    switch (selectedType) {
+      case 'earthquake':
+        return earthquakes.filter((e) => e.magnitude >= magnitudeFilter).length;
+      case 'heavyrain':
+        return rainSensors.filter((r) => (r.humidity ?? 0) >= humidityFilter).length;
+      case 'wildfire':
+        return hotspots.length;
+      case 'airpollution':
+        return airStations.filter((s) => (s.pm25 ?? 0) >= pm25Filter).length;
+      case 'flood':
+        return gistdaFloodFeatures.length + floodDataPoints.length;
+      case 'sinkhole':
+        return sinkholes.length;
+      default:
+        return 0;
+    }
+  }, [
+    selectedType,
+    earthquakes,
+    magnitudeFilter,
+    rainSensors,
+    humidityFilter,
+    hotspots,
+    airStations,
+    pm25Filter,
+    gistdaFloodFeatures,
+    floodDataPoints,
+    sinkholes,
+  ]);
+
+  const handleResetFilters = React.useCallback(() => {
+    setMagnitudeFilter(1.0);
+    setHumidityFilter(0);
+    setRainTimeFilter('realtime');
+    setPm25Filter(0);
+    setWildfireTimeFilter('3days');
+    setShowBurnFreq(false);
+    setDroughtLayers(['dri']);
+    setFloodTimeFilter('3days');
+    setShowFloodFrequency(true);
+  }, [
+    setMagnitudeFilter,
+    setHumidityFilter,
+    setRainTimeFilter,
+    setPm25Filter,
+    setWildfireTimeFilter,
+    setShowBurnFreq,
+    setDroughtLayers,
+    setFloodTimeFilter,
+    setShowFloodFrequency,
+  ]);
+
   // Define content for Mobile Drawer (Split into Tabs)
   const FilterContent = () => (
     <div className="space-y-4">
       <FilterControls
         selectedType={selectedType}
+        onTypeChange={onTypeChange}
         magnitudeFilter={magnitudeFilter}
         onMagnitudeChange={setMagnitudeFilter}
         humidityFilter={humidityFilter}
@@ -102,6 +157,8 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
         onFloodTimeFilterChange={setFloodTimeFilter}
         showFloodFrequency={showFloodFrequency}
         onShowFloodFrequencyChange={setShowFloodFrequency}
+        onResetFilters={handleResetFilters}
+        matchCount={currentMatchCount}
       />
     </div>
   );
@@ -155,33 +212,30 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
   // Desktop Sidebar (Still uses both)
   const SidebarContent = () => (
     <div className="space-y-6">
-      <div className="border-b pb-4">
-        <h3 className="font-semibold mb-3 flex items-center">
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-          ตัวกรองข้อมูล
-        </h3>
-        <FilterControls
-          selectedType={selectedType}
-          magnitudeFilter={magnitudeFilter}
-          onMagnitudeChange={setMagnitudeFilter}
-          humidityFilter={humidityFilter}
-          onHumidityChange={setHumidityFilter}
-          rainTimeFilter={rainTimeFilter}
-          onRainTimeFilterChange={setRainTimeFilter}
-          pm25Filter={pm25Filter}
-          onPm25Change={setPm25Filter}
-          wildfireTimeFilter={wildfireTimeFilter}
-          onWildfireTimeFilterChange={setWildfireTimeFilter}
-          showBurnFreq={showBurnFreq}
-          onShowBurnFreqChange={setShowBurnFreq}
-          droughtLayers={droughtLayers}
-          onDroughtLayersChange={setDroughtLayers}
-          floodTimeFilter={floodTimeFilter}
-          onFloodTimeFilterChange={setFloodTimeFilter}
-          showFloodFrequency={showFloodFrequency}
-          onShowFloodFrequencyChange={setShowFloodFrequency}
-        />
-      </div>
+      <FilterControls
+        selectedType={selectedType}
+        onTypeChange={onTypeChange}
+        magnitudeFilter={magnitudeFilter}
+        onMagnitudeChange={setMagnitudeFilter}
+        humidityFilter={humidityFilter}
+        onHumidityChange={setHumidityFilter}
+        rainTimeFilter={rainTimeFilter}
+        onRainTimeFilterChange={setRainTimeFilter}
+        pm25Filter={pm25Filter}
+        onPm25Change={setPm25Filter}
+        wildfireTimeFilter={wildfireTimeFilter}
+        onWildfireTimeFilterChange={setWildfireTimeFilter}
+        showBurnFreq={showBurnFreq}
+        onShowBurnFreqChange={setShowBurnFreq}
+        droughtLayers={droughtLayers}
+        onDroughtLayersChange={setDroughtLayers}
+        floodTimeFilter={floodTimeFilter}
+        onFloodTimeFilterChange={setFloodTimeFilter}
+        showFloodFrequency={showFloodFrequency}
+        onShowFloodFrequencyChange={setShowFloodFrequency}
+        onResetFilters={handleResetFilters}
+        matchCount={currentMatchCount}
+      />
       <div>
         <h3 className="font-semibold mb-3 flex items-center">
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>

@@ -1,7 +1,11 @@
-
 import React from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
+import {
+  getFcmVapidKey,
+  isFcmConfigured,
+  registerDevicePushNotifications,
+} from '@/utils/native';
 
 // Notification channel configurations for Android
 export const NOTIFICATION_CHANNELS = {
@@ -123,7 +127,30 @@ export const useNotifications = () => {
   const [isSupported, setIsSupported] = React.useState(false);
   const [isSecureContext, setIsSecureContext] = React.useState(false);
   const [isNativeApp, setIsNativeApp] = React.useState(false);
+  const [fcmToken, setFcmToken] = React.useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('dmind-fcm-token') || null;
+    }
+    return null;
+  });
   const { toast } = useToast();
+
+  const vapidKey = getFcmVapidKey();
+  const fcmConfigured = isFcmConfigured();
+
+  const registerDevicePush = React.useCallback(async (customVapidKey?: string): Promise<boolean> => {
+    const key = customVapidKey || vapidKey;
+    try {
+      const result = await registerDevicePushNotifications(key);
+      if (result.success && result.token) {
+        setFcmToken(result.token);
+      }
+      return result.success;
+    } catch (e) {
+      console.warn('Error registering device push:', e);
+      return false;
+    }
+  }, [vapidKey]);
 
   React.useEffect(() => {
     const initNotifications = async () => {
@@ -164,10 +191,15 @@ export const useNotifications = () => {
           setPermission(Notification.permission);
         }
       }
+
+      // If notification permission is already granted and FCM VAPID is configured, ensure device push registration
+      if ((native || ('Notification' in window && Notification.permission === 'granted')) && isFcmConfigured()) {
+        registerDevicePush();
+      }
     };
 
     initNotifications();
-  }, []);
+  }, [registerDevicePush]);
 
   const requestPermission = async (): Promise<boolean> => {
     // IMPORTANT: Check native status directly, not from state
@@ -197,6 +229,9 @@ export const useNotifications = () => {
           if (permStatus.display === 'granted') {
             setPermission('granted');
             localStorage.setItem('dmind-notifications-enabled', 'true');
+            if (fcmConfigured) {
+              registerDevicePush();
+            }
             toast({
               title: "เปิดการแจ้งเตือนสำเร็จ",
               description: "คุณจะได้รับการแจ้งเตือนบนแถบแจ้งเตือนของโทรศัพท์",
@@ -257,6 +292,9 @@ export const useNotifications = () => {
 
       if (result === 'granted') {
         localStorage.setItem('dmind-notifications-enabled', 'true');
+        if (fcmConfigured) {
+          registerDevicePush();
+        }
         toast({
           title: "เปิดการแจ้งเตือนสำเร็จ",
           description: "คุณจะได้รับการแจ้งเตือนเมื่อมีข้อมูลภัยพิบัติใหม่",
@@ -390,6 +428,23 @@ export const useNotifications = () => {
     }
 
     try {
+      if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+        try {
+          const swReg = await navigator.serviceWorker.ready;
+          if (swReg && typeof swReg.showNotification === 'function') {
+            await swReg.showNotification(title, {
+              icon: '/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png',
+              badge: '/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png',
+              tag: 'disaster-alert',
+              ...options,
+            } as NotificationOptions);
+            return;
+          }
+        } catch {
+          // Fall back to standard Notification constructor
+        }
+      }
+
       const notification = new Notification(title, {
         icon: '/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png',
         badge: '/lovable-uploads/b5550bd4-d83d-4e1e-ac09-025117b87c86.png',
@@ -415,8 +470,13 @@ export const useNotifications = () => {
     isSupported,
     isSecureContext,
     isNativeApp,
+    isFcmConfigured: fcmConfigured,
+    vapidKey,
+    fcmVapidKey: vapidKey,
+    fcmToken,
     requestPermission,
-    sendNotification
+    sendNotification,
+    registerDevicePush,
   };
 };
 

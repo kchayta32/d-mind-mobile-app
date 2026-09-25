@@ -58,8 +58,10 @@ import androidx.compose.ui.unit.sp
 import com.dmind.app.ui.components.IconBubble
 import com.dmind.app.ui.components.color
 import com.dmind.app.ui.components.icon
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 
@@ -220,6 +222,54 @@ fun DisasterMapScreen(
                     .padding(14.dp),
             )
 
+            // แถบแสดงสถานะตัวกรองที่เปิดใช้งานอยู่บนแผนที่ (Active Filter Pill)
+            if (state.filter.activeFilterCount > 0) {
+                Surface(
+                    onClick = { showFilters = true },
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
+                    border = BorderStroke(1.dp, DmindBlue),
+                    shadowElevation = 6.dp,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .statusBarsPadding()
+                        .padding(top = 74.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.FilterList,
+                            contentDescription = null,
+                            tint = DmindBlue,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "กรอง ${state.filter.activeFilterCount} รายการ (พบ ${state.visibleEvents.size})",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            modifier = Modifier.clickable { viewModel.resetFilters() }
+                        ) {
+                            Text(
+                                text = "รีเซ็ต",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
             // ปุ่มควบคุมมุมมองซูมเข้า/ออก ปรับตำแหน่ง และปุ่มเปิดหน้าต่างตัวกรอง/ชั้นข้อมูล
             MapControls(
                 modifier = Modifier
@@ -336,6 +386,8 @@ fun DisasterMapScreen(
                 onToggleType = viewModel::toggleHazardType,
                 onSeveritySelected = viewModel::setMinimumSeverity,
                 onShowStationsChanged = viewModel::setShowStations,
+                onUpdateFilter = viewModel::updateFilter,
+                onResetFilters = viewModel::resetFilters,
                 onDismiss = { showFilters = false },
             )
         }

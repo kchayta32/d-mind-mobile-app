@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 data class ChatMessage(
     val fromUser: Boolean,
     val text: String,
+    val timestamp: Long = System.currentTimeMillis(),
 )
 
 // คลาสเก็บข้อมูลสถานะ UI (UI State) สำหรับหน้าจอผู้ช่วยอัจฉริยะแชทบอท
@@ -39,14 +40,15 @@ class ChatbotViewModel(
         val clean = message.trim()
         if (clean.isBlank() || _state.value.isLoading) return
         val history = _state.value.messages.map { (if (it.fromUser) "user" else "assistant") to it.text }
-        _state.update { it.copy(messages = it.messages + ChatMessage(true, clean), isLoading = true) }
+        val now = System.currentTimeMillis()
+        _state.update { it.copy(messages = it.messages + ChatMessage(true, clean, now), isLoading = true) }
         viewModelScope.launch {
             val reply = repository.invokeAiChat(clean, history).getOrElse {
                 fallbackError
             }
             _state.update {
                 it.copy(
-                    messages = it.messages + ChatMessage(false, reply),
+                    messages = it.messages + ChatMessage(false, reply, System.currentTimeMillis()),
                     isLoading = false,
                     textToSpeak = reply
                 )

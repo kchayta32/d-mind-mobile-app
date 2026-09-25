@@ -76,7 +76,21 @@ data class DisasterMapUiState(
         get() = snapshot.events.filter { event -> filter.accepts(event) }
 
     val visibleStations: List<com.dmind.app.domain.model.MonitoringStation>
-        get() = if (filter.showStations) snapshot.stations else emptyList()
+        get() {
+            if (!filter.showStations) return emptyList()
+            if (!filter.flood.showWaterStations) {
+                return snapshot.stations.filterNot { station ->
+                    station.metrics.any { metric ->
+                        metric.label.contains("น้ำ", ignoreCase = true) ||
+                        metric.label.contains("water", ignoreCase = true) ||
+                        metric.label.contains("rain", ignoreCase = true) ||
+                        metric.label.contains("ฝน", ignoreCase = true) ||
+                        metric.label.contains("ไหล", ignoreCase = true)
+                    }
+                }
+            }
+            return snapshot.stations
+        }
 }
 
 // คลาส ViewModel สำหรับควบคุมข้อมูล แผนที่ เลเยอร์ สภาพอากาศ และระบบเล่นแอนิเมชันเรดาร์
@@ -167,6 +181,53 @@ class DisasterMapViewModel(
     // กำหนดค่าว่าจะให้แสดงสถานีวัดปริมาณน้ำฝน/ระดับน้ำ หรือไม่
     fun setShowStations(showStations: Boolean) {
         _state.update { it.copy(filter = it.filter.copy(showStations = showStations)) }
+    }
+
+    // อัปเดตตัวกรองภัยพิบัติทั้งหมด
+    fun updateFilter(filter: DisasterFilter) {
+        _state.update { it.copy(filter = filter) }
+        // ประสานช่วงเวลาของชั้นข้อมูลหากมีการเปลี่ยนช่วงเวลาในตัวกรอง
+        if (_state.value.activeLayer == DisasterLayerType.Flood && filter.flood.timeRange != _state.value.layerTimeRange) {
+            selectTimeRange(filter.flood.timeRange)
+        } else if (_state.value.activeLayer == DisasterLayerType.WildfireViirs && filter.wildfire.timeRange != _state.value.layerTimeRange) {
+            selectTimeRange(filter.wildfire.timeRange)
+        }
+    }
+
+    // รีเซ็ตตัวกรองทั้งหมดกลับเป็นค่าเริ่มต้น
+    fun resetFilters() {
+        _state.update { it.copy(filter = DisasterFilter()) }
+    }
+
+    // อัปเดตตัวกรองเฉพาะแผ่นดินไหว
+    fun updateEarthquakeFilter(earthquake: com.dmind.app.domain.model.EarthquakeFilterConfig) {
+        _state.update { it.copy(filter = it.filter.copy(earthquake = earthquake)) }
+    }
+
+    // อัปเดตตัวกรองเฉพาะอุทกภัย
+    fun updateFloodFilter(flood: com.dmind.app.domain.model.FloodFilterConfig) {
+        _state.update { it.copy(filter = it.filter.copy(flood = flood)) }
+        if (_state.value.activeLayer == DisasterLayerType.Flood && flood.timeRange != _state.value.layerTimeRange) {
+            selectTimeRange(flood.timeRange)
+        }
+    }
+
+    // อัปเดตตัวกรองเฉพาะไฟป่า
+    fun updateWildfireFilter(wildfire: com.dmind.app.domain.model.WildfireFilterConfig) {
+        _state.update { it.copy(filter = it.filter.copy(wildfire = wildfire)) }
+        if (_state.value.activeLayer == DisasterLayerType.WildfireViirs && wildfire.timeRange != _state.value.layerTimeRange) {
+            selectTimeRange(wildfire.timeRange)
+        }
+    }
+
+    // อัปเดตตัวกรองเฉพาะคุณภาพอากาศ
+    fun updateAirQualityFilter(airQuality: com.dmind.app.domain.model.AirQualityFilterConfig) {
+        _state.update { it.copy(filter = it.filter.copy(airQuality = airQuality)) }
+    }
+
+    // อัปเดตตัวกรองเฉพาะพายุ
+    fun updateStormFilter(storm: com.dmind.app.domain.model.StormFilterConfig) {
+        _state.update { it.copy(filter = it.filter.copy(storm = storm)) }
     }
 
     // เลือกและอัปเดตเหตุการณ์ภัยพิบัติ (Disaster Event)

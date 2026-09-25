@@ -23,6 +23,17 @@ buildscript {
     }
 }
 
+// กำหนดไดเรกทอรีชั่วคราวสำหรับ SQLite JDBC / Room compiler เพื่อป้องกันปัญหา C:\WINDOWS\ บน Windows
+def sqliteTmpDir = new File(rootDir, ".gradle/tmp/sqlite")
+if (!sqliteTmpDir.exists()) {
+    sqliteTmpDir.mkdirs()
+}
+System.setProperty("org.sqlite.tmpdir", sqliteTmpDir.absolutePath)
+def sysTmp = System.getProperty("java.io.tmpdir")
+if (sysTmp == null || sysTmp.toLowerCase().contains("windows") || !new File(sysTmp).canWrite()) {
+    System.setProperty("java.io.tmpdir", sqliteTmpDir.absolutePath)
+}
+
 // โหลดตัวแปรและค่าคอนฟิกูเรชันร่วมจากไฟล์ variables.gradle
 apply from: "variables.gradle"
 
@@ -32,6 +43,17 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        if (options.forkOptions.jvmArgs == null) {
+            options.forkOptions.jvmArgs = []
+        }
+        options.forkOptions.jvmArgs.add(("-Dorg.sqlite.tmpdir=" + sqliteTmpDir.absolutePath).toString())
+    }
+
+    tasks.withType(Test).configureEach {
+        systemProperty "org.sqlite.tmpdir", sqliteTmpDir.absolutePath.toString()
     }
 }
 

@@ -16,7 +16,7 @@ interface DMindNativePlugin {
   startBackgroundMonitoring(): Promise<{ started: boolean }>;
   stopBackgroundMonitoring(): Promise<{ stopped: boolean }>;
   getReliabilityStatus(): Promise<NativeReliabilityStatus>;
-  refreshFcmToken(): Promise<{ tokenAvailable: boolean; configured?: boolean }>;
+  refreshFcmToken(options?: { vapidKey?: string }): Promise<{ tokenAvailable: boolean; configured?: boolean }>;
   openBatteryOptimizationSettings(): Promise<void>;
   openAppSettings(): Promise<void>;
   isIgnoringBatteryOptimizations(): Promise<{ ignoring: boolean }>;
@@ -131,15 +131,157 @@ export const getNativeReliabilityStatus = async (): Promise<NativeReliabilitySta
   }
 };
 
-export const refreshNativeFcmToken = async () => {
+// ============================================================
+// FCM / Push Notifications & VAPID Configuration
+// ============================================================
+
+/**
+ * Retrieve configured FCM VAPID Key from environment variables
+ */
+export const getFcmVapidKey = (): string => {
+  return (
+    import.meta.env.VITE_FIREBASE_VAPID_KEY ||
+    (typeof window !== 'undefined' && (window as any).__DMIND_FIREBASE_VAPID_KEY__) ||
+    ''
+  );
+};
+
+/**
+ * Check whether FCM VAPID Key is configured
+ */
+export const isFcmConfigured = (): boolean => {
+  return Boolean(getFcmVapidKey());
+};
+
+/**
+ * Utility to convert base64 VAPID public key to Uint8Array for PushManager subscription
+ */
+export const urlBase64ToUint8Array = (base64String: string): Uint8Array => {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+};
+
+let PushNotificationsPlugin: any = null;
+
+export const getPushNotifications = async () => {
+  if (!PushNotificationsPlugin && isNativePlatform()) {
+    try {
+      const module = await import('@capacitor/push-notifications');
+      PushNotificationsPlugin = module.PushNotifications;
+    } catch (e) {
+      console.warn('[Native] PushNotifications plugin not available:', e);
+    }
+  }
+  return PushNotificationsPlugin;
+};
+
+export const refreshNativeFcmToken = async (vapidKey?: string) => {
   if (!isNativePlatform()) return { tokenAvailable: false };
 
   try {
-    return await DMindNative.refreshFcmToken();
+    const key = vapidKey || getFcmVapidKey();
+    return await DMindNative.refreshFcmToken(key ? { vapidKey: key } : undefined);
   } catch (e) {
     console.warn('[Native] Unable to refresh FCM token:', e);
     return { tokenAvailable: false };
   }
+};
+
+export interface DeviceNotificationRegistrationResult {
+  success: boolean;
+  platform: 'native' | 'web';
+  token?: string;
+  error?: string;
+}
+
+/**
+ * Register device for push notifications using FCM VAPID key
+ * Supports native Android (Capacitor FCM / DMindNative) and Web Push (ServiceWorker with VAPID key)
+ */
+export const registerDevicePushNotifications = async (
+  vapidKey?: string
+): Promise<DeviceNotificationRegistrationResult> => {
+  const activeVapidKey = vapidKey || getFcmVapidKey();
+
+  if (isNativePlatform()) {
+    try {
+      const push = await getPushNotifications();
+      if (push) {
+        let permStatus = await push.checkPermissions();
+        if (permStatus.receive !== 'granted') {
+          permStatus = await push.requestPermissions();
+        }
+        if (permStatus.receive === 'granted') {
+          await push.register();
+        }
+      }
+      const refreshResult = await refreshNativeFcmToken(activeVapidKey);
+      return {
+        success: refreshResult.tokenAvailable || true,
+        platform: 'native',
+      };
+    } catch (e: any) {
+      console.warn('[Native] Device push notification registration error:', e);
+      return {
+        success: false,
+        platform: 'native',
+        error: e?.message || String(e),
+      };
+    }
+  }
+
+  // Web Push registration using ServiceWorker and FCM VAPID Key
+  if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
+    if (!activeVapidKey) {
+      console.warn('[WebPush] FCM VAPID key is not configured');
+      return {
+        success: false,
+        platform: 'web',
+        error: 'VAPID key not configured',
+      };
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      let subscription = await registration.pushManager.getSubscription();
+
+      if (!subscription) {
+        const applicationServerKey = urlBase64ToUint8Array(activeVapidKey);
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey,
+        });
+      }
+
+      const token = JSON.stringify(subscription);
+      localStorage.setItem('dmind-fcm-token', token);
+
+      return {
+        success: true,
+        platform: 'web',
+        token,
+      };
+    } catch (e: any) {
+      console.warn('[WebPush] Error subscribing to push notifications with VAPID key:', e);
+      return {
+        success: false,
+        platform: 'web',
+        error: e?.message || String(e),
+      };
+    }
+  }
+
+  return {
+    success: false,
+    platform: 'web',
+    error: 'Push notifications not supported in this environment',
+  };
 };
 
 export const stopDisasterMonitoring = async () => {
@@ -508,9 +650,10 @@ export const initializeNativeApp = async () => {
   await getNetwork();
   await getKeyboard();
 
-  // 4. Refresh FCM token if Firebase is configured. Monitoring is started
-  // from the explicit Android reliability onboarding controls.
+  // 4. Refresh FCM token and register push notifications if Firebase is configured.
+  // Monitoring is started from the explicit Android reliability onboarding controls.
   await refreshNativeFcmToken();
+  await registerDevicePushNotifications();
 
   console.log('[Native] Native app initialization complete');
 };

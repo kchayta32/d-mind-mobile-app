@@ -137,18 +137,172 @@ data class DisasterSnapshot(
         get() = sources.count { it.isHealthy }
 }
 
+// ตัวเลือกการกรองขนาดแผ่นดินไหวขั้นต่ำ
+enum class EarthquakeMagnitudeFilter(val label: String, val threshold: Double) {
+    All("ทั้งหมด", 0.0),
+    Mag3Plus("3.0+", 3.0),
+    Mag5Plus("5.0+", 5.0),
+    Mag7Plus("7.0+", 7.0),
+}
+
+// ตัวเลือกการกรองความลึกแผ่นดินไหว
+enum class EarthquakeDepthFilter(val label: String, val maxDepthKm: Double?) {
+    All("ทุกระดับลึก", null),
+    Shallow("ตื้น (<70 กม.)", 70.0),
+    Intermediate("ปานกลาง (70-300 กม.)", 300.0),
+    Deep("ลึก (>300 กม.)", Double.MAX_VALUE),
+}
+
+// โครงสร้างตัวกรองเฉพาะแผ่นดินไหว
+data class EarthquakeFilterConfig(
+    val minMagnitude: EarthquakeMagnitudeFilter = EarthquakeMagnitudeFilter.All,
+    val depth: EarthquakeDepthFilter = EarthquakeDepthFilter.All,
+)
+
+// โครงสร้างตัวกรองเฉพาะอุทกภัย/น้ำท่วม
+data class FloodFilterConfig(
+    val timeRange: GistdaTimeRange = GistdaTimeRange.OneDay,
+    val showFloodLayer: Boolean = true,
+    val showWaterStations: Boolean = true,
+)
+
+// ตัวเลือกแหล่งที่มาดาวเทียมจุดความร้อนไฟป่า
+enum class WildfireSatelliteSource(val label: String, val id: String) {
+    All("ดาวเทียมทั้งหมด", "all"),
+    SuomiNpp("Suomi-NPP", "suomi"),
+    Noaa20("NOAA-20", "noaa20"),
+}
+
+// ตัวเลือกระดับความมั่นใจจุดความร้อนไฟป่า
+enum class WildfireConfidenceFilter(val label: String, val minConfidence: Int) {
+    All("ความมั่นใจทั้งหมด", 0),
+    Nominal("ปานกลางขึ้นไป (Nominal+)", 50),
+    High("สูงเท่านั้น (High)", 80),
+}
+
+// โครงสร้างตัวกรองเฉพาะไฟป่า
+data class WildfireFilterConfig(
+    val timeRange: GistdaTimeRange = GistdaTimeRange.OneDay,
+    val satelliteSource: WildfireSatelliteSource = WildfireSatelliteSource.All,
+    val confidence: WildfireConfidenceFilter = WildfireConfidenceFilter.All,
+)
+
+// ตัวเลือกเกณฑ์คุณภาพอากาศ PM2.5
+enum class AirQualityThreshold(val label: String, val minPm25: Double) {
+    All("ทั้งหมด", 0.0),
+    Moderate("เริ่มมีผล (>37.5 µg)", 37.5),
+    Unhealthy("มีผลต่อสุขภาพ (>75.0 µg)", 75.0),
+}
+
+// โครงสร้างตัวกรองเฉพาะคุณภาพอากาศ
+data class AirQualityFilterConfig(
+    val threshold: AirQualityThreshold = AirQualityThreshold.All,
+)
+
+// ตัวเลือกระดับความรุนแรงปริมาณน้ำฝนและพายุ
+enum class StormRainIntensity(val label: String, val minRainMm: Double) {
+    All("ทั้งหมด", 0.0),
+    Light("ฝนเล็กน้อย (>0 มม.)", 0.1),
+    Moderate("ฝนปานกลาง (≥10 มม.)", 10.0),
+    Heavy("ฝนตกหนัก (≥35 มม.)", 35.0),
+}
+
+// โครงสร้างตัวกรองเฉพาะพายุ
+data class StormFilterConfig(
+    val rainIntensity: StormRainIntensity = StormRainIntensity.All,
+)
+
 // โครงสร้างการกรองสำหรับการค้นหาหรือการคัดเลือกข้อมูลภัยพิบัติบน UI
 data class DisasterFilter(
     val selectedTypes: Set<HazardType> = defaultHazardTypes, // เซ็ตของประเภทเหตุภัยพิบัติที่ผู้ใช้เปิดตัวกรองไว้
     val minimumSeverity: Severity = Severity.Normal, // ระดับขั้นต่ำความรุนแรงในการกรองข้อมูลขึ้นมาแสดงผล
     val showStations: Boolean = true, // แสดงหรือปิดตำแหน่งสถานีตรวจวัดต่างๆ บนแผนที่
+    val earthquake: EarthquakeFilterConfig = EarthquakeFilterConfig(), // ตัวกรองเฉพาะแผ่นดินไหว
+    val flood: FloodFilterConfig = FloodFilterConfig(), // ตัวกรองเฉพาะอุทกภัย
+    val wildfire: WildfireFilterConfig = WildfireFilterConfig(), // ตัวกรองเฉพาะไฟป่า
+    val airQuality: AirQualityFilterConfig = AirQualityFilterConfig(), // ตัวกรองเฉพาะฝุ่น PM2.5
+    val storm: StormFilterConfig = StormFilterConfig(), // ตัวกรองเฉพาะพายุ
 ) {
+    // นับจำนวนตัวกรองที่มีการปรับเปลี่ยนจากค่าเริ่มต้น
+    val activeFilterCount: Int
+        get() {
+            var count = 0
+            if (selectedTypes.size != defaultHazardTypes.size) count++
+            if (minimumSeverity != Severity.Normal) count++
+            if (!showStations) count++
+            if (earthquake.minMagnitude != EarthquakeMagnitudeFilter.All || earthquake.depth != EarthquakeDepthFilter.All) count++
+            if (flood.timeRange != GistdaTimeRange.OneDay || !flood.showFloodLayer || !flood.showWaterStations) count++
+            if (wildfire.timeRange != GistdaTimeRange.OneDay || wildfire.satelliteSource != WildfireSatelliteSource.All || wildfire.confidence != WildfireConfidenceFilter.All) count++
+            if (airQuality.threshold != AirQualityThreshold.All) count++
+            if (storm.rainIntensity != StormRainIntensity.All) count++
+            return count
+        }
+
+    val isDefault: Boolean
+        get() = activeFilterCount == 0
+
     // ฟังก์ชันตรวจสอบความสอดคล้องของข้อมูลภัยพิบัติกับตัวกรองปัจจุบัน
     fun accepts(event: DisasterEvent): Boolean {
-        return event.type in selectedTypes && event.severity.rank >= minimumSeverity.rank
+        if (event.type !in selectedTypes) return false
+        if (event.severity.rank < minimumSeverity.rank) return false
+
+        when (event.type) {
+            HazardType.Earthquake -> {
+                if (earthquake.minMagnitude != EarthquakeMagnitudeFilter.All) {
+                    val mag = extractMetricValue(event.metric) ?: extractMetricValue(event.title)
+                    if (mag != null && mag < earthquake.minMagnitude.threshold) return false
+                }
+                if (earthquake.depth != EarthquakeDepthFilter.All) {
+                    val depth = extractDepthValue(event.description) ?: extractDepthValue(event.metric)
+                    if (depth != null) {
+                        when (earthquake.depth) {
+                            EarthquakeDepthFilter.Shallow -> if (depth >= 70.0) return false
+                            EarthquakeDepthFilter.Intermediate -> if (depth < 70.0 || depth > 300.0) return false
+                            EarthquakeDepthFilter.Deep -> if (depth <= 300.0) return false
+                            EarthquakeDepthFilter.All -> Unit
+                        }
+                    }
+                }
+            }
+            HazardType.Flood -> {
+                if (!flood.showFloodLayer && event.source.contains("GISTDA", ignoreCase = true)) {
+                    return false
+                }
+            }
+            HazardType.Fire -> {
+                if (wildfire.confidence != WildfireConfidenceFilter.All) {
+                    val conf = extractMetricValue(event.metric) ?: extractMetricValue(event.description)
+                    if (conf != null && conf < wildfire.confidence.minConfidence) return false
+                }
+            }
+            HazardType.AirQuality -> {
+                if (airQuality.threshold != AirQualityThreshold.All) {
+                    val pm = extractMetricValue(event.metric) ?: extractMetricValue(event.title)
+                    if (pm != null && pm < airQuality.threshold.minPm25) return false
+                }
+            }
+            HazardType.Storm -> {
+                if (storm.rainIntensity != StormRainIntensity.All) {
+                    val rain = extractMetricValue(event.metric)
+                    if (rain != null && rain < storm.rainIntensity.minRainMm) return false
+                }
+            }
+            else -> Unit
+        }
+        return true
     }
 
     companion object {
+        private fun extractMetricValue(text: String): Double? {
+            val match = Regex("""(\d+(\.\d+)?)""").find(text)
+            return match?.value?.toDoubleOrNull()
+        }
+
+        private fun extractDepthValue(text: String): Double? {
+            val match = Regex("""(\d+(\.\d+)?)\s*(km|กม)""", RegexOption.IGNORE_CASE).find(text)
+            return match?.groupValues?.get(1)?.toDoubleOrNull()
+        }
+
         // ประเภทภัยพิบัติเริ่มต้นทั้งหมดที่กำหนดให้ตรวจสอบโดยไม่มีการปิด
         val defaultHazardTypes = setOf(
             HazardType.Earthquake,

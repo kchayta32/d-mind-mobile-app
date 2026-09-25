@@ -352,7 +352,7 @@ fun DisasterMapCard(
     }
 }
 
-// คอมโพสเซเบิลการ์ดกลุ่มย่อยสรุปสถิติจำนวนภัยพิบัติ
+// คอมโพสเซเบิลการ์ดกลุ่มย่อยสรุปสถิติจำนวนภัยพิบัติ พร้อมแสดงการกระจายตัวรายชั่วโมง
 @Composable
 fun StatSummaryCard(
     counts: HomeHazardCounts,
@@ -360,15 +360,142 @@ fun StatSummaryCard(
     modifier: Modifier = Modifier,
 ) {
     ReferenceSurfaceCard(modifier = modifier, contentPadding = PaddingValues(14.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.stat_24h_title), fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, modifier = Modifier.weight(1f))
-            Text(stringResource(R.string.stat_24h_label), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+        // แถวหัวข้อ: ชื่อการ์ด + แท็กระบุรอบการอัปเดตทุกชั่วโมง
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    stringResource(R.string.stat_24h_title),
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 15.sp,
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.padding(top = 2.dp),
+                ) {
+                    Text(
+                        "อัปเดตทุกชั่วโมง",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 11.sp,
+                    )
+                    Text(
+                        "•",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        fontSize = 10.sp,
+                    )
+                    Text(
+                        if (counts.lastUpdated.isNotBlank()) "อัปเดตล่าสุด: ${counts.lastUpdated}" else stringResource(R.string.stat_24h_label),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 11.sp,
+                    )
+                }
+            }
+            Surface(
+                shape = RoundedCornerShape(999.dp),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+            ) {
+                Text(
+                    text = "รวม ${if (loading) 0 else counts.total}",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                )
+            }
         }
+
+        // การ์ดย่อยสรุปภัยพิบัติ 4 ประเภท
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             StatMiniCard(if (loading) "0" else counts.earthquake.toString(), stringResource(R.string.stat_earthquake), WatchYellow, Modifier.weight(1f))
             StatMiniCard(if (loading) "0" else counts.flood.toString(), stringResource(R.string.stat_flood), DmindBlue, Modifier.weight(1f))
             StatMiniCard(if (loading) "0" else counts.wildfire.toString(), stringResource(R.string.stat_wildfire), CriticalRed, Modifier.weight(1f))
             StatMiniCard(if (loading) "0" else counts.storm.toString(), stringResource(R.string.stat_storm), Color(0xFF64748B), Modifier.weight(1f))
+        }
+
+        // กราฟแท่งขนาดกะทัดรัดแสดงการกระจายตัวของเหตุการณ์รายชั่วโมง (Hourly Indicators)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 2.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            val maxBucketCount = counts.hourlyTrend.maxOfOrNull { it.total }?.coerceAtLeast(1) ?: 1
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(26.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                        shape = RoundedCornerShape(6.dp),
+                    )
+                    .padding(horizontal = 5.dp, vertical = 3.dp),
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                if (counts.hourlyTrend.isNotEmpty()) {
+                    counts.hourlyTrend.forEach { point ->
+                        val ratio = if (point.total > 0) {
+                            (point.total.toFloat() / maxBucketCount).coerceIn(0.25f, 1f)
+                        } else {
+                            0f
+                        }
+                        val barHeight = if (point.total > 0) (18 * ratio).dp else 3.dp
+                        val barColor = when {
+                            point.total == 0 -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                            point.wildfire > 0 -> CriticalRed
+                            point.earthquake > 0 -> WatchYellow
+                            point.flood > 0 -> DmindBlue
+                            else -> MaterialTheme.colorScheme.primary
+                        }
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(barHeight)
+                                .clip(RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp))
+                                .background(barColor),
+                        )
+                    }
+                } else {
+                    repeat(24) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(3.dp)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)),
+                        )
+                    }
+                }
+            }
+
+            // คำอธิบายแกนเวลา 24 ชม.
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 2.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = "24 ชม. ก่อน",
+                    fontSize = 9.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                )
+                Text(
+                    text = "แนวโน้มรายชั่วโมง",
+                    fontSize = 9.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                )
+                Text(
+                    text = "ปัจจุบัน",
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
         }
     }
 }

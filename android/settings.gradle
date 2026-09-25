@@ -8,6 +8,17 @@ pluginManagement {
     }
 }
 
+// กำหนดไดเรกทอรีชั่วคราวสำหรับ SQLite JDBC / Room compiler เพื่อป้องกันปัญหา C:\WINDOWS\ บน Windows
+def sqliteTmpDir = new File(settingsDir, ".gradle/tmp/sqlite")
+if (!sqliteTmpDir.exists()) {
+    sqliteTmpDir.mkdirs()
+}
+System.setProperty("org.sqlite.tmpdir", sqliteTmpDir.absolutePath)
+def sysTmp = System.getProperty("java.io.tmpdir")
+if (sysTmp == null || sysTmp.toLowerCase().contains("windows") || !new File(sysTmp).canWrite()) {
+    System.setProperty("java.io.tmpdir", sqliteTmpDir.absolutePath)
+}
+
 // กำหนดโมดูลที่รวมอยู่ในโปรเจกต์นี้
 include ':app'
 include ':backend'
