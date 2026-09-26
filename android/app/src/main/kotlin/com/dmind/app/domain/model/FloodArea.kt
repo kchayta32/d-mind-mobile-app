@@ -19,6 +19,7 @@ data class FloodArea(
             timeRange == GistdaTimeRange.FloodFrequency && (recurrenceCount ?: 0) > 12 -> Severity.Critical
             timeRange == GistdaTimeRange.FloodFrequency && (recurrenceCount ?: 0) >= 9 -> Severity.Affected
             timeRange == GistdaTimeRange.FloodFrequency && (recurrenceCount ?: 0) >= 1 -> Severity.Watch
+            timeRange == GistdaTimeRange.WaterHyacinth -> Severity.Watch
             (areaSquareMeters ?: 0.0) >= 1_000_000.0 -> Severity.Critical
             (areaSquareMeters ?: 0.0) >= 250_000.0 -> Severity.Affected
             (areaSquareMeters ?: 0.0) >= 50_000.0 -> Severity.Watch

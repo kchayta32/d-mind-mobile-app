@@ -372,8 +372,15 @@ internal fun MapFilterSheet(
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 13.sp
                                 )
-                                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    listOf(GistdaTimeRange.OneDay, GistdaTimeRange.ThreeDays, GistdaTimeRange.SevenDays).forEach { range ->
+                                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    listOf(
+                                        GistdaTimeRange.OneDay,
+                                        GistdaTimeRange.ThreeDays,
+                                        GistdaTimeRange.SevenDays,
+                                        GistdaTimeRange.ThirtyDays,
+                                        GistdaTimeRange.FloodFrequency,
+                                        GistdaTimeRange.WaterHyacinth,
+                                    ).forEach { range ->
                                         FilterChip(
                                             selected = state.filter.flood.timeRange == range,
                                             onClick = {
@@ -439,7 +446,14 @@ internal fun MapFilterSheet(
                                     fontSize = 13.sp
                                 )
                                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    listOf(GistdaTimeRange.OneDay, GistdaTimeRange.ThreeDays, GistdaTimeRange.SevenDays).forEach { range ->
+                                    listOf(
+                                        GistdaTimeRange.OneDay,
+                                        GistdaTimeRange.ThreeDays,
+                                        GistdaTimeRange.SevenDays,
+                                        GistdaTimeRange.ThirtyDays,
+                                        GistdaTimeRange.BurnFrequency,
+                                        GistdaTimeRange.BurnScar,
+                                    ).forEach { range ->
                                         FilterChip(
                                             selected = state.filter.wildfire.timeRange == range,
                                             onClick = {

@@ -13,40 +13,51 @@ import java.net.URL
 // ตัวช่วยสร้างพาร์ท API ย่อย (Endpoints) สำหรับข้อมูลและแผนที่ภัยพิบัติของ GISTDA
 object GistdaEndpointPaths {
     // คืนค่าพาธของพิกัดดาวเทียมสำหรับตรวจพบจุดความร้อน VIIRS
-    fun viirsFeaturePath(timeRange: GistdaTimeRange): String =
-        "resources/features/viirs/${timeRange.featureSegment}"
+    fun viirsFeaturePath(timeRange: GistdaTimeRange): String = when (timeRange) {
+        GistdaTimeRange.BurnFrequency -> "resources/features/burn-freq"
+        GistdaTimeRange.BurnScar -> "resources/features/burn-scar"
+        else -> "resources/features/viirs/${timeRange.featureSegment}"
+    }
 
     // คืนค่าพาธข้อมูลพื้นที่น้ำท่วมจากการวิเคราะห์ดาวเทียม
-    fun floodFeaturePath(timeRange: GistdaTimeRange): String =
-        if (timeRange == GistdaTimeRange.FloodFrequency) {
-            "resources/features/flood-freq"
-        } else {
-            "resources/features/flood/${timeRange.featureSegment}"
-        }
+    fun floodFeaturePath(timeRange: GistdaTimeRange): String = when (timeRange) {
+        GistdaTimeRange.FloodFrequency -> "resources/features/flood-freq"
+        GistdaTimeRange.WaterHyacinth -> "resources/features/water_hyacinth"
+        else -> "resources/features/flood/${timeRange.featureSegment}"
+    }
 
     // คืนค่าพาธระบบ WMTS (Web Map Tile Service) สำหรับแสดงพื้นที่น้ำท่วม
-    fun floodWmtsPath(timeRange: GistdaTimeRange): String =
-        if (timeRange == GistdaTimeRange.FloodFrequency) {
-            "resources/maps/flood-freq/wmts"
-        } else {
-            "resources/maps/flood/${timeRange.floodWmtsSegment}/wmts"
-        }
+    fun floodWmtsPath(timeRange: GistdaTimeRange): String = when (timeRange) {
+        GistdaTimeRange.FloodFrequency -> "resources/maps/flood-freq/wmts"
+        else -> "resources/maps/flood/${timeRange.floodWmtsSegment}/wmts"
+    }
 
     // คืนค่าพาธระบบ WMS (Web Map Service) สำหรับดึงแผนที่น้ำท่วม
-    fun floodWmsPath(timeRange: GistdaTimeRange): String =
-        if (timeRange == GistdaTimeRange.FloodFrequency) {
-            "resources/maps/flood-freq/wms"
-        } else {
-            "resources/maps/flood/${timeRange.floodWmtsSegment}/wms"
-        }
+    fun floodWmsPath(timeRange: GistdaTimeRange): String = when (timeRange) {
+        GistdaTimeRange.FloodFrequency -> "resources/maps/flood-freq/wms"
+        else -> "resources/maps/flood/${timeRange.floodWmtsSegment}/wms"
+    }
 
     // คืนค่าพาธระบบ WMTS ของแผนที่ภาพถ่ายจุดความร้อน VIIRS
-    fun viirsWmtsPath(timeRange: GistdaTimeRange): String =
-        "resources/maps/viirs/${timeRange.viirsWmtsSegment}/wmts"
+    fun viirsWmtsPath(timeRange: GistdaTimeRange): String = when (timeRange) {
+        GistdaTimeRange.BurnFrequency -> "resources/maps/burn-freq/wmts"
+        GistdaTimeRange.BurnScar -> "resources/maps/burn-scar/wmts"
+        else -> "resources/maps/viirs/${timeRange.viirsWmtsSegment}/wmts"
+    }
 
     // คืนค่าพาธระบบ WMS ของแผนที่จุดความร้อน VIIRS
-    fun viirsWmsPath(timeRange: GistdaTimeRange): String =
-        "resources/maps/viirs/${timeRange.viirsWmtsSegment}/wms"
+    fun viirsWmsPath(timeRange: GistdaTimeRange): String = when (timeRange) {
+        GistdaTimeRange.BurnFrequency -> "resources/maps/burn-freq/wms"
+        GistdaTimeRange.BurnScar -> "resources/maps/burn-scar/wms"
+        else -> "resources/maps/viirs/${timeRange.viirsWmtsSegment}/wms"
+    }
+
+    // คืนค่าพาธระบบ TMS ของแผนที่จุดความร้อน VIIRS
+    fun viirsTmsPath(timeRange: GistdaTimeRange): String = when (timeRange) {
+        GistdaTimeRange.BurnFrequency -> "resources/maps/burn-freq/tms"
+        GistdaTimeRange.BurnScar -> "resources/maps/burn-scar/tms"
+        else -> "resources/maps/viirs/${timeRange.viirsWmtsSegment}/tms"
+    }
 
     // คืนค่าพาธ WMTS ของผลิตภัณฑ์ตรวจวัดความชื้นในดิน SMAP
     fun smapWmtsPath(): String = "resources/maps/smap/7days/wmts"
@@ -56,6 +67,20 @@ object GistdaEndpointPaths {
         GistdaDroughtProduct.Smap -> "resources/maps/smap/7days/wms"
         GistdaDroughtProduct.Ndwi -> "resources/maps/ndwi/7days/wms"
         GistdaDroughtProduct.DriPlus -> "resources/maps/dri/7days/wms"
+    }
+
+    // คืนค่าพาธ WMTS สำหรับผลิตภัณฑ์ตรวจจับภัยแล้งตามประเภทที่ระบุ
+    fun droughtWmtsPath(product: GistdaDroughtProduct): String = when (product) {
+        GistdaDroughtProduct.Smap -> "resources/maps/smap/7days/wmts"
+        GistdaDroughtProduct.Ndwi -> "resources/maps/ndwi/7days/wmts"
+        GistdaDroughtProduct.DriPlus -> "resources/maps/dri/7days/wmts"
+    }
+
+    // คืนค่าพาธ TMS สำหรับผลิตภัณฑ์ตรวจจับภัยแล้งตามประเภทที่ระบุ
+    fun droughtTmsPath(product: GistdaDroughtProduct): String = when (product) {
+        GistdaDroughtProduct.Smap -> "resources/maps/smap/7days/tms"
+        GistdaDroughtProduct.Ndwi -> "resources/maps/ndwi/7days/tms"
+        GistdaDroughtProduct.DriPlus -> "resources/maps/dri/7days/tms"
     }
 
     // คืนค่าพาธแผนที่รูปภาพความแล้งตามระบบ TMS หรือ WMTS
@@ -93,10 +118,15 @@ class GistdaApi(
         limit: Int,
         offset: Int,
     ): String {
-        val country = URLEncoder.encode("ราชอาณาจักรไทย", Charsets.UTF_8.name())
+        val query = if (timeRange == GistdaTimeRange.BurnFrequency || timeRange == GistdaTimeRange.BurnScar) {
+            "limit=$limit&offset=$offset"
+        } else {
+            val country = URLEncoder.encode("ราชอาณาจักรไทย", Charsets.UTF_8.name())
+            "limit=$limit&offset=$offset&ct_tn=$country"
+        }
         return getJson(
             path = GistdaEndpointPaths.viirsFeaturePath(timeRange),
-            query = "limit=$limit&offset=$offset&ct_tn=$country",
+            query = query,
         )
     }
 

@@ -284,6 +284,7 @@ private fun TimeRangeSelector(
             GistdaTimeRange.SevenDays,
             GistdaTimeRange.ThirtyDays,
             GistdaTimeRange.FloodFrequency,
+            GistdaTimeRange.WaterHyacinth,
         )
     } else {
         listOf(
@@ -291,6 +292,8 @@ private fun TimeRangeSelector(
             GistdaTimeRange.ThreeDays,
             GistdaTimeRange.SevenDays,
             GistdaTimeRange.ThirtyDays,
+            GistdaTimeRange.BurnFrequency,
+            GistdaTimeRange.BurnScar,
         )
     }
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

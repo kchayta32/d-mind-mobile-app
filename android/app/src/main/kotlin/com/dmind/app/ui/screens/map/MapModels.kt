@@ -171,6 +171,9 @@ internal fun GistdaTimeRange.localizedLabel(): String = when (this) {
     GistdaTimeRange.SevenDays -> stringResource(R.string.map_range_seven_days)
     GistdaTimeRange.ThirtyDays -> stringResource(R.string.map_range_thirty_days)
     GistdaTimeRange.FloodFrequency -> stringResource(R.string.map_range_flood_frequency)
+    GistdaTimeRange.WaterHyacinth -> "สิ่งกีดขวาง/ผักตบชวา"
+    GistdaTimeRange.BurnFrequency -> "พื้นที่เผาไหม้ซ้ำซาก"
+    GistdaTimeRange.BurnScar -> "ร่องรอยการเผาไหม้"
 }
 
 // ข้อความป้ายกำกับสินค้าภัยแล้ง

@@ -12,6 +12,9 @@ enum class GistdaTimeRange(
     SevenDays("7 วัน", "7days", "7day", "7day"),
     ThirtyDays("30 วัน", "30days", "30day", "30day"),
     FloodFrequency("น้ำท่วมซ้ำซาก", "flood-freq", "flood-freq", ""),
+    WaterHyacinth("ผักตบชวา/สิ่งกีดขวาง", "water_hyacinth", "", ""),
+    BurnFrequency("เผาไหม้ซ้ำซาก", "burn-freq", "", "burn-freq"),
+    BurnScar("ร่องรอยเผาไหม้", "burn-scar", "", "burn-scar"),
 }
 
 // ประเภทของผลผลิตเชิงสังเกตการณ์ภัยแล้งและการวัดความชื้น

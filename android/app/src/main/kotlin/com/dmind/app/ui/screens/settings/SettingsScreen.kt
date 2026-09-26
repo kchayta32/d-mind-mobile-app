@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -42,6 +43,12 @@ import com.dmind.app.ui.components.DmindBlue
 import com.dmind.app.ui.components.DmindCard
 import com.dmind.app.ui.components.IconBubble
 import com.dmind.app.ui.components.SafeGreen
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.graphics.Color
+import com.dmind.app.ui.components.CriticalRed
 import com.dmind.app.ui.components.ScreenHeader
 import com.dmind.app.ui.components.StatusPill
 import com.dmind.app.util.LocaleManager
@@ -63,6 +70,7 @@ fun SettingsScreen(
     onOpenDndSettings: () -> Unit,
     onRefreshFcm: () -> Unit,
     onOpenSatisfactionSurvey: () -> Unit,
+    onTriggerTestAlert: () -> Unit = {},
 ) {
     LazyColumn(
         modifier = Modifier
@@ -148,6 +156,44 @@ fun SettingsScreen(
                 PermissionRow(stringResource(R.string.permission_battery), status.batteryIgnoring, Icons.Filled.Security, onOpenBatterySettings)
                 PermissionRow(stringResource(R.string.permission_dnd), status.dndGranted, Icons.Filled.Security, onOpenDndSettings)
                 PermissionRow(stringResource(R.string.permission_fcm), status.fcmTokenAvailable, Icons.Filled.Notifications, onRefreshFcm)
+            }
+        }
+
+        // ส่วนทดสอบการแจ้งเตือนฉุกเฉิน (Emergency Push Notification Test)
+        item {
+            DmindCard(Modifier.padding(horizontal = 18.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconBubble(Icons.Filled.NotificationsActive, CriticalRed)
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            if (currentLanguage == LocaleManager.ENGLISH) "Test Emergency Alert" else "ทดสอบระบบแจ้งเตือนภัยพิบัติฉุกเฉิน",
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            if (currentLanguage == LocaleManager.ENGLISH)
+                                "Send emergency notification to device status bar with siren and vibration"
+                            else
+                                "ส่งสัญญาณเตือนภัยระดับวิกฤตพร้อมเสียงไซเรนและการสั่นไปยังแถบสถานะ (Notification Shade)",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 12.sp,
+                        )
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
+                Button(
+                    onClick = onTriggerTestAlert,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = CriticalRed),
+                ) {
+                    Icon(Icons.Filled.NotificationsActive, contentDescription = null, tint = Color.White)
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        if (currentLanguage == LocaleManager.ENGLISH) "Trigger Test Alert Now" else "ทดสอบส่งการแจ้งเตือนฉุกเฉินทันที",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
         }
 

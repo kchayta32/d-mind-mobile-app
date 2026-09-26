@@ -444,7 +444,8 @@ class DisasterMapViewModel(
         layer: DisasterLayerType,
         requested: GistdaTimeRange,
     ): GistdaTimeRange = when {
-        layer == DisasterLayerType.WildfireViirs && requested == GistdaTimeRange.FloodFrequency -> GistdaTimeRange.OneDay
+        layer == DisasterLayerType.WildfireViirs && (requested == GistdaTimeRange.FloodFrequency || requested == GistdaTimeRange.WaterHyacinth) -> GistdaTimeRange.OneDay
+        layer == DisasterLayerType.Flood && (requested == GistdaTimeRange.BurnFrequency || requested == GistdaTimeRange.BurnScar) -> GistdaTimeRange.OneDay
         layer == DisasterLayerType.DroughtSmap -> GistdaTimeRange.SevenDays
         else -> requested
     }

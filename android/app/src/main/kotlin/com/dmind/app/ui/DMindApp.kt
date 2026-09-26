@@ -372,6 +372,9 @@ fun DMindApp() {
                             }
                         },
                         onOpenSatisfactionSurvey = { navigateTo(AppRoute.SatisfactionSurvey) },
+                        onTriggerTestAlert = {
+                            container.nativeStatusRepository.triggerDemoAlert()
+                        },
                     )
 
                     AppRoute.Analytics -> AnalyticsDashboardScreen(

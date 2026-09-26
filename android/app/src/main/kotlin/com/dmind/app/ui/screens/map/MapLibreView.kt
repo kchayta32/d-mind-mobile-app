@@ -358,11 +358,15 @@ private fun ViirsHotspot.toMarkerItem(): MapMarkerItem = MapMarkerItem(
 // แปลงข้อมูลพื้นที่น้ำท่วมไปเป็นมาร์กเกอร์
 private fun FloodArea.toMarkerItem(text: MapMarkerText): MapMarkerItem = MapMarkerItem(
     id = id, latitude = latitude, longitude = longitude,
-    title = if (timeRange == GistdaTimeRange.FloodFrequency) text.floodRecurrentTitle(province) else text.floodShortTitle(province),
-    snippet = if (timeRange == GistdaTimeRange.FloodFrequency) {
-        text.timesPlace(recurrenceCount ?: 0, district, subdistrict)
-    } else {
-        "$district $subdistrict"
+    title = when (timeRange) {
+        GistdaTimeRange.FloodFrequency -> text.floodRecurrentTitle(province)
+        GistdaTimeRange.WaterHyacinth -> "สิ่งกีดขวาง/ผักตบชวา $province"
+        else -> text.floodShortTitle(province)
+    },
+    snippet = when (timeRange) {
+        GistdaTimeRange.FloodFrequency -> text.timesPlace(recurrenceCount ?: 0, district, subdistrict)
+        GistdaTimeRange.WaterHyacinth -> "สิ่งกีดขวางทางน้ำ: $district $subdistrict"
+        else -> "$district $subdistrict"
     },
     severity = severity, type = HazardType.Flood, count = 1,
     event = null, station = null, hotspot = null, floodArea = this,

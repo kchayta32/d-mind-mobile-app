@@ -1,5 +1,6 @@
 package com.dmind.app.ui.screens.guide
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -116,6 +117,7 @@ fun AppGuideScreen(onBackClick: () -> Unit) {
                     "overview" -> OverviewTabContent()
                     "features" -> FeaturesTabContent()
                     "tips" -> TipsTabContent()
+                    "gistda" -> GistdaMapGuideTabContent()
                 }
             }
         }
@@ -143,7 +145,8 @@ private fun TabPillsRow(
             val tabs = listOf(
                 TabItem("overview", "ภาพรวม"),
                 TabItem("features", "ฟีเจอร์"),
-                TabItem("tips", "เคล็ดลับ")
+                TabItem("tips", "เคล็ดลับ"),
+                TabItem("gistda", "ดาวเทียม GISTDA"),
             )
 
             tabs.forEach { tab ->
@@ -361,3 +364,124 @@ private fun TipsTabContent() {
 
 private data class TipData(val title: String, val desc: String, val accentColor: Color)
 private data class FaqData(val question: String, val answer: String)
+
+@Composable
+private fun GistdaMapGuideTabContent() {
+    val satelliteLayers = listOf(
+        GistdaSatDoc(
+            title = "จุดความร้อน VIIRS (ไฟป่า & การเผา)",
+            source = "ดาวเทียม Suomi NPP / NOAA-20 (ความละเอียด 375 เมตร)",
+            cycle = "อัปเดตทุก 6-12 ชั่วโมง",
+            color = CriticalRed,
+            summary = "ตรวจจับการแผ่รังสีความร้อนที่พื้นผิวโลก แม้ในเวลากลางคืนหรือมีหมอกควันปกคลุม",
+            tips = listOf(
+                "จุดสีแดง/ม่วง: ตรวจพบในรอบ 1-3 ชั่วโมงล่าสุด (ไฟกำลังลุกไหม้)",
+                "จุดสีส้ม/เหลือง: ตรวจพบย้อนหลัง 6-24 ชั่วโมง",
+                "ค่า FRP (Fire Radiative Power): ยิ่งสูง แสดงถึงพลังงานความร้อนและความรุนแรงของเปลวเพลิงที่สูงมาก",
+            ),
+        ),
+        GistdaSatDoc(
+            title = "พื้นที่น้ำท่วม (Flood Extent)",
+            source = "ดาวเทียมเรดาร์ COSMO-SkyMed & Sentinel-1 SAR",
+            cycle = "รายวัน / 3 วัน / 7 วัน",
+            color = DmindBlue,
+            summary = "ใช้คลื่นเรดาร์สังเคราะห์ไมโครเวฟ ทะลุผ่านกลุ่มเมฆฝนลงมาสะท้อนผิวน้ำได้อย่างแม่นยำ 100%",
+            tips = listOf(
+                "แถบสีฟ้า/น้ำเงิน: แสดงขอบเขตพื้นที่ที่ถูกน้ำท่วมขังจริงบนผิวดิน",
+                "ดูเปรียบเทียบ 1 วัน vs 7 วัน: สังเกตแนวโน้มการขยายตัวหรือการยุบตัวของน้ำท่วม",
+            ),
+        ),
+        GistdaSatDoc(
+            title = "น้ำท่วมซ้ำซาก (Flood Frequency)",
+            source = "สถิติน้ำท่วม 10 ปีย้อนหลัง โดย GISTDA",
+            cycle = "อัปเดตรายปี",
+            color = Color(0xFF0284C7),
+            summary = "แผนที่ซ้อนทับสถิติน้ำท่วมย้อนหลัง 10 ปี เพื่อจำแนกระดับความเสี่ยงของแต่ละตำบล",
+            tips = listOf(
+                "สีเหลือง (1-3 ครั้ง): เสี่ยงต่ำถึงปานกลาง มักเป็นน้ำหลากชั่วคราว",
+                "สีส้ม (4-8 ครั้ง): พื้นที่เสี่ยงท่วมซ้ำซากประจำฤดู",
+                "สีแดงเข้ม (>9 ครั้ง): แอ่งกระทะธรรมชาติและพื้นที่ลุ่มต่ำรับน้ำนอง",
+            ),
+        ),
+        GistdaSatDoc(
+            title = "ความชื้นในดิน SMAP & ดัชนีภัยแล้ง NDWI/DRIPlus",
+            source = "NASA SMAP & MODIS ประมวลผลโดย GISTDA",
+            cycle = "รอบ 7 วันล่าสุด",
+            color = WatchYellow,
+            summary = "วิเคราะห์ปริมาณความชื้นในผิวดินและดัชนีปริมาณน้ำในใบพืชพรรณเพื่อเตือนภัยแล้งทางการเกษตร",
+            tips = listOf(
+                "ความชื้นต่ำกว่า 15%: ดินแห้งแล้งรุนแรง พืชผลเริ่มขาดน้ำ",
+                "ดัชนี DRIPlus ระดับสีส้ม-แดง: พื้นที่ขาดแคลนน้ำอุปโภคบริโภค ต้องเร่งบริหารจัดการน้ำ",
+            ),
+        ),
+    )
+
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+        contentPadding = PaddingValues(bottom = 24.dp),
+    ) {
+        item {
+            DmindCard {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconBubble(Icons.Filled.Public, DmindBlue)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text("คู่มืออ่านแผนที่ดาวเทียม GISTDA", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text("เข้าใจความหมายของข้อมูลภูมิสารสนเทศภัยพิบัติแห่งชาติ", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+        }
+
+        itemsIndexed(satelliteLayers) { _, sat ->
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+            ) {
+                Column(
+                    modifier = Modifier.padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconBubble(Icons.Filled.Public, sat.color)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(sat.title, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text("${sat.source} • ${sat.cycle}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+
+                    Text(sat.summary, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
+
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text("ข้อสังเกตบนแผนที่:", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = sat.color)
+                            sat.tips.forEach { tip ->
+                                Text("• $tip", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private data class GistdaSatDoc(
+    val title: String,
+    val source: String,
+    val cycle: String,
+    val color: Color,
+    val summary: String,
+    val tips: List<String>,
+)
+
