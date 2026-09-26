@@ -5,37 +5,77 @@ import {
   getFcmVapidKey,
   isFcmConfigured,
   registerDevicePushNotifications,
+  hapticEmergencyVibrate,
 } from '@/utils/native';
+
+// Safe 32-bit signed integer ID generator for Android Capacitor LocalNotifications
+export const generateNotificationId = (): number => {
+  return Math.abs(Math.floor(Date.now() % 2147483647));
+};
 
 // Notification channel configurations for Android
 export const NOTIFICATION_CHANNELS = {
-  emergency: {
-    id: 'emergency',
-    name: 'แจ้งเตือนฉุกเฉิน',
-    description: 'การแจ้งเตือนภัยพิบัติระดับวิกฤต',
-    importance: 5, // IMPORTANCE_HIGH
+  'disaster-critical': {
+    id: 'disaster-critical',
+    name: 'แจ้งเตือนภัยพิบัติวิกฤต (Critical)',
+    description: 'การแจ้งเตือนภัยพิบัติระดับวิกฤต อพยพด่วน ความสำคัญสูงสุด (Heads-up popup)',
+    importance: 5, // IMPORTANCE_HIGH (Android Max heads-up)
     visibility: 1, // VISIBILITY_PUBLIC
     sound: 'emergency_alert',
     vibration: true,
     lights: true,
-    lightColor: '#FF0000'
+    lightColor: '#DC2626'
   },
-  important: {
-    id: 'important',
-    name: 'แจ้งเตือนสำคัญ',
-    description: 'การแจ้งเตือนภัยพิบัติระดับสำคัญ',
-    importance: 4, // IMPORTANCE_DEFAULT
+  'disaster-warning': {
+    id: 'disaster-warning',
+    name: 'แจ้งเตือนภัยเฝ้าระวัง (Warning)',
+    description: 'การแจ้งเตือนเมื่อภัยใกล้เข้ามา ความสำคัญสูง',
+    importance: 4, // IMPORTANCE_HIGH
     visibility: 1,
     sound: 'important_alert',
     vibration: true,
     lights: true,
-    lightColor: '#FFA500'
+    lightColor: '#EA580C'
+  },
+  'disaster-info': {
+    id: 'disaster-info',
+    name: 'ข้อมูลสภาพอากาศและเตรียมพร้อม (Info)',
+    description: 'ข้อมูลสภาพอากาศและการเตรียมพร้อมทั่วไป',
+    importance: 3, // IMPORTANCE_DEFAULT
+    visibility: 0,
+    sound: 'default',
+    vibration: false,
+    lights: false,
+    lightColor: '#3B82F6'
+  },
+  // Backward compatibility aliases
+  emergency: {
+    id: 'disaster-critical',
+    name: 'แจ้งเตือนฉุกเฉิน (Critical)',
+    description: 'การแจ้งเตือนภัยพิบัติระดับวิกฤต',
+    importance: 5,
+    visibility: 1,
+    sound: 'emergency_alert',
+    vibration: true,
+    lights: true,
+    lightColor: '#DC2626'
+  },
+  important: {
+    id: 'disaster-warning',
+    name: 'แจ้งเตือนสำคัญ (Warning)',
+    description: 'การแจ้งเตือนภัยพิบัติระดับสำคัญ',
+    importance: 4,
+    visibility: 1,
+    sound: 'important_alert',
+    vibration: true,
+    lights: true,
+    lightColor: '#EA580C'
   },
   default: {
-    id: 'default',
-    name: 'แจ้งเตือนทั่วไป',
+    id: 'disaster-info',
+    name: 'แจ้งเตือนทั่วไป (Info)',
     description: 'การแจ้งเตือนข้อมูลทั่วไป',
-    importance: 3, // IMPORTANCE_DEFAULT
+    importance: 3,
     visibility: 0,
     sound: 'default',
     vibration: false,
@@ -45,11 +85,11 @@ export const NOTIFICATION_CHANNELS = {
 
 // Notification priority thresholds
 export const SEVERITY_TO_CHANNEL = {
-  5: 'emergency', // Critical
-  4: 'emergency', // High
-  3: 'important', // Medium
-  2: 'default',   // Low
-  1: 'default'    // Info
+  5: 'disaster-critical', // Critical
+  4: 'disaster-warning',  // High / Warning
+  3: 'disaster-warning',  // Medium
+  2: 'disaster-info',     // Low
+  1: 'disaster-info'      // Info
 } as const;
 
 // Detect if running in Capacitor native environment - using the actual Capacitor module
@@ -68,18 +108,57 @@ const isWebView = (): boolean => {
 };
 
 // Check if we're in native mode (call this directly in functions, not relying on state)
-const checkIsNative = (): boolean => {
+export const checkIsNative = (): boolean => {
   return isCapacitorNative() || isWebView();
 };
 
 // Initialize notification channels for Android
 let channelsInitialized = false;
-const initializeNotificationChannels = async (LN: any) => {
+export const initializeNotificationChannels = async (LN: any) => {
   if (channelsInitialized || !LN) return;
 
   try {
-    // Create channels for Android
-    for (const channel of Object.values(NOTIFICATION_CHANNELS)) {
+    // Unique channels for Android Oreo+
+    const channelsToRegister = [
+      NOTIFICATION_CHANNELS['disaster-critical'],
+      NOTIFICATION_CHANNELS['disaster-warning'],
+      NOTIFICATION_CHANNELS['disaster-info'],
+      // Also register legacy channels if any
+      {
+        id: 'emergency',
+        name: 'แจ้งเตือนฉุกเฉิน (Emergency)',
+        description: 'การแจ้งเตือนภัยพิบัติระดับวิกฤต',
+        importance: 5,
+        visibility: 1,
+        sound: 'emergency_alert',
+        vibration: true,
+        lights: true,
+        lightColor: '#DC2626'
+      },
+      {
+        id: 'important',
+        name: 'แจ้งเตือนสำคัญ (Important)',
+        description: 'การแจ้งเตือนภัยพิบัติระดับสำคัญ',
+        importance: 4,
+        visibility: 1,
+        sound: 'important_alert',
+        vibration: true,
+        lights: true,
+        lightColor: '#EA580C'
+      },
+      {
+        id: 'default',
+        name: 'แจ้งเตือนทั่วไป (Default)',
+        description: 'การแจ้งเตือนข้อมูลทั่วไป',
+        importance: 3,
+        visibility: 0,
+        sound: 'default',
+        vibration: false,
+        lights: false
+      }
+    ];
+
+    for (const channel of channelsToRegister) {
       const channelConfig: Record<string, unknown> = {
         id: channel.id,
         name: channel.name,
@@ -90,24 +169,25 @@ const initializeNotificationChannels = async (LN: any) => {
         lights: channel.lights
       };
 
-      // Only add lightColor if it exists on the channel
-      if ('lightColor' in channel) {
-        channelConfig.lightColor = channel.lightColor;
+      if ('lightColor' in channel && (channel as any).lightColor) {
+        channelConfig.lightColor = (channel as any).lightColor;
+      }
+      if ('sound' in channel && (channel as any).sound) {
+        channelConfig.sound = (channel as any).sound;
       }
 
       await LN.createChannel(channelConfig);
     }
     channelsInitialized = true;
-    console.log('Notification channels initialized');
+    console.log('[Native] Android disaster notification channels registered successfully');
   } catch (e) {
     console.warn('Error creating notification channels:', e);
   }
 };
 
-
 // Lazy load Capacitor Local Notifications
 let LocalNotificationsPlugin: any = null;
-const getLocalNotifications = async () => {
+export const getLocalNotifications = async () => {
   if (!LocalNotificationsPlugin && checkIsNative()) {
     try {
       const module = await import('@capacitor/local-notifications');
@@ -366,14 +446,18 @@ export const useNotifications = () => {
         const LN = await getLocalNotifications();
         if (LN) {
           // Build notification config based on channel
+          const resolvedChannelId = channel?.id || 'disaster-info';
+          const notificationId = generateNotificationId();
+
           const notificationConfig: Record<string, unknown> = {
             title: title,
             body: options?.body || '',
-            id: Date.now(),
+            id: notificationId,
             schedule: { at: new Date(Date.now() + 100) },
-            channelId: channel.id,
-            smallIcon: 'ic_launcher',
+            channelId: resolvedChannelId,
+            smallIcon: 'ic_stat_notification',
             largeIcon: 'ic_launcher',
+            iconColor: resolvedChannelId === 'disaster-critical' ? '#DC2626' : (resolvedChannelId === 'disaster-warning' ? '#EA580C' : '#3B82F6'),
             ongoing: false,
             autoCancel: true
           };
@@ -384,14 +468,13 @@ export const useNotifications = () => {
             notificationConfig.groupSummary = false;
           }
 
-          // Emergency notifications get special treatment
-          if (channelId === 'emergency') {
+          // Disaster Critical notifications get emergency treatment and haptic feedback
+          if (resolvedChannelId === 'disaster-critical' || channelId === 'emergency' || channelId === 'disaster-critical') {
             notificationConfig.sound = 'emergency_alert';
-            // Vibration pattern: vibrate, pause, vibrate, pause, vibrate (urgent feel)
             (notificationConfig as any).vibrate = true;
-            // Keep on screen longer
             notificationConfig.ongoing = false;
-          } else if (channelId === 'important') {
+            hapticEmergencyVibrate().catch(() => {});
+          } else if (resolvedChannelId === 'disaster-warning' || channelId === 'important' || channelId === 'disaster-warning') {
             notificationConfig.sound = 'important_alert';
             (notificationConfig as any).vibrate = true;
           } else {

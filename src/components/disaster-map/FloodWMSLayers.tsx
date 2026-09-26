@@ -1,52 +1,81 @@
 import React from 'react';
 import { Source, Layer } from 'react-map-gl/maplibre';
+import { gistdaService, getGistdaApiKey } from '@/services/gistda/gistdaService';
+import { FloodTimeframe } from '@/services/gistda/types';
 
 interface FloodWMSLayersProps {
-  timeFilter: '1day' | '3days' | '7days' | '30days';
-  showFrequency: boolean;
-  opacity: number;
+  timeFilter: FloodTimeframe | string;
+  showFrequency?: boolean;
+  opacity?: number;
+  tileFormat?: 'wmts' | 'tms' | 'wms';
 }
 
-const API_KEY = import.meta.env.VITE_GISTDA_DISASTER_API_KEY || '';
+const FloodWMSLayers: React.FC<FloodWMSLayersProps> = ({
+  timeFilter = '3days',
+  showFrequency = false,
+  opacity = 0.7,
+  tileFormat = 'wmts'
+}) => {
+  const apiKey = getGistdaApiKey();
+  const validTimeframe = (['1day', '3days', '7days', '30days'].includes(timeFilter)
+    ? timeFilter
+    : '3days') as FloodTimeframe;
 
-const FloodWMSLayers: React.FC<FloodWMSLayersProps> = ({ timeFilter, showFrequency, opacity }) => {
-  // Map timeframes to available API endpoints
-  const apiTimeframe = timeFilter === '7days' || timeFilter === '30days' ? '3days' : timeFilter;
+  // Build tile URL for active flood raster
+  const floodTileUrl = React.useMemo(() => {
+    if (!timeFilter) return null;
+    if (tileFormat === 'tms') {
+      return `https://api-gateway.gistda.or.th/api/2.0/resources/maps/flood/${validTimeframe}/tms/{z}/{x}/{y}?api_key=${apiKey}`;
+    }
+    // Default WMTS tile URL
+    return `https://api-gateway.gistda.or.th/api/2.0/resources/maps/flood/${validTimeframe}/wmts/{z}/{x}/{y}.png?api_key=${apiKey}`;
+  }, [validTimeframe, tileFormat, apiKey, timeFilter]);
+
+  // Build tile URL for recurrent flood frequency raster
+  const freqTileUrl = React.useMemo(() => {
+    if (!showFrequency) return null;
+    if (tileFormat === 'tms') {
+      return `https://api-gateway.gistda.or.th/api/2.0/resources/maps/flood-freq/tms/{z}/{x}/{y}?api_key=${apiKey}`;
+    }
+    return `https://api-gateway.gistda.or.th/api/2.0/resources/maps/flood-freq/wmts/{z}/{x}/{y}.png?api_key=${apiKey}`;
+  }, [showFrequency, tileFormat, apiKey]);
 
   return (
     <>
-      {/* Current flood areas - using WMTS XYZ format */}
-      {timeFilter && (
+      {/* Current flood areas raster layer */}
+      {floodTileUrl && (
         <Source
-          id="flood-wms-source"
+          id={`flood-raster-${validTimeframe}-${tileFormat}`}
           type="raster"
-          tiles={[
-            `https://api-gateway.gistda.or.th/api/2.0/resources/maps/flood/${apiTimeframe}/wmts/{z}/{x}/{y}.png?api_key=${API_KEY}`
-          ]}
+          tiles={[floodTileUrl]}
           tileSize={256}
         >
           <Layer
-            id="flood-wms-layer"
+            id={`flood-raster-layer-${validTimeframe}`}
             type="raster"
-            paint={{ 'raster-opacity': opacity }}
+            paint={{
+              'raster-opacity': opacity,
+              'raster-fade-duration': 300
+            }}
           />
         </Source>
       )}
 
-      {/* Recurrent flood areas - using WMTS XYZ format */}
-      {showFrequency && (
+      {/* Recurrent flood frequency raster layer */}
+      {freqTileUrl && (
         <Source
-          id="flood-freq-source"
+          id={`flood-freq-raster-${tileFormat}`}
           type="raster"
-          tiles={[
-            `https://api-gateway.gistda.or.th/api/2.0/resources/maps/flood-freq/wmts/{z}/{x}/{y}.png?api_key=${API_KEY}`
-          ]}
+          tiles={[freqTileUrl]}
           tileSize={256}
         >
           <Layer
-            id="flood-freq-layer"
+            id="flood-freq-raster-layer"
             type="raster"
-            paint={{ 'raster-opacity': opacity * 0.7 }}
+            paint={{
+              'raster-opacity': opacity * 0.8,
+              'raster-fade-duration': 300
+            }}
           />
         </Source>
       )}
@@ -54,4 +83,4 @@ const FloodWMSLayers: React.FC<FloodWMSLayersProps> = ({ timeFilter, showFrequen
   );
 };
 
-export default FloodWMSLayers;
+export default React.memo(FloodWMSLayers);

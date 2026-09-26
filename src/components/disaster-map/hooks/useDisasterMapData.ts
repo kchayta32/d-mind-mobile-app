@@ -1,4 +1,3 @@
-
 import { DisasterType } from '../types';
 import { useEarthquakeData } from '../useEarthquakeData';
 import { useRainSensorData } from '../useRainSensorData';
@@ -7,14 +6,13 @@ import { useAirPollutionData } from '../useAirPollutionData';
 import { useRainViewerData } from '../useRainViewerData';
 import { useDroughtData } from './useDroughtData';
 import { useFloodStatistics, useFloodData } from './useFloodData';
-import { useGISTDAFloodData } from './useGISTDAFloodData';
+import { useGISTDAFloodData, useWaterHyacinthData } from './useGISTDAFloodData';
 import { useOpenMeteoFloodData } from './useOpenMeteoFloodData';
 import {
   EarthquakeStats,
   RainSensorStats,
   AirPollutionStats,
   RainViewerStats,
-
 } from '../types';
 import { WildfireStats } from '../useGISTDAData';
 import { DroughtStats } from './useDroughtData';
@@ -37,6 +35,7 @@ export const useDisasterMapData = (
   const { rainData, isLoading: isLoadingRainViewer } = useRainViewerData();
   const { stats: droughtStats, isLoading: isLoadingDrought } = useDroughtData();
   const { data: gistdaFloodData, isLoading: isLoadingGISTDAFlood } = useGISTDAFloodData(floodTimeFilter as any);
+  const { data: waterHyacinthData } = useWaterHyacinthData();
   const { data: floodStats, isLoading: isLoadingFlood } = useFloodStatistics();
   const { data: floodDataPoints, isLoading: isLoadingOpenMeteoFlood } = useOpenMeteoFloodData();
 
@@ -52,31 +51,47 @@ export const useDisasterMapData = (
   } : rainStats;
 
   // Get current stats and loading state
-  const getCurrentStats = (selectedType: DisasterType): EarthquakeStats | StatisticsWithRainViewer | WildfireStats | AirPollutionStats | DroughtStats | FloodStats | SinkholeStats | null => {
+  const getCurrentStats = (
+    selectedType: DisasterType
+  ): EarthquakeStats | StatisticsWithRainViewer | WildfireStats | AirPollutionStats | DroughtStats | FloodStats | SinkholeStats | null => {
     switch (selectedType) {
-      case 'earthquake': return earthquakeStats;
-      case 'heavyrain': return enhancedRainStats;
-
-      case 'wildfire': return wildfireStats;
-      case 'airpollution': return airStats;
-      case 'drought': return droughtStats;
-      case 'flood': return floodStats;
-      case 'sinkhole': return null; // Will be handled by component directly
-      default: return null;
+      case 'earthquake':
+        return earthquakeStats;
+      case 'heavyrain':
+        return enhancedRainStats;
+      case 'wildfire':
+        return wildfireStats;
+      case 'airpollution':
+        return airStats;
+      case 'drought':
+        return droughtStats;
+      case 'flood':
+        return floodStats;
+      case 'sinkhole':
+        return null;
+      default:
+        return null;
     }
   };
 
   const getCurrentLoading = (selectedType: DisasterType) => {
     switch (selectedType) {
-      case 'earthquake': return isLoadingEarthquakes;
-      case 'heavyrain': return isLoadingRain || isLoadingRainViewer;
-
-      case 'wildfire': return isLoadingWildfire;
-      case 'airpollution': return isLoadingAir;
-      case 'drought': return isLoadingDrought;
-      case 'flood': return isLoadingFlood || isLoadingOpenMeteoFlood || isLoadingGISTDAFlood;
-      case 'sinkhole': return false;
-      default: return false;
+      case 'earthquake':
+        return isLoadingEarthquakes;
+      case 'heavyrain':
+        return isLoadingRain || isLoadingRainViewer;
+      case 'wildfire':
+        return isLoadingWildfire;
+      case 'airpollution':
+        return isLoadingAir;
+      case 'drought':
+        return isLoadingDrought;
+      case 'flood':
+        return isLoadingFlood || isLoadingOpenMeteoFlood || isLoadingGISTDAFlood;
+      case 'sinkhole':
+        return false;
+      default:
+        return false;
     }
   };
 
@@ -87,8 +102,8 @@ export const useDisasterMapData = (
     airStations,
     rainData,
     gistdaFloodFeatures: gistdaFloodData?.features || [],
+    waterHyacinthFeatures: waterHyacinthData?.features || [],
     floodDataPoints: floodDataPoints || [],
-
     wildfireStats,
     airStats,
     droughtStats,

@@ -52,12 +52,20 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
     setWildfireTimeFilter,
     showBurnFreq,
     setShowBurnFreq,
+    showBurnScar,
+    setShowBurnScar,
     droughtLayers,
     setDroughtLayers,
     floodTimeFilter,
     setFloodTimeFilter,
     showFloodFrequency,
     setShowFloodFrequency,
+    showWaterHyacinth,
+    setShowWaterHyacinth,
+    tileFormat,
+    setTileFormat,
+    layerOpacity,
+    setLayerOpacity,
   } = useDisasterMapState();
 
   const {
@@ -67,6 +75,7 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
     airStations,
     rainData,
     gistdaFloodFeatures,
+    waterHyacinthFeatures,
     floodDataPoints,
 
     wildfireStats,
@@ -259,17 +268,32 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
               airStations={airStations}
               rainData={rainData}
               gistdaFloodFeatures={gistdaFloodFeatures}
+              waterHyacinthFeatures={waterHyacinthFeatures}
               floodDataPoints={floodDataPoints}
               sinkholes={sinkholes}
               selectedType={selectedType}
+              onTypeChange={onTypeChange}
               magnitudeFilter={magnitudeFilter}
               humidityFilter={humidityFilter}
               pm25Filter={pm25Filter}
               droughtLayers={droughtLayers}
+              setDroughtLayers={setDroughtLayers}
               floodTimeFilter={floodTimeFilter}
+              setFloodTimeFilter={setFloodTimeFilter}
               showFloodFrequency={showFloodFrequency}
+              setShowFloodFrequency={setShowFloodFrequency}
+              showWaterHyacinth={showWaterHyacinth}
+              setShowWaterHyacinth={setShowWaterHyacinth}
               wildfireTimeFilter={wildfireTimeFilter}
+              setWildfireTimeFilter={setWildfireTimeFilter}
               showBurnFreq={showBurnFreq}
+              setShowBurnFreq={setShowBurnFreq}
+              showBurnScar={showBurnScar}
+              setShowBurnScar={setShowBurnScar}
+              tileFormat={tileFormat}
+              setTileFormat={setTileFormat}
+              layerOpacity={layerOpacity}
+              setLayerOpacity={setLayerOpacity}
               isLoading={getCurrentLoading(selectedType)}
               onLocationSelect={onLocationSelect}
             />
@@ -300,17 +324,32 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
             airStations={airStations}
             rainData={rainData}
             gistdaFloodFeatures={gistdaFloodFeatures}
+            waterHyacinthFeatures={waterHyacinthFeatures}
             floodDataPoints={floodDataPoints}
             sinkholes={sinkholes}
             selectedType={selectedType}
+            onTypeChange={onTypeChange}
             magnitudeFilter={magnitudeFilter}
             humidityFilter={humidityFilter}
             pm25Filter={pm25Filter}
             droughtLayers={droughtLayers}
+            setDroughtLayers={setDroughtLayers}
             floodTimeFilter={floodTimeFilter}
+            setFloodTimeFilter={setFloodTimeFilter}
             showFloodFrequency={showFloodFrequency}
+            setShowFloodFrequency={setShowFloodFrequency}
+            showWaterHyacinth={showWaterHyacinth}
+            setShowWaterHyacinth={setShowWaterHyacinth}
             wildfireTimeFilter={wildfireTimeFilter}
+            setWildfireTimeFilter={setWildfireTimeFilter}
             showBurnFreq={showBurnFreq}
+            setShowBurnFreq={setShowBurnFreq}
+            showBurnScar={showBurnScar}
+            setShowBurnScar={setShowBurnScar}
+            tileFormat={tileFormat}
+            setTileFormat={setTileFormat}
+            layerOpacity={layerOpacity}
+            setLayerOpacity={setLayerOpacity}
             isLoading={getCurrentLoading(selectedType)}
             onLocationSelect={onLocationSelect}
           />

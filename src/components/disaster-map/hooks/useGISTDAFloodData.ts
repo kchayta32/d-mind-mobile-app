@@ -1,119 +1,120 @@
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import { gistdaService, GISTDA_CACHE_CONFIG } from '@/services/gistda/gistdaService';
+import type {
+  FloodFeature,
+  FloodResponse,
+  RecurrentFloodFeature,
+  RecurrentFloodResponse,
+  WaterHyacinthFeature,
+  WaterHyacinthResponse,
+  FloodTimeframe
+} from '@/services/gistda/types';
 
-const API_KEY = import.meta.env.VITE_GISTDA_DISASTER_API_KEY || '';
-const BASE_URL = 'https://api-gateway.gistda.or.th/api/2.0/resources/features';
+// Re-export types for backward compatibility across the app
+export type {
+  FloodFeature,
+  FloodResponse,
+  RecurrentFloodFeature,
+  RecurrentFloodResponse,
+  WaterHyacinthFeature,
+  WaterHyacinthResponse,
+  FloodTimeframe
+};
 
-export interface FloodFeature {
-  id: string;
-  type: 'Feature';
-  geometry: {
-    type: 'MultiPolygon' | 'Polygon';
-    coordinates: number[][][][];
-  };
-  properties: {
-    _id: string;
-    _createdAt: string;
-    _updatedAt: string;
-    f_area: number;
-    pv_tn: string; // จังหวัด
-    ap_tn: string; // อำเภอ
-    tb_tn: string; // ตำบล
-    population?: number;
-    population_2?: number;
-    building?: number;
-    length_road?: number;
-    hospital?: number;
-    school?: number;
-    file_name?: string;
-    [key: string]: any;
-  };
-}
-
-export interface FloodResponse {
-  type: 'FeatureCollection';
-  features: FloodFeature[];
-  numberMatched: number;
-  numberReturned: number;
-  timeStamp: string;
-}
-
-export interface RecurrentFloodFeature {
-  id: string;
-  type: 'Feature';
-  geometry: {
-    type: 'MultiPolygon';
-    coordinates: number[][][][];
-  };
-  properties: {
-    _id: string;
-    freq: number;
-    LabelTH: string;
-    LabelEN: string;
-    shape_area: number;
-    [key: string]: any;
-  };
-}
-
-async function fetchFloodData(timeframe: '1day' | '3days', limit: number = 1000): Promise<FloodResponse> {
-  const url = `${BASE_URL}/flood/${timeframe}`;
-  const response = await axios.get(url, {
-    headers: {
-      'API-Key': API_KEY,
-      'accept': 'application/json'
-    },
-    params: {
-      limit,
-      offset: 0
-    }
-  });
-  return response.data;
-}
-
-async function fetchRecurrentFloodData(limit: number = 1000): Promise<FloodResponse> {
-  const url = `${BASE_URL}/flood-freq`;
-  const response = await axios.get(url, {
-    headers: {
-      'API-Key': API_KEY,
-      'accept': 'application/json'
-    },
-    params: {
-      limit,
-      offset: 0
-    }
-  });
-  return response.data;
-}
-
-export const useGISTDAFloodData = (timeframe: '1day' | '3days' | '7days' | '30days' = '3days') => {
-  // Map timeframe to API endpoints
-  const apiTimeframe = timeframe === '7days' || timeframe === '30days' ? '3days' : timeframe;
-
-  return useQuery({
-    queryKey: ['gistda-flood-data', apiTimeframe],
-    queryFn: () => fetchFloodData(apiTimeframe),
-    refetchInterval: 1800000, // 30 minutes
-    staleTime: 900000, // 15 minutes
+/**
+ * Hook to fetch real-time flood polygon features from GISTDA.
+ * Supports all official timeframes: '1day' | '3days' | '7days' | '30days'
+ * Caching: staleTime: 10 mins, gcTime: 30 mins
+ */
+export const useGISTDAFloodData = (
+  timeframe: FloodTimeframe = '3days',
+  limit: number = 1000
+) => {
+  return useQuery<FloodResponse, Error>({
+    queryKey: ['gistda-flood-data', timeframe, limit],
+    queryFn: () => gistdaService.getFloodFeatures(timeframe, { limit, offset: 0 }),
+    staleTime: GISTDA_CACHE_CONFIG.staleTime, // 10 minutes
+    gcTime: GISTDA_CACHE_CONFIG.gcTime,       // 30 minutes
+    refetchInterval: GISTDA_CACHE_CONFIG.staleTime,
+    refetchOnWindowFocus: false,
+    retry: 2
   });
 };
 
-export const useRecurrentFloodData = () => {
-  return useQuery({
-    queryKey: ['gistda-recurrent-flood'],
-    queryFn: () => fetchRecurrentFloodData(500),
-    refetchInterval: 3600000, // 1 hour
-    staleTime: 1800000, // 30 minutes
+/**
+ * Hook to fetch recurrent flood (น้ำท่วมซ้ำซาก) features from GISTDA.
+ * Caching: staleTime: 10 mins, gcTime: 30 mins
+ */
+export const useRecurrentFloodData = (limit: number = 1000) => {
+  return useQuery<RecurrentFloodResponse, Error>({
+    queryKey: ['gistda-recurrent-flood', limit],
+    queryFn: () => gistdaService.getFloodFrequency({ limit, offset: 0 }),
+    staleTime: GISTDA_CACHE_CONFIG.staleTime, // 10 minutes
+    gcTime: GISTDA_CACHE_CONFIG.gcTime,       // 30 minutes
+    refetchInterval: GISTDA_CACHE_CONFIG.staleTime,
+    refetchOnWindowFocus: false,
+    retry: 2
   });
 };
 
-// Calculate center point of a polygon for marker placement
+/**
+ * Hook to fetch water hyacinth / waterway obstruction (ผักตบชวา) features from GISTDA.
+ * Caching: staleTime: 10 mins, gcTime: 30 mins
+ */
+export const useWaterHyacinthData = (limit: number = 1000) => {
+  return useQuery<WaterHyacinthResponse, Error>({
+    queryKey: ['gistda-water-hyacinth', limit],
+    queryFn: () => gistdaService.getWaterHyacinth({ limit, offset: 0 }),
+    staleTime: GISTDA_CACHE_CONFIG.staleTime, // 10 minutes
+    gcTime: GISTDA_CACHE_CONFIG.gcTime,       // 30 minutes
+    refetchInterval: GISTDA_CACHE_CONFIG.staleTime,
+    refetchOnWindowFocus: false,
+    retry: 2
+  });
+};
+
+/**
+ * Calculate center point of a polygon or multipolygon feature for marker / popup placement.
+ * Safely extracts coordinates across both Polygon and MultiPolygon geometry structures.
+ */
 export const getFloodCenter = (feature: FloodFeature): [number, number] => {
-  const coords = feature.geometry.coordinates[0][0];
-  const lats = coords.map(c => c[1]);
-  const lngs = coords.map(c => c[0]);
+  if (!feature?.geometry?.coordinates) {
+    return [13.7563, 100.5018]; // Default Thailand Center
+  }
 
-  const centerLat = (Math.min(...lats) + Math.max(...lats)) / 2;
-  const centerLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
+  const coords: number[][] = [];
+  const extractCoords = (item: any) => {
+    if (Array.isArray(item)) {
+      if (item.length >= 2 && typeof item[0] === 'number' && typeof item[1] === 'number') {
+        coords.push(item as number[]);
+      } else {
+        for (const child of item) {
+          extractCoords(child);
+        }
+      }
+    }
+  };
+
+  extractCoords(feature.geometry.coordinates);
+
+  if (coords.length === 0) {
+    return [13.7563, 100.5018];
+  }
+
+  let minLat = Infinity;
+  let maxLat = -Infinity;
+  let minLng = Infinity;
+  let maxLng = -Infinity;
+
+  for (const [lng, lat] of coords) {
+    if (lat < minLat) minLat = lat;
+    if (lat > maxLat) maxLat = lat;
+    if (lng < minLng) minLng = lng;
+    if (lng > maxLng) maxLng = lng;
+  }
+
+  const centerLat = (minLat + maxLat) / 2;
+  const centerLng = (minLng + maxLng) / 2;
 
   return [centerLat, centerLng];
 };

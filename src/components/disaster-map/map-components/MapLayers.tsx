@@ -1,4 +1,3 @@
-
 import React from 'react';
 import WildfireWMSLayers from '../WildfireWMSLayers';
 import DroughtWMSLayers from '../DroughtWMSLayers';
@@ -19,6 +18,9 @@ interface MapLayersProps {
   currentFrameIndex: number;
   wildfireTimeFilter: string;
   showBurnFreq: boolean;
+  showBurnScar?: boolean;
+  tileFormat?: 'wmts' | 'tms' | 'wms';
+  layerOpacity?: number;
 }
 
 export const MapLayers: React.FC<MapLayersProps> = ({
@@ -32,32 +34,40 @@ export const MapLayers: React.FC<MapLayersProps> = ({
   rainTimeType,
   currentFrameIndex,
   wildfireTimeFilter,
-  showBurnFreq
+  showBurnFreq,
+  showBurnScar = false,
+  tileFormat = 'wmts',
+  layerOpacity = 0.7
 }) => {
   return (
     <>
-      {/* WMS layers for wildfire */}
+      {/* Raster layers for wildfire */}
       {selectedType === 'wildfire' && (
         <WildfireWMSLayers
           timeFilter={wildfireTimeFilter}
           showBurnFreq={showBurnFreq}
+          showBurnScar={showBurnScar}
+          tileFormat={tileFormat}
+          opacity={layerOpacity}
         />
       )}
 
-      {/* WMS layers for drought */}
+      {/* Raster layers for drought */}
       {selectedType === 'drought' && (
         <DroughtWMSLayers
           selectedLayers={droughtLayers}
-          opacity={0.7}
+          opacity={layerOpacity}
+          tileFormat={tileFormat}
         />
       )}
 
-      {/* WMS layers for flood */}
+      {/* Raster layers for flood */}
       {selectedType === 'flood' && (
         <FloodWMSLayers
-          timeFilter={floodTimeFilter as '1day' | '3days' | '7days' | '30days'}
+          timeFilter={floodTimeFilter}
           showFrequency={showFloodFrequency}
-          opacity={0.7}
+          opacity={layerOpacity}
+          tileFormat={tileFormat}
         />
       )}
 
@@ -73,3 +83,5 @@ export const MapLayers: React.FC<MapLayersProps> = ({
     </>
   );
 };
+
+export default React.memo(MapLayers);

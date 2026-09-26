@@ -1,110 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { gistdaService, GISTDA_CACHE_CONFIG } from '@/services/gistda/gistdaService';
+import type {
+  GISTDAHotspot,
+  GISTDAData,
+  GISTDAStats,
+  WildfireStats,
+  VIIRSTimeframe
+} from '@/services/gistda/types';
 
-export interface GISTDAHotspot {
-  LATITUDE: number;
-  LONGITUDE: number;
-  BRIGHTNESS: number;
-  SCAN: number;
-  TRACK: number;
-  ACQ_DATE: string;
-  ACQ_TIME: string;
-  SATELLITE: string;
-  CONFIDENCE: number;
-  VERSION: string;
-  BRIGHT_T31: number;
-  FRP: number;
-  DAYNIGHT: string;
-  TYPE: number;
-  province?: string;
-  country?: string;
-  geometry?: {
-    coordinates: [number, number];
-    type: string;
-  };
-  properties?: {
-    confidence: number | string;
-    instrument: string;
-    frp: number;
-    satellite: string;
-    pv_tn: string;
-    ap_tn: string;
-    th_date: string;
-    th_time: string;
-    village: string;
-    lu_name: string;
-    acq_date: string;
-    changwat?: string;
-    tambon?: string;
-    area_rai?: number;
-    risk_level?: 'low' | 'medium' | 'high' | 'very_high';
-    // New fields from GISTDA API
-    amphoe?: string;
-    lu_hp_name?: string;
-    tb_tn?: string;
-    bright_ti4?: number;
-    bright_ti5?: number;
-    scan?: number;
-    track?: number;
-    utm_zone?: string;
-    re_royin?: string;
-    f_alarm?: number;
-  };
-  id?: string;
-  type?: string;
-}
-
-export interface GISTDAData {
-  features?: GISTDAHotspot[];
-  numberMatched?: number;
-  numberReturned?: number;
-  timeStamp?: string;
-}
-
-export interface GISTDAStats {
-  totalHotspots: number;
-  modisCount: number;
-  viirsCount: number;
-  highConfidenceCount: number;
-  averageConfidence: number;
-  last24Hours: number;
-  last7Days: number;
-}
-
-export interface WildfireStats {
-  totalHotspots: number;
-  last24Hours: number;
-  highConfidence: number;
-  averageConfidence: number;
-  topProvinces: Array<{ name: string; count: number }>;
-  regionalData: Array<{ region: string; count: number; averageConfidence: number }>;
-  timeDistribution: Array<{ time: string; count: number }>;
-  thailand: {
-    totalHotspots: number;
-    byProvince: Array<{ name: string; count: number }>;
-    averageConfidence: number;
-    totalRiskArea: number;
-    byRiskLevel: Array<{ level: string; count: number; area: number }>;
-  };
-  international: {
-    totalHotspots: number;
-    byCountry: Array<{ name: string; count: number }>;
-    averageConfidence: number;
-  };
-}
+// Re-export types for backward compatibility across the codebase
+export type { GISTDAHotspot, GISTDAData, GISTDAStats, WildfireStats };
 
 // Time filter options in days
-type TimeFilter = '1day' | '3days' | '7days' | '30days' | 'all';
+export type TimeFilter = '1day' | '3days' | '7days' | '30days' | 'all';
 
-const API_KEY = import.meta.env.VITE_GISTDA_WMS_API_KEY || '';
-const API_BASE_URL = 'https://api-gateway.gistda.or.th/api/2.0/resources/features';
-
-// Thailand provinces bounds for filtering
-const isInThailand = (lat: number, lng: number): boolean => {
+// Thailand bounds for coordinates verification
+export const isInThailand = (lat: number, lng: number): boolean => {
   return lat >= 5.5 && lat <= 20.5 && lng >= 97.0 && lng <= 106.0;
 };
 
-const getCountryFromCoordinates = (lat: number, lng: number): string => {
+export const getCountryFromCoordinates = (lat: number, lng: number): string => {
   if (isInThailand(lat, lng)) return 'Thailand';
   if (lat >= 9.0 && lat <= 28.0 && lng >= 92.0 && lng <= 102.0) return 'Myanmar';
   if (lat >= 13.0 && lat <= 23.0 && lng >= 100.0 && lng <= 108.0) return 'Laos';
@@ -115,7 +31,7 @@ const getCountryFromCoordinates = (lat: number, lng: number): string => {
 };
 
 // Calculate fire risk level based on various factors
-const calculateFireRiskLevel = (hotspot: any): 'low' | 'medium' | 'high' | 'very_high' => {
+export const calculateFireRiskLevel = (hotspot: any): 'low' | 'medium' | 'high' | 'very_high' => {
   const confidence = hotspot.properties?.confidence || hotspot.CONFIDENCE;
   const frp = hotspot.properties?.frp || hotspot.FRP || 0;
   const brightness = hotspot.properties?.bright_ti4 || hotspot.BRIGHTNESS || 0;
@@ -128,7 +44,9 @@ const calculateFireRiskLevel = (hotspot: any): 'low' | 'medium' | 'high' | 'very
   let confidenceScore = 0;
   if (typeof confidence === 'number') {
     confidenceScore = confidence;
-  } else if (confidence === 'nominal' || confidence === 'high') {
+  } else if (confidence === 'high') {
+    confidenceScore = 95;
+  } else if (confidence === 'nominal') {
     confidenceScore = 85;
   } else {
     confidenceScore = 40;
@@ -141,236 +59,194 @@ const calculateFireRiskLevel = (hotspot: any): 'low' | 'medium' | 'high' | 'very
 };
 
 // Estimate area affected in rai (1 rai = 1,600 m²)
-const estimateAreaInRai = (frp: number, confidence: number | string): number => {
-  const numericConfidence = typeof confidence === 'number' ? confidence :
-    (confidence === 'nominal' || confidence === 'high') ? 85 : 40;
+export const estimateAreaInRai = (frp: number, confidence: number | string): number => {
+  const numericConfidence = typeof confidence === 'number'
+    ? confidence
+    : confidence === 'high'
+      ? 95
+      : confidence === 'nominal'
+        ? 85
+        : 40;
 
   const baseArea = Math.max(1, frp / 8); // Base area in rai
   const confidenceFactor = numericConfidence / 100;
-  return Math.round(baseArea * confidenceFactor * (1 + Math.random() * 0.3));
+  return Math.round(baseArea * confidenceFactor);
 };
 
-const generateMockHotspotsData = (): GISTDAHotspot[] => {
-  const mockData: GISTDAHotspot[] = [];
-  const now = new Date();
+/**
+ * Transforms raw GISTDA VIIRS feature into the standardized GISTDAHotspot model.
+ */
+const transformFeatureToHotspot = (feature: any): GISTDAHotspot => {
+  const geometry = feature.geometry || {};
+  const properties = feature.properties || {};
 
-  // Generate hotspots across Southeast Asia with focus on Thailand
-  for (let i = 0; i < 150; i++) {
-    const isThailandHotspot = Math.random() < 0.7; // 70% in Thailand
+  const lat = geometry.coordinates?.[1] ?? properties.latitude ?? 0;
+  const lng = geometry.coordinates?.[0] ?? properties.longitude ?? 0;
 
-    let lat, lng, country, province;
+  const isThai = properties.ct_tn === 'ราชอาณาจักรไทย' ||
+    properties.ct_en === 'Thailand' ||
+    isInThailand(lat, lng);
 
-    if (isThailandHotspot) {
-      lat = 6 + Math.random() * 14; // Thailand latitude range
-      lng = 97 + Math.random() * 9; // Thailand longitude range
-      country = 'Thailand';
+  const country = isThai ? 'Thailand' : (properties.ct_en || properties.ct_tn || getCountryFromCoordinates(lat, lng));
+  const province = properties.pv_tn || properties.changwat || (isThai ? 'ไม่ระบุ' : country);
 
-      // Mock province mapping
-      const provinces = ['เชียงใหม่', 'เชียงราย', 'กาญจนบุรี', 'ขอนแก่น', 'สุราษฎร์ธานี', 'นครศรีธรรมราช'];
-      province = provinces[Math.floor(Math.random() * provinces.length)];
-    } else {
-      lat = 5 + Math.random() * 20;
-      lng = 92 + Math.random() * 20;
-      country = getCountryFromCoordinates(lat, lng);
-      province = undefined;
-    }
-
-    const hoursAgo = Math.random() * 72; // Up to 3 days ago
-    const hotspotDate = new Date(now.getTime() - hoursAgo * 60 * 60 * 1000);
-
-    const confidence = Math.random() > 0.5 ? Math.floor(30 + Math.random() * 70) : ['low', 'nominal', 'high'][Math.floor(Math.random() * 3)];
-    const frp = Math.random() * 100;
-    const brightness = 300 + Math.random() * 200;
-    const instrument = Math.random() > 0.5 ? 'MODIS' : 'VIIRS';
-    const riskLevel = calculateFireRiskLevel({ properties: { confidence, frp }, BRIGHTNESS: brightness });
-    const areaRai = estimateAreaInRai(frp, confidence);
-
-    mockData.push({
-      LATITUDE: lat,
-      LONGITUDE: lng,
-      BRIGHTNESS: brightness,
-      SCAN: 1.0 + Math.random() * 2.0,
-      TRACK: 1.0 + Math.random() * 2.0,
-      ACQ_DATE: hotspotDate.toISOString().split('T')[0],
-      ACQ_TIME: hotspotDate.toTimeString().split(' ')[0].substring(0, 5),
-      SATELLITE: Math.random() > 0.5 ? 'Terra' : 'Aqua',
-      CONFIDENCE: typeof confidence === 'number' ? confidence : 70,
-      VERSION: '6.0',
-      BRIGHT_T31: 280 + Math.random() * 50,
-      FRP: frp,
-      DAYNIGHT: hoursAgo % 24 < 12 ? 'D' : 'N',
-      TYPE: 0,
-      province,
-      country,
-      geometry: {
-        coordinates: [lng, lat],
-        type: 'Point'
-      },
-      properties: {
-        confidence,
-        instrument,
-        frp,
-        satellite: Math.random() > 0.5 ? 'Terra' : 'Aqua',
-        pv_tn: province || 'Unknown',
-        ap_tn: `อ.${['เมือง', 'แม่ริม', 'สันทราย', 'หางดง', 'สารภี'][Math.floor(Math.random() * 5)]}`,
-        th_date: hotspotDate.toISOString().split('T')[0],
-        th_time: hotspotDate.toTimeString().split(' ')[0].substring(0, 5),
-        village: `บ้าน${['ดอยสุเทพ', 'ป่าแดด', 'แม่แจ่ม', 'ขุนกาง', 'แม่วาง'][Math.floor(Math.random() * 5)]}`,
-        lu_name: ['ป่าไผ่', 'ป่าสน', 'ป่าเต็งรัง', 'พื้นที่เกษตร'][Math.floor(Math.random() * 4)],
-        acq_date: hotspotDate.toISOString().split('T')[0],
-        changwat: province,
-        tambon: `ต.${['ศรีภูมิ', 'ช้างคลาน', 'หายยา', 'ป่าตาล', 'สุเทพ'][Math.floor(Math.random() * 5)]}`,
-        area_rai: areaRai,
-        risk_level: riskLevel
-      }
-    });
+  let numericConfidence = 50;
+  if (typeof properties.confidence === 'number') {
+    numericConfidence = properties.confidence;
+  } else if (properties.confidence === 'high') {
+    numericConfidence = 95;
+  } else if (properties.confidence === 'nominal') {
+    numericConfidence = 85;
+  } else if (properties.confidence === 'low') {
+    numericConfidence = 40;
   }
 
-  return mockData;
+  const frp = properties.frp ?? 0;
+  const brightness = properties.bright_ti4 ?? 300;
+  const riskLevel = calculateFireRiskLevel({ properties, BRIGHTNESS: brightness });
+  const areaRai = estimateAreaInRai(frp, numericConfidence);
+
+  const rawDate = properties.acq_date || properties.th_date || new Date().toISOString();
+  const dateFormatted = rawDate.includes('T') ? rawDate.split('T')[0] : rawDate;
+  const timeFormatted = properties.th_time || properties.acq_time || '00:00';
+
+  return {
+    ...feature,
+    LATITUDE: lat,
+    LONGITUDE: lng,
+    BRIGHTNESS: brightness,
+    SCAN: properties.scan || 1.0,
+    TRACK: properties.track || 1.0,
+    ACQ_DATE: dateFormatted,
+    ACQ_TIME: timeFormatted,
+    SATELLITE: properties.satellite || 'VIIRS',
+    CONFIDENCE: numericConfidence,
+    VERSION: properties.version || '2.0NRT',
+    BRIGHT_T31: properties.bright_ti5 || 280,
+    FRP: frp,
+    DAYNIGHT: properties.th_time
+      ? (parseInt(properties.th_time.substring(0, 2), 10) >= 6 && parseInt(properties.th_time.substring(0, 2), 10) < 18 ? 'D' : 'N')
+      : 'D',
+    TYPE: 0,
+    province,
+    country,
+    geometry: {
+      coordinates: [lng, lat],
+      type: 'Point'
+    },
+    properties: {
+      ...properties,
+      confidence: properties.confidence ?? numericConfidence,
+      instrument: properties.instrument || 'VIIRS',
+      frp,
+      satellite: properties.satellite || 'VIIRS',
+      pv_tn: province,
+      ap_tn: properties.ap_tn || properties.amphoe || '',
+      th_date: dateFormatted,
+      th_time: timeFormatted,
+      village: properties.village || '',
+      lu_name: properties.lu_name || '',
+      acq_date: dateFormatted,
+      changwat: province,
+      tambon: properties.tb_tn || properties.tambol || '',
+      area_rai: areaRai,
+      risk_level: riskLevel,
+      amphoe: properties.ap_tn || properties.amphoe || '',
+      bright_ti4: brightness,
+      bright_ti5: properties.bright_ti5 || 280,
+      f_alarm: properties.f_alarm || 0
+    }
+  };
 };
 
+/**
+ * React Query Hook to retrieve real VIIRS wildfire hotspots and compute analytical statistics.
+ * Caching: staleTime: 10 mins, gcTime: 30 mins
+ * Strictly real data from GISTDA API Gateway (No Mocking).
+ */
 export const useGISTDAData = (timeFilter: TimeFilter = '3days') => {
-  const [hotspots, setHotspots] = useState<GISTDAHotspot[]>([]);
-  const [stats, setStats] = useState<WildfireStats>({
-    totalHotspots: 0,
-    last24Hours: 0,
-    highConfidence: 0,
-    averageConfidence: 0,
-    topProvinces: [],
-    regionalData: [],
-    timeDistribution: [],
-    thailand: {
-      totalHotspots: 0,
-      byProvince: [],
-      averageConfidence: 0,
-      totalRiskArea: 0,
-      byRiskLevel: []
-    },
-    international: {
-      totalHotspots: 0,
-      byCountry: [],
-      averageConfidence: 0
-    }
-  });
+  const actualTimeframe: VIIRSTimeframe = timeFilter === 'all' ? '30days' : timeFilter;
 
-  // Fetch hotspot data from GISTDA with proper API
-  const { data: hotspotsData, isLoading } = useQuery({
-    queryKey: ['gistda-viirs-hotspots', timeFilter],
-    queryFn: async () => {
-      try {
-        const limit = 1000;
-        const countryParam = encodeURIComponent('ราชอาณาจักรไทย');
+  const { data: hotspotsData, isLoading, refetch } = useQuery({
+    queryKey: ['gistda-viirs-hotspots-real', actualTimeframe],
+    queryFn: async (): Promise<GISTDAHotspot[]> => {
+      // Concurrently fetch Thailand-specific hotspots and regional hotspots
+      const [thaiResult, regionalResult] = await Promise.allSettled([
+        gistdaService.getVIIRSFeatures(actualTimeframe, {
+          limit: 1000,
+          offset: 0,
+          ct_tn: 'ราชอาณาจักรไทย'
+        }),
+        gistdaService.getVIIRSFeatures(actualTimeframe, {
+          limit: 200,
+          offset: 0
+        })
+      ]);
 
-        let endpoint = '';
-        if (timeFilter === 'all') {
-          endpoint = `${API_BASE_URL}/viirs/30days?limit=${limit}&offset=0&ct_tn=${countryParam}`;
-        } else {
-          endpoint = `${API_BASE_URL}/viirs/${timeFilter}?limit=${limit}&offset=0&ct_tn=${countryParam}`;
-        }
+      const seenIds = new Set<string>();
+      const combined: GISTDAHotspot[] = [];
 
-
-        const response = await fetch(endpoint, {
-          headers: {
-            'accept': 'application/json',
-            'API-Key': API_KEY
+      // 1. Process Thailand hotspots
+      if (thaiResult.status === 'fulfilled' && thaiResult.value?.features) {
+        for (const feature of thaiResult.value.features) {
+          const transformed = transformFeatureToHotspot(feature);
+          const key = feature.id || `${transformed.LATITUDE},${transformed.LONGITUDE},${transformed.ACQ_DATE}`;
+          if (!seenIds.has(key)) {
+            seenIds.add(key);
+            combined.push(transformed);
           }
-        });
-
-        if (!response.ok) {
-          console.warn(`GISTDA API returned ${response.status}, using mock data`);
-          throw new Error('GISTDA API failed');
         }
-
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        console.warn('GISTDA API not available, using mock data');
-        return null;
+      } else if (thaiResult.status === 'rejected') {
+        console.warn('GISTDA Thailand VIIRS query failed:', thaiResult.reason);
       }
+
+      // 2. Process Regional / International hotspots
+      if (regionalResult.status === 'fulfilled' && regionalResult.value?.features) {
+        for (const feature of regionalResult.value.features) {
+          const transformed = transformFeatureToHotspot(feature);
+          const key = feature.id || `${transformed.LATITUDE},${transformed.LONGITUDE},${transformed.ACQ_DATE}`;
+          if (!seenIds.has(key)) {
+            seenIds.add(key);
+            combined.push(transformed);
+          }
+        }
+      } else if (regionalResult.status === 'rejected') {
+        console.warn('GISTDA Regional VIIRS query failed:', regionalResult.reason);
+      }
+
+      return combined;
     },
-    refetchInterval: 300000, // 5 minutes
+    staleTime: GISTDA_CACHE_CONFIG.staleTime, // 10 minutes
+    gcTime: GISTDA_CACHE_CONFIG.gcTime,       // 30 minutes
+    refetchInterval: GISTDA_CACHE_CONFIG.staleTime,
+    refetchOnWindowFocus: false,
+    retry: 2
   });
 
-  useEffect(() => {
-    let processedHotspots: GISTDAHotspot[] = [];
+  const hotspots = useMemo(() => hotspotsData || [], [hotspotsData]);
 
-    if (hotspotsData && Array.isArray(hotspotsData.features)) {
-      processedHotspots = hotspotsData.features.map((feature: any) => {
-        const geometry = feature.geometry || {};
-        const properties = feature.properties || {};
+  // Compute Wildfire Analytics Statistics
+  const stats: WildfireStats = useMemo(() => {
+    const totalHotspots = hotspots.length;
 
-        const lat = geometry.coordinates?.[1] || properties.latitude;
-        const lng = geometry.coordinates?.[0] || properties.longitude;
-        const country = getCountryFromCoordinates(lat, lng);
-        const riskLevel = calculateFireRiskLevel({ properties });
-        const areaRai = estimateAreaInRai(properties.frp || 0, properties.confidence || 'low');
-
-        return {
-          ...feature,
-          LATITUDE: lat,
-          LONGITUDE: lng,
-          BRIGHTNESS: properties.bright_ti4 || 300,
-          SCAN: properties.scan || 1.0,
-          TRACK: properties.track || 1.0,
-          ACQ_DATE: properties.acq_date || properties.th_date,
-          ACQ_TIME: properties.acq_time || properties.th_time,
-          SATELLITE: properties.satellite || 'N',
-          CONFIDENCE: typeof properties.confidence === 'string' ?
-            (properties.confidence === 'nominal' || properties.confidence === 'high' ? 85 : 40) :
-            properties.confidence || 50,
-          VERSION: '2.0NRT',
-          BRIGHT_T31: properties.bright_ti5 || 280,
-          FRP: properties.frp || 0,
-          DAYNIGHT: 'D',
-          TYPE: 0,
-          province: properties.pv_tn || properties.changwat,
-          country,
-          geometry: {
-            coordinates: [lng, lat],
-            type: 'Point'
-          },
-          properties: {
-            ...properties,
-            changwat: properties.pv_tn || properties.changwat,
-            tambon: properties.tb_tn || properties.tambol,
-            area_rai: areaRai,
-            risk_level: riskLevel,
-            amphoe: properties.amphoe || properties.ap_tn,
-            village: properties.village || 'บ้านหนองยาง'
-          }
-        };
-      });
-    } else {
-      processedHotspots = generateMockHotspotsData();
-    }
-
-    setHotspots(processedHotspots);
-
-    // Calculate enhanced statistics
-    const totalHotspots = processedHotspots.length;
-    const last24Hours = processedHotspots.filter(h => {
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const last24Hours = hotspots.filter(h => {
       const hotspotDate = new Date(h.ACQ_DATE);
-      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      return hotspotDate >= yesterday;
+      return !isNaN(hotspotDate.getTime()) && hotspotDate >= yesterday;
     }).length;
 
-    const highConfidence = processedHotspots.filter(h => {
+    const highConfidence = hotspots.filter(h => {
       const conf = h.properties?.confidence || h.CONFIDENCE;
       if (typeof conf === 'number') return conf >= 80;
       return conf === 'nominal' || conf === 'high';
     }).length;
 
     const averageConfidence = totalHotspots > 0
-      ? processedHotspots.reduce((sum, h) => {
-        const conf = h.properties?.confidence || h.CONFIDENCE;
-        const numConf = typeof conf === 'number' ? conf :
-          (conf === 'nominal' || conf === 'high') ? 85 : 40;
-        return sum + numConf;
-      }, 0) / totalHotspots
+      ? Math.round(hotspots.reduce((sum, h) => sum + (h.CONFIDENCE || 50), 0) / totalHotspots)
       : 0;
 
-    // Thailand-specific statistics with risk assessment
-    const thailandHotspots = processedHotspots.filter(h => h.country === 'Thailand');
+    // Thailand-specific statistics
+    const thailandHotspots = hotspots.filter(h => h.country === 'Thailand');
     const thailandByProvince = thailandHotspots.reduce((acc, hotspot) => {
       const province = hotspot.properties?.changwat || hotspot.province || 'อื่นๆ';
       acc[province] = (acc[province] || 0) + 1;
@@ -382,10 +258,9 @@ export const useGISTDAData = (timeFilter: TimeFilter = '3days') => {
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
 
-    // Risk level statistics
     const riskLevelCounts = thailandHotspots.reduce((acc, hotspot) => {
       const level = hotspot.properties?.risk_level || 'low';
-      acc[level] = (acc[level] || { count: 0, area: 0 });
+      acc[level] = acc[level] || { count: 0, area: 0 };
       acc[level].count++;
       acc[level].area += hotspot.properties?.area_rai || 0;
       return acc;
@@ -404,7 +279,7 @@ export const useGISTDAData = (timeFilter: TimeFilter = '3days') => {
     const totalRiskArea = thailandHotspots.reduce((sum, h) => sum + (h.properties?.area_rai || 0), 0);
 
     // International statistics
-    const internationalHotspots = processedHotspots.filter(h => h.country !== 'Thailand');
+    const internationalHotspots = hotspots.filter(h => h.country !== 'Thailand');
     const internationalByCountry = internationalHotspots.reduce((acc, hotspot) => {
       const country = hotspot.country || 'Other';
       acc[country] = (acc[country] || 0) + 1;
@@ -416,31 +291,28 @@ export const useGISTDAData = (timeFilter: TimeFilter = '3days') => {
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
 
-    // Regional data (for existing compatibility)
+    // Regional data for compatibility
     const regionalData = Object.entries(
-      processedHotspots.reduce((acc, h) => {
+      hotspots.reduce((acc, h) => {
         const region = h.country || 'Unknown';
         if (!acc[region]) {
           acc[region] = { count: 0, totalConfidence: 0 };
         }
         acc[region].count++;
-        const conf = h.properties?.confidence || h.CONFIDENCE;
-        const numConf = typeof conf === 'number' ? conf :
-          (conf === 'nominal' || conf === 'high') ? 85 : 40;
-        acc[region].totalConfidence += numConf;
+        acc[region].totalConfidence += h.CONFIDENCE || 50;
         return acc;
       }, {} as Record<string, { count: number; totalConfidence: number }>)
     ).map(([region, data]) => ({
       region,
       count: data.count,
-      averageConfidence: data.count > 0 ? data.totalConfidence / data.count : 0
+      averageConfidence: data.count > 0 ? Math.round(data.totalConfidence / data.count) : 0
     })).sort((a, b) => b.count - a.count);
 
-    // Time distribution
-    const timeDistribution = processedHotspots.reduce((acc, h) => {
+    // Time distribution (hourly)
+    const timeDistribution = hotspots.reduce((acc, h) => {
       const time = h.ACQ_TIME || h.properties?.th_time || '00:00';
-      const hour = time.split(':')[0];
-      const timeSlot = `${hour}:00`;
+      const hour = time.includes(':') ? time.split(':')[0] : time.substring(0, 2);
+      const timeSlot = `${hour.padStart(2, '0')}:00`;
       acc[timeSlot] = (acc[timeSlot] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
@@ -449,11 +321,11 @@ export const useGISTDAData = (timeFilter: TimeFilter = '3days') => {
       .map(([time, count]) => ({ time, count }))
       .sort((a, b) => a.time.localeCompare(b.time));
 
-    const newStats: WildfireStats = {
+    return {
       totalHotspots,
       last24Hours,
       highConfidence,
-      averageConfidence: Math.round(averageConfidence),
+      averageConfidence,
       topProvinces: thailandProvinceData.slice(0, 5),
       regionalData,
       timeDistribution: timeData,
@@ -461,12 +333,7 @@ export const useGISTDAData = (timeFilter: TimeFilter = '3days') => {
         totalHotspots: thailandHotspots.length,
         byProvince: thailandProvinceData,
         averageConfidence: thailandHotspots.length > 0
-          ? Math.round(thailandHotspots.reduce((sum, h) => {
-            const conf = h.properties?.confidence || h.CONFIDENCE;
-            const numConf = typeof conf === 'number' ? conf :
-              (conf === 'nominal' || conf === 'high') ? 85 : 40;
-            return sum + numConf;
-          }, 0) / thailandHotspots.length)
+          ? Math.round(thailandHotspots.reduce((sum, h) => sum + (h.CONFIDENCE || 50), 0) / thailandHotspots.length)
           : 0,
         totalRiskArea,
         byRiskLevel
@@ -475,23 +342,16 @@ export const useGISTDAData = (timeFilter: TimeFilter = '3days') => {
         totalHotspots: internationalHotspots.length,
         byCountry: internationalCountryData,
         averageConfidence: internationalHotspots.length > 0
-          ? Math.round(internationalHotspots.reduce((sum, h) => {
-            const conf = h.properties?.confidence || h.CONFIDENCE;
-            const numConf = typeof conf === 'number' ? conf :
-              (conf === 'nominal' || conf === 'high') ? 85 : 40;
-            return sum + numConf;
-          }, 0) / internationalHotspots.length)
+          ? Math.round(internationalHotspots.reduce((sum, h) => sum + (h.CONFIDENCE || 50), 0) / internationalHotspots.length)
           : 0
       }
     };
-
-    setStats(newStats);
-  }, [hotspotsData, timeFilter]);
+  }, [hotspots]);
 
   return {
     hotspots,
     stats,
     isLoading,
-    refetch: () => { }
+    refetch
   };
 };
