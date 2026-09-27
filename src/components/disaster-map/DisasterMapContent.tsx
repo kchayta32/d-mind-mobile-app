@@ -7,11 +7,10 @@ import WildfireCharts from './WildfireCharts';
 import AirPollutionCharts from './AirPollutionCharts';
 import DroughtCharts from './DroughtCharts';
 import FloodCharts from './FloodCharts';
-import SinkholeNews from './SinkholeNews';
+import { StormCharts } from './charts/StormCharts';
 import { DisasterType } from './types';
 import { useDisasterMapState } from './hooks/useDisasterMapState';
 import { useDisasterMapData } from './hooks/useDisasterMapData';
-import { useSinkholeData } from '../../hooks/useSinkholeData';
 
 // Lazy load MapView to code-split maplibre-gl (reduces initial bundle by ~1MB)
 const MapView = React.lazy(() => import('./MapView').then(m => ({ default: m.MapView })));
@@ -77,6 +76,8 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
     gistdaFloodFeatures,
     waterHyacinthFeatures,
     floodDataPoints,
+    storms,
+    stormStats,
 
     wildfireStats,
     airStats,
@@ -85,8 +86,6 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
     getCurrentStats,
     getCurrentLoading,
   } = useDisasterMapData(rainTimeFilter, wildfireTimeFilter, floodTimeFilter);
-
-  const { sinkholes, stats: sinkholeStats } = useSinkholeData();
 
   // คำนวณจำนวนรายการที่ตรงตามตัวกรองปัจจุบันแบบไดนามิก
   const currentMatchCount = React.useMemo(() => {
@@ -101,8 +100,8 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
         return airStations.filter((s) => (s.pm25 ?? 0) >= pm25Filter).length;
       case 'flood':
         return gistdaFloodFeatures.length + floodDataPoints.length;
-      case 'sinkhole':
-        return sinkholes.length;
+      case 'storm':
+        return storms.length;
       default:
         return 0;
     }
@@ -117,7 +116,7 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
     pm25Filter,
     gistdaFloodFeatures,
     floodDataPoints,
-    sinkholes,
+    storms,
   ]);
 
   const handleResetFilters = React.useCallback(() => {
@@ -176,7 +175,7 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
     <div className="space-y-4">
       {/* Statistics Panel */}
       <StatisticsPanel
-        stats={selectedType === 'sinkhole' ? sinkholeStats : getCurrentStats(selectedType)}
+        stats={getCurrentStats(selectedType)}
         isLoading={getCurrentLoading(selectedType)}
         disasterType={selectedType}
       />
@@ -211,9 +210,12 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
         />
       )}
 
-      {/* Sinkhole News Section */}
-      {selectedType === 'sinkhole' && (
-        <SinkholeNews />
+      {/* Specific Charts for Storm */}
+      {selectedType === 'storm' && (
+        <StormCharts
+          storms={storms}
+          stats={stormStats}
+        />
       )}
     </div>
   );
@@ -270,7 +272,7 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
               gistdaFloodFeatures={gistdaFloodFeatures}
               waterHyacinthFeatures={waterHyacinthFeatures}
               floodDataPoints={floodDataPoints}
-              sinkholes={sinkholes}
+              storms={storms}
               selectedType={selectedType}
               onTypeChange={onTypeChange}
               magnitudeFilter={magnitudeFilter}
@@ -326,7 +328,7 @@ export const DisasterMapContent: React.FC<DisasterMapContentProps> = ({
             gistdaFloodFeatures={gistdaFloodFeatures}
             waterHyacinthFeatures={waterHyacinthFeatures}
             floodDataPoints={floodDataPoints}
-            sinkholes={sinkholes}
+            storms={storms}
             selectedType={selectedType}
             onTypeChange={onTypeChange}
             magnitudeFilter={magnitudeFilter}

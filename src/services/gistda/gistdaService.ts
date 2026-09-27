@@ -42,8 +42,10 @@ export const GISTDA_CACHE_CONFIG = {
   retry: 2,
 } as const;
 
+export const DEFAULT_GISTDA_API_KEY = 'VdXi3UYkRaaZDGVsFOgO6KvYeZY8dV7CjFx2j4e1xdxm2wZcfXrwwfdzs1lepkMD';
+
 /**
- * Resolves the GISTDA API key from environment variables.
+ * Resolves the GISTDA API key from environment variables with fallback to primary key.
  */
 export const getGistdaApiKey = (): string => {
   return (
@@ -51,7 +53,7 @@ export const getGistdaApiKey = (): string => {
     import.meta.env.VITE_GISTDA_DISASTER_API_KEY ||
     import.meta.env.VITE_GISTDA_FIRE_API_KEY ||
     import.meta.env.VITE_GISTDA_WMS_API_KEY ||
-    ''
+    DEFAULT_GISTDA_API_KEY
   );
 };
 
@@ -303,7 +305,8 @@ export const gistdaService = {
 
     if (serviceType === 'tms') {
       tileUrl = this.getTMSUrl(layerPath, options?.apiKey);
-      scheme = 'tms';
+      // GISTDA uses standard XYZ tiling order even on TMS routes
+      scheme = 'xyz';
     } else if (serviceType === 'wmts') {
       tileUrl = this.getWMTSUrl(layerPath, {
         useXYZFormat: options?.useXYZFormat ?? true,

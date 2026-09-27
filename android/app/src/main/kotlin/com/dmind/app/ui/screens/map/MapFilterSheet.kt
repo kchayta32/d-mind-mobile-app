@@ -88,8 +88,9 @@ internal fun MapFilterSheet(
                 HazardType.Earthquake in state.filter.selectedTypes -> HazardType.Earthquake
                 HazardType.Flood in state.filter.selectedTypes -> HazardType.Flood
                 HazardType.Fire in state.filter.selectedTypes -> HazardType.Fire
-                HazardType.AirQuality in state.filter.selectedTypes -> HazardType.AirQuality
+                HazardType.Drought in state.filter.selectedTypes -> HazardType.Drought
                 HazardType.Storm in state.filter.selectedTypes -> HazardType.Storm
+                HazardType.AirQuality in state.filter.selectedTypes -> HazardType.AirQuality
                 else -> HazardType.Earthquake
             }
         )
@@ -185,11 +186,19 @@ internal fun MapFilterSheet(
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp
                 )
+                val thesisHazardTypes = listOf(
+                    HazardType.Earthquake,
+                    HazardType.Flood,
+                    HazardType.Fire,
+                    HazardType.Drought,
+                    HazardType.Storm,
+                    HazardType.AirQuality,
+                )
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    HazardType.entries.filter { it != HazardType.Weather }.forEach { type ->
+                    thesisHazardTypes.forEach { type ->
                         val isSelected = type in state.filter.selectedTypes
                         FilterChip(
                             selected = isSelected,
@@ -282,13 +291,14 @@ internal fun MapFilterSheet(
                     )
                 }
 
-                // แถบเลือกสลับดูและปรับแต่งตัวกรองของประเภทภัยพิบัติต่างๆ
+                // แถบเลือกสลับดูและปรับแต่งตัวกรองของประเภทภัยพิบัติต่างๆ (6 ประเภทตามวิทยานิพนธ์)
                 val customizableTypes = listOf(
                     HazardType.Earthquake,
                     HazardType.Flood,
                     HazardType.Fire,
-                    HazardType.AirQuality,
+                    HazardType.Drought,
                     HazardType.Storm,
+                    HazardType.AirQuality,
                 )
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -401,8 +411,8 @@ internal fun MapFilterSheet(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column(Modifier.weight(1f)) {
-                                        Text("ชั้นข้อมูลพื้นที่น้ำท่วม (Flood Layer)", fontWeight = FontWeight.Medium, fontSize = 13.sp)
-                                        Text("แสดงภาพถ่ายดาวเทียม Sentinel-1/COSMO", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text("ชั้นข้อมูลพื้นที่น้ำท่วม (GISTDA Flood)", fontWeight = FontWeight.Medium, fontSize = 13.sp)
+                                        Text("แสดงขอบเขตน้ำท่วมดาวเทียม GISTDA 2.0", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     Switch(
                                         checked = state.filter.flood.showFloodLayer,
@@ -422,8 +432,71 @@ internal fun MapFilterSheet(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column(Modifier.weight(1f)) {
+                                        Text("ดาวเทียม Sentinel-1 SAR (เรดาร์ตรวจน้ำ)", fontWeight = FontWeight.Medium, fontSize = 13.sp)
+                                        Text("ภาพถ่ายเรดาร์ทะลุเมฆ Hydrography WMTS", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    Switch(
+                                        checked = state.filter.flood.showSentinel1Sar,
+                                        onCheckedChange = {
+                                            onUpdateFilter(
+                                                state.filter.copy(
+                                                    flood = state.filter.flood.copy(showSentinel1Sar = it)
+                                                )
+                                            )
+                                        },
+                                        modifier = Modifier.defaultMinSize(minHeight = 44.dp)
+                                    )
+                                }
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text("ดาวเทียม Sentinel-2 Cloudless (ภาพถ่ายสีจริง)", fontWeight = FontWeight.Medium, fontSize = 13.sp)
+                                        Text("ภาพถ่ายดาวเทียมความละเอียดสูงไร้เมฆปกคลุม", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    Switch(
+                                        checked = state.filter.flood.showSentinel2TrueColor,
+                                        onCheckedChange = {
+                                            onUpdateFilter(
+                                                state.filter.copy(
+                                                    flood = state.filter.flood.copy(showSentinel2TrueColor = it)
+                                                )
+                                            )
+                                        },
+                                        modifier = Modifier.defaultMinSize(minHeight = 44.dp)
+                                    )
+                                }
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text("รายงานน้ำท่วมจริงภาคประชาชน (Ground Truth)", fontWeight = FontWeight.Medium, fontSize = 13.sp)
+                                        Text("หมุดแจ้งเตือนระดับน้ำและกระแสน้ำภาคสนาม", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    Switch(
+                                        checked = state.filter.flood.showCitizenReports,
+                                        onCheckedChange = {
+                                            onUpdateFilter(
+                                                state.filter.copy(
+                                                    flood = state.filter.flood.copy(showCitizenReports = it)
+                                                )
+                                            )
+                                        },
+                                        modifier = Modifier.defaultMinSize(minHeight = 44.dp)
+                                    )
+                                }
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(Modifier.weight(1f)) {
                                         Text("สถานีตรวจวัดน้ำ (Water Stations)", fontWeight = FontWeight.Medium, fontSize = 13.sp)
-                                        Text("แสดงสถานีวัดระดับน้ำและอัตราการไหล", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text("แสดงสถานีวัดระดับน้ำและอัตราการไหล GloFAS", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     Switch(
                                         checked = state.filter.flood.showWaterStations,
@@ -560,6 +633,61 @@ internal fun MapFilterSheet(
                                         )
                                     }
                                 }
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text("เรดาร์ตรวจอากาศสด (RainViewer Radar)", fontWeight = FontWeight.Medium, fontSize = 13.sp)
+                                        Text("แสดงภาพเคลื่อนไหวกลุ่มเมฆฝนและพายุ", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    Switch(
+                                        checked = state.filter.storm.showRadarOverlay,
+                                        onCheckedChange = {
+                                            onUpdateFilter(
+                                                state.filter.copy(
+                                                    storm = state.filter.storm.copy(showRadarOverlay = it)
+                                                )
+                                            )
+                                        },
+                                        modifier = Modifier.defaultMinSize(minHeight = 44.dp)
+                                    )
+                                }
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text("สถานีตรวจวัดสภาพอากาศและเรดาร์ (Storm Stations)", fontWeight = FontWeight.Medium, fontSize = 13.sp)
+                                        Text("แสดงเซนเซอร์วัดปริมาณฝน ความเร็วลม และสถานีเรดาร์", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    Switch(
+                                        checked = state.filter.storm.showStormStations,
+                                        onCheckedChange = {
+                                            onUpdateFilter(
+                                                state.filter.copy(
+                                                    storm = state.filter.storm.copy(showStormStations = it)
+                                                )
+                                            )
+                                        },
+                                        modifier = Modifier.defaultMinSize(minHeight = 44.dp)
+                                    )
+                                }
+                            }
+
+                            HazardType.Drought -> {
+                                Text(
+                                    text = "ผลิตภัณฑ์ตรวจวัดภัยแล้งและความชื้น (GISTDA Drought Products)",
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 13.sp
+                                )
+                                Text(
+                                    text = "รองรับข้อมูลดาวเทียม SMAP (ความชื้นในดิน 7 วันล่าสุด), NDWI (ดัชนีความชื้นพืชพรรณ) และ DRIPlus (ดัชนีวิเคราะห์พื้นที่เสี่ยงแล้ง) โดยสามารถสลับดูชั้นข้อมูลได้จากแถบด้านล่าง",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 12.sp
+                                )
                             }
 
                             else -> {

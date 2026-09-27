@@ -90,6 +90,14 @@ object GistdaEndpointPaths {
         GistdaDroughtProduct.DriPlus -> "resources/maps/dri/7days/tms"
     }
 
+    // Copernicus Sentinel-2 True Color / Cloudless Base Imagery WMTS (10m Resolution via EOX)
+    const val SENTINEL2_CLOUDLESS_WMTS_URL: String =
+        "https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/GoogleMapsCompatible/{z}/{y}/{x}.jpg"
+
+    // Copernicus Sentinel-1 Synthetic Aperture Radar (SAR) Water Backscatter / Hydrography Layer WMTS
+    const val SENTINEL1_SAR_HYDROGRAPHY_WMTS_URL: String =
+        "https://tiles.maps.eox.at/wmts/1.0.0/hydrography_3857/default/GoogleMapsCompatible/{z}/{y}/{x}.png"
+
     // เลือกใช้พาธ WMTS หรือแผนที่ที่เหมาะสมตามชั้นข้อมูลและขอบเขตช่วงเวลา
     fun wmtsPath(
         type: DisasterLayerType,
@@ -103,6 +111,7 @@ object GistdaEndpointPaths {
     }
 
     // รูปแบบการเรียกเก็บพารามิเตอร์แผ่นภาพพิกัด (Tile Scheme)
+    // สำหรับ GISTDA API 2.0 Flood และระบบสากล ให้ใช้ "xyz" เสมอ เพื่อป้องกันปัญหาไทล์กลับด้าน
     fun tileScheme(type: DisasterLayerType, droughtProduct: GistdaDroughtProduct?): String =
         "xyz"
 }
@@ -112,6 +121,11 @@ class GistdaApi(
     private val baseUrl: String = BuildConfig.DMIND_GISTDA_BASE_URL,
     private val apiKey: String = BuildConfig.DMIND_GISTDA_API_KEY,
 ) {
+    // ลิงก์ชั้นภาพถ่ายดาวเทียม Sentinel-2 Cloudless Base Map
+    fun sentinel2CloudlessWmtsUrl(): String = GistdaEndpointPaths.SENTINEL2_CLOUDLESS_WMTS_URL
+
+    // ลิงก์ชั้นดาวเทียมเรดาร์ตรวจจับผิวน้ำ Sentinel-1 SAR Hydrography
+    fun sentinel1SarHydrographyWmtsUrl(): String = GistdaEndpointPaths.SENTINEL1_SAR_HYDROGRAPHY_WMTS_URL
     // ฟังก์ชันร้องขอพิกัดภูมิศาสตร์และรายละเอียดจุดความร้อนไฟป่า (VIIRS) ในประเทศไทย
     suspend fun getViirsFeatures(
         timeRange: GistdaTimeRange,

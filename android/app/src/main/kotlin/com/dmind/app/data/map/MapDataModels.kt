@@ -67,6 +67,111 @@ data class PlaceSearchResult(
     val state: String?,
 )
 
+// ระดับน้ำท่วมจากรายงานภาคประชาชน (Crowdsourced Ground Truth Water Levels)
+enum class CitizenWaterLevel(val label: String, val levelCmDescription: String) {
+    Ankle("ระดับข้อเท้า", "10-30 ซม."),
+    Knee("ระดับหัวเข่า", "30-50 ซม."),
+    Waist("ระดับเอว", "50-80 ซม."),
+    Chest("ระดับอก", "80-100 ซม."),
+    Critical("วิกฤติ", ">100 ซม.");
+
+    fun toDisasterSeverity(): DisasterSeverity = when (this) {
+        Critical -> DisasterSeverity.VeryHigh
+        Chest -> DisasterSeverity.High
+        Waist -> DisasterSeverity.High
+        Knee -> DisasterSeverity.Medium
+        Ankle -> DisasterSeverity.Low
+    }
+}
+
+// สภาพการไหลของน้ำ (Water Flow Dynamics)
+enum class CitizenWaterFlow(val label: String) {
+    Calm("น้ำท่วมขังนิ่ง"),
+    Flowing("น้ำไหลต่อเนื่อง"),
+    Torrential("ไหลเชี่ยวกราก (อันตรายมาก)")
+}
+
+// รายงานน้ำท่วมจริงจากประชาชนในพื้นที่ (Citizen Ground Truth Flood Report)
+data class CitizenFloodReport(
+    val id: String,
+    val latitude: Double,
+    val longitude: Double,
+    val locationName: String,
+    val waterLevel: CitizenWaterLevel,
+    val waterLevelCm: Int? = null,
+    val waterFlow: CitizenWaterFlow = CitizenWaterFlow.Flowing,
+    val situation: String,
+    val imageUrl: String? = null,
+    val reporterName: String? = null,
+    val createdAt: String,
+    val verifiedBySatellite: Boolean = false,
+    val satelliteDistanceMeters: Int? = null,
+)
+
+// ข้อมูลตัวอย่างรายงานน้ำท่วมภาคประชาชนในพื้นที่เสี่ยงอุทกภัยสำคัญของไทย (Ground Truth Basins)
+val initialCitizenFloodReports: List<CitizenFloodReport> = listOf(
+    CitizenFloodReport(
+        id = "ct-flood-01",
+        latitude = 14.3312,
+        longitude = 100.4125,
+        locationName = "ต.หัวเวียง อ.เสนา จ.พระนครศรีอยุธยา",
+        waterLevel = CitizenWaterLevel.Waist,
+        waterLevelCm = 85,
+        waterFlow = CitizenWaterFlow.Flowing,
+        situation = "แม่น้ำน้อยล้นตลิ่งท่วมใต้ถุนบ้านและถนนสายในหมู่บ้านสูงระดับเอว รถเล็กไม่สามารถผ่านได้",
+        imageUrl = "https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=600&q=80",
+        reporterName = "กิตติศักดิ์ ชุมชนริมน้ำ",
+        createdAt = "25 นาทีที่แล้ว",
+        verifiedBySatellite = true,
+        satelliteDistanceMeters = 120,
+    ),
+    CitizenFloodReport(
+        id = "ct-flood-02",
+        latitude = 17.0215,
+        longitude = 99.8241,
+        locationName = "ต.ปากแคว อ.เมือง จ.สุโขทัย",
+        waterLevel = CitizenWaterLevel.Knee,
+        waterLevelCm = 45,
+        waterFlow = CitizenWaterFlow.Flowing,
+        situation = "คันกั้นน้ำแม่น้ำยมรั่ว น้ำทะลักเข้าท่วมผิวจราจรและพื้นที่เกษตรกรรม เจ้าหน้าที่กำลังนำบิ๊กแบ็กอุดรอยรั่ว",
+        imageUrl = "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=600&q=80",
+        reporterName = "ทีมอาสากู้ภัยสุโขทัย",
+        createdAt = "48 นาทีที่แล้ว",
+        verifiedBySatellite = true,
+        satelliteDistanceMeters = 250,
+    ),
+    CitizenFloodReport(
+        id = "ct-flood-03",
+        latitude = 15.1950,
+        longitude = 104.8610,
+        locationName = "ชุมชนท่ากอไผ่ ต.วารินชำราบ จ.อุบลราชธานี",
+        waterLevel = CitizenWaterLevel.Critical,
+        waterLevelCm = 120,
+        waterFlow = CitizenWaterFlow.Torrential,
+        situation = "แม่น้ำมูลหนุนสูง ระดับน้ำท่วมชั้นล่างเกือบมิดหลังคา ชาวบ้านอพยพขึ้นศูนย์พักพิงชั่วคราวแล้ว",
+        imageUrl = "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=600&q=80",
+        reporterName = "สมศรี มั่นคง",
+        createdAt = "1.8 ชม. ที่แล้ว",
+        verifiedBySatellite = true,
+        satelliteDistanceMeters = 80,
+    ),
+    CitizenFloodReport(
+        id = "ct-flood-04",
+        latitude = 19.9100,
+        longitude = 99.8300,
+        locationName = "ต.เวียง อ.เมือง จ.เชียงราย",
+        waterLevel = CitizenWaterLevel.Knee,
+        waterLevelCm = 50,
+        waterFlow = CitizenWaterFlow.Flowing,
+        situation = "น้ำสายหลากเข้าท่วมตลาดสายลมจอย ดินโคลนทับถม สูงประมาณหัวเข่า ต้องการจิตอาสาช่วยตักดิน",
+        imageUrl = "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=600&q=80",
+        reporterName = "ชาวบ้านแม่สายร่วมใจ",
+        createdAt = "15 นาทีที่แล้ว",
+        verifiedBySatellite = false,
+        satelliteDistanceMeters = 450,
+    ),
+)
+
 // คลาสเก็บข้อมูล Snapshot ของภัยพิบัติทุกประเภท ณ เวลาปัจจุบัน พร้อมฟังก์ชันกรองแบ่งตาม Layer บนแผนที่
 data class MapDataSnapshot(
     val weather: WeatherSummary? = null,
@@ -76,6 +181,7 @@ data class MapDataSnapshot(
     val floodFrequency: List<DisasterPoint> = emptyList(),
     val waterHyacinths: List<DisasterPoint> = emptyList(),
     val droughts: List<DisasterPoint> = emptyList(),
+    val citizenFloodReports: List<CitizenFloodReport> = initialCitizenFloodReports,
     val statuses: List<MapExternalSourceStatus> = emptyList(),
     val updatedAtMillis: Long = 0L,
     val isLoading: Boolean = false,

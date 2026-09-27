@@ -2,7 +2,7 @@ import React, { Suspense, useRef, useMemo, useState } from 'react';
 import Map, { NavigationControl, MapRef } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Earthquake, RainSensor, AirPollutionData, DisasterType } from './types';
+import { Earthquake, RainSensor, AirPollutionData, DisasterType, StormData } from './types';
 import { GISTDAHotspot } from './useGISTDAData';
 import { RainViewerData } from './useRainViewerData';
 import { MapLayers } from './map-components/MapLayers';
@@ -14,10 +14,13 @@ import { RadarTimelinePlayer } from './RadarTimelinePlayer';
 import { FloodDataPoint } from './hooks/useOpenMeteoFloodData';
 import { FloodFeature } from './hooks/useGISTDAFloodData';
 import { WaterHyacinthFeature } from '@/services/gistda/types';
-import { SinkholeData } from '../../hooks/useSinkholeData';
+import RainOverlay from './RainOverlay';
 import { UserLocationMarker } from './UserLocationMarker';
 import { LocationControls } from './LocationControls';
 import { MapLayerController } from './MapLayerController';
+import { SentinelFloodLegend } from './SentinelFloodLegend';
+import { CrowdsourceFloodModal } from './CrowdsourceFloodModal';
+import { useCrowdsourcedFloodReports } from './hooks/useCrowdsourcedFloodReports';
 import { getMapStyle } from './maplibre/mapStyles';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -30,7 +33,8 @@ interface MapViewProps {
   gistdaFloodFeatures: FloodFeature[];
   waterHyacinthFeatures?: WaterHyacinthFeature[];
   floodDataPoints: FloodDataPoint[];
-  sinkholes: SinkholeData[];
+  sinkholes?: any[];
+  storms?: StormData[];
   selectedType: DisasterType;
   onTypeChange?: (type: DisasterType) => void;
   magnitudeFilter: number;
@@ -67,7 +71,8 @@ export const MapView: React.FC<MapViewProps> = ({
   gistdaFloodFeatures,
   waterHyacinthFeatures = [],
   floodDataPoints,
-  sinkholes,
+  sinkholes: _sinkholes = [],
+  storms = [],
   selectedType,
   onTypeChange,
   magnitudeFilter,
@@ -99,7 +104,13 @@ export const MapView: React.FC<MapViewProps> = ({
   const [rainTimeType, setRainTimeType] = useState<'past' | 'future'>('past');
   const [showRainOverlay, setShowRainOverlay] = useState(false);
   const [showUserLocation, setShowUserLocation] = useState(false);
+  const [showSentinel2TrueColor, setShowSentinel2TrueColor] = useState(false);
+  const [showSentinel1Sar, setShowSentinel1Sar] = useState(false);
+  const [isCrowdsourceModalOpen, setIsCrowdsourceModalOpen] = useState(false);
   const mapRef = useRef<MapRef>(null);
+
+  // Crowdsourced Flood reports & verification
+  const { reports: crowdsourcedReports, addReport } = useCrowdsourcedFloodReports(gistdaFloodFeatures);
 
   // Local state fallbacks if setters are not provided
   const [localFloodTime, setLocalFloodTime] = useState<'1day' | '3days' | '7days' | '30days'>('3days');
@@ -212,6 +223,11 @@ export const MapView: React.FC<MapViewProps> = ({
           setShowFloodFrequency={activeSetFloodFreq}
           showWaterHyacinth={activeWaterHyacinth}
           setShowWaterHyacinth={activeSetWaterHyacinth}
+          showSentinel2TrueColor={showSentinel2TrueColor}
+          setShowSentinel2TrueColor={setShowSentinel2TrueColor}
+          showSentinel1Sar={showSentinel1Sar}
+          setShowSentinel1Sar={setShowSentinel1Sar}
+          onOpenCrowdsourceModal={() => setIsCrowdsourceModalOpen(true)}
           wildfireTimeFilter={activeWildfireTime}
           setWildfireTimeFilter={activeSetWildfireTime}
           showBurnFreq={activeBurnFreq}
@@ -243,12 +259,14 @@ export const MapView: React.FC<MapViewProps> = ({
         {/* User Location Marker */}
         <UserLocationMarker showLocation={showUserLocation} />
 
-        {/* Map Layers (WMS/WMTS/TMS, Rain Overlay, etc.) */}
+        {/* Map Layers (WMS/WMTS/TMS, Rain Overlay, Sentinel-1/2, etc.) */}
         <MapLayers
           selectedType={selectedType}
           droughtLayers={activeDroughtLayers}
           floodTimeFilter={activeFloodTime}
           showFloodFrequency={activeFloodFreq}
+          showSentinel2TrueColor={showSentinel2TrueColor}
+          showSentinel1Sar={showSentinel1Sar}
           showRainOverlay={showRainOverlay}
           rainData={rainData}
           rainOverlayType={rainOverlayType}
@@ -260,6 +278,16 @@ export const MapView: React.FC<MapViewProps> = ({
           tileFormat={activeTileFormat}
           layerOpacity={activeOpacity}
         />
+
+        {/* TMD Weather Radar Overlay for Storm */}
+        {selectedType === 'storm' && showRainOverlay && rainData && (
+          <RainOverlay
+            rainData={rainData}
+            overlayType={rainOverlayType}
+            timeType={rainTimeType}
+            currentFrameIndex={currentFrameIndex}
+          />
+        )}
 
         {/* High-performance GPU-clustered & Vector Map Markers */}
         {!isLoading && (
@@ -273,10 +301,28 @@ export const MapView: React.FC<MapViewProps> = ({
             waterHyacinthFeatures={waterHyacinthFeatures}
             showWaterHyacinth={activeWaterHyacinth}
             floodDataPoints={floodDataPoints}
-            sinkholes={sinkholes}
+            crowdsourcedReports={crowdsourcedReports}
+            storms={storms}
           />
         )}
       </Map>
+
+      {/* Floating Sentinel & Ground Truth Legend (Shown for Flood) */}
+      {selectedType === 'flood' && (
+        <div className="absolute bottom-6 left-4 z-20 pointer-events-auto">
+          <SentinelFloodLegend />
+        </div>
+      )}
+
+      {/* Crowdsourced Flood Reporting Modal */}
+      <CrowdsourceFloodModal
+        isOpen={isCrowdsourceModalOpen}
+        onClose={() => setIsCrowdsourceModalOpen(false)}
+        onSubmitReport={addReport}
+        onNavigateToLocation={(lat, lng) => {
+          mapRef.current?.flyTo({ center: [lng, lat], zoom: 12, duration: 1500 });
+        }}
+      />
 
       {/* Location Controls */}
       <div className="absolute top-20 right-4 z-20 flex flex-col gap-2">
@@ -286,8 +332,8 @@ export const MapView: React.FC<MapViewProps> = ({
         />
       </div>
 
-      {/* Rain controls for heavy rain type */}
-      {selectedType === 'heavyrain' && (
+      {/* Rain & Radar controls for heavy rain and storm types */}
+      {(selectedType === 'heavyrain' || selectedType === 'storm') && (
         <div className="absolute top-32 right-4 z-20">
           <MapControls
             rainData={rainData}
@@ -305,7 +351,7 @@ export const MapView: React.FC<MapViewProps> = ({
       <MapOverlays selectedType={selectedType} isLoading={isLoading} />
 
       {/* Radar Timeline Player */}
-      {selectedType === 'heavyrain' && showRainOverlay && (
+      {(selectedType === 'heavyrain' || selectedType === 'storm') && showRainOverlay && (
         <RadarTimelinePlayer
           rainData={rainData}
           currentFrameIndex={currentFrameIndex}

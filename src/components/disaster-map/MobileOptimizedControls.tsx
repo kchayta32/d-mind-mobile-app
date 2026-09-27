@@ -21,13 +21,11 @@ interface MobileOptimizedControlsProps {
 
 const DISASTER_TYPES: { type: DisasterType; label: string; icon: string; color: string; darkColor: string }[] = [
   { type: 'earthquake', label: 'แผ่นดินไหว', icon: '🌍', color: 'bg-orange-100 text-orange-700', darkColor: 'dark:bg-orange-900/50 dark:text-orange-300' },
-  { type: 'heavyrain', label: 'ฝนตกหนัก', icon: '🌧️', color: 'bg-blue-100 text-blue-700', darkColor: 'dark:bg-blue-900/50 dark:text-blue-300' },
-  { type: 'wildfire', label: 'ไฟป่า', icon: '🔥', color: 'bg-red-100 text-red-700', darkColor: 'dark:bg-red-900/50 dark:text-red-300' },
-  { type: 'airpollution', label: 'PM2.5', icon: '💨', color: 'bg-gray-100 text-gray-700', darkColor: 'dark:bg-gray-700 dark:text-gray-300' },
-  { type: 'drought', label: 'ภัยแล้ง', icon: '🌵', color: 'bg-amber-100 text-amber-700', darkColor: 'dark:bg-amber-900/50 dark:text-amber-300' },
   { type: 'flood', label: 'น้ำท่วม', icon: '🌊', color: 'bg-indigo-100 text-indigo-700', darkColor: 'dark:bg-indigo-900/50 dark:text-indigo-300' },
+  { type: 'wildfire', label: 'ไฟป่า', icon: '🔥', color: 'bg-red-100 text-red-700', darkColor: 'dark:bg-red-900/50 dark:text-red-300' },
+  { type: 'drought', label: 'ภัยแล้ง', icon: '🌵', color: 'bg-amber-100 text-amber-700', darkColor: 'dark:bg-amber-900/50 dark:text-amber-300' },
   { type: 'storm', label: 'พายุ', icon: '⛈️', color: 'bg-purple-100 text-purple-700', darkColor: 'dark:bg-purple-900/50 dark:text-purple-300' },
-  { type: 'sinkhole', label: 'แผ่นดินยุบ', icon: '📉', color: 'bg-stone-100 text-stone-700', darkColor: 'dark:bg-stone-800/50 dark:text-stone-300' },
+  { type: 'airpollution', label: 'PM2.5', icon: '💨', color: 'bg-gray-100 text-gray-700', darkColor: 'dark:bg-gray-700 dark:text-gray-300' },
 ];
 
 export const MobileOptimizedControls: React.FC<MobileOptimizedControlsProps> = ({

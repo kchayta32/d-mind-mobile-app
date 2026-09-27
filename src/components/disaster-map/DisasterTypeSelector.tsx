@@ -11,14 +11,11 @@ import {
 } from '@/components/ui/carousel';
 import {
   Activity,
-  CloudRain,
   Flame,
   Wind,
   Sun,
   Waves,
-  MapPin,
-  CloudDrizzle,
-  Mountain
+  CloudLightning
 } from 'lucide-react';
 import { DisasterType } from './types';
 
@@ -34,64 +31,49 @@ const disasterTypes: Array<{
   color: string;
   available: boolean;
 }> = [
-    {
-      type: 'earthquake',
-      label: 'แผ่นดินไหว',
-      icon: <Activity className="w-4 h-4" />,
-      color: 'bg-orange-500 hover:bg-orange-600',
-      available: true
-    },
-    {
-      type: 'heavyrain',
-      label: 'ฝนตกหนัก',
-      icon: <CloudRain className="w-4 h-4" />,
-      color: 'bg-blue-500 hover:bg-blue-600',
-      available: false
-    },
-
-    {
-      type: 'wildfire',
-      label: 'ไฟป่า',
-      icon: <Flame className="w-4 h-4" />,
-      color: 'bg-red-500 hover:bg-red-600',
-      available: true
-    },
-    {
-      type: 'airpollution',
-      label: 'มลพิษอากาศ',
-      icon: <Wind className="w-4 h-4" />,
-      color: 'bg-gray-500 hover:bg-gray-600',
-      available: true
-    },
-    {
-      type: 'drought',
-      label: 'ภัยแล้ง',
-      icon: <Sun className="w-4 h-4" />,
-      color: 'bg-yellow-500 hover:bg-yellow-600',
-      available: true
-    },
-    {
-      type: 'flood',
-      label: 'น้ำท่วม',
-      icon: <Waves className="w-4 h-4" />,
-      color: 'bg-cyan-500 hover:bg-cyan-600',
-      available: true
-    },
-    {
-      type: 'storm',
-      label: 'พายุ',
-      icon: <MapPin className="w-4 h-4" />,
-      color: 'bg-purple-500 hover:bg-purple-600',
-      available: false
-    },
-    {
-      type: 'sinkhole',
-      label: 'แผ่นดินยุบ/ดินทรุด',
-      icon: <Mountain className="w-4 h-4" />,
-      color: 'bg-amber-600 hover:bg-amber-700',
-      available: true
-    }
-  ];
+  {
+    type: 'earthquake',
+    label: 'แผ่นดินไหว',
+    icon: <Activity className="w-4 h-4" />,
+    color: 'bg-orange-500 hover:bg-orange-600',
+    available: true
+  },
+  {
+    type: 'flood',
+    label: 'น้ำท่วม',
+    icon: <Waves className="w-4 h-4" />,
+    color: 'bg-cyan-500 hover:bg-cyan-600',
+    available: true
+  },
+  {
+    type: 'wildfire',
+    label: 'ไฟป่า',
+    icon: <Flame className="w-4 h-4" />,
+    color: 'bg-red-500 hover:bg-red-600',
+    available: true
+  },
+  {
+    type: 'drought',
+    label: 'ภัยแล้ง',
+    icon: <Sun className="w-4 h-4" />,
+    color: 'bg-yellow-500 hover:bg-yellow-600',
+    available: true
+  },
+  {
+    type: 'storm',
+    label: 'พายุ',
+    icon: <CloudLightning className="w-4 h-4" />,
+    color: 'bg-purple-500 hover:bg-purple-600',
+    available: true
+  },
+  {
+    type: 'airpollution',
+    label: 'มลพิษอากาศ / PM2.5',
+    icon: <Wind className="w-4 h-4" />,
+    color: 'bg-gray-500 hover:bg-gray-600',
+    available: true
+  }
+];
 
 const DisasterTypeSelector: React.FC<DisasterTypeSelectorProps> = ({
   selectedType,

@@ -121,8 +121,22 @@ const EarthquakeMarkerComponent: React.FC<EarthquakeMarkerProps> = ({ earthquake
           </div>
         )}
 
+        {earthquake.tsunamiAlert && (
+          <div className="bg-red-50 border border-red-200 p-2 rounded-lg flex items-center gap-2 text-red-700 font-bold text-xs animate-pulse">
+            <span className="text-base">🌊</span>
+            <span>คำเตือนระวังคลื่นสึนามิ (Tsunami Alert)</span>
+          </div>
+        )}
+
+        {earthquake.source && (
+          <div className="flex items-center justify-between text-[11px] text-gray-500 pt-1 border-t">
+            <span>แหล่งข้อมูล:</span>
+            <span className="font-semibold text-gray-700">{earthquake.source}</span>
+          </div>
+        )}
+
         {earthquake.url && (
-          <div className="mt-3 pt-2 border-t">
+          <div className="mt-2 pt-2 border-t">
             <a
               href={earthquake.url}
               target="_blank"

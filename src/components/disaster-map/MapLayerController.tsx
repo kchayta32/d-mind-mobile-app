@@ -30,6 +30,11 @@ interface MapLayerControllerProps {
   setShowFloodFrequency: (show: boolean) => void;
   showWaterHyacinth: boolean;
   setShowWaterHyacinth: (show: boolean) => void;
+  showSentinel2TrueColor?: boolean;
+  setShowSentinel2TrueColor?: (show: boolean) => void;
+  showSentinel1Sar?: boolean;
+  setShowSentinel1Sar?: (show: boolean) => void;
+  onOpenCrowdsourceModal?: () => void;
   // Wildfire props
   wildfireTimeFilter: string;
   setWildfireTimeFilter: (filter: '1day' | '3days' | '7days' | '30days') => void;
@@ -56,6 +61,11 @@ export const MapLayerController: React.FC<MapLayerControllerProps> = ({
   setShowFloodFrequency,
   showWaterHyacinth,
   setShowWaterHyacinth,
+  showSentinel2TrueColor = false,
+  setShowSentinel2TrueColor,
+  showSentinel1Sar = false,
+  setShowSentinel1Sar,
+  onOpenCrowdsourceModal,
   wildfireTimeFilter,
   setWildfireTimeFilter,
   showBurnFreq,
@@ -225,6 +235,45 @@ export const MapLayerController: React.FC<MapLayerControllerProps> = ({
                       onCheckedChange={setShowWaterHyacinth}
                     />
                   </div>
+
+                  {/* Copernicus Sentinel Overlays */}
+                  {setShowSentinel2TrueColor && (
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800">
+                      <span className="text-[11px] text-slate-600 dark:text-slate-300">
+                        Sentinel-2 สีธรรมชาติ 10m (EOX)
+                      </span>
+                      <Switch
+                        checked={showSentinel2TrueColor}
+                        onCheckedChange={setShowSentinel2TrueColor}
+                      />
+                    </div>
+                  )}
+                  {setShowSentinel1Sar && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] text-slate-600 dark:text-slate-300">
+                        Sentinel-1 เรดาร์ผิวน้ำ (SAR)
+                      </span>
+                      <Switch
+                        checked={showSentinel1Sar}
+                        onCheckedChange={setShowSentinel1Sar}
+                      />
+                    </div>
+                  )}
+
+                  {/* Crowdsourced Flood Report Button */}
+                  {onOpenCrowdsourceModal && (
+                    <div className="pt-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={onOpenCrowdsourceModal}
+                        className="w-full h-7 text-[11px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg shadow-xs flex items-center justify-center gap-1.5"
+                      >
+                        <span>📢</span>
+                        <span>แจ้งรายงานน้ำท่วม (ภาคประชาชน)</span>
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

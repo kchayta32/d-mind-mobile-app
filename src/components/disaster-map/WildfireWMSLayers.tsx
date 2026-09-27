@@ -1,6 +1,6 @@
 import React from 'react';
 import { Source, Layer } from 'react-map-gl/maplibre';
-import { getGistdaApiKey } from '@/services/gistda/gistdaService';
+import { getGistdaApiKey, DEFAULT_GISTDA_API_KEY } from '@/services/gistda/gistdaService';
 import { VIIRSTimeframe } from '@/services/gistda/types';
 
 interface WildfireWMSLayersProps {
@@ -18,12 +18,12 @@ const WildfireWMSLayers: React.FC<WildfireWMSLayersProps> = ({
   opacity = 0.7,
   tileFormat = 'wmts'
 }) => {
-  const apiKey = getGistdaApiKey();
+  const apiKey = getGistdaApiKey() || DEFAULT_GISTDA_API_KEY;
   const validTimeframe = (['1day', '3days', '7days', '30days'].includes(timeFilter)
     ? timeFilter
     : '1day') as VIIRSTimeframe;
 
-  // VIIRS Hotspot raster tiles
+  // VIIRS Hotspot raster tiles (GISTDA API 2.0)
   const viirsTileUrl = React.useMemo(() => {
     if (!timeFilter) return null;
     if (tileFormat === 'tms') {
@@ -32,7 +32,7 @@ const WildfireWMSLayers: React.FC<WildfireWMSLayersProps> = ({
     return `https://api-gateway.gistda.or.th/api/2.0/resources/maps/viirs/${validTimeframe}/wmts/{z}/{x}/{y}.png?api_key=${apiKey}`;
   }, [validTimeframe, tileFormat, apiKey, timeFilter]);
 
-  // Burn Frequency raster tiles
+  // Burn Frequency raster tiles (GISTDA API 2.0)
   const burnFreqTileUrl = React.useMemo(() => {
     if (!showBurnFreq) return null;
     if (tileFormat === 'tms') {
@@ -41,7 +41,7 @@ const WildfireWMSLayers: React.FC<WildfireWMSLayersProps> = ({
     return `https://api-gateway.gistda.or.th/api/2.0/resources/maps/burn-freq/wmts/{z}/{x}/{y}.png?api_key=${apiKey}`;
   }, [showBurnFreq, tileFormat, apiKey]);
 
-  // Burn Scar (weekly) raster tiles
+  // Burn Scar (weekly) raster tiles (GISTDA API 2.0)
   const burnScarTileUrl = React.useMemo(() => {
     if (!showBurnScar) return null;
     if (tileFormat === 'tms') {
@@ -52,13 +52,15 @@ const WildfireWMSLayers: React.FC<WildfireWMSLayersProps> = ({
 
   return (
     <>
-      {/* VIIRS Hotspots raster layer */}
+      {/* 1. VIIRS Hotspots raster layer */}
       {viirsTileUrl && (
         <Source
           id={`viirs-raster-${validTimeframe}-${tileFormat}`}
           type="raster"
           tiles={[viirsTileUrl]}
           tileSize={256}
+          scheme="xyz"
+          attribution="GISTDA VIIRS Active Fire Hotspots"
         >
           <Layer
             id={`viirs-raster-layer-${validTimeframe}`}
@@ -71,13 +73,15 @@ const WildfireWMSLayers: React.FC<WildfireWMSLayersProps> = ({
         </Source>
       )}
 
-      {/* Burn frequency raster layer */}
+      {/* 2. Burn frequency raster layer (พื้นที่เผาไหม้ซ้ำซาก 10 ปี) */}
       {burnFreqTileUrl && (
         <Source
           id={`burn-freq-raster-${tileFormat}`}
           type="raster"
           tiles={[burnFreqTileUrl]}
           tileSize={256}
+          scheme="xyz"
+          attribution="GISTDA Burn Frequency Historical Statistics"
         >
           <Layer
             id="burn-freq-raster-layer"
@@ -90,13 +94,15 @@ const WildfireWMSLayers: React.FC<WildfireWMSLayersProps> = ({
         </Source>
       )}
 
-      {/* Burn scar raster layer */}
+      {/* 3. Burn scar raster layer (ร่องรอยเผาไหม้รายสัปดาห์) */}
       {burnScarTileUrl && (
         <Source
           id={`burn-scar-raster-${tileFormat}`}
           type="raster"
           tiles={[burnScarTileUrl]}
           tileSize={256}
+          scheme="xyz"
+          attribution="GISTDA Weekly Burn Scar Detection"
         >
           <Layer
             id="burn-scar-raster-layer"

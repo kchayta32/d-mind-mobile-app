@@ -1,4 +1,4 @@
-import { DisasterType } from '../types';
+import { DisasterType, StormData, StormStats } from '../types';
 import { useEarthquakeData } from '../useEarthquakeData';
 import { useRainSensorData } from '../useRainSensorData';
 import { useGISTDAData } from '../useGISTDAData';
@@ -8,6 +8,7 @@ import { useDroughtData } from './useDroughtData';
 import { useFloodStatistics, useFloodData } from './useFloodData';
 import { useGISTDAFloodData, useWaterHyacinthData } from './useGISTDAFloodData';
 import { useOpenMeteoFloodData } from './useOpenMeteoFloodData';
+import { useStormData } from './useStormData';
 import {
   EarthquakeStats,
   RainSensorStats,
@@ -38,6 +39,7 @@ export const useDisasterMapData = (
   const { data: waterHyacinthData } = useWaterHyacinthData();
   const { data: floodStats, isLoading: isLoadingFlood } = useFloodStatistics();
   const { data: floodDataPoints, isLoading: isLoadingOpenMeteoFlood } = useOpenMeteoFloodData();
+  const { storms, stats: stormStats, isLoading: isLoadingStorms } = useStormData();
 
   // Enhanced rain stats with RainViewer data
   const enhancedRainStats = rainData ? {
@@ -53,7 +55,7 @@ export const useDisasterMapData = (
   // Get current stats and loading state
   const getCurrentStats = (
     selectedType: DisasterType
-  ): EarthquakeStats | StatisticsWithRainViewer | WildfireStats | AirPollutionStats | DroughtStats | FloodStats | SinkholeStats | null => {
+  ): EarthquakeStats | StatisticsWithRainViewer | WildfireStats | AirPollutionStats | DroughtStats | FloodStats | StormStats | SinkholeStats | null => {
     switch (selectedType) {
       case 'earthquake':
         return earthquakeStats;
@@ -67,6 +69,8 @@ export const useDisasterMapData = (
         return droughtStats;
       case 'flood':
         return floodStats;
+      case 'storm':
+        return stormStats;
       case 'sinkhole':
         return null;
       default:
@@ -88,6 +92,8 @@ export const useDisasterMapData = (
         return isLoadingDrought;
       case 'flood':
         return isLoadingFlood || isLoadingOpenMeteoFlood || isLoadingGISTDAFlood;
+      case 'storm':
+        return isLoadingStorms;
       case 'sinkhole':
         return false;
       default:
@@ -104,6 +110,8 @@ export const useDisasterMapData = (
     gistdaFloodFeatures: gistdaFloodData?.features || [],
     waterHyacinthFeatures: waterHyacinthData?.features || [],
     floodDataPoints: floodDataPoints || [],
+    storms,
+    stormStats,
     wildfireStats,
     airStats,
     droughtStats,

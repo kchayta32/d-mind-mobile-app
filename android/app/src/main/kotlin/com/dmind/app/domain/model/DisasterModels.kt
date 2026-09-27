@@ -164,6 +164,9 @@ data class FloodFilterConfig(
     val timeRange: GistdaTimeRange = GistdaTimeRange.OneDay,
     val showFloodLayer: Boolean = true,
     val showWaterStations: Boolean = true,
+    val showSentinel2TrueColor: Boolean = false,
+    val showSentinel1Sar: Boolean = true,
+    val showCitizenReports: Boolean = true,
 )
 
 // ตัวเลือกแหล่งที่มาดาวเทียมจุดความร้อนไฟป่า
@@ -210,6 +213,8 @@ enum class StormRainIntensity(val label: String, val minRainMm: Double) {
 // โครงสร้างตัวกรองเฉพาะพายุ
 data class StormFilterConfig(
     val rainIntensity: StormRainIntensity = StormRainIntensity.All,
+    val showRadarOverlay: Boolean = true,
+    val showStormStations: Boolean = true,
 )
 
 // โครงสร้างการกรองสำหรับการค้นหาหรือการคัดเลือกข้อมูลภัยพิบัติบน UI
@@ -227,14 +232,14 @@ data class DisasterFilter(
     val activeFilterCount: Int
         get() {
             var count = 0
-            if (selectedTypes.size != defaultHazardTypes.size) count++
+            if (selectedTypes != defaultHazardTypes) count++
             if (minimumSeverity != Severity.Normal) count++
             if (!showStations) count++
             if (earthquake.minMagnitude != EarthquakeMagnitudeFilter.All || earthquake.depth != EarthquakeDepthFilter.All) count++
-            if (flood.timeRange != GistdaTimeRange.OneDay || !flood.showFloodLayer || !flood.showWaterStations) count++
+            if (flood.timeRange != GistdaTimeRange.OneDay || !flood.showFloodLayer || !flood.showWaterStations || flood.showSentinel2TrueColor || !flood.showSentinel1Sar || !flood.showCitizenReports) count++
             if (wildfire.timeRange != GistdaTimeRange.OneDay || wildfire.satelliteSource != WildfireSatelliteSource.All || wildfire.confidence != WildfireConfidenceFilter.All) count++
             if (airQuality.threshold != AirQualityThreshold.All) count++
-            if (storm.rainIntensity != StormRainIntensity.All) count++
+            if (storm.rainIntensity != StormRainIntensity.All || !storm.showRadarOverlay || !storm.showStormStations) count++
             return count
         }
 
@@ -303,16 +308,14 @@ data class DisasterFilter(
             return match?.groupValues?.get(1)?.toDoubleOrNull()
         }
 
-        // ประเภทภัยพิบัติเริ่มต้นทั้งหมดที่กำหนดให้ตรวจสอบโดยไม่มีการปิด
+        // ประเภทภัยพิบัติเริ่มต้นทั้งหมด 6 ประเภทตามขอบเขตงานวิจัย (Strict Thesis Scope)
         val defaultHazardTypes = setOf(
             HazardType.Earthquake,
             HazardType.Flood,
             HazardType.Storm,
             HazardType.Fire,
             HazardType.AirQuality,
-            HazardType.Heat,
             HazardType.Drought,
-            HazardType.Other,
         )
     }
 }

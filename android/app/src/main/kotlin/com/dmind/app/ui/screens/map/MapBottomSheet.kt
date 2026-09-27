@@ -1,5 +1,7 @@
 package com.dmind.app.ui.screens.map
 
+import com.dmind.app.data.map.CitizenFloodReport
+import com.dmind.app.data.map.CitizenWaterLevel
 import com.dmind.app.util.ExternalIntents
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -205,11 +207,12 @@ internal fun MapBottomSheetContent(
                 }
                 state.selectedViirsHotspot != null -> ViirsDetailCard(state.selectedViirsHotspot, onClearSelection)
                 state.selectedFloodArea != null -> FloodDetailCard(state.selectedFloodArea, onClearSelection)
+                state.selectedCitizenFloodReport != null -> CitizenFloodReportDetailCard(state.selectedCitizenFloodReport, onClearSelection)
                 state.selectedEvent != null -> {
                     when (state.selectedEvent.type) {
                         HazardType.Earthquake -> EarthquakeDetailCard(state.selectedEvent, onClearSelection)
                         HazardType.AirQuality -> AirQualityDetailCard(state.selectedEvent, onClearSelection)
-                        HazardType.Storm, HazardType.Heat, HazardType.Weather -> StormDetailCard(state.selectedEvent, onClearSelection)
+                        HazardType.Storm -> StormDetailCard(state.selectedEvent, onClearSelection)
                         HazardType.Drought -> DroughtDetailCard(state.selectedEvent, onClearSelection)
                         else -> EventDetailCard(state.selectedEvent, onClearSelection)
                     }
@@ -674,7 +677,6 @@ private fun StormDetailCard(
     val wind = parts.getOrNull(2) ?: "-"
 
     val emoji = when {
-        event.title.contains("ร้อน") || event.type == HazardType.Heat -> "🥵☀️"
         event.title.contains("พายุ") || event.type == HazardType.Storm -> "⛈️🌪️"
         else -> "🌦️"
     }
@@ -873,6 +875,99 @@ private fun FloodDetailCard(
             if (floodArea.timeRange == GistdaTimeRange.FloodFrequency) floodArea.frequencyBucket.label else floodArea.severity.localizedLabel(),
             if (floodArea.timeRange == GistdaTimeRange.FloodFrequency) floodArea.frequencyBucket.color() else floodArea.severity.color(),
         )
+    }
+}
+
+// การ์ดแสดงผลข้อมูลรายงานน้ำท่วมจริงภาคประชาชน (Crowdsourced Citizen Flood Ground Truth)
+@Composable
+private fun CitizenFloodReportDetailCard(
+    report: CitizenFloodReport,
+    onClearSelection: () -> Unit,
+) {
+    val levelLabel = when (report.waterLevel) {
+        CitizenWaterLevel.Ankle -> "ระดับข้อเท้า (10-30 ซม.)"
+        CitizenWaterLevel.Knee -> "ระดับหัวเข่า (30-50 ซม.)"
+        CitizenWaterLevel.Waist -> "ระดับเอว (50-80 ซม.)"
+        CitizenWaterLevel.Chest -> "ระดับอก (80-100 ซม.)"
+        CitizenWaterLevel.Critical -> "วิกฤติ (>100 ซม.)"
+    }
+    val severityColor = report.waterLevel.toDomainSeverity().color()
+
+    DmindCard(contentPadding = PaddingValues(16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconBubble(
+                Icons.Filled.WaterDrop,
+                severityColor,
+            )
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    "รายงานน้ำท่วมจริงโดยประชาชน (Ground Truth)",
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 13.sp,
+                )
+                Text(report.locationName, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                Text(report.situation, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
+            IconButton(onClick = onClearSelection) {
+                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.btn_close))
+            }
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1.2f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(severityColor.copy(alpha = 0.08f))
+                    .padding(12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("ระดับน้ำท่วมขัง", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("${report.waterLevel.label} (${report.waterLevelCm ?: 0} ซม.)", fontSize = 15.sp, fontWeight = FontWeight.Black, color = severityColor)
+                    Text(levelLabel, fontSize = 10.sp, color = severityColor, fontWeight = FontWeight.SemiBold)
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .padding(12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("ลักษณะการไหล", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(report.waterFlow.label, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text("กระแสน้ำ", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        DetailRow("พิกัด (Coordinates):", "${report.latitude}, ${report.longitude}")
+        DetailRow("รายงานโดย:", "${report.reporterName ?: "ประชาชนในพื้นที่"} (${report.createdAt})")
+        report.satelliteDistanceMeters?.let {
+            DetailRow("ระยะห่างคราบน้ำดาวเทียม:", "$it เมตร")
+        }
+
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            StatusPill("Citizen Ground Truth", Color(0xFF0284C7))
+            if (report.verifiedBySatellite) {
+                StatusPill("ดาวเทียม Sentinel ตรวจสอบแล้ว ✓", Color(0xFF10B981))
+            } else {
+                StatusPill("รอการตรวจสอบดาวเทียม", Color(0xFFF59E0B))
+            }
+        }
     }
 }
 
@@ -1530,13 +1625,12 @@ fun HourlyTemperatureTrendLine(
 internal fun DisasterMapUiState.activeEvents(): List<DisasterEvent> {
     return when (activeLayer) {
         DisasterLayerType.Earthquake -> visibleEvents.filter { it.type == com.dmind.app.domain.model.HazardType.Earthquake }
-        DisasterLayerType.Storm -> visibleEvents.filter { it.type == com.dmind.app.domain.model.HazardType.Storm || it.type == com.dmind.app.domain.model.HazardType.Heat }
+        DisasterLayerType.Storm -> visibleEvents.filter { it.type == com.dmind.app.domain.model.HazardType.Storm }
         DisasterLayerType.AirQuality -> visibleEvents.filter { it.type == com.dmind.app.domain.model.HazardType.AirQuality }
         DisasterLayerType.Flood -> visibleEvents.filter { it.type == com.dmind.app.domain.model.HazardType.Flood }
         DisasterLayerType.WildfireViirs -> visibleEvents.filter { it.type == com.dmind.app.domain.model.HazardType.Fire }
-        DisasterLayerType.Stations,
-        DisasterLayerType.DroughtSmap,
-        -> emptyList()
+        DisasterLayerType.DroughtSmap -> visibleEvents.filter { it.type == com.dmind.app.domain.model.HazardType.Drought }
+        DisasterLayerType.Stations -> emptyList()
     }
 }
 

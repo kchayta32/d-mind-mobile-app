@@ -47,7 +47,38 @@ internal data class MapMarkerItem(
     val isStation: Boolean = false,
     val viirsBucket: ViirsTimeBucket? = null,
     val floodFrequencyBucket: FloodFrequencyBucket? = null,
+    val citizenReport: com.dmind.app.data.map.CitizenFloodReport? = null,
+    val isCitizenReport: Boolean = false,
 )
+
+internal fun com.dmind.app.data.map.CitizenWaterLevel.toDomainSeverity(): Severity = when (this) {
+    com.dmind.app.data.map.CitizenWaterLevel.Critical -> Severity.Critical
+    com.dmind.app.data.map.CitizenWaterLevel.Chest -> Severity.Affected
+    com.dmind.app.data.map.CitizenWaterLevel.Waist -> Severity.Affected
+    com.dmind.app.data.map.CitizenWaterLevel.Knee -> Severity.Watch
+    com.dmind.app.data.map.CitizenWaterLevel.Ankle -> Severity.Watch
+}
+
+internal fun com.dmind.app.data.map.CitizenFloodReport.toMarkerItem(): MapMarkerItem {
+    val verifiedBadge = if (verifiedBySatellite) "✅ ยืนยันตรงกับดาวเทียม Sentinel-1/2" else "⚡ รายงานสดจากพื้นที่ (Ground Truth)"
+    val snip = "ระดับน้ำ: ${waterLevel.label} (${waterLevelCm ?: 0} ซม.) • ${waterFlow.label} | $verifiedBadge | $situation"
+    return MapMarkerItem(
+        id = id,
+        latitude = latitude,
+        longitude = longitude,
+        title = "รายงานน้ำท่วม: $locationName",
+        snippet = snip,
+        severity = waterLevel.toDomainSeverity(),
+        type = HazardType.Flood,
+        count = 1,
+        event = null,
+        station = null,
+        hotspot = null,
+        floodArea = null,
+        citizenReport = this,
+        isCitizenReport = true,
+    )
+}
 
 // คลาสข้อมูลเก็บรหัสเหตุการณ์การซูมและควบคุมแผนที่
 internal data class MapCameraAction(

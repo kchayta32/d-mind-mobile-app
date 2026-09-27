@@ -71,6 +71,8 @@ data class DisasterMapUiState(
     val isWeatherLoading: Boolean = false,
     val soilMoistureGeoJson: String? = null,
     val riverDischargeGeoJson: String? = null,
+    val citizenFloodReports: List<com.dmind.app.data.map.CitizenFloodReport> = com.dmind.app.data.map.initialCitizenFloodReports,
+    val selectedCitizenFloodReport: com.dmind.app.data.map.CitizenFloodReport? = null,
 ) {
     val visibleEvents: List<DisasterEvent>
         get() = snapshot.events.filter { event -> filter.accepts(event) }
@@ -242,25 +244,28 @@ class DisasterMapViewModel(
         }
     }
 
-    // เลือกและอัปเดตฟีเจอร์ของเลเยอร์เหตุการณ์เฉพาะ (VIIRS หรือพื้นที่น้ำท่วม)
+    // เลือกและอัปเดตฟีเจอร์ของเลเยอร์เหตุการณ์เฉพาะ (VIIRS, พื้นที่น้ำท่วม, หรือรายงานภาคประชาชน)
     fun selectLayerFeature(
         event: DisasterEvent? = null,
         viirsHotspot: ViirsHotspot? = null,
         floodArea: FloodArea? = null,
+        citizenFloodReport: com.dmind.app.data.map.CitizenFloodReport? = null,
     ) {
         _state.update {
             it.copy(
                 selectedEvent = event,
                 selectedViirsHotspot = viirsHotspot,
                 selectedFloodArea = floodArea,
+                selectedCitizenFloodReport = citizenFloodReport,
                 selectedWeatherInfo = null,
             )
         }
     }
 
-    // เลือกและเปลี่ยนเลเยอร์ข้อมูลแผนที่ปัจจุบัน (เช่น เลเยอร์ไฟป่า VIIRS เลเยอร์น้ำท่วม เลเยอร์ภัยแล้ง)
+    // เลือกและเปลี่ยนเลเยอร์ข้อมูลแผนที่ปัจจุบัน (เช่น เลเยอร์ไฟป่า VIIRS เลเยอร์น้ำท่วม เลเยอร์ภัยแล้ง เลเยอร์พายุ)
     fun selectLayer(layer: DisasterLayerType) {
         val nextRange = validRangeForLayer(layer, _state.value.layerTimeRange)
+        val shouldShowRadar = (layer == DisasterLayerType.Storm)
         _state.update {
             it.copy(
                 activeLayer = layer,
@@ -268,8 +273,10 @@ class DisasterMapViewModel(
                 selectedEvent = null,
                 selectedViirsHotspot = null,
                 selectedFloodArea = null,
+                selectedCitizenFloodReport = null,
                 selectedWeatherInfo = null,
                 layerError = null,
+                showRadarOverlay = shouldShowRadar,
             )
         }
         refreshActiveLayer()

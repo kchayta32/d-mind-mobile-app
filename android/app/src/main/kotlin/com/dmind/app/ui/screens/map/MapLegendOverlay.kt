@@ -2,6 +2,7 @@ package com.dmind.app.ui.screens.map
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -100,6 +101,9 @@ internal fun DraggableLegendOverlay(
                 DisasterLayerType.WildfireViirs -> ViirsLegendContent()
                 DisasterLayerType.DroughtSmap -> DroughtLegendContent(droughtProduct)
                 DisasterLayerType.Flood -> FloodLegendContent(floodTimeRange)
+                DisasterLayerType.Earthquake -> EarthquakeLegendContent()
+                DisasterLayerType.Storm -> StormLegendContent()
+                DisasterLayerType.AirQuality -> AirQualityLegendContent()
                 else -> GenericLegendContent()
             }
         }
@@ -181,7 +185,7 @@ private fun DroughtLegendContent(
     }
 }
 
-// ข้อมูลคำอธิบายสำหรับพื้นที่น้ำท่วม แยกตามระดับความรุนแรงหรือความถี่
+// ข้อมูลคำอธิบายสำหรับพื้นที่น้ำท่วม สัญลักษณ์ดาวเทียม Sentinel และข้อมูลประชาชน
 @Composable
 private fun FloodLegendContent(
     timeRange: GistdaTimeRange,
@@ -191,7 +195,68 @@ private fun FloodLegendContent(
         FloodFrequencyLegendContent(modifier)
         return
     }
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text("สัญลักษณ์ดาวเทียม Sentinel & อุทกภัย", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
+
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            // 1. Sentinel-1 SAR / GISTDA
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color(0xFF0284C7).copy(alpha = 0.7f))
+                        .border(1.dp, Color(0xFF0369A1), RoundedCornerShape(4.dp))
+                )
+                Text("พื้นที่น้ำท่วมสด (Sentinel-1 SAR / GISTDA)", fontSize = 12.sp)
+            }
+            // 2. Sentinel-2 True Color
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color(0xFF10B981).copy(alpha = 0.7f))
+                        .border(1.dp, Color(0xFF059669), RoundedCornerShape(4.dp))
+                )
+                Text("ภาพถ่ายสีจริงไร้เมฆ (Sentinel-2 Cloudless)", fontSize = 12.sp)
+            }
+            // 3. Historical Flood Frequency
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color(0xFFF59E0B).copy(alpha = 0.7f))
+                        .border(1.dp, Color(0xFFD97706), RoundedCornerShape(4.dp))
+                )
+                Text("พื้นที่น้ำท่วมซ้ำซาก (สถิติ 1-12 ครั้ง)", fontSize = 12.sp)
+            }
+            // 4. Crowdsourced Citizen Flood Ground Truth
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF10B981))
+                        .border(1.5.dp, Color.White, CircleShape)
+                )
+                Text("จุดยืนยันน้ำท่วมจริงโดยประชาชน (Ground Truth)", fontSize = 12.sp)
+            }
+            // 5. Water Stations
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF2563EB))
+                        .border(1.5.dp, Color.White, CircleShape)
+                )
+                Text("สถานีตรวจวัดน้ำและอัตราไหล (GloFAS)", fontSize = 12.sp)
+            }
+        }
+
+        Spacer(Modifier.height(4.dp))
         Text(stringResource(R.string.map_flood_impact_level), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
         SeverityLegend()
     }
@@ -225,6 +290,124 @@ private fun FloodFrequencyLegendContent(modifier: Modifier = Modifier) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(stringResource(R.string.map_less_than_once), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
             Text(stringResource(R.string.map_more_than_12_times), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
+        }
+    }
+}
+
+// ข้อมูลคำอธิบายสำหรับแผ่นดินไหว และการแพร่กระจายคลื่นไหวสะเทือน
+@Composable
+private fun EarthquakeLegendContent(modifier: Modifier = Modifier) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("สัญลักษณ์แผ่นดินไหว & การแพร่คลื่น", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFEF4444))
+                        .border(1.5.dp, Color.White, CircleShape)
+                )
+                Text("จุดศูนย์กลางแผ่นดินไหว (Epicenter)", fontSize = 12.sp)
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF06B6D4).copy(alpha = 0.25f))
+                        .border(2.dp, Color(0xFF06B6D4), CircleShape)
+                )
+                Column {
+                    Text("คลื่นปฐมภูมิ P-Wave (~6.0 km/s)", fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    Text("คลื่นอัดตัวความเร็วสูง เดินทางถึงก่อน", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFF43F5E).copy(alpha = 0.25f))
+                        .border(2.dp, Color(0xFFF43F5E), CircleShape)
+                )
+                Column {
+                    Text("คลื่นทุติยภูมิ S-Wave (~3.5 km/s)", fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    Text("คลื่นเฉือนสร้างแรงสั่นสะเทือนทำลายล้าง", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+        Spacer(Modifier.height(4.dp))
+        Text("ระดับความรุนแรงตามมาตราเมอร์คัลลี / ขนาดริกเตอร์", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+        SeverityLegend()
+    }
+}
+
+// ข้อมูลคำอธิบายสำหรับพายุ และเรดาร์ตรวจสภาพอากาศ
+@Composable
+private fun StormLegendContent(modifier: Modifier = Modifier) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("สัญลักษณ์เรดาร์ตรวจสภาพอากาศ & พายุ", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFA855F7))
+                        .border(1.5.dp, Color.White, CircleShape)
+                )
+                Text("ศูนย์กลางพายุหมุน (Cyclonic Center / พายุฟ้าคะนอง)", fontSize = 12.sp)
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Brush.horizontalGradient(listOf(Color(0xFF22C55E), Color(0xFFEAB308), Color(0xFFEF4444))))
+                )
+                Text("เรดาร์ตรวจอากาศสด RainViewer (กลุ่มเมฆฝน)", fontSize = 12.sp)
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF6366F1))
+                        .border(1.5.dp, Color.White, CircleShape)
+                )
+                Text("สถานีเรดาร์และตรวจวัดลม/ฝน TMD", fontSize = 12.sp)
+            }
+        }
+        Spacer(Modifier.height(4.dp))
+        SeverityLegend()
+    }
+}
+
+// ข้อมูลคำอธิบายสำหรับเกณฑ์คุณภาพอากาศ PM2.5
+@Composable
+private fun AirQualityLegendContent(modifier: Modifier = Modifier) {
+    val aqiBands = listOf(
+        Triple("0-15 µg/m³", "ดีมาก", Color(0xFF0284C7)),
+        Triple("15.1-25 µg/m³", "ดี", Color(0xFF10B981)),
+        Triple("25.1-37.5 µg/m³", "ปานกลาง", Color(0xFFF59E0B)),
+        Triple("37.6-75 µg/m³", "เริ่มมีผลกระทบ", Color(0xFFF97316)),
+        Triple(">75 µg/m³", "มีผลต่อสุขภาพ", Color(0xFFEF4444)),
+    )
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("เกณฑ์ดัชนีคุณภาพอากาศ PM2.5 (มาตรฐานไทย)", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            aqiBands.forEach { (range, label, color) ->
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(color)
+                    )
+                    Text("$range: $label", fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                }
+            }
         }
     }
 }

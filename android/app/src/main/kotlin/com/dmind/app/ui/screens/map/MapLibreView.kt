@@ -59,6 +59,9 @@ internal fun MapLibreTerrainView(
     activeRadarPath: String?,
     soilMoistureGeoJson: String? = null,
     riverDischargeGeoJson: String? = null,
+    showSentinel1Sar: Boolean = false,
+    showSentinel2TrueColor: Boolean = false,
+    activeLayer: DisasterLayerType = DisasterLayerType.Flood,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -87,6 +90,9 @@ internal fun MapLibreTerrainView(
                     activeRadarPath = activeRadarPath,
                     soilMoistureGeoJson = soilMoistureGeoJson,
                     riverDischargeGeoJson = riverDischargeGeoJson,
+                    showSentinel1Sar = showSentinel1Sar,
+                    showSentinel2TrueColor = showSentinel2TrueColor,
+                    activeLayer = activeLayer,
                 )))
                 map.cameraPosition = thailandCamera()
                 map.setOnMarkerClickListener { marker ->
@@ -102,7 +108,7 @@ internal fun MapLibreTerrainView(
     }
 
     // อัปเดตรูปแบบสไตล์แผนที่หรือการแสดงชั้นข้อมูลแบบไดนามิก
-    LaunchedEffect(mapLibreMap, mapStyle, overlayTileUrl, overlayTileScheme, showRadarOverlay, activeRadarPath, soilMoistureGeoJson, riverDischargeGeoJson) {
+    LaunchedEffect(mapLibreMap, mapStyle, overlayTileUrl, overlayTileScheme, showRadarOverlay, activeRadarPath, soilMoistureGeoJson, riverDischargeGeoJson, showSentinel1Sar, showSentinel2TrueColor, activeLayer) {
         val map = mapLibreMap ?: return@LaunchedEffect
         map.setStyle(Style.Builder().fromJson(mapStyleJson(
             style = mapStyle,
@@ -112,6 +118,9 @@ internal fun MapLibreTerrainView(
             activeRadarPath = activeRadarPath,
             soilMoistureGeoJson = soilMoistureGeoJson,
             riverDischargeGeoJson = riverDischargeGeoJson,
+            showSentinel1Sar = showSentinel1Sar,
+            showSentinel2TrueColor = showSentinel2TrueColor,
+            activeLayer = activeLayer,
         )))
     }
 
@@ -217,13 +226,68 @@ internal fun buildMapMarkerItems(
             } else {
                 clusterFloodAreas(state.floodAreas, text)
             }
-            floodMarkers.ifEmpty {
+            // หมุดรายงานน้ำท่วมจริงภาคประชาชน (Crowdsourced Citizen Flood Ground Truth)
+            val citizenMarkers = if (state.filter.flood.showCitizenReports) {
+                state.citizenFloodReports.map { it.toMarkerItem() }
+            } else {
+                emptyList()
+            }
+            // สถานีตรวจวัดน้ำและอัตราการไหล
+            val waterStations = if (state.filter.showStations && state.filter.flood.showWaterStations) {
+                state.visibleStations.filter { station ->
+                    station.metrics.any { metric ->
+                        metric.label.contains("น้ำ", ignoreCase = true) ||
+                        metric.label.contains("water", ignoreCase = true) ||
+                        metric.label.contains("ไหล", ignoreCase = true) ||
+                        metric.label.contains("Rain", ignoreCase = true)
+                    }
+                }.map { it.toMarkerItem() }
+            } else emptyList()
+
+            val combined = floodMarkers + citizenMarkers + waterStations
+            combined.ifEmpty {
                 clusterEvents(state.visibleEvents.filter { it.type == HazardType.Flood }, text)
             }
         }
-        DisasterLayerType.DroughtSmap -> emptyList()
+        DisasterLayerType.Storm -> {
+            val stormEvents = clusterEvents(state.activeEvents(), text)
+            val stormStations = if (state.filter.showStations && state.filter.storm.showStormStations) {
+                state.visibleStations.filter { station ->
+                    station.metrics.any { metric ->
+                        metric.label.contains("Rain", ignoreCase = true) ||
+                        metric.label.contains("Wind", ignoreCase = true) ||
+                        metric.label.contains("Wave", ignoreCase = true) ||
+                        metric.label.contains("ฝน", ignoreCase = true) ||
+                        metric.label.contains("ลม", ignoreCase = true)
+                    }
+                }.map { it.toMarkerItem() }
+            } else emptyList()
+            (stormEvents + stormStations).ifEmpty {
+                state.visibleEvents.filter { it.type == HazardType.Storm }.map { it.toMarkerItem() }
+            }
+        }
+        DisasterLayerType.Earthquake -> {
+            clusterEvents(state.activeEvents(), text)
+        }
+        DisasterLayerType.AirQuality -> {
+            val airEvents = clusterEvents(state.activeEvents(), text)
+            val airStations = if (state.filter.showStations) {
+                state.visibleStations.filter { station ->
+                    station.metrics.any { metric ->
+                        metric.label.contains("PM2.5", ignoreCase = true) ||
+                        metric.label.contains("AQI", ignoreCase = true) ||
+                        metric.label.contains("ฝุ่น", ignoreCase = true)
+                    }
+                }.map { it.toMarkerItem() }
+            } else emptyList()
+            (airEvents + airStations).ifEmpty {
+                clusterEvents(state.visibleEvents.filter { it.type == HazardType.AirQuality }, text)
+            }
+        }
+        DisasterLayerType.DroughtSmap -> {
+            clusterEvents(state.activeEvents(), text)
+        }
         DisasterLayerType.Stations -> state.visibleStations.map { it.toMarkerItem() }
-        else -> clusterEvents(state.activeEvents(), text)
     }
 }
 
@@ -378,6 +442,7 @@ private fun FloodArea.toMarkerItem(text: MapMarkerText): MapMarkerItem = MapMark
 // ฟังก์ชันวาดบิตแมปไอคอนมาร์กเกอร์แบบกำหนดเอง เช่น วาดตามระดับความรุนแรงและขนาดกลุ่ม
 private fun markerIcon(context: Context, item: MapMarkerItem): org.maplibre.android.annotations.Icon {
     val size = when {
+        item.isCitizenReport -> 56
         item.floodFrequencyBucket != null -> 20
         item.count > 1 -> 62
         item.hotspot != null -> 30
@@ -387,6 +452,46 @@ private fun markerIcon(context: Context, item: MapMarkerItem): org.maplibre.andr
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
     val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+    // หมุดรายงานน้ำท่วมจริงภาคประชาชน (Crowdsourced Citizen Flood Ground Truth)
+    if (item.isCitizenReport) {
+        val isVerified = item.citizenReport?.verifiedBySatellite == true
+        val coreColor = if (isVerified) android.graphics.Color.parseColor("#059669") else android.graphics.Color.parseColor("#0284C7")
+        val haloColor = if (isVerified) android.graphics.Color.parseColor("#34D399") else android.graphics.Color.parseColor("#38BDF8")
+
+        // 1. วงแหวนกระจายคลื่นรอบนอก (Pulsing halo)
+        paint.color = haloColor
+        paint.alpha = 75
+        canvas.drawCircle(size / 2f, size / 2f, size * 0.46f, paint)
+
+        // 2. วงแหวนกระจายคลื่นชั้นกลาง
+        paint.color = haloColor
+        paint.alpha = 150
+        canvas.drawCircle(size / 2f, size / 2f, size * 0.36f, paint)
+
+        // 3. ขอบสีขาวคมชัด
+        paint.color = android.graphics.Color.WHITE
+        paint.alpha = 255
+        canvas.drawCircle(size / 2f, size / 2f, size * 0.28f, paint)
+
+        // 4. วงกลมหลักสีมรกต/น้ำเงินทะเล (Emerald / Ocean Badge Core)
+        paint.color = coreColor
+        canvas.drawCircle(size / 2f, size / 2f, size * 0.23f, paint)
+
+        // 5. สัญลักษณ์กลางหมุด (✓ หรือ 🌊)
+        paint.color = android.graphics.Color.WHITE
+        paint.textAlign = Paint.Align.CENTER
+        paint.textSize = 14f
+        paint.isFakeBoldText = true
+        val textY = size / 2f - (paint.descent() + paint.ascent()) / 2f
+        if (isVerified) {
+            canvas.drawText("✓", size / 2f, textY, paint)
+        } else {
+            canvas.drawText("🌊", size / 2f, textY, paint)
+        }
+        return IconFactory.getInstance(context).fromBitmap(bitmap)
+    }
+
     val color = when {
         item.floodFrequencyBucket != null -> item.floodFrequencyBucket.color()
         item.hotspot != null -> item.viirsBucket?.color() ?: ViirsTimeBucket.MoreThanTwentyFour.color()
@@ -463,15 +568,63 @@ private fun mapStyleJson(
     activeRadarPath: String?,
     soilMoistureGeoJson: String? = null,
     riverDischargeGeoJson: String? = null,
+    showSentinel1Sar: Boolean = false,
+    showSentinel2TrueColor: Boolean = false,
+    activeLayer: DisasterLayerType = DisasterLayerType.Flood,
 ): String {
+    val isFlood = activeLayer == DisasterLayerType.Flood || wmtsLayer?.type == DisasterLayerType.Flood
     val overlayTile = wmtsLayer?.tileUrl?.replace("\\", "\\\\")?.replace("\"", "\\\"")
-    val overlayScheme = wmtsLayer?.tileScheme ?: "xyz"
+    // สำหรับ GISTDA API 2.0 Flood Tiles บังคับ scheme เป็น "xyz" เสมอ ไม่ให้แผ่นภาพกลับด้าน
+    val overlayScheme = if (isFlood) "xyz" else (wmtsLayer?.tileScheme ?: "xyz")
     val overlayOpacity = when {
         wmtsLayer?.type == DisasterLayerType.Flood && wmtsLayer.timeRange == GistdaTimeRange.FloodFrequency -> 0.82
         wmtsLayer?.type == DisasterLayerType.Flood -> 0.76
         wmtsLayer?.type == DisasterLayerType.DroughtSmap -> 0.72
         else -> 0.62
     }
+
+    // 0. Copernicus Sentinel-2 True Color / Cloudless Base Imagery WMTS (10m Resolution via EOX)
+    val sentinel2Source = if (isFlood && showSentinel2TrueColor) {
+        """,
+    "sentinel2-overlay": {
+      "type": "raster",
+      "tiles": ["${com.dmind.app.network.api.GistdaEndpointPaths.SENTINEL2_CLOUDLESS_WMTS_URL}"],
+      "tileSize": 256,
+      "attribution": "Sentinel-2 cloudless by EOX"
+    }"""
+    } else ""
+
+    val sentinel2Layer = if (isFlood && showSentinel2TrueColor) {
+        """,
+    {
+      "id": "sentinel2-overlay",
+      "type": "raster",
+      "source": "sentinel2-overlay",
+      "paint": { "raster-opacity": 0.88 }
+    }"""
+    } else ""
+
+    // 0.1 Copernicus Sentinel-1 Synthetic Aperture Radar (SAR) Water Backscatter / Hydrography Layer WMTS
+    val sentinel1SarSource = if (isFlood && showSentinel1Sar) {
+        """,
+    "sentinel1-sar-overlay": {
+      "type": "raster",
+      "tiles": ["${com.dmind.app.network.api.GistdaEndpointPaths.SENTINEL1_SAR_HYDROGRAPHY_WMTS_URL}"],
+      "tileSize": 256,
+      "attribution": "Copernicus Sentinel-1 SAR Hydrography"
+    }"""
+    } else ""
+
+    val sentinel1SarLayer = if (isFlood && showSentinel1Sar) {
+        """,
+    {
+      "id": "sentinel1-sar-overlay",
+      "type": "raster",
+      "source": "sentinel1-sar-overlay",
+      "paint": { "raster-opacity": 0.72 }
+    }"""
+    } else ""
+
     val overlaySource = if (overlayTile != null) {
         """,
     "gistda-overlay": {
@@ -526,11 +679,6 @@ private fun mapStyleJson(
         ""
     }
 
-    val soilMoistureSource = ""
-    val soilMoistureLayer = ""
-    val riverDischargeSource = ""
-    val riverDischargeLayer = ""
-
     return """
 {
   "version": 8,
@@ -540,18 +688,19 @@ private fun mapStyleJson(
       "tiles": ["${style.tileUrl}"],
       "tileSize": 256,
       "attribution": "${style.attribution}"
-    }$overlaySource$radarSource$soilMoistureSource$riverDischargeSource
+    }$sentinel2Source$sentinel1SarSource$overlaySource$radarSource
   },
   "layers": [
     {
       "id": "base",
       "type": "raster",
       "source": "base"
-    }$overlayLayer$radarLayer$soilMoistureLayer$riverDischargeLayer
+    }$sentinel2Layer$sentinel1SarLayer$overlayLayer$radarLayer
   ]
 }
     """.trimIndent()
 }
+
 
 // ─── Constants ──────────────────────────────────────────────
 

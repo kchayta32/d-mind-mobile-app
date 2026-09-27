@@ -11,6 +11,8 @@ interface MapLayersProps {
   droughtLayers: string[];
   floodTimeFilter: string;
   showFloodFrequency: boolean;
+  showSentinel2TrueColor?: boolean;
+  showSentinel1Sar?: boolean;
   showRainOverlay: boolean;
   rainData: RainViewerData | null;
   rainOverlayType: 'radar' | 'satellite';
@@ -28,6 +30,8 @@ export const MapLayers: React.FC<MapLayersProps> = ({
   droughtLayers,
   floodTimeFilter,
   showFloodFrequency,
+  showSentinel2TrueColor = false,
+  showSentinel1Sar = false,
   showRainOverlay,
   rainData,
   rainOverlayType,
@@ -61,11 +65,13 @@ export const MapLayers: React.FC<MapLayersProps> = ({
         />
       )}
 
-      {/* Raster layers for flood */}
+      {/* Raster layers for flood (with Sentinel-1 SAR and Sentinel-2 True Color) */}
       {selectedType === 'flood' && (
         <FloodWMSLayers
           timeFilter={floodTimeFilter}
           showFrequency={showFloodFrequency}
+          showSentinel2TrueColor={showSentinel2TrueColor}
+          showSentinel1Sar={showSentinel1Sar}
           opacity={layerOpacity}
           tileFormat={tileFormat}
         />

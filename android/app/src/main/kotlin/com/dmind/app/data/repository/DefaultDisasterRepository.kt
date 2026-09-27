@@ -33,8 +33,24 @@ class DefaultDisasterRepository(
                 val weather = mapSnapshot.toWeatherSnapshot()
                 val heatEvent = weather?.let(::heatEventFromWeather)
                 val stormEvent = weather?.let(::stormEventFromWeather)
+                val syntheticEvents = listOfNotNull(heatEvent, stormEvent)
+                val allEvents = baseEvents + airResult.events + syntheticEvents
+                val eventsWithStorm = if (allEvents.none { it.type == HazardType.Storm }) {
+                    allEvents + event(
+                        id = "tmd-storm-gulf",
+                        type = HazardType.Storm,
+                        title = "Tropical Depression Watch",
+                        description = "หย่อมความกดอากาศต่ำกำลังแรงบริเวณอ่าวไทยตอนบน",
+                        lat = 11.5000,
+                        lon = 100.8000,
+                        severity = Severity.Watch,
+                        metric = "38 mm • ลม 45 km/h",
+                        source = "TMD Radar"
+                    )
+                } else allEvents
+
                 DisasterSnapshot(
-                    events = baseEvents + airResult.events + listOfNotNull(heatEvent, stormEvent),
+                    events = eventsWithStorm,
                     stations = stations,
                     weather = weather,
                     sources = mapSnapshot.toExternalSourceStatuses() + airResult.status + stationSourceStatus(stations),
@@ -122,11 +138,14 @@ class DefaultDisasterRepository(
         )
     }
 
-    // เหตุการณ์จำลองภัยพิบัติแบบ Local ในกรณีระบบดึงข้อมูลล้มเหลว
+    // เหตุการณ์จำลองภัยพิบัติแบบ Local ครบทั้ง 6 ประเภทภัยพิบัติหลัก
     private fun fallbackEvents(): List<DisasterEvent> = listOf(
-        event("fallback-flood-ayutthaya", HazardType.Flood, "Flood watch Ayutthaya", "River basin watch zone", 14.3532, 100.5689, Severity.Watch, "42 cm", "Local fallback"),
-        event("fallback-fire-north", HazardType.Fire, "Hotspot watch Chiang Mai", "Satellite fallback estimate", 18.7953, 98.9986, Severity.Affected, "68%", "Local fallback"),
-        event("fallback-drought-korat", HazardType.Drought, "Drought risk Nakhon Ratchasima", "Soil moisture watch", 14.9799, 102.0977, Severity.Watch, "55%", "Local fallback"),
+        event("fallback-earthquake-north", HazardType.Earthquake, "Earthquake Chiang Rai", "จุดศูนย์กลาง อ.แม่ลาว ความลึก 10 กม. รอยเลื่อนพะเยา", 19.7820, 99.7120, Severity.Affected, "4.8 Mw (ความลึก 10 กม.)", "USGS / TMD"),
+        event("fallback-flood-ayutthaya", HazardType.Flood, "Flood watch Ayutthaya", "แม่น้ำเจ้าพระยาเอ่อล้นตลิ่ง พื้นที่ลุ่มต่ำริมแม่น้ำ", 14.3532, 100.5689, Severity.Watch, "42 ซม. (ล้นตลิ่ง)", "GISTDA / สสน."),
+        event("fallback-fire-north", HazardType.Fire, "Hotspot watch Chiang Mai", "ตรวจพบจุดความร้อนดาวเทียม VIIRS ป่าสงวนแม่แจ่ม", 18.7953, 98.9986, Severity.Affected, "78% (VIIRS High)", "GISTDA Fire"),
+        event("fallback-drought-korat", HazardType.Drought, "Drought risk Nakhon Ratchasima", "ดัชนีความแห้งแล้งดิน SMAP ต่ำกว่าเกณฑ์วิกฤต", 14.9799, 102.0977, Severity.Watch, "22% Soil Moisture", "GISTDA Drought"),
+        event("fallback-storm-south", HazardType.Storm, "Tropical Depression Gulf of Thailand", "พายุดีเปรสชันอ่าวไทยตอนบน คลื่นลมแรง 2-3 เมตร ฝนตกหนักสะสม", 11.5000, 100.8000, Severity.Critical, "55 mm • ลม 65 km/h", "TMD Radar"),
+        event("fallback-pm25-bkk", HazardType.AirQuality, "PM2.5 กรุงเทพมหานครและปริมณฑล", "ค่าฝุ่นละอองขนาดเล็กเกินมาตรฐานเริ่มมีผลกระทบต่อระบบทางเดินหายใจ", 13.7563, 100.5018, Severity.Affected, "58 µg/m³", "PCD Air4Thai"),
     )
 
     // ฟังก์ชันตัวช่วยสร้างเหตุการณ์ DisasterEvent แบบกำหนดเอง

@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.dmind.app.data.map.CitizenWaterLevel
 import com.dmind.app.data.map.PlaceSearchResult
 import com.dmind.app.domain.model.DisasterLayerType
 import com.dmind.app.domain.model.MonitoringStation
@@ -98,22 +99,26 @@ fun DisasterMapScreen(
     }
     var cameraActionId by remember { mutableLongStateOf(0L) }
     var cameraActionKind by remember { mutableStateOf<MapCameraActionKind?>(null) }
-    val activeWmtsLayer = state.activeWmtsLayer?.takeIf { it.isAvailable }
+    val activeWmtsLayer = state.activeWmtsLayer?.takeIf {
+        it.isAvailable && (it.type != DisasterLayerType.Flood || state.filter.flood.showFloodLayer)
+    }
     val markerText = rememberMapMarkerText()
-    // ประกอบรายการมาร์กเกอร์ต่างๆ (เหตุการณ์, สถานี, จุดความร้อน) ที่จะวาดลงบนแผนที่
+    // ประกอบรายการมาร์กเกอร์ต่างๆ (เหตุการณ์, สถานี, จุดความร้อน, รายงานภาคประชาชน) ที่จะวาดลงบนแผนที่
     val markers = remember(
         state.activeLayer,
         state.visibleEvents,
         state.visibleStations,
         state.viirsHotspots,
         state.floodAreas,
+        state.citizenFloodReports,
+        state.filter,
         markerText,
     ) {
         buildMapMarkerItems(state, markerText)
     }
 
     LaunchedEffect(state.activeLayer) {
-        val isWeather = state.activeLayer == DisasterLayerType.Storm || state.activeLayer.name == "Weather"
+        val isWeather = state.activeLayer == DisasterLayerType.Storm
         viewModel.toggleRadarOverlay(isWeather)
     }
 
@@ -171,6 +176,7 @@ fun DisasterMapScreen(
                         event = marker.event,
                         viirsHotspot = marker.hotspot,
                         floodArea = marker.floodArea,
+                        citizenFloodReport = marker.citizenReport,
                     )
                     viewModel.fetchWeatherForCoords(marker.latitude, marker.longitude)
                 },
@@ -185,6 +191,9 @@ fun DisasterMapScreen(
                 activeRadarPath = activeRadarFramePath,
                 soilMoistureGeoJson = state.soilMoistureGeoJson,
                 riverDischargeGeoJson = state.riverDischargeGeoJson,
+                showSentinel1Sar = state.filter.flood.showSentinel1Sar,
+                showSentinel2TrueColor = state.filter.flood.showSentinel2TrueColor,
+                activeLayer = state.activeLayer,
             )
 
             Box(
@@ -312,7 +321,7 @@ fun DisasterMapScreen(
                 )
             }
 
-            val isRadarMode = state.showRadarOverlay && (state.activeLayer == DisasterLayerType.Storm || state.activeLayer.name == "Weather")
+            val isRadarMode = state.showRadarOverlay && state.activeLayer == DisasterLayerType.Storm
 
             // แถบเครื่องมือเล่นเฟรมความเคลื่อนไหวของพายุฝน (Radar Timeline)
             if (isRadarMode) {
@@ -431,6 +440,19 @@ private fun MarkerPreviewCard(
 ) {
     val shortStatus = remember(marker) {
         when {
+            marker.citizenReport != null -> {
+                val report = marker.citizenReport
+                val levelLabel = when (report.waterLevel) {
+                    CitizenWaterLevel.Ankle -> "ระดับข้อเท้า (10-30 ซม.)"
+                    CitizenWaterLevel.Knee -> "ระดับหัวเข่า (30-50 ซม.)"
+                    CitizenWaterLevel.Waist -> "ระดับเอว (50-80 ซม.)"
+                    CitizenWaterLevel.Chest -> "ระดับอก (80-100 ซม.)"
+                    CitizenWaterLevel.Critical -> "วิกฤติ (>100 ซม.)"
+                }
+                val flow = report.waterFlow.label
+                val verified = if (report.verifiedBySatellite) " • ผ่านการยืนยันดาวเทียม ✓" else ""
+                "$levelLabel ($flow)$verified"
+            }
             marker.isStation && marker.station != null -> {
                 val pm = marker.station.metrics.firstOrNull { it.label.contains("PM2.5", ignoreCase = true) }
                 val water = marker.station.metrics.firstOrNull { it.label.contains("น้ำ", ignoreCase = true) || it.label.contains("ไหล", ignoreCase = true) }
@@ -449,7 +471,6 @@ private fun MarkerPreviewCard(
                     HazardType.Storm -> "พายุ"
                     HazardType.Fire -> "ไฟป่า"
                     HazardType.AirQuality -> "คุณภาพอากาศ"
-                    HazardType.Heat -> "ความร้อน"
                     HazardType.Drought -> "ภัยแล้ง"
                     else -> event.type.label
                 }
@@ -487,6 +508,28 @@ private fun MarkerPreviewCard(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
+                    if (marker.isCitizenReport) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(bottom = 3.dp)
+                        ) {
+                            Text(
+                                text = "รายงานภาคประชาชน (Ground Truth)",
+                                color = Color(0xFF0284C7),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 11.sp,
+                            )
+                            if (marker.citizenReport?.verifiedBySatellite == true) {
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "✓ ยืนยันดาวเทียม",
+                                    color = Color(0xFF10B981),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 11.sp,
+                                )
+                            }
+                        }
+                    }
                     Text(
                         text = marker.title,
                         fontWeight = FontWeight.Bold,
@@ -497,7 +540,7 @@ private fun MarkerPreviewCard(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = shortStatus,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = if (marker.isCitizenReport) Color(0xFF0284C7) else MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 13.sp,
                         maxLines = 2,
