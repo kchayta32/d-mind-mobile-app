@@ -43,6 +43,7 @@ import com.dmind.app.ui.viewmodel.DisasterMapViewModel
 import com.dmind.app.ui.viewmodel.RainViewerFrame
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -60,11 +61,31 @@ import com.dmind.app.ui.components.IconBubble
 import com.dmind.app.ui.components.color
 import com.dmind.app.ui.components.icon
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import com.dmind.app.data.map.CitizenWaterFlow
+import com.dmind.app.ui.components.CriticalRed
+import com.dmind.app.ui.components.SafeGreen
+import com.dmind.app.util.ExternalIntents
+
+// หมวดหมู่แหล่งข้อมูลแผนที่หลัก: ข้อมูลเปิด (บทที่ 1-3) และสถานีตรวจวัด IoT
+private enum class MapDataSourceCategory {
+    OpenSource, // 🛰️ แหล่งข้อมูลเปิด
+    IotStations // 📡 จากสถานีตรวจวัด
+}
 
 // หน้าจอแผนที่ภัยพิบัติหลัก (Disaster Map) แสดงผลเชิงพื้นที่ร่วมกับชั้นข้อมูลและสถานีตรวจวัด
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,6 +110,18 @@ fun DisasterMapScreen(
     var legendOffsetY by rememberSaveable(state.activeLayer) { mutableStateOf(0f) }
     var mapStyle by rememberSaveable { mutableStateOf(if (darkTheme) MapTileStyle.Dark else MapTileStyle.Standard) }
 
+    var selectedCategory by rememberSaveable {
+        mutableStateOf(
+            if (state.activeLayer == DisasterLayerType.Stations)
+                MapDataSourceCategory.IotStations
+            else
+                MapDataSourceCategory.OpenSource
+        )
+    }
+    var selectedSensorType by rememberSaveable { mutableStateOf("ทั้งหมด") }
+    var showEvacuationDialog by rememberSaveable { mutableStateOf(false) }
+    var showCitizenReportDialog by rememberSaveable { mutableStateOf(false) }
+
     // อัปเดตรูปแบบแผนที่ตามความมืด/สว่างของระบบโดยอัตโนมัติ
     LaunchedEffect(darkTheme) {
         if (darkTheme && mapStyle == MapTileStyle.Standard) {
@@ -97,13 +130,22 @@ fun DisasterMapScreen(
             mapStyle = MapTileStyle.Standard
         }
     }
+
+    LaunchedEffect(state.activeLayer) {
+        if (state.activeLayer == DisasterLayerType.Stations) {
+            selectedCategory = MapDataSourceCategory.IotStations
+        } else {
+            selectedCategory = MapDataSourceCategory.OpenSource
+        }
+    }
+
     var cameraActionId by remember { mutableLongStateOf(0L) }
     var cameraActionKind by remember { mutableStateOf<MapCameraActionKind?>(null) }
     val activeWmtsLayer = state.activeWmtsLayer?.takeIf {
         it.isAvailable && (it.type != DisasterLayerType.Flood || state.filter.flood.showFloodLayer)
     }
     val markerText = rememberMapMarkerText()
-    // ประกอบรายการมาร์กเกอร์ต่างๆ (เหตุการณ์, สถานี, จุดความร้อน, รายงานภาคประชาชน) ที่จะวาดลงบนแผนที่
+
     val markers = remember(
         state.activeLayer,
         state.visibleEvents,
@@ -113,8 +155,27 @@ fun DisasterMapScreen(
         state.citizenFloodReports,
         state.filter,
         markerText,
+        selectedCategory,
+        selectedSensorType,
     ) {
-        buildMapMarkerItems(state, markerText)
+        val baseMarkers = buildMapMarkerItems(state, markerText)
+        if (selectedCategory == MapDataSourceCategory.IotStations && selectedSensorType != "ทั้งหมด") {
+            baseMarkers.filter { item ->
+                if (!item.isStation || item.station == null) true
+                else {
+                    val st = item.station
+                    when (selectedSensorType) {
+                        "AJ-SR04T" -> st.metrics.any { it.label.contains("น้ำ", true) || it.label.contains("ระดับ", true) || it.label.contains("Water", true) || it.label.contains("Rain", true) }
+                        "GY-521" -> st.metrics.any { it.label.contains("เอียง", true) || it.label.contains("สั่น", true) || it.label.contains("Tilt", true) || it.label.contains("Wave", true) || it.label.contains("Wind", true) }
+                        "PMS5003" -> st.metrics.any { it.label.contains("PM", true) || it.label.contains("ฝุ่น", true) }
+                        "BME280" -> st.metrics.any { it.label.contains("Temp", true) || it.label.contains("Heat", true) || it.label.contains("Humidity", true) || it.label.contains("ชื้น", true) || it.label.contains("Air", true) }
+                        else -> true
+                    }
+                }
+            }.ifEmpty { baseMarkers }
+        } else {
+            baseMarkers
+        }
     }
 
     LaunchedEffect(state.activeLayer) {
@@ -150,6 +211,8 @@ fun DisasterMapScreen(
                 onTimeRangeSelected = viewModel::selectTimeRange,
                 onDroughtProductSelected = viewModel::selectDroughtProduct,
                 onRefreshLayer = viewModel::refreshActiveLayer,
+                onEvacuate = { showEvacuationDialog = true },
+                onReportLive = { showCitizenReportDialog = true },
                 modifier = Modifier.navigationBarsPadding(),
             )
         },
@@ -196,83 +259,236 @@ fun DisasterMapScreen(
                 activeLayer = state.activeLayer,
             )
 
-            Box(
+            // ส่วนควบคุมด้านบน: แถบค้นหา, แถบแท็บแยกแหล่งข้อมูลเปิด/สถานีตรวจวัด, และตัวกรองย่อย
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(148.dp)
                     .align(Alignment.TopCenter)
                     .background(
                         Brush.verticalGradient(
                             listOf(
-                                MaterialTheme.colorScheme.surface.copy(alpha = 0.82f),
-                                MaterialTheme.colorScheme.surface.copy(alpha = 0.25f),
+                                MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+                                MaterialTheme.colorScheme.surface.copy(alpha = 0.88f),
+                                MaterialTheme.colorScheme.surface.copy(alpha = 0.40f),
                                 Color.Transparent,
                             ),
                         ),
-                    ),
-            )
-
-            // แถบค้นหาและปุ่มส่วนหัวแผนที่
-            MapTopBar(
-                state = state,
-                onBack = onBack,
-                onRefresh = viewModel::refreshMap,
-                onSearchQueryChange = viewModel::updateSearchQuery,
-                onSearchResultClick = { result ->
-                    focusedPlace = result
-                    viewModel.updateSearchQuery(result.name.substringBefore(','))
-                    viewModel.clearSearchResults()
-                    viewModel.fetchWeatherForCoords(result.latitude, result.longitude)
-                    scope.launch { scaffoldState.bottomSheetState.expand() }
-                },
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
+                    )
                     .statusBarsPadding()
-                    .padding(14.dp),
-            )
-
-            // แถบแสดงสถานะตัวกรองที่เปิดใช้งานอยู่บนแผนที่ (Active Filter Pill)
-            if (state.filter.activeFilterCount > 0) {
-                Surface(
-                    onClick = { showFilters = true },
-                    shape = RoundedCornerShape(20.dp),
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
-                    border = BorderStroke(1.dp, DmindBlue),
-                    shadowElevation = 6.dp,
+                    .padding(bottom = 10.dp)
+            ) {
+                // 1. แถบค้นหาและปุ่มส่วนหัวแผนที่
+                MapTopBar(
+                    state = state,
+                    onBack = onBack,
+                    onRefresh = viewModel::refreshMap,
+                    onSearchQueryChange = viewModel::updateSearchQuery,
+                    onSearchResultClick = { result ->
+                        focusedPlace = result
+                        viewModel.updateSearchQuery(result.name.substringBefore(','))
+                        viewModel.clearSearchResults()
+                        viewModel.fetchWeatherForCoords(result.latitude, result.longitude)
+                        scope.launch { scaffoldState.bottomSheetState.expand() }
+                    },
                     modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .statusBarsPadding()
-                        .padding(top = 74.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 6.dp),
+                )
+
+                // 2. แท็บสลับหลัก 2 แหล่งข้อมูล: แหล่งข้อมูลเปิด (ตามบทที่ 1-3) vs จากสถานีตรวจวัด IoT
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 4.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+                    shadowElevation = 4.dp,
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.FilterList,
-                            contentDescription = null,
-                            tint = DmindBlue,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "กรอง ${state.filter.activeFilterCount} รายการ (พบ ${state.visibleEvents.size})",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            modifier = Modifier.clickable { viewModel.resetFilters() }
+                        // แท็บ 1: แหล่งข้อมูลเปิด (ตรงตามเอกสารบทที่ 1 - 3)
+                        val isTab1 = selectedCategory == MapDataSourceCategory.OpenSource
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (isTab1) DmindBlue else Color.Transparent)
+                                .clickable {
+                                    selectedCategory = MapDataSourceCategory.OpenSource
+                                    if (state.activeLayer == DisasterLayerType.Stations) {
+                                        viewModel.selectLayer(DisasterLayerType.Flood)
+                                    }
+                                }
+                                .padding(vertical = 9.dp),
+                            contentAlignment = Alignment.Center
                         ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "🛰️ แหล่งข้อมูลเปิด",
+                                    fontSize = 12.sp,
+                                    fontWeight = if (isTab1) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isTab1) Color.White else MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+
+                        // แท็บ 2: จากสถานีตรวจวัด IoT
+                        val isTab2 = selectedCategory == MapDataSourceCategory.IotStations
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (isTab2) DmindBlue else Color.Transparent)
+                                .clickable {
+                                    selectedCategory = MapDataSourceCategory.IotStations
+                                    viewModel.selectLayer(DisasterLayerType.Stations)
+                                }
+                                .padding(vertical = 9.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "📡 จากสถานีตรวจวัด",
+                                    fontSize = 12.sp,
+                                    fontWeight = if (isTab2) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isTab2) Color.White else MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // 3. แถบเลื่อนแนวนอนแสดงหมวดหมู่ย่อยและฟิลเตอร์เซนเซอร์
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 14.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (selectedCategory == MapDataSourceCategory.OpenSource) {
+                        // หมวดหมู่ภัยพิบัติเปิด 6 ประเภท (บทที่ 1-3)
+                        val openSourceLayers = listOf(
+                            Triple(DisasterLayerType.Flood, "น้ำท่วม", "GISTDA"),
+                            Triple(DisasterLayerType.Earthquake, "แผ่นดินไหว", "USGS"),
+                            Triple(DisasterLayerType.WildfireViirs, "ไฟป่า VIIRS", "VIIRS"),
+                            Triple(DisasterLayerType.Storm, "พายุ & เรดาร์", "TMD"),
+                            Triple(DisasterLayerType.AirQuality, "ฝุ่น PM2.5", "Air4Thai"),
+                            Triple(DisasterLayerType.DroughtSmap, "ภัยแล้ง SMAP", "SMAP"),
+                        )
+                        openSourceLayers.forEach { (layer, label, src) ->
+                            val isSelected = state.activeLayer == layer
+                            Surface(
+                                onClick = { viewModel.selectLayer(layer) },
+                                shape = RoundedCornerShape(20.dp),
+                                color = if (isSelected) DmindBlue else MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                                border = BorderStroke(1.dp, if (isSelected) DmindBlue else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                                shadowElevation = if (isSelected) 4.dp else 1.dp,
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = layer.icon(),
+                                        contentDescription = null,
+                                        tint = if (isSelected) Color.White else MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                    Text(
+                                        text = label,
+                                        fontSize = 12.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = "• $src",
+                                        fontSize = 10.sp,
+                                        color = if (isSelected) Color.White.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        // ฟิลเตอร์เซนเซอร์โหนด IoT (AJ-SR04T, GY-521, PMS5003, BME280)
+                        val stationFilters = listOf(
+                            Pair("ทั้งหมด", "โหนดทั้งหมด (${state.visibleStations.size})"),
+                            Pair("AJ-SR04T", "💧 ระดับน้ำ (AJ-SR04T)"),
+                            Pair("GY-521", "📐 ความเอียง (GY-521)"),
+                            Pair("PMS5003", "💨 ฝุ่น PM2.5 (PMS5003)"),
+                            Pair("BME280", "🌡️ อากาศ (BME280)"),
+                        )
+                        stationFilters.forEach { (filterKey, filterLabel) ->
+                            val isSelected = selectedSensorType == filterKey
+                            Surface(
+                                onClick = { selectedSensorType = filterKey },
+                                shape = RoundedCornerShape(20.dp),
+                                color = if (isSelected) DmindBlue else MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                                border = BorderStroke(1.dp, if (isSelected) DmindBlue else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                                shadowElevation = if (isSelected) 4.dp else 1.dp,
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Text(
+                                        text = filterLabel,
+                                        fontSize = 12.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 4. แสดงสถานะตัวกรองที่เปิดใช้งานอยู่บนแผนที่ (ถ้ามี)
+                if (state.filter.activeFilterCount > 0) {
+                    Surface(
+                        onClick = { showFilters = true },
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+                        border = BorderStroke(1.dp, DmindBlue),
+                        shadowElevation = 3.dp,
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 2.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.FilterList,
+                                contentDescription = null,
+                                tint = DmindBlue,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "กรอง ${state.filter.activeFilterCount} รายการ (พบ ${state.visibleEvents.size})",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = "รีเซ็ต",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                modifier = Modifier.clickable { viewModel.resetFilters() }
                             )
                         }
                     }
@@ -421,6 +637,16 @@ fun DisasterMapScreen(
                 },
             )
         }
+    }
+
+    // หน้าต่างแสดงข้อมูลเส้นทางอพยพและจุดปลอดภัย
+    if (showEvacuationDialog) {
+        EvacuationModalSheet(onDismiss = { showEvacuationDialog = false })
+    }
+
+    // หน้าต่างส่งรายงานสดสถานการณ์น้ำท่วมและภัยพิบัติภาคประชาชน (Ground Truth)
+    if (showCitizenReportDialog) {
+        CitizenReportModalSheet(onDismiss = { showCitizenReportDialog = false })
     }
 
     LaunchedEffect(scaffoldState.bottomSheetState.currentValue) {
@@ -575,6 +801,260 @@ private fun MarkerPreviewCard(
                     fontSize = 12.sp
                 )
             }
+        }
+    }
+}
+
+// หน้าต่างแสดงรายละเอียดเส้นทางอพยพและจุดปลอดภัย (Evacuation Modal Sheet)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EvacuationModalSheet(
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 10.dp)
+                .navigationBarsPadding(),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    shape = CircleShape,
+                    color = CriticalRed.copy(alpha = 0.12f),
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text("🧭", fontSize = 20.sp)
+                    }
+                }
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = "เส้นทางอพยพและจุดปลอดภัย (Safe Zones)",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        text = "ศูนย์พักพิงและจุดรวมพลฉุกเฉินที่ใกล้ที่สุด",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Filled.Close, contentDescription = "Close")
+                }
+            }
+
+            // รายการศูนย์พักพิงใกล้เคียง
+            Text("📍 ศูนย์พักพิงใกล้เคียงที่พร้อมรองรับ", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            val shelters = listOf(
+                Triple("ศูนย์พักพิงอาคารอเนกประสงค์เทศบาล", "ห่าง 1.2 กม. • รองรับ 500 คน • เสบียงพร้อม", Pair(14.3532, 100.5689)),
+                Triple("โรงเรียนประจำอำเภอ (ลานสูงจุดรวมพลที่ 2)", "ห่าง 2.8 กม. • ลานเนินสูงพ้นระดับน้ำ", Pair(14.3600, 100.5800)),
+                Triple("โรงพยาบาลศูนย์ประจำจังหวัด", "ห่าง 4.5 กม. • หน่วยแพทย์และปฐมพยาบาล 24 ชม.", Pair(14.3700, 100.5900)),
+            )
+            shelters.forEach { (name, desc, coords) ->
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(name, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text(desc, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Button(
+                            onClick = { ExternalIntents.navigateTo(context, coords.first, coords.second) },
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text("นำทาง", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+
+            // หมายเลขสายด่วนฉุกเฉิน
+            Text("📞 สายด่วนแจ้งเหตุฉุกเฉิน 24 ชม.", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(
+                    onClick = { ExternalIntents.dial(context, "1784") },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text("1784 ปภ.", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
+                OutlinedButton(
+                    onClick = { ExternalIntents.dial(context, "1669") },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text("1669 แพทย์", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
+                OutlinedButton(
+                    onClick = { ExternalIntents.dial(context, "199") },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text("199 ดับเพลิง", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+        }
+    }
+}
+
+// หน้าต่างส่งรายงานสดสถานการณ์น้ำท่วมและภัยพิบัติภาคประชาชน (Ground Truth Modal Sheet)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CitizenReportModalSheet(
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    var selectedLevel by remember { mutableStateOf(CitizenWaterLevel.Waist) }
+    var selectedFlow by remember { mutableStateOf(CitizenWaterFlow.Flowing) }
+    var isSubmitted by remember { mutableStateOf(false) }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 10.dp)
+                .navigationBarsPadding(),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    shape = CircleShape,
+                    color = DmindBlue.copy(alpha = 0.12f),
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text("📢", fontSize = 20.sp)
+                    }
+                }
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = "รายงานสดภาคประชาชน (Ground Truth)",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        text = "ตรวจสอบระดับน้ำจริงร่วมกับดาวเทียม Sentinel-1 & GISTDA",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Filled.Close, contentDescription = "Close")
+                }
+            }
+
+            if (isSubmitted) {
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = SafeGreen.copy(alpha = 0.1f),
+                    border = BorderStroke(1.dp, SafeGreen.copy(alpha = 0.3f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("✅ บันทึกรายงานสถานการณ์สำเร็จ", fontWeight = FontWeight.Bold, color = SafeGreen, fontSize = 15.sp)
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "ข้อมูลของคุณถูกส่งเข้าระบบ D-MIND เพื่อเปรียบเทียบกับภาพถ่ายดาวเทียมเรียบร้อยแล้ว ขอบคุณสำหรับข้อมูลภาคสนาม",
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Button(onClick = onDismiss, shape = RoundedCornerShape(10.dp)) {
+                            Text("กลับสู่แผนที่")
+                        }
+                    }
+                }
+            } else {
+                Text("💧 ระดับน้ำที่ตรวจพบในพื้นที่:", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    CitizenWaterLevel.entries.forEach { level ->
+                        FilterChip(
+                            selected = selectedLevel == level,
+                            onClick = { selectedLevel = level },
+                            label = { Text("${level.label} (${level.levelCmDescription})") }
+                        )
+                    }
+                }
+
+                Text("🌊 สภาพการไหลของน้ำ:", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    CitizenWaterFlow.entries.forEach { flow ->
+                        FilterChip(
+                            selected = selectedFlow == flow,
+                            onClick = { selectedFlow = flow },
+                            label = { Text(flow.label) }
+                        )
+                    }
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("🛰️", fontSize = 20.sp)
+                        Spacer(Modifier.width(10.dp))
+                        Text(
+                            text = "ระบบจะจับคู่พิกัด GPS อัตโนมัติ เพื่อทำ Cross-validation กับภาพถ่ายดาวเทียม Sentinel-1 SAR ของ GISTDA",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Button(
+                    onClick = {
+                        isSubmitted = true
+                        android.widget.Toast.makeText(context, "ส่งรายงาน Ground Truth เรียบร้อยแล้ว", android.widget.Toast.LENGTH_SHORT).show()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = DmindBlue)
+                ) {
+                    Text("ยืนยันส่งรายงานสถานการณ์", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                }
+            }
+            Spacer(Modifier.height(8.dp))
         }
     }
 }

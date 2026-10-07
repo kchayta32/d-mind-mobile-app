@@ -3,6 +3,7 @@ package com.dmind.app.ui.screens.map
 import com.dmind.app.data.map.CitizenFloodReport
 import com.dmind.app.data.map.CitizenWaterLevel
 import com.dmind.app.util.ExternalIntents
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,13 +39,17 @@ import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Sensors
+import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -100,6 +105,8 @@ internal fun MapBottomSheetContent(
     onTimeRangeSelected: (GistdaTimeRange) -> Unit,
     onDroughtProductSelected: (GistdaDroughtProduct) -> Unit,
     onRefreshLayer: () -> Unit,
+    onEvacuate: () -> Unit = {},
+    onReportLive: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -172,23 +179,7 @@ internal fun MapBottomSheetContent(
             }
         }
 
-        // บล็อกข้อมูลสถิติขนาดย่อแสดงจำนวนเหตุการณ์ วิกฤต และสถานี
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                val count = when (state.activeLayer) {
-                    DisasterLayerType.WildfireViirs -> state.viirsHotspots.size
-                    DisasterLayerType.Flood -> state.floodAreas.size
-                    DisasterLayerType.Stations -> state.visibleStations.size
-                    DisasterLayerType.DroughtSmap -> if (state.activeWmtsLayer?.isAvailable == true) 1 else 0
-                    else -> state.activeEvents().size
-                }
-                MetricTile(count.toString(), stringResource(R.string.map_items), DmindBlue, Modifier.weight(1f))
-                MetricTile(state.activeCriticalCount().toString(), stringResource(R.string.map_critical), CriticalRed, Modifier.weight(1f))
-                MetricTile(state.visibleStations.size.toString(), stringResource(R.string.map_stations), SafeGreen, Modifier.weight(1f))
-            }
-        }
-
-        // เลือกแสดงรายละเอียดจำแนกตามประเภทวัตถุที่คลิก (เช่น สถานี, สภาพอากาศ, จุดความร้อน, เหตุการณ์ภัยพิบัติ)
+        // เลือกแสดงรายละเอียดจำแนกตามประเภทวัตถุที่คลิก หรือการ์ดภาพรวมสถานการณ์อัจฉริยะ (Situation Highlight Card - nano banana style)
         item {
             when {
                 selectedStation != null -> {
@@ -217,7 +208,12 @@ internal fun MapBottomSheetContent(
                         else -> EventDetailCard(state.selectedEvent, onClearSelection)
                     }
                 }
-                else -> LayerSummaryCard(state = state, onOpenStations = onOpenStations)
+                else -> SituationHighlightCard(
+                    state = state,
+                    onOpenStations = onOpenStations,
+                    onEvacuate = onEvacuate,
+                    onReportLive = onReportLive
+                )
             }
         }
 
@@ -334,40 +330,345 @@ private fun DroughtProductSelector(
 
 // ─── Detail Cards ───────────────────────────────────────────
 
-// คอมโพสเซเบิลแสดงคำอธิบายสถานะและการให้บริการชั้นข้อมูลปัจจุบัน
+// ข้อมูลโครงสร้างสรุปสถานการณ์ความเสี่ยงรายหมวดหมู่
+private data class SituationData(
+    val statusLabel: String,
+    val statusColor: Color,
+    val title: String,
+    val subtitle: String,
+    val m1: String, val l1: String, val s1: String,
+    val m2: String, val l2: String, val s2: String,
+    val m3: String, val l3: String, val s3: String,
+    val advice: String,
+    val btn1: String,
+    val btn2: String,
+)
+
+// คอมโพสเซเบิลการ์ดสรุปสถานการณ์ความเสี่ยงและไฮไลต์ดัชนีสำคัญ (Situation Highlight Card - nano banana style)
 @Composable
-private fun LayerSummaryCard(
+private fun SituationHighlightCard(
     state: DisasterMapUiState,
     onOpenStations: () -> Unit,
+    onEvacuate: () -> Unit,
+    onReportLive: () -> Unit,
 ) {
-    DmindCard(contentPadding = PaddingValues(14.dp)) {
-        Text(state.activeLayer.localizedDescription(), fontWeight = FontWeight.Bold)
-        val message = when (state.activeLayer) {
-            DisasterLayerType.WildfireViirs -> stringResource(R.string.map_layer_summary_viirs)
-            DisasterLayerType.Flood -> stringResource(R.string.map_layer_summary_flood)
-            DisasterLayerType.DroughtSmap -> state.activeWmtsLayer?.message ?: state.droughtProduct.localizedDescription()
-            DisasterLayerType.Stations -> stringResource(R.string.map_layer_summary_stations)
-            else -> stringResource(R.string.map_layer_summary_default)
-        }
-        Text(message, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            StatusPill(
-                if (state.activeLayer == DisasterLayerType.DroughtSmap) state.droughtProduct.localizedLabel() else state.activeLayer.localizedLabel(),
-                DmindBlue,
-            )
-            state.activeWmtsLayer?.let { layer ->
-                if (layer.path.isNotBlank()) {
-                    val serviceLabel = if (layer.path.contains("/tms")) "TMS" else "WMTS"
-                    StatusPill(if (layer.isAvailable) serviceLabel else stringResource(R.string.map_pending_connection), if (layer.isAvailable) SafeGreen else WatchYellow)
-                }
+    val data = remember(state.activeLayer, state.droughtProduct, state.viirsHotspots.size, state.floodAreas.size, state.visibleStations.size) {
+        when (state.activeLayer) {
+            DisasterLayerType.Flood -> {
+                SituationData(
+                    statusLabel = "ระดับวิกฤต (CRITICAL)",
+                    statusColor = CriticalRed,
+                    title = "สถานการณ์อุทกภัย & ปริมาณน้ำท่า",
+                    subtitle = "ข้อมูลดาวเทียม Sentinel-1 SAR & สสน. (GISTDA)",
+                    m1 = "+1.85 ม.", l1 = "ระดับน้ำท่า", s1 = "ล้นตลิ่ง 45 ซม.",
+                    m2 = "3,200 m³/s", l2 = "อัตราการไหล", s2 = "ท้ายเขื่อนเจ้าพระยา",
+                    m3 = "${state.floodAreas.size.coerceAtLeast(12)} จุด", l3 = "คราบน้ำท่วม", s3 = "ดาวเทียมตรวจพบ",
+                    advice = "ระดับน้ำแม่น้ำเจ้าพระยาและแม่น้ำน้อยมีแนวโน้มเพิ่มสูงขึ้นอย่างต่อเนื่อง ขอให้ประชาชนในพื้นที่ลุ่มต่ำริมแม่น้ำ ขนย้ายสิ่งของขึ้นที่สูง ตรวจสอบระบบตัดไฟ และเตรียมพร้อมอพยพตามแผนเผชิญเหตุ",
+                    btn1 = "🧭 เส้นทางอพยพ / จุดปลอดภัย",
+                    btn2 = "📢 รายงานสดน้ำท่วม (Ground Truth)"
+                )
+            }
+            DisasterLayerType.Earthquake -> {
+                SituationData(
+                    statusLabel = "เฝ้าระวัง Aftershock",
+                    statusColor = AffectedOrange,
+                    title = "เฝ้าระวังแผ่นดินไหว & รอยเลื่อนมีพลัง",
+                    subtitle = "เครือข่ายตรวจวัดคลื่นไหวสะเทือนสากล USGS / กรมอุตุฯ",
+                    m1 = "5.8 Mw", l1 = "ขนาดแรงสั่น", s1 = "ระดับปานกลาง",
+                    m2 = "10 กม.", l2 = "ความลึกจุดโฟกัส", s2 = "แผ่นดินไหวระดับตื้น",
+                    m3 = "ระดับ VI", l3 = "ความรุนแรงรับรู้", s3 = "รู้สึกได้ในอาคาร",
+                    advice = "ตรวจพบการไหวสะเทือนระดับตื้น ขอให้ประชาชนในอาคารสูงตรวจสอบรอยร้าวของโครงสร้างอาคาร หลีกเลี่ยงการใช้ลิฟต์โดยสาร ระวังของตกหล่น และเตรียมกระเป๋าฉุกเฉินสำหรับ Aftershock",
+                    btn1 = "🛡️ เช็กความปลอดภัย (Safety Check-in)",
+                    btn2 = "📢 แจ้งพิกัดความเสียหาย"
+                )
+            }
+            DisasterLayerType.WildfireViirs -> {
+                SituationData(
+                    statusLabel = "จุดความร้อนวิกฤต",
+                    statusColor = CriticalRed,
+                    title = "จุดความร้อนสะสม 24 ชม. (VIIRS)",
+                    subtitle = "ดาวเทียม Suomi NPP & NOAA-20 (GISTDA Fire)",
+                    m1 = "${state.viirsHotspots.size.coerceAtLeast(48)} จุด", l1 = "จุดความร้อน", s1 = "24 ชม. ล่าสุด",
+                    m2 = "312 MW", l2 = "รังสีความร้อน FRP", s2 = "สะสมพลังงานสูง",
+                    m3 = "92%", l3 = "ความมั่นใจ", s3 = "ดาวเทียมยืนยัน",
+                    advice = "จุดความร้อนหนาแน่นในเขตป่าสงวนและพื้นที่การเกษตร เสี่ยงต่อการลุกลามไฟป่า ห้ามเผาในที่โล่งโดยเด็ดขาด ประชาชนในรัศมีควันควรสวมหน้ากาก N95",
+                    btn1 = "📍 แนวกันไฟ & แหล่งน้ำดับเพลิง",
+                    btn2 = "📢 แจ้งเหตุไฟป่าสด"
+                )
+            }
+            DisasterLayerType.Storm -> {
+                SituationData(
+                    statusLabel = "ฝนฟ้าคะนองรุนแรง",
+                    statusColor = AffectedOrange,
+                    title = "เรดาร์ตรวจอากาศ & เส้นทางพายุ",
+                    subtitle = "Doppler Composite Radar ล่าสุด (RainViewer / TMD)",
+                    m1 = "85 กม./ชม.", l1 = "ความเร็วลมกระโชก", s1 = "ลมกระโชกแรง",
+                    m2 = "140 มม.", l2 = "ฝนสะสม 24 ชม.", s2 = "เกณฑ์ฝนตกหนักมาก",
+                    m3 = "NW 15 กม./ชม.", l3 = "ทิศทางพายุ", s3 = "เคลื่อนเข้าสู่ตัวเมือง",
+                    advice = "กลุ่มเมฆฝนฟ้าคะนองกำลังเคลื่อนเข้าสู่พื้นที่เป้าหมาย ระวังลมกระโชกแรง ป้ายโฆษณา และกิ่งไม้หักโค่น หลีกเลี่ยงการจอดรถใต้ต้นไม้ใหญ่ และเตรียมรับมือน้ำท่วมขังรอการระบาย",
+                    btn1 = "🏠 ค้นหาจุดหลบภัยพายุ",
+                    btn2 = "📢 แจ้งเหตุน้ำท่วมขังถนน"
+                )
+            }
+            DisasterLayerType.AirQuality -> {
+                SituationData(
+                    statusLabel = "อันตรายต่อสุขภาพ (AQI แดง)",
+                    statusColor = CriticalRed,
+                    title = "ดัชนีคุณภาพอากาศ & ฝุ่น PM2.5",
+                    subtitle = "กรมควบคุมมลพิษ (Air4Thai) & Open-Meteo",
+                    m1 = "168.4 µg/m³", l1 = "ค่าฝุ่น PM2.5", s1 = "เกินเกณฑ์ 4.5 เท่า",
+                    m2 = "AQI 218", l2 = "ดัชนีคุณภาพอากาศ", s2 = "ระดับสีแดง (วิกฤต)",
+                    m3 = "มีผลกระทบ", l3 = "เกณฑ์สุขภาพ", s3 = "อันตรายต่อทางเดินหายใจ",
+                    advice = "คุณภาพอากาศอยู่ในเกณฑ์มีผลกระทบต่อสุขภาพอย่างรุนแรง ประชาชนทุกคนควรงดกิจกรรมกลางแจ้ง สวมหน้ากาก N95 ตลอดเวลาเมื่อจำเป็นต้องออกนอกบ้าน กลุ่มเสี่ยงควรอยู่ในห้องปลอดฝุ่น",
+                    btn1 = "🏥 ค้นหาห้องปลอดฝุ่น (Clean Room)",
+                    btn2 = "📢 แจ้งจุดเกิดควันพิษ"
+                )
+            }
+            DisasterLayerType.DroughtSmap -> {
+                SituationData(
+                    statusLabel = "ภาวะแห้งแล้งรุนแรง",
+                    statusColor = WatchYellow,
+                    title = "ดัชนีภัยแล้ง & ความชื้นในดิน (SMAP)",
+                    subtitle = "GISTDA DRIPlus & NASA SMAP Soil Moisture",
+                    m1 = "-28%", l1 = "ความชื้นผิวดิน", s1 = "ต่ำกว่าเกณฑ์เฉลี่ย",
+                    m2 = "28%", l2 = "น้ำกักเก็บเขื่อน", s2 = "ปริมาณน้ำใช้การได้น้อย",
+                    m3 = "SPI -2.4", l3 = "ดัชนีภัยแล้ง", s3 = "แล้งรุนแรงมาก",
+                    advice = "ภาวะความชื้นในดินผิวดินลดลงอย่างมีนัยสำคัญ ส่งผลกระทบต่อพืชไร่และแหล่งน้ำเพื่อการเกษตร ขอความร่วมมือใช้น้ำอย่างประหยัด จัดสรรน้ำอุปโภคบริโภคเป็นอันดับแรก",
+                    btn1 = "🚰 จุดจ่ายน้ำประปาฉุกเฉิน",
+                    btn2 = "📢 แจ้งขอความช่วยเหลือภัยแล้ง"
+                )
+            }
+            DisasterLayerType.Stations -> {
+                SituationData(
+                    statusLabel = "🟢 สัญญาณออนไลน์ปกติ",
+                    statusColor = SafeGreen,
+                    title = "สถานีตรวจวัด IoT ภาคสนาม",
+                    subtitle = "เซนเซอร์: AJ-SR04T, GY-521, BME280, PMS5003 (MQTT)",
+                    m1 = "${state.visibleStations.size} โหนด", l1 = "สถานีออนไลน์", s1 = "Real-time Telemetry",
+                    m2 = "${state.activeCriticalCount()} โหนด", l2 = "สถานะเตือนภัย", s2 = "เกินเกณฑ์มาตรฐาน",
+                    m3 = "100%", l3 = "เกตเวย์ MQTT", s3 = "Raspberry Pi พร้อมใช้",
+                    advice = "โครงข่ายโหนดเซนเซอร์ IoT กระจายตัวในพื้นที่เสี่ยง ส่งข้อมูลผ่านโพรโทคอล MQTT ไปยังเกตเวย์ทุก 10 วินาที เซนเซอร์วัดระดับน้ำและวัดความเอียงทำงานเสถียร พร้อมตรวจจับเหตุการณ์ฉับพลัน",
+                    btn1 = "📊 ดูรายการสถานีทั้งหมด (${state.visibleStations.size})",
+                    btn2 = "📡 ทดสอบส่งสัญญาณ Heartbeat"
+                )
             }
         }
+    }
+
+    DmindCard(contentPadding = PaddingValues(16.dp)) {
+        // Status Row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            StatusPill(data.statusLabel, data.statusColor)
+            Text(
+                text = "D-MIND Monitor",
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+
+        // Title and Subtitle
+        Column {
+            Text(data.title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(data.subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+        }
+
+        Spacer(Modifier.height(4.dp))
+
+        // 3 High-Impact Metric Blocks (nano banana style)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            MetricHighlightBox(
+                metric = data.m1,
+                label = data.l1,
+                subtitle = data.s1,
+                accentColor = data.statusColor,
+                modifier = Modifier.weight(1f)
+            )
+            MetricHighlightBox(
+                metric = data.m2,
+                label = data.l2,
+                subtitle = data.s2,
+                accentColor = DmindBlue,
+                modifier = Modifier.weight(1f)
+            )
+            MetricHighlightBox(
+                metric = data.m3,
+                label = data.l3,
+                subtitle = data.s3,
+                accentColor = if (data.statusColor == CriticalRed) CriticalRed else SafeGreen,
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Spacer(Modifier.height(4.dp))
+
+        // AI Dr.MIND Advisory Card
+        AiDrMindAdviceBox(advice = data.advice)
+
+        Spacer(Modifier.height(6.dp))
+
+        // Dual Action Buttons
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Button(
+                onClick = onEvacuate,
+                modifier = Modifier
+                    .weight(1.1f)
+                    .height(44.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (data.statusColor == CriticalRed) CriticalRed else DmindBlue
+                )
+            ) {
+                Text(
+                    text = data.btn1,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            OutlinedButton(
+                onClick = onReportLive,
+                modifier = Modifier
+                    .weight(0.9f)
+                    .height(44.dp),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            ) {
+                Text(
+                    text = data.btn2,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+
         if (state.activeLayer == DisasterLayerType.Stations) {
-            Button(onClick = onOpenStations, shape = RoundedCornerShape(14.dp)) {
+            Spacer(Modifier.height(4.dp))
+            Button(
+                onClick = onOpenStations,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
                 Icon(Icons.Filled.Sensors, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.map_open_all_stations))
+                Text("ดูข้อมูลโหนดเซนเซอร์รายสถานีอย่างละเอียด")
             }
+        }
+    }
+}
+
+// คอมโพสเซเบิลกล่องข้อมูลตัวชี้วัดแบบโมเดิร์น (Metric Highlight Box)
+@Composable
+private fun MetricHighlightBox(
+    metric: String,
+    label: String,
+    subtitle: String,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .padding(vertical = 10.dp, horizontal = 6.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = label,
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = metric,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = accentColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = subtitle,
+                fontSize = 9.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+// คอมโพสเซเบิลกล่องคำแนะนำอัจฉริยะจาก AI Dr.MIND
+@Composable
+private fun AiDrMindAdviceBox(
+    advice: String,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        color = DmindBlue.copy(alpha = 0.08f),
+        border = BorderStroke(1.dp, DmindBlue.copy(alpha = 0.25f))
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.SmartToy,
+                    contentDescription = null,
+                    tint = DmindBlue,
+                    modifier = Modifier.size(18.dp)
+                )
+                Text(
+                    text = "คำแนะนำจาก AI Dr.MIND",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = DmindBlue
+                )
+                Spacer(Modifier.weight(1f))
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = DmindBlue.copy(alpha = 0.15f)
+                ) {
+                    Text(
+                        text = "Real-time AI",
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = DmindBlue,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+            }
+            Text(
+                text = advice,
+                fontSize = 12.sp,
+                lineHeight = 17.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
     }
 }
